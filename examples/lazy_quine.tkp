@@ -1,0 +1,37 @@
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#   Copyright 2023, Jonathan Hart
+#   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
+#   either version 3 of the License, or (at your option) any later version.
+#   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE. See the GNU General Public License for more details.
+#   You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+# Implement a quine the lazy way -- by reading its source code directly and dumping it like a pro.
+#   (this was used to help implement file input and to demonstrate its use, and not as a serious attempt at producing a quine)
+
+# encode the filename so it can be passed into to a C function which reads files.
+text fname
+  lazy_quine.tkp
+
+# Memory block for the file reader function to load the file into.
+extmem file
+
+const newline 10
+
+MAIN:
+  bind addr1 fname
+  tcall readfile
+  bind addr2 file
+  assign f addr2.element_bound
+  assign b 0
+  
+PRINTIT:
+  load byte a addr2 b
+  ccall printchar
+  add b 1
+  if b < f PRINTIT
+  assign a newline
+  ccall printchar
+  exit

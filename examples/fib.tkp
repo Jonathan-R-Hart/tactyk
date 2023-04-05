@@ -1,0 +1,76 @@
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#   Copyright 2023, Jonathan Hart
+#   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
+#   either version 3 of the License, or (at your option) any later version.
+#   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE. See the GNU General Public License for more details.
+#   You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+# TACTYK-PL example: Fibonacci Generator 
+
+# predefined memblocks containing text, Layout is a single-element which is large enough to contain the text 
+#   (plus some padding because tactyk is not [yet] smart enough to handle small words near the end of a struct)
+text header
+  Fibonacci Generator
+text footer
+  Done.
+
+# compile-time constants
+const newline 10
+const limit 20
+
+MAIN:
+  # attach the header to the context (address register to the register and releted properties to context variables)
+  bind addr1 header
+  assign b 0
+  
+  # Read the header one byte at a time and print each read byte using a C function named "printchar"
+  PRINT_HEADER_CHAR:
+  load byte a addr1 b
+  ccall printchar
+  add b 1
+  if b < header_size PRINT_HEADER_CHAR
+  
+  # print using a declared constant
+  assign a newline
+  ccall printchar
+  ccall printchar
+  
+  # set up a fibonacci generator
+  assign b 0
+  assign c 1
+  assign d 0
+    
+FIBLOOP:
+  swap b c
+  add b c
+  add d 1
+  
+  # capture the result and print it using the C function named "printint"
+  #   (it is also possible to convert it to decimal and print digits, but I think that doesn't need to be example'd here)
+  assign a b
+  ccall printint
+  assign a newline
+  ccall printchar
+  
+  if c < limit FIBLOOP
+  
+  # reprint the "lingering" newline char
+  ccall printchar
+  
+  # same procedure as was used to print the header
+  bind addr1 footer
+  assign b 0
+  
+PRINT_FOOTER_CHAR:
+  load byte a addr1 b
+  ccall printchar
+  add b 1
+  if b < footer_size PRINT_FOOTER_CHAR
+
+  assign a newline
+  ccall printchar
+
+  exit

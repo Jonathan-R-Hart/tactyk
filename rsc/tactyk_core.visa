@@ -1,0 +1,1276 @@
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#   Copyright 2023, Jonathan Hart
+#   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
+#   either version 3 of the License, or (at your option) any later version.
+#   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE. See the GNU General Public License for more details.
+#   You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+# TACTYK Core Virtual ISA
+# This is both the default configuration for TACTYK, as well as an example of how to use configuration-based virtual ISA specification
+
+# low-level type specifications
+# Types are determined with by testing.  Parameters for the first matching pattern are applied.
+
+# General handling
+#
+# This file is loaded into the visa interpreter and stored in data structures matching the indentation
+# Each (except for assembly code) is treated as a whitespace-delimited list of tokens.
+# Except for assembly code (the "code" keyword), alls are a command, followed by a list of parameters.
+#
+# Visa specification is a simple domain-specific language for configuring tactyk.  It has subroutines, conditional
+# exits, and an unusually sophisticated switch statement (substantially moreso than is typical of high level languages), but
+# lacks complex conditions and loops.  Its only operations are pre-defined operator:
+#   set variable          -- assign the content of a local variable to another local variable.  (for convenience and tersity, this is also the default operation)
+#                            (note:  local variables are shared across all handlers which are invoked directly or indirectly by an instruction handler)
+#   parse data            -- convert text to int (eventually this should expand to cover other types)
+#   resolve symbol        -- search specified symbol tables for a named entry.
+#   rewrite asm code      -- use string subtitution to insert local variables into asm code.
+#   conditional fail      -- operator that exits the subroutine if the preceding operation (parse or resolve) failed and invokes the next alternative
+#   selectors             -- tests invoked by the "select" operator to determine what block to invoke
+#   specialized transform -- code manipulators that are not easily implemented through declarative / macro-like logic alone (for now, just immediate scrambling -- it requires random numbers
+#                            and has a major variant if an 8-byte immediate is used)
+#   ignore                -- another specialized handler for disregarding comments.
+
+header tactyk_asmvm_header.asm
+
+# enables all of aggressive binary executable randomization
+settings
+  $ABXR_SCRAMBLE_IMMEDIATES
+  $ABXR_RANDOMIZE_EXECUTABLE
+
+# addresses and data registers are recognized by reading code directly.
+typespec address
+  select-operand
+    case @1 addr1
+      value rADDR1
+      $CTX_ADDR context.addr1
+      $CTX_ARRAY_BOUND context.addr1_array_bound
+      $CTX_ELEMENT_BOUND context.addr1_element_bound
+      $CTX_LEFT context.addr1_left
+      $CTX_RIGHT context.addr1_right
+    case @2 addr2
+      value rADDR2
+      $CTX_ADDR context.addr2
+      $CTX_ARRAY_BOUND context.addr2_array_bound
+      $CTX_ELEMENT_BOUND context.addr2_element_bound
+      $CTX_LEFT context.addr2_left
+      $CTX_RIGHT context.addr2_right
+    case @3 addr3
+      value rADDR3
+      $CTX_ADDR context.addr3
+      $CTX_ARRAY_BOUND context.addr3_array_bound
+      $CTX_ELEMENT_BOUND context.addr3_element_bound
+      $CTX_LEFT context.addr3_left
+      $CTX_RIGHT context.addr3_right
+    case @4 addr4
+      value rADDR4
+      $CTX_ADDR context.addr4
+      $CTX_ARRAY_BOUND context.addr4_array_bound
+      $CTX_ELEMENT_BOUND context.addr4_element_bound
+      $CTX_LEFT context.addr4_left
+      $CTX_RIGHT context.addr4_right
+  pick A
+
+typespec data
+  select-operand
+    case a ra
+      value rA
+    case b rb
+      value rB
+    case c rc
+      value rC
+    case d rd
+      value rD
+    case e re
+      value rE
+    case f rf
+      value rF
+  pick D
+
+# integers are recognized by casting to integer, then range-tested to obtain a byte width.
+typespec integer
+  int-operand
+  pick I
+
+# symbolic fields are handled by looking them up in symbol tables.
+typespec branch
+  label
+  pick L
+
+typespec const
+  symbol const
+  pick C
+
+typespec memblock
+  symbol mem
+  pick M
+
+typespec capi
+  symbol capi
+  pick F
+
+typespec tapi
+  symbol tapi
+  pick T
+
+typespec none
+  nullarg
+  pick N
+
+typespec context-property
+  select-operand
+    case addr1.array_bound
+      value context.addr1_array_bound
+      $KW dword
+    case addr1.element_bound
+      value context.addr1_element_bound
+      $KW dword
+    case addr1.left
+      value context.addr1_left
+      $KW dword
+    case addr1.right
+      value context.addr1_right
+      $KW dword
+    case addr2.array_bound
+      value context.addr2_array_bound
+      $KW dword
+    case addr2.element_bound
+      value context.addr2_element_bound
+      $KW dword
+    case addr2.left
+      value context.addr2_left
+      $KW dword
+    case addr2.right
+      value context.addr2_right
+      $KW dword
+    case addr3.array_bound
+      value context.addr3_array_bound
+      $KW dword
+    case addr3.element_bound
+      value context.addr3_element_bound
+      $KW dword
+    case addr3.left
+      value context.addr3_left
+      $KW dword
+    case addr3.right
+      value context.addr3_right
+      $KW dword
+    case addr4.array_bound
+      value context.addr4_array_bound
+      $KW dword
+    case addr4.element_bound
+      value context.addr4_element_bound
+      $KW dword
+    case addr4.left
+      value context.addr4_left
+      $KW dword
+    case addr4.right
+      value context.addr4_right
+      $KW dword
+  pick X
+
+# set up a prototype paramter block 
+typespec comparator
+  select-operand
+    case < lt
+      value jl
+    case <= le
+      value jle
+    case == eq
+      value je
+    case >= ge
+      value jge
+    case > gt
+      $VALUE jg
+    case ~= != neq
+      value jne
+  pick T
+
+# define RESET_TEMP
+#   code
+#     xor $TEMP, $TEMP
+
+# define DISPATCH_NEXT_INSTRUCTION jmp [rPROG+rIPTR*8]
+
+# immediate scrambling config
+# This sets up the scrambling system whereby the script-provided immediate values are scrabled in executable memory and
+# unscrambled when accessed.
+# 
+subroutine scramble
+  select-kw
+    case byte word
+      code $SC
+        mov $SC_DEST, $SC_RAND
+        xor $SC_DEST, $SC_DIFF
+    case dword
+      code $SC
+        mov $SC_DEST, $SC_RAND
+        xor %[$SC_DEST]_32, $SC_DIFF
+    case qword
+      code $SC
+        xor $SC_DEST, $SC_DEST
+        mov $SC_DEST, $SC_RAND_LOW
+        mov rTEMPD, $SC_DIFF_LOW
+        xor $SC_DEST, rTEMPD
+        shl $SC_DEST, 32
+        xor $SC_DEST, $SC_RAND_HIGH
+        mov rTEMPD, $SC_DIFF_HIGH
+        xor $SC_DEST, rTEMPD
+
+instruction break
+  $KW dword
+  scramble rIPTR $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
+  code
+    $LD_IPTR_IMMEDIATE
+    inc rIPTR
+    mov fs:[context.status], dword STATUS_BREAK
+    store_context
+    load_runtimecontext
+    ret
+
+instruction step
+  $KW dword
+  scramble rIPTR $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
+  code
+    $LD_IPTR_IMMEDIATE
+    mov rTEMPA, qword fs:[context.stepper]
+    cmp rTEMPA, 0
+    je .pass
+    mov fs:[context.status], dword STATUS_BREAK
+    store_context
+    load_runtimecontext
+    ret
+    .pass:
+    jmp $NEXT_INSTRUCTION
+
+instruction exit
+  $KW dword
+  scramble rIPTR $LD_IPTR_IMMEDIATE $COMMAND_INDEX
+  code
+    $LD_IPTR_IMMEDIATE
+    mov fs:[context.status], dword STATUS_HALT
+    store_context
+    load_runtimecontext
+    ret
+
+# Bind a memory block to an address register and update corresponding context entries
+# NOTICE:  This instruction will need to be reviewed for spectre/meltdown mitigations 
+#          (transfer of data from the memory block list to the address register & 
+#          context fields is possibly sensitive).  
+#          ((By design, all instructions may be preceded by any combination of gotos, 
+#          conditional branches and by memory-indirect jumps via a read-only jump table 
+#          containing all tactyk-pl provided instructions.  Register allocation is
+#          global and programs are not permitted to make uncontrolled modifications to
+#          anything but data reguisters and the data content of listed memory blocks.))
+
+instruction bind
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  operand
+    type data memblock integer
+    $SRC $VALUE
+    $KWSRC $KW
+    scramble rTEMPA $LD_SRC_IMMEDIATE
+  select-template
+
+    # matches memory-block symbol
+    case AD
+      code
+        mov rTEMPA, $SRC
+        
+        # checks omitted because memory block symbols are validated by tactyk
+        
+        cmp $SRC, 0
+        errorlt STATUS_ROGUE_POINTER
+        cmp rTEMPA, fs:[context.memblocks_count]
+        errorge STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        imul rTEMPA, 24
+        add rTEMPA, fs:[context.memblocks]
+        mov $ADDRESS_REGISTER, [rTEMPA]
+        mov fs:[$CTX_ADDR], $ADDRESS_REGISTER
+        mov rTEMPA, [rTEMPA+8]
+        mov fs:[$CTX_ADDR+8], rTEMPA
+        mov qword fs:[$CTX_ADDR+16], 0
+        
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    # matchs data register or integer immediate
+    case AM AI
+      code
+        $LD_SRC_IMMEDIATE
+        
+        cmp rTEMPA, 0
+        errorlt STATUS_ROGUE_POINTER
+        cmp rTEMPA, fs:[context.memblocks_count]
+        errorge STATUS_ROGUE_POINTER
+        imul rTEMPA, 24
+        add rTEMPA, fs:[context.memblocks]
+        mov $ADDRESS_REGISTER, [rTEMPA]
+        mov fs:[$CTX_ADDR], $ADDRESS_REGISTER
+        mov rTEMPA, [rTEMPA+8]
+        mov fs:[$CTX_ADDR+8], rTEMPA
+        mov qword fs:[$CTX_ADDR+16], 0
+        
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+
+# Read a word from a memory block and write it to a register
+# NOTICE:  This instruction will need to be reviewed for spectre/meltdown mitigations 
+#          (transfer of data from the memory block list to the address register & 
+#          context fields is possibly sensitive).  
+#          ((By design, all instructions may be preceded by any combination of gotos, 
+#          conditional branches and by memory-indirect jumps via a read-only jump table 
+#          containing all tactyk-pl provided instructions.  Register allocation is
+#          global and programs are not permitted to make uncontrolled modifications to
+#          anything but data reguisters and the data content of listed memory blocks.))
+instruction load
+  operand
+    select-operand
+      case byte i8
+        pick B
+      case word i16
+        pick W
+      case dword i32
+        pick D
+      case qword i64
+        pick Q
+  operand
+    type data
+    $DEST__DATA_REG $VALUE
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  operand
+    type data const integer
+    $OFFSET $VALUE
+    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+  select-template
+    case QDAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        mov $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case QDAI QDAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        mov $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case DDAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        mov %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DDAI DDAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        mov %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+rTEMPC]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case WDAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movzx $DEST__DATA_REG, word [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case WDAI WDAC
+      code
+        $LD_OFFSET_IMMEDIATE
+
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movzx $DEST__DATA_REG, word [$ADDRESS_REGISTER+rTEMPC]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case BDAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movzx $DEST__DATA_REG, byte [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case BDAI BDAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movzx $DEST__DATA_REG, byte [$ADDRESS_REGISTER+rTEMPC]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+
+instruction store
+  operand
+    select-operand
+      case byte i8
+        pick B
+      case word i16
+        pick W
+      case dword i32
+        pick D
+      case qword i64
+        pick Q
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  operand
+    type data const integer
+    $OFFSET $VALUE
+    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+  operand
+    type data
+    $SRC $VALUE
+    scramble rTEMPD $LD_SRC_IMMEDIATE
+  select-template
+    case QADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov [$ADDRESS_REGISTER+$OFFSET], $SRC
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case QAID QACD
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov [$ADDRESS_REGISTER+$OFFSET], $SRC
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case QADI QADC
+      code
+        $LD_SRC_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPD
+        xor rTEMPA, rTEMPA
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    case QAII QAIC QACI QACC
+      code
+        $LD_OFFSET_IMMEDIATE
+        $LD_SRC_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPD
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    
+    case DADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov dword [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_32
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DAID DACD
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov dword [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_32
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case DADI DADC
+      code
+        $LD_SRC_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPD
+        xor rTEMPA, rTEMPA
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    case DAII DAIC DACI DACC
+      code
+        $LD_OFFSET_IMMEDIATE
+        $LD_SRC_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPD
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    
+    case WADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov word [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_16
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case WAID WACD
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov word [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_16
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case WADI WADC
+      code
+        $LD_SRC_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPD
+        xor rTEMPA, rTEMPA
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    case WAII WAIC WACI WACC
+      code
+        $LD_OFFSET_IMMEDIATE
+        $LD_SRC_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPD
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+        
+    case BADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov byte [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_8
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case BAID BACD
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov byte [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_8
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case BADI BADC
+      code
+        $LD_SRC_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPD
+        xor rTEMPA, rTEMPA
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    case BAII BAIC BACI BACC
+      code
+        $LD_OFFSET_IMMEDIATE
+        $LD_SRC_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPD
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+
+instruction pop
+  operand
+    type data
+    $DEST__DATA_REG $VALUE
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  code
+    mov $DEST__DATA_REG, [$ADDRESS_REGISTER]
+    mov rTEMPA, $ADDRESS_REGISTER
+    sub rTEMPA, 8
+    cmp rTEMPA, fs:[$CTX_ADDR]
+    errorlt STATUS_MEMORY_UNDERFLOW
+    lfence
+    sub $ADDRESS_REGISTER, 8
+    xor rTEMPA, rTEMPA
+    jmp $NEXT_INSTRUCTION
+
+instruction push
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  operand
+    type data integer const
+    $SRC__DATA_REGISTER $VALUE
+    scramble rTEMPC $LD_SRC_IMMEDIATE
+  select-template
+    case AD
+      code
+        mov rTEMPA, $ADDRESS_REGISTER
+        sub rTEMPA, fs:[$CTX_ADDR]
+        add rTEMPA, 8
+        cmp rTEMPA, fs:[$CTX_ARRAY_BOUND]
+        errorge STATUS_MEMORY_OVERFLOW
+        add $ADDRESS_REGISTER, 8
+        mov [$ADDRESS_REGISTER], $SRC__DATA_REGISTER
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case AI AC
+      code
+        $LD_SRC_IMMEDIATE
+        mov rTEMPA, $ADDRESS_REGISTER
+        sub rTEMPA, fs:[$CTX_ADDR]
+        add rTEMPA, 8
+        cmp rTEMPA, fs:[$CTX_ARRAY_BOUND]
+        errorge STATUS_MEMORY_OVERFLOW
+        add $$ADDRESS_REGISTER, 8
+        mov [$ADDRESS_REGISTER], rTEMPC
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+        
+
+instruction swap
+  operand 
+    type data
+    $A $VALUE
+  operand
+    type data
+    $B $VALUE
+  code
+    xchg $A, $B
+    jmp $NEXT_INSTRUCTION
+
+subroutine simple_unary_instruction
+  operand 
+    type data
+    $A $VALUE
+  code
+    $INSTRUCTION $A
+    jmp $NEXT_INSTRUCTION
+
+subroutine simple_binary_instruction
+  operand 
+    type data
+    $A $VALUE
+  operand
+    type data integer const
+    $B $VALUE
+    scramble rTEMPA $LD_B_IMMEDIATE
+  select-template
+    case DD
+      code 
+        $INSTRUCTION $A, $B
+        jmp $NEXT_INSTRUCTION
+    case DI DC
+      code 
+        $LD_B_IMMEDIATE
+        $INSTRUCTION $A, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+
+instruction add
+  $INSTRUCTION add
+  sub simple_binary_instruction
+
+instruction sub
+  $INSTRUCTION sub
+  sub simple_binary_instruction
+
+#
+typespec address-offset
+  select-operand
+    case addr1.offset
+      $ADDRESS_REGISTER rADDR1
+      $CTX_ADDRESS context.addr1
+      $CTX_ADDRESS_BOUND context.addr1_array_bound
+    case addr2.offset
+      $ADDRESS_REGISTER rADDR2
+      $CTX_ADDRESS context.addr2
+      $CTX_ADDRESS_BOUND context.addr2_array_bound
+    case addr3.offset
+      $ADDRESS_REGISTER rADDR3
+      $CTX_ADDRESS context.addr3
+      $CTX_ADDRESS_BOUND context.addr3_array_bound
+    case addr4.offset
+      $ADDRESS_REGISTER rADDR4
+      $CTX_ADDRESS context.addr4
+      $CTX_ADDRESS_BOUND context.addr4_array_bound
+  pick O
+
+
+instruction assign
+  $INSTRUCTION mov
+  operand 
+    type data address-offset
+    $A $VALUE
+  operand
+    type data integer const address-offset context-property
+    $B $VALUE
+    scramble rTEMPA $LD_B_IMMEDIATE
+  select-template
+    case OD
+      cmp $B, 0
+      errorlt 
+      cmp $B, fs:[$CTX_ADDRESS_BOUND]
+
+      cmp $B, fs:[$CTX_ADDRESS_BOUND]
+      errorge STATUS_ROGUE_POINTER
+      cmp $B, 0
+      errorlt STATUS_ROGUE_POINTER
+      
+      mov $ADDRESS_REGISTER, $B
+      
+      lfence
+      jmp $NEXT_INSTRUCTION
+    case DO
+      code
+        mov $A, $ADDRESS_REGISTER
+        sub $A, fs:[$CTX_ADDRESS]
+        jmp $NEXT_INSTRUCTION
+    case DD
+      code 
+        mov $A, $B
+        jmp $NEXT_INSTRUCTION
+    case DI DC
+      code 
+        $LD_B_IMMEDIATE
+        mov $A, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DX
+      select-kw
+        case dword
+          code
+            mov %[$A]_32, fs:[$B]
+            jmp $NEXT_INSTRUCTION
+
+subroutine shift
+  operand 
+    type data
+    $A $VALUE
+  operand
+    type data integer const
+    $B $VALUE
+    scramble rTEMPC $LD_B_IMMEDIATE
+  select-template
+    case DD
+      code 
+        mov rcx, $B
+        $INSTRUCTION $A, rcx
+        xor rcx, rcx
+        jmp $NEXT_INSTRUCTION
+    case DI DC
+      code 
+        $LD_B_IMMEDIATE
+        $INSTRUCTION $A, cl
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+
+instruction shift-left
+  $INSTRUCTION shl
+  sub shift
+
+instruction shift-right
+  $INSTRUCTION shr
+  sub shift
+
+instruction rotate-left
+  $INSTRUCTION rol
+  sub shift
+
+instruction rotate-right
+  $INSTRUCTION ror
+  sub shift
+
+instruction dec
+  $INSTRUCTION dec
+  sub simple_unary_instruction
+
+instruction exit
+  code
+    mov fs:[context.status], dword STATUS_HALT
+    store_context
+    load_runtimecontext
+    ret
+
+instruction goto
+  operand
+    type branch
+    $JTARGET $VALUE
+  select-template
+    case L
+      code
+        jmp $JTARGET
+
+instruction tcall
+  operand
+    type tapi
+    $A $VALUE
+  code
+    store_context
+    
+    ; align the data registers with the unix call
+    ;rA, rB are aligned
+    mov rTEMPD, rC
+    mov rTEMPC, rD
+    ;rE, rF are aligned
+    
+    rdfsbase rA
+    rdfsbase r14
+    rdgsbase r15
+    
+    mov rTEMPA, fs:[context.controlstate]
+    mov r12, [rTEMPA + controlstate.runtime_registers + 56]
+    mov r13, [rTEMPA + controlstate.runtime_registers + 64]
+    wrfsbase r12
+    wrgsbase r13
+    mov rbx, [rTEMPA + controlstate.runtime_registers + 0]
+    mov rbp, [rTEMPA + controlstate.runtime_registers + 8]
+    mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
+    mov r12, [rTEMPA + controlstate.runtime_registers + 24]
+    mov r13, [rTEMPA + controlstate.runtime_registers + 32]
+    ;mov r14, [rTEMPA + controlstate.runtime_registers + 40]
+    ;mov r15, [rTEMPA + controlstate.runtime_registers + 48]
+    
+    ;mov rbp, fs:[controlstate.runtime_registers + 8]
+    ;mov rsp, fs:[controlstate.runtime_registers + 16]
+    
+    mov r10, $A
+    call r10
+    
+    wrfsbase r14
+    wrgsbase r15
+    
+    load_context
+    
+    xor rTEMPA, rTEMPA
+    xor rTEMPC, rTEMPC
+    xor rTEMPD, rTEMPD
+    
+    jmp $NEXT_INSTRUCTION
+    
+
+instruction ccall
+  operand
+    type data capi
+    $A $VALUE
+  operand
+    type capi none
+    $B $VALUE
+  select-template
+    case FN
+      code
+        store_context
+        
+        ; align the data registers with the unix call
+        ;rA, rB are aligned
+        mov rTEMPD, rC
+        mov rTEMPC, rD
+        ;rE, rF are aligned
+        
+        rdfsbase r14
+        rdgsbase r15
+        
+        mov rTEMPA, fs:[context.controlstate]
+        mov r12, [rTEMPA + controlstate.runtime_registers + 56]
+        mov r13, [rTEMPA + controlstate.runtime_registers + 64]
+        wrfsbase r12
+        wrgsbase r13
+        mov rbx, [rTEMPA + controlstate.runtime_registers + 0]
+        mov rbp, [rTEMPA + controlstate.runtime_registers + 8]
+        mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
+        mov r12, [rTEMPA + controlstate.runtime_registers + 24]
+        mov r13, [rTEMPA + controlstate.runtime_registers + 32]
+        ;mov r14, [rTEMPA + controlstate.runtime_registers + 40]
+        ;mov r15, [rTEMPA + controlstate.runtime_registers + 48]
+        
+        ;mov rbp, fs:[controlstate.runtime_registers + 8]
+        ;mov rsp, fs:[controlstate.runtime_registers + 16]
+        
+        mov r10, $A
+        call r10
+        
+        wrfsbase r14
+        wrgsbase r15
+        
+        load_context
+        
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        
+        jmp $NEXT_INSTRUCTION
+    case DF
+      code
+        store_context
+        
+        ; align the data registers with the unix call
+        ;rA, rB are aligned
+        mov rTEMPD, rC
+        mov rTEMPC, rD
+        ;rE, rF are aligned
+        
+        rdfsbase r14
+        rdgsbase r15
+        
+        mov rTEMPA, fs:[context.controlstate]
+        mov r12, [rTEMPA + controlstate.runtime_registers + 56]
+        mov r13, [rTEMPA + controlstate.runtime_registers + 64]
+        wrfsbase r12
+        wrgsbase r13
+        mov rbx, [rTEMPA + controlstate.runtime_registers + 0]
+        mov rbp, [rTEMPA + controlstate.runtime_registers + 8]
+        mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
+        mov r12, [rTEMPA + controlstate.runtime_registers + 24]
+        mov r13, [rTEMPA + controlstate.runtime_registers + 32]
+        ;mov r14, [rTEMPA + controlstate.runtime_registers + 40]
+        ;mov r15, [rTEMPA + controlstate.runtime_registers + 48]
+        
+        ;mov rbp, fs:[controlstate.runtime_registers + 8]
+        ;mov rsp, fs:[controlstate.runtime_registers + 16]
+        
+        mov r10, $B
+        call r10       
+
+        wrfsbase r14
+        wrgsbase r15
+        
+        load_context
+        
+        mov $A, rTEMPA
+        
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        
+        jmp $NEXT_INSTRUCTION
+    case FF DN
+      error
+
+instruction if
+  operand
+    type data integer const
+    $A $VALUE
+    scramble rTEMPA $LD_OFFSET_IMMEDIATE_A
+  operand
+    type comparator
+    $CJUMP $VALUE
+  operand
+    type data integer const
+    $B $VALUE
+    scramble rTEMPC $LD_OFFSET_IMMEDIATE_B
+  operand
+    type branch
+    $JTARGET $VALUE
+  select-template
+    case DTDL
+      code
+        cmp $A, $B
+        $CJUMP .pass
+        jmp $NEXT_INSTRUCTION
+        .pass:
+        jmp $JTARGET
+    case DTIL DTCL
+      code
+        $LD_OFFSET_IMMEDIATE_B
+        cmp $A, rTEMPC
+        $CJUMP .pass
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+        .pass:
+        xor rTEMPC, rTEMPC
+        jmp $JTARGET
+    case ITDL CTDL
+      code
+        $LD_OFFSET_IMMEDIATE_A
+        cmp rTEMPA, $B
+        $CJUMP .pass
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+        .pass:
+        xor rTEMPA, rTEMPA
+        jmp $JTARGET
+    case ITIL ITCL CTIL CTCL
+      code
+        $LD_OFFSET_IMMEDIATE_A
+        $LD_OFFSET_IMMEDIATE_B
+        cmp rTEMPA, rTEMPC
+        $CJUMP .pass
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+        .pass:
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $JTARGET
+
+instruction cpuclocks
+  code
+    rdtsc
+    shl rTEMPD, 32
+    or rTEMPA, rTEMPD
+    mov rD, 12345
+    mov fs:[context.diagnostic_out+0], rTEMPA
+    xor rTEMPA, rTEMPA
+    xor rTEMPD, rTEMPD
+    jmp $NEXT_INSTRUCTION
+
+instruction stash
+  operand
+  flags
+    contains a1
+      code
+        mov gs:[microcontext.a1], rA
+    contains a2
+      code
+        mov gs:[microcontext.a2], rA
+    contains a3
+      code
+        mov gs:[microcontext.a3], rA
+    contains b1
+      code
+        mov gs:[microcontext.b1], rB
+    contains b2
+      code
+        mov gs:[microcontext.b2], rB
+    contains b3
+      code
+        mov gs:[microcontext.b3], rB
+    contains c1
+      code
+        mov gs:[microcontext.c1], rC
+    contains c2
+      code
+        mov gs:[microcontext.c2], rC
+    contains c3
+      code
+        mov gs:[microcontext.c3], rC
+    contains d1
+      code
+        mov gs:[microcontext.d1], rD
+    contains d2
+      code
+        mov gs:[microcontext.d2], rD
+    contains d3
+      code
+        mov gs:[microcontext.d3], rD
+    contains e1
+      code
+        mov gs:[microcontext.e1], rE
+    contains e2
+      code
+        mov gs:[microcontext.e2], rE
+    contains e3
+      code
+        mov gs:[microcontext.e3], rE
+    contains f1
+      code
+        mov gs:[microcontext.f1], rF
+    contains f2
+      code
+        mov gs:[microcontext.f2], rF
+    contains f3
+      code
+        mov gs:[microcontext.f3], rF
+  code
+    jmp $NEXT_INSTRUCTION
+
+instruction unstash
+  operand
+  flags
+    contains a1
+      code
+        mov rA, gs:[microcontext.a1]
+    contains a2
+      code
+        mov rA, gs:[microcontext.a2]
+    contains a3
+      code
+        mov rA, gs:[microcontext.a3]
+    contains b1
+      code
+        mov rB, gs:[microcontext.b1]
+    contains b2
+      code
+        mov rB, gs:[microcontext.b2]
+    contains b3
+      code
+        mov rB, gs:[microcontext.b3]
+    contains c1
+      code
+        mov rC, gs:[microcontext.c1]
+    contains c2
+      code
+        mov rC, gs:[microcontext.c2]
+    contains c3
+      code
+        mov rC, gs:[microcontext.c3]
+    contains d1
+      code
+        mov rD, gs:[microcontext.d1]
+    contains d2
+      code
+        mov rD, gs:[microcontext.d2]
+    contains d3
+      code
+        mov rD, gs:[microcontext.d3]
+    contains e1
+      code
+        mov rE, gs:[microcontext.e1]
+    contains e2
+      code
+        mov rE, gs:[microcontext.e2]
+    contains e3
+      code
+        mov rE, gs:[microcontext.e3]
+    contains f1
+      code
+        mov rF, gs:[microcontext.f1]
+    contains f2
+      code
+        mov rF, gs:[microcontext.f2]
+    contains f3
+      code
+        mov rF, gs:[microcontext.f3]
+  code
+    jmp $NEXT_INSTRUCTION
+    
+
+
+
+
+
+
+
+
+
+
+

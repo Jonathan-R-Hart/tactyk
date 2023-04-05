@@ -1,0 +1,554 @@
+4 Apr 2023
+Add an introduction (readme.md)
+Moved source files to "src" directory
+
+Add copyright notices to all source files, place project under the GPL-3 license.
+The project might be relicensed if/when it starts pasing security audits.  Until then, if it's going to get deployed (against all rational advisement), then users 
+should at least have the legal right to fix and/or update the unwisely deployed scripting engine.
+
+remove lwcall and mctxcall data structures from context space.  These are now predefined memory blocks allocated by the runtime (was previously [checked] addressable
+context memory, in violation of the emergent TACTYK security model).  Context diagnostic memory probably also should be moved to a separate memory block, though nothing presently
+indexes it (and there are no plans to implement anything that does).
+
+New Issue:  Native context restoration when calling into a C function does not appear to be complete.  The terminal interface does not immediately display program output if output is sent by a C function called from tactyk.  If the c function segfaults, then the output does not display at all.  This is possbily related to an earlier problem involving printf within a C call from tactyk segfaulting if printing floating point numbers.
+
+3 Apr 2023
+Add a code of conduct.  This one aims to respect liberty of conscience, restrict vindictiveness and abuse of process, and encourage amicable dispute resolution.
+Add a "tactyk call" interface - A "tactyk call" is a call into a function which extracts its parameters from a tactyk context.  This is a compromise for forbidding
+  scripts from directly handling pointers (and is to generally be the means by which host applications receive events/callbacks from tactyk).
+Add examples:  Fibonacci Generator and Lazy Quine - these may be run from a terminal interface
+
+1 Apr 2023
+Add a shell-based test interface.
+Add support for building with cmake
+Add a simple method for making c calls.
+  It's unstable, platform-specific, and carries a moderate risk of enabling type confusion attacks (though largely on account of an apparent lack of enforcement or 
+  warnings in C for failure to abide by declared function prototypes [though even a correction does not guarantee that host application doesn't have unsafe code anyway])
+
+Note:  Noticed that I had no trouble writing a 64-bit field directly in an x86 mov instruction.  The immediate operand scrambling should be reviewed for
+       potential improvements (xor is restricted to 32-bits so complex handlign for 64 bit immediates is required).  Can probably cut one op by switching to a 64-bit write and
+       using bitwise rotation (more ops could be spared by using a temp register, but the scramble operation is cumbersome enough as it is)
+
+30 Mar 2023
+Memory-management revision progress:
+  The quicksort test successfully ran
+  NOTE: to get the test to run, it was necessesary to re-introduce a memory leak involving dynamically allocated data inserted into
+        tables.  These data structures will have to be attached to something else (presumably a context field).
+        Alternatively, it ma be appropriate to accept the "memory leak", and simply dispose all of said data structures indiscriminately upon
+        completion of compilation.  This will require an extra step to offload tables that need to be persistant.  
+        (a custom allocator is used to allocate them, so wiping out everything is viable).
+  Removed tactyk_table, tactyk_textbuf, and tactyk_structuredtext (all have successfully been replaced)
+28 Mar 2023
+Memory-management revision progress:
+  The Fibonacci test successfully ran
+
+25 Mar 2023
+Memory-management revision progress:
+  started with tactyk-pl - struct and memory-specification handling updated
+
+memblock and memblock_spec have been renamed to memblock_spec_lowlevel and memblock_spec_highlevel, to better indicate that both data structures are two distinct representations of the same thing.
+
+24 Mar 2023
+The unified data management component has somehow been written in about a day and about 1000 lines of code.  Integration should be interesting.
+Also added automatic table resizing and rebuilding, as well as the ability to delete entries.
+
+23 Mar 2023
+Rename include guards (per DCL37-C)
+  Would prefer to "not care much" about this issue and instead compel whatever committee is responsible for maintaining C standards to select a meaningful prefix (such as CSTDLIB_*) to be treated
+  as reserved.
+Initiate development of a unified data management component.
+  This is intended to replace c-strings for most (if not all) of tactyk.
+  Cases to cover are as follows:  associative arrays, debug output, resizeable/writable text buffers, structured (heirarchical) text, string concatenation, pattern matching, and general data structure management
+
+22 Mar 2023
+emit+visa revision progress:
+  upgrade the pattern matcher to support conditional code insertion based on presence or absence of "flags" within an operand
+  Modify the "code" subroutine to append to a text buffer (isntead of a c string).
+    (this allows concatenation of conditionally selected code fragments)
+  New feature!  The store operation is able to directly write immediates to memory.
+    (pre-revision version left omitted this because complexity.  revision included it because I went ahead and implemented it before inspecting the old version more closely.
+      (technically, the limitation in the old version was due to restricting immedaite operand data capacity to 16 bytes per instruction, so a compromise was required))
+  Quicksort test program executed successfully.  
+
+21 Mar 2023
+emit+visa revision progress:
+  Integrated the assembled output into tactyk_asmvm.
+  Fibonacci test program executed successfully.  
+
+20 Mar 2023
+emit+visa revision progress:
+  rIPTR is no longer used for holding an instruction index.  No specific purpose has yet been selected (but it still must hold small values or zero)
+  Generated code is now accepted by NASM.  (now very close to running the fibonacci test)
+  Modifed the immediate operand de-scrambling asm to avoid attempting to encode an xor with a 64-bit register
+    destination operand and unsigned 32-bit immediate source operand.
+    (this adds more instructions to the "qword" form of the operation and modifes the "dword" form to
+     narrowly target the 32-bit register)
+   
+18 Mar 2023
+emit+visa revision progress:
+  Generates a complete assembly-language representation of the fibonacci generator test (with full randomization and linkable functions)
+  
+
+16 Mar 2023
+emit+visa revision progress:
+  Generates code for all instructions from the fibonacci generator test
+
+14 Mar 2023
+emit+visa revision progress:
+  First successful test of the code generator (+ integration with many supporting components).
+  
+
+13 Mar 2023
+emit+visa revision progress:
+  Decided to de-generalize a few substantial aspects of the design (to move toward a declarative design with narrowly focused operators and a bit less syntax)
+  Cancel requirement to emit only unique instructions (implemented in the unrevised version).  This is partly to reduce the complexity, and partly because instruction de-duplication does not save much memory anymore (due to inclusion of immediate operands).  To reinstate this functionality, insert immediate operand values into instruction labels,
+  use the modified labels as table indices, and use the program jump table to handle all instruction dispatch.
+  Added the immediate operand scrambling back-end (prepares the scrambled version of resolved immediates -- as part of operand evaluation)
+    -- it also took an arguably embarrassing amount of time to decide where to put it...
+  Memory management (data structure disposal for the emit interface, dispose the tactyk_pl text buffer when no longer needed)
+    I probably should make a dispose function for the tactyk_pl__program data structure (but in many cases, it will need to persist as long as the host
+    application is running (which is the prototype behavior), so for now, this has a low priority.
+    If tactyk_pl were implemented properly, it also would need a dispose a complex data structure 
+      -- but it runs mostly on static allocation, so I'm not going to bother with it for now.
+
+11 Mar2023
+emit+visa revision progress:
+  The First operands of the first line of code in the fibonacci generator ("bind addr1 thememory") is correctly handled (address register picked and corresponding parameters to access a 
+  memory specification variables in the execution context.
+  The second operand also identified (This operand refers to a script-specified memory block, so symbol tables must be integrated into the emit interface to proceed).
+  Move memory block symbols to a distinct table (prevents the new emit from inheriting the hack the old emit used to enforce type constraints on memory block identifiers)
+
+9-10 Mar 2023
+modify tactyk_textbuf__store() to respect the fixed capacity (produce an error message and exit instead of unexpectedly resizing the buffer and [probably] leaving a bunch of hanging pointers behind).
+emit+visa revision progress:
+  Added a basic error handling system.
+  
+8 Mar 2023
+  Insert "fallthrough" gotos to jump to next label.  (to support logical layout randomization -- specifically, to randomize jump table indices so they don't have to be scrambled the way immediate operands are)
+    NOTE:  jumps are implemented in asm with "jmp [rPROG + rIPTR*8]", instead of labels, because virtual instruction pointers are employed - this logical layout randomization would be unnecessary without it, 
+    but direct reliance upon real instruction pointers would carry its own hazards (and it gives the otehrwise de-purposed stack registers something reasonably safe to hold).
+    Labels which are preceded by an instruction which [already] unconditionally redirects control flow are ignored.
+
+7 Mar 2023
+emit+visa revision progress:  And I went one full day until *something* came up that forced the use of a semi-persistant text buffer for safely storing strings.  The buffer at least can be 
+    reset every time an instruction handler is invoked and it is only anticipated to be needed to cover a few very specific cases (and thus for now does not need to be a large buffer).
+    (a viable alternative would be to make a variant table which stores copies of data instead of pointers to data)
+  removed old tactyk_emit and tactyk_visa, replaced them with the new ones
+  Changed many names and method signatures
+  Retargetted tactyk_pl [to the new emit interface].  
+  Transferred management of the host-api from tactyk_pl to new tactyk_emit, removed references to the host api from program symbol table.
+  Labels and and commands are correctly loaded into the new interface.  Verified label correctness. (technically trivial, though retargetting everything and getting it to compile was not).
+
+6 Mar 2023
+Adjusted tactyk_table to copy keys and store them in the table structure.  
+  The main reason for this is to avoid having to use a key storage buffer in a pending rewrite of virtual-ISA + emit.
+    (original intent was to avoid duplicating keys in memory, and not [as it might be assumed] a misunderstanding carried over from other languages)
+  This was a minimal change which switched from a string pointer to a fixed-sized block of data in the entry struct.
+    (the changes required were also much smaller & simpler than expected)
+  The change forced a "quickfix" in tactyk_emit due to emit directly reading tables to iterate through all keys (had to switch the vailidity test from null key to null item, 
+    as the key field is now always non-null).
+  tactyk_table should probably be further revised to avoid using the entry struct as a simple data type 
+    This revision possibly should add a formal means to iterate entries.
+    it might be worthwhile to also include a mechanism for deleting entries (though under the current design, any deletion operation would have to trigger an expensive table restructuring)
+The designs for the revised Virtual ISA configuration and revised emit interface are mostly settled.
+Added an entry assignment function to tactyk_table - this one adds a new entry to the table if the key is not matched, and updates the existing entry if the key is matched.
+  (used the easy but inefficient option of simply copying and altering the add_strict() function.  This should probably be implemented smartly, as this approach is twice as expensive as
+   a correct implementation)
+
+4 Mar 2023
+Initiate redesign of Virtual ISA configuration.  The intend is to make all assembly language handling configuration driven.
+
+
+28 Feb 2023
+Removed outdated reference to precompiled assembly from before initiation of the 21 Sep 2022 revision.
+Remove the "simple binary op" implementation of the multiply instruction (was blocking the more detailed version)
+Add Memory block offset field reset to the reg-imm variant of memory block bind operation
+Rewrote tactyk overview documentat
+
+27 Feb 2023
+Reset all temp registers at the end of all functions which modify them.  (for consistancy)
+
+23 Nov 2022
+  Switch from threaded code to semi-conventional compilation, doubled performance.
+    Given how small the differnece between threaded code and compiled code has become, there simply does not seem to be a compelling reason to insist on using a jump table.
+    (Binary Executable Layout Randomization addresses the concerns I had about using JIT compilation - much better than interpretation does)
+    ALSO:  Some rather ugly hacks where used to implement this change - At this point, I mostly just want a decent showing on performance.
+           A major redesign is what's really needed at this point.  Or will be when moving beyond this prototype.
+  Threaded code remains available as an option (for conventional interpreter support)
+  
+  Fix offset-get to actually calculate the array offset (instead of simply returing array bound)
+  
+  Add a reset function to tactyk table (clears all data and leaves the table data structure intact).
+
+18 Nov 2022
+  Add a flag to the internal instruction definition to help the debugger distinguish debug instructions from real ones. 
+  
+  Rework mctx/stash to work sensibly with recursion.
+    The stash has been reduced to just 4 addresses, 18 data registers, instruction pointer, and fast branch pointer (possibly may expand for floating point numbers).
+    Integrated stash with microcontext (stash now lives on the microcontext stack instead of a fixed set of locations on context space).
+    Microcontext stacks are now 4 distinct blocks of memory allocated by the runtime
+    Use the gs register to hold the reference to the current mctx/stash
+    Adjusted the FLAGBUILD assembly template handler to use longer flag names (preferentially so).
+    removed the register/address storage options from mctxcall and mctxreturn.  This functionality is subsumed under stash/unstash. (though the stack-id option remains)
+
+    NOTE:  the current mctx/stash is visible within fastcalls and lwcalls, and should still function as global-ish storage within them.
+17 Nov 2022
+  Added a "stepper" which can cause the VM to execute one instruction per step (while debugging).
+
+13 Nov 2022
+  Renamed "changelog" to "devlog" (this document)
+    It's easier to change the changelog than to change the log!
+    Also, this "devlog" should not be confused for a "devlog" either.
+    
+10 Nov 2022
+  New concept:  Scrambled immediates
+    Scrambled immediates is to be an encoding of immediates in executable space, wherein the immediate values are masked by random numbers.  For each, a random number is written to a target register, 
+    then the difference between the random number and the intended immediate is added to the target.  THe random numbers are to be taken from an SPRNG.  This is to replace extra-immediates, saving 
+    memory and replacing random memory access with a few extra operations (2 ops for small immediates, 4 ops for 64-bit immediates).  The scrambling is to prevent adversarial content from using 
+    immediates to encode instructions (and thus further undermine attempts to use tactyk-VM as a source of gadgets for exploits involving vulnerable functions in the host application).
+    
+    This will probably be an optional / configurable security feature (and like most such mitigations, this too is a workaround for inability to have flow control constraints enforced at the hardware
+    level)
+  
+
+9 Nov 2022 - 17 Nov 2022
+  Extended debugging session for the FHourstones port.
+  Bugs fixed:
+    subroutine POSITIONCODE had a misplaced jump, resulting in the wrong code returned 50% of the time.
+    subroutine AB an index variable swapped with a value variable for one of the writes th the "av" array (whatever that's supposed to be), resulting in a game desync on the 18th ply of the first test
+    subroutine AB was not restoring the local variables after returning from recursive calls into itself (which would result in problems with backtracking)
+    The underlying microcontext stack position read operation was incorrectly reporting indices 8 times the intended value, resulting in lots of the fhstones local variable storage being sparser than
+      intended (it was vastly over-allocated)
+    subroutine TRANSTORE lacked a "fastreturn", resulting in fallthrough to subroutine SOLVE, then much misdirection.
+    subroutine AB was found to be missing a call to BACKMOVE after the 2nd recursion
+    Fix subroutine TRANPOSE and TRANSTORE offsets
+    Noticed that TRANSPOSE and TRANSTORE had struct order reversed -- Rather than fight it, decided that the port will simply use the reversed order and changed the C-struct to reflect it.
+    And various other problems...
+    
+8 Nov 2022
+  cleaned up the fhourstones "debugprint" function in anticipation of a potentially long debugging session.
+    Also inserted a call to the tactyk code debug function.  (This is not a proper debug utility, as it relies on lazilly retained data -- but for an experimental project, it is good enough)
+
+7 Nov 2022
+  The dynamically generated VM upgrade is complete enough to run the tactyk programs 
+    (with some adjustments to reflect the simplified grammar, as well as some adjustments to take advantage of the underlying templatized assembly system)
+
+4-5 Nov 2022
+  re-integrate microcontext, and mostly unify it with the "stash".
+  improved some comments on the templatized assembly handler (tactyk_emit__op_process and tactyk_emit__operand_def).
+  removed the space allocated for context-based register spills (three unallocated registers seem to cover the needs for everything tactyk-specific)
+  re-arranged items in context (specifically to move lightly used words out of the way)
+  allow up to 4 simultaneous lwcall stacks (dubious motivation:  24 bytes where added to the lwcall data structure for alignment, and extra assembly-template options does not automatically
+    add overhead to the VM, so whatever.).
+
+1 Nov 2022 
+  Add a basic error description function to tactyk_emit.  Line numbers don't exist at the level emit operates, so it instead indicates a command name, a subroutine name (label), a command index, 
+  and it also lists all operands.
+  
+  re-integrate operations:  min, max, modulo
+
+31 Oct 2022
+  re-integrate lwcall/lwreturn.
+
+29-31 Oct 2022
+  re-integrate ccall.
+
+27 Oct 2022
+  Reduce "extra" immediates shadow memory to 8 bytes of space per instruction and converted all immediates fetch ops to use scaled index addressing.
+  Adjust quicksort test to use a regular index mode (no longer makes sense to have an operation dedicated to reading the first entry)
+  Backed off on 32% of native performance claim.  Actual performance is ~26% of native.  The erroneous 32% claim was due to accidentally switching to a debug build target
+    .
+
+24 Oct 2022
+  Quicksort test works again.  
+
+22-24 Oct 2022
+  stash ops re-integrated (and improved)
+  structured data handling (memory block offsetting and indexing and bounds-checking, using information from data structure declarations)
+
+19 Oct 2022
+  Invented another dubious mechanism for making templatized assembly more confusing 
+    (namely, the ability to build an operation from a user-defined list of flags, plus another layer of abstraction to help wedge it in along-side the rest of the operator generator).
+
+12 Oct 2022
+  Add a notion of class to integer resolution (to restrict integer resolution to specific symbol sets).
+  Fixed a type confusion exploit (from a lazy implemention of register/integer classes).  Fix is to reserve a char for use as an internal delimiter (was previously '.', which is generally allowed).
+    NOTE:  direct exploit mitigation of this nature is not yet a high priority, but I'd rather not get in the habit of leaving known-subtle exploitable defects in place.
+  Developement progress on NEW tactyk_pl: can now specify, dynamically bind, and access memory.
+
+5-6 Oct 2022
+  Redesigned tactyk_pl
+  Learned the use of the "fs" and "gs" registers, incorporated their preservation into the context switch logic.  Planning to use them to release rcx and rdx (preferably no special use - just extra
+    open registers to avoid spilling and to avoid clashes from non-orthogonal ops).
+  released registers rCTX, rSTASH (was going to do rPROG, but it displeased the jmp ops ... or possibly just dipleased NASM -- anyway there's only two general-purpose segments available, so rather 
+    than trying to figure out what the issue is, I'll stick with what works easiest).
+  Designate the released registers as temp registers (to be used to avoid register spills).  rcx and rdx where chosen to make it easier to use various non-orthogonal instructions.
+
+4 Oct 2022
+  Add support for unconditional and conditional jumps to tactyk_visa
+  Add an enum-like operand filter to the asm generator.
+  Better assembly label generation. 
+  (it now can run the Fibbonacci generator)
+
+3 Oct 2022
+  Abstract the amd64-assembly out of tactyk_emit
+  Replace the direct distinction (in tactyk_emit) between "data" and "address" registers with an abstract/generic "register class"
+  Add TACTYK (should) Affix Captions To Your Kitten Virtual Instruction Set Architecture (TACTYK-Virtual-ISA (tactyk_visa))
+    This defines all TACTYK-VM operations andconfigures tactyk_emit to produce amd64-assembly (NASM syntax) in response to an assembly-like language.
+    In principle, this should be generic enough to emulate any assembly-like language (but completeness is outside of the scope of the project).
+    Also, in principle, this should be production rules for amd64 machine code, not NASM-syntax assembly (this is intended as part of project maturation).
+    
+
+1 Oct 2022
+  modify tactyk_table to use it under stack allocation.
+  Developement progress on tactyk_emit:  Made it exstensible.
+
+29 Sep 2022
+  Developement progress on tactyk_emit:  Can now run a very simple program on a *correctly* defined runtime-generated randomized VM.
+
+28 Sep 2022
+  Developement progress on tactyk_emit:  Randomly permute assembly fragments, run it through the assembler, and have the assembler emit a symbol table as well,
+  and extract branch targets from symbol table.  
+
+27 Sep 2022
+  Added a string "storage" function to tactyk_textbuf.  This stores the null terminator (to make the static-ish string storage useful).
+
+26 Sep 2022
+  Developement progress on tactyk_emit:  Can now run a very simple program on a runtime-generated randomized VM .
+    Program:  (enter, store runtime context, load VM context, add a const to a register, store context, restore runtime context, exit)
+  
+
+24 Sep 2022
+  add a reset function to textbuf
+  candidate design for VM function generation.
+
+22 Sep
+  Add the "tactyk_emit" component. (the header of the same name was leftover from a pre-ASM effort).
+  tactyk_textbuffer now returns a pointer to the appended copy (to allow it to be used for static-ish string storage).
+  Add a replace function to tactyk_table.
+  Remove old tactyk_pl (to be replaced fairly soon with a simpler/cleaner language)
+  Temporarilly remove fibbonacci tests, quicksort tests, and the under-development Fhourstones tests (to be revised and reinstated later)
+
+21 Sep 2022
+  Decided to proceed with the VM setup from the "mature" plan ahead of schedule.  
+  The reason is that the massively macro-expanded prototype VM is getting too big (beyond 300K of assembled machine code), and the expected instruction cache 
+    misses are not part of TACTYK-VM performance testing (the intent is that TACTYK-VM should try to reduce instruction cache misses by only loading the subset of 
+    its instructions which the loaded program uses).
+  And while I'm at it, binary executable randomization is also going to be implemented (Randomly generate the VM to force would-be attackers targettign tactyk-vm 
+    to also have to obtain the state of an SPRNG in order to reliably construct or predict "gadgets").
+    
+  Built stub code for directly invoking NASM from C, loading the results into executable memory, and calling into it.
+    The "bin" format is used to obtain unformatted machine code.
+    All tactyk functions are to be reviewed and adjusted to be fully position-independent (no reference to any tactyk symbols) - this mostly just affects error handlers.
+    Tactyk functions are to be defined by a handler which takes parameters from tactyk-pl.
+    The handler generates a /tmp file consisting of a fixed header specifying macros, a set of %define statements specifying unique proeprties/immediates,
+    and the function prototype ASM.  The handler then invokes NASM to generate the function, reads back the machine code, and stores it in a buffer.
+    When all program functions are generated, the buffers are coalesced, randomly arranged (using system secure-random to select the function order), and program
+    function handles are swapped for actual function addresses.
+
+20 Sep 2022
+  Register stashing redesign:
+    Place immediates in the same memory block as program instructions (to free up an register)
+    Repurpose the immediates register - it is now used for a redes
+    Data, address, and branch target stashes now reference posisions within said memory block.
+    Data stash operators have all been replaced with generic memory access operators
+      (a variant of the memory element accessor which omits the bounds check and is able to access the upper bytes for 8 and 16 and 32 bit words).
+    Additionally, there are static accessors for each aligned word (8 and 16 and 32 and 64 bit words)
+  The overall purpose of the redesign is to expand the stash concept and make it useful for local data storage under recursive/complex scenarios.
+  The redesigned stash is essentially a statically allocated block of memory which can be statically indexed without bounds checks (dynamic indexing 
+    has to do bounds checking, but the bounds for that do not need to be fetched out of memory).
+    
+17 Sep 2022
+  split memory element operations into components based on word size
+
+13 Sep 2022
+  Add "nullmath" to tactyk-pl (aliases for mathematical operations which either yield zero or an unmodified input)
+  Redesign microcontext calls - They are now controlled by flags.
+  
+  More data stash ops.
+
+9-10 Sep 2022
+  Replace ASM "transfer" functions with simpler functions that only care about constants (and can target arbitrary sets of data registers).  
+  If interacting with memory, use explicit memory access instructions instead.
+  (this replaces 650 lines of rather finnicky & questionable assembly code with a much simpler 130-line component).
+  
+  fix min,max instructions
+  
+  add microcontext stack operations - These are middle-weight function calls which store registers on a stack, but do not switch context.  
+
+8 Sep 2022
+  Add multi-line definitions
+  fix broken bit-shifts on register rD (was rcx, switched to r13 and added a bit of de-mangling logic to ccalls).  I indirectly blame Intel for this one.
+
+7 Sep 2022  
+  Adjusted transfer statement control bits shifting (appears to have been a matter of "design drift" between when transfer statements and when TACTYK-PL where defined -- 
+    and TACTYK-PL had the more sensible design, so it wins)
+  Fixed binary ops macros (Several of them had a few bad parameters)
+  Fixed if (X != 0) assembly function (it somehow didn't get updated when switching from "compare(x,y) ... cjump" to faster and more direct "if (condition) {jump}"
+
+6 Sep 2022
+  Removed builtin aliases and alternate orderings for various memory operations (the combinatorial explosion got out of hand...).  
+  Use define ... undefine for setting up aliases instead.
+
+  increased "minormath" constants range from 1-32 to 1-64.  
+
+5 Sep 2022
+  Added the "define" keyeword.  This performs simple text substitutions only (and mainly because letters a-f for "variable names" causes immediate
+  conceptualization and maintainability issues).
+  
+  Add support for union types to the "struct" keyword handler.
+  Add support for field width to the "struct" keyword handler.
+
+  Add support for comments.  
+  
+  Add error messages for undefined commands.
+  Add error messages for undefined subcommands (combinations of "parameters" which TACTYK-PL does not understand).
+
+  Wrote documentaiton for TACTYK-PL (tactyk_overview.odt).
+    It is not quite a formal specification, but at 5 pages, it is a start, and probably good enough for a language only intended as transitional.
+  
+  archive sha-256 checksum d9c0ee8f1e2d1661ae7f9f09f1db81e3d83e39b3e69512e0a50425d5b468ae88
+
+1-3 Sep 2022
+  Added partial support for C Calls.  
+    This is intended only for functions with arguments stored only on registers.  More complex calls will require a more complex handler.
+  Added subroutine interactions for various cases (stackless fast calls, lightweight calls, and context-switching calls).
+  
+  Reinstate "fastbranch" register
+    Decided the "fastbranch" register is a much better use (on account of "fastcall" + "fastreturn").
+    Procedural jumps are relegated to using an entry from context memory.
+  
+  Begin porting the Fhourstones benchmark to tactyk-pl.
+    supposedly, Fhourstones is considered a realistic benchmark, so perhaps it may be a bit more respectable than quicksort
+      (though it does appear to do random access against a 64 MB data set, so if TACTYK manages to "catch up" it might be better to stick with
+       simple benchmarks that don't need to look much farther for data than the L1 cache...).
+    This also gives an opportunity to develop structured function calls.
+    
+  Optimize register zero-ing. (Replace all assembly instructions like "move <reg>, 0" with "xor <reg>, <reg>")
+    Would prefer to leave it as-was, but disassembly was showing that was not getting handled through optimization.
+
+31 Aug 2022
+Added a project overview document to better describe the project.
+
+30 Aug 20224876735616/15249321597
+  The quicksort test has been implemented.
+  
+  TEST RESULTS:
+  Both native and the tactyk-pl use quicksort with Hoare's partition scheme (following the pseudocode from Wik-uhh-pedia).
+  Both where given the same pseudo-randomly generated inputs.  
+  Both produced the same outputs.  
+  The output is checked both by a hashing function and by a stricter test for ascending order.
+  Test CPU: "Intel(R) Core(TM) i7-8809G CPU @ 3.10GHz" (the test wis single-threaded).
+  The native function sorted its block of memory in with a 2642296045 clock cycle differnece between start and end (2.6b clocks).
+  The tactyk-pl function sorted its block of memory in with a 10006754823 clock cycle difference between start and end (10.0b clocks).
+  (TACTYK-VM was used to obtain clock cycle counts - the performance impact of this measurement is assumed to be neglibigle).
+  Additionally, the native code was compiled in a release profile with optimizations (-O3 -s -fexpensive-optimizations -march=native)
+    (of which, only -O3 seems to make a difference, but was not noticeably better than -O1)
+    (these optimizations do not affect TACTYK-VM due to its being written in Assembly Language)
+  The test was repeated several times.  The tactyk-vm program consistantly ran at about 25% of the speed of the native function.
+
+29 Aug 2022
+  Add data-register stashing (program register-spilling), with plans to also implement stashing for address registers, instruciton pointers, floating point registers, and all-register stashes
+  Add plans and data structure for internal program context management (program stack and coroutine support)
+  Add a few memory accessors (read/write/swap element 0, push, pop, 
+  Add a native quicksort algorithm (in preparation for the first serious test).
+
+27 Aug 2022
+  Add statically allocated memory blocks with preset contents to TACTYK-PL.
+  Add a mechanism to dynamically select memory blocks.  Main memory model is now complete.
+  
+  Rewrote the project description.
+
+26 Aug 2022
+  Memory layout for asmvm internals are now defined with macros (the long list of constants was getting a bit tedious).
+  Export all symbols along-side the assembled program.
+  Addded a function invoker
+
+25 Aug 2022  
+  Memory blocks can now be defined by the host/runtime, attached to a context, and bound to address registers.
+
+24 Aug 2022
+  Fixed table capacity adjustment function (get_ge_powerof2).
+  
+  The TACTYK (should) Affix Captions To Your Kitten Programming Language (TACTYK-PL) Program Loader has attained "minimally functional" status.
+    (able to implement the same fibonacci generator using text-based symbols as was previously built from raw/binary primitives)
+
+23 Aug 2022
+  Fix a fencepost error in table 
+    (it was prioritized over what appeared to be be memory corruption, but turned out to be a much less severe error that simply got exposed by allocating 1-entry tables).
+
+22 Aug 2022
+  remove cgoto
+  Change all conditional tests (if <condition>) to conditional branches.
+    The branch target is stored in intermediates (both the offset and an actual instruction pointer).
+    If the test passes, it will jump to the specified branch target.
+    If the test fails, it will proceed to the next instruction.
+
+20 Aug 2022
+  repurpose "fastbranch" register.  It now holds the program length and is to be used for bounds-checking procedural jumps.
+  adjust goto and cgoto to obtain the branch target from a register.
+  add variants of goto and cgoto which use a branch target stored on immediate properties.  The stored immediate includes both the index of the branch target and the actual function pointer
+    (to allow the branch isntruction to be executed to a bit sooner)
+
+19 Aug 2022
+  assigned immediates to a specirif register  (not quite sure this is the best use of the register, as tactykvm is designed to avoid direct acquisition of parameters as much as possible,
+  but it is needed for getting variables and constants onto the registers, and so putting it on a register saves a dereference.
+  
+  New coding pattern for assembly:  When spilling registers, an alias is assigned to better indicate what the register is being borrowed for, then undefined at the end of the portion of code using it.
+
+  TACTYK-VM is now an actual data strcture, and it contains contexts and programs.  Haven't quite decided if auto-allocation should be a thing or how to go about doing it.  Much of this is
+  expected to be blocks of memory owned by the host program.
+
+18 Aug 2022
+  Cancel "immutable" buffers.  It was an interesting concept (and could be much better implemented by a program loader), but is outside of the scope of the project.  
+  Redesigned the tactyk memory model.
+    Removed the rblock system.
+    The rblock data structure has been repurposed.  The large rblock array has been removed, and the rblock header has been renamed to "immediates" (and still directly shadows instructions).
+    "transfer": a set of functions which manipulate data registers in fixed positions.  (rA to rF)
+      For each affected register, transfer either loads a constant, or it dereferences one of four address registers and either does a memory-to-register transfer or register-to-memory.
+      (based on flags)
+      parameters are taken from aformentioned immediates.
+      There are two main variants of transfer:  transfer32 and transfer16.  
+        transfer32 transfers up to 3 words to registers rA, rB, and rC.  
+        When assigning constants, its constants are 32 bits wids.
+        When transfering memory, its offset is 32 bits wide (4 gigabytes addressable per-transfer).
+        transfer16 transfers up to 6 words to registers rA, rB, and rC, rD, rE, and rF.  
+        When assigning constants, its constants are 16 bits wids.
+        When transfering memory, its offset is 16 bits wide (64 kilobytes addressable per-transfer).
+        There is to be two variants of transfer32 and three of transfer16 (for different amounts of transfers)
+        The transfer functions are not retargettable - use register permutations to move anything that needs to be retained out of the way.
+    Global memory has been removed - Memory is now now virtual and addressable only through what's on the address registers.  
+      The address pointers are pointers to buffers allocated by the runtime.
+      Programs are free to offset buffers and to change which buffers are referenced on the address registers.
+      Stride, current-position (persistant), and max-offset properties are to be associated with each buffer loaded into a VM Context, and used to keep it well-behaved.
+      Types and namespaces can now be represented (although they are understood only as sequences of memory locations to transfer in and out of registers).
+    
+  
+
+17 Aug 2022
+Added a device for making runtime-generated buffers immutable (use memory protection to detect tampering by an attacker which is able to arbitrarilly read and write memory, 
+but does not "own" the Process).  This will definately need to be reviewed if tactyk becomes a serious project.
+
+
+16 Aug 2022
+Further development on memory handling
+  Simplified rblock transfers
+    Removed the ability to modify context, memory, and program pointers from rblock transfers.
+    Removed the ability to modify the temp pointer form rblock transfers
+    Removed the register-memory manipulation logic, use the temp and program registers instead.
+
+  Remove the notion of offset registers and use the two registers for a 3rd and 4th pointer
+  Shuffled the registers around to place the current instruction and fast branch target on stack registers (these also are not directly writable and bear low values)
+  Extend the rblock transfer system.  There are now three kinds of rblock transfers:
+    Constant - directly transfer rblock values to registers
+    Absolute - Using rblock data as absolute pointers, transfer data from memory to registers.
+    Indirect - Using rblock data as indices relative to an address stored on a specified address register, transfer memory from memory to registers (with bounds-checking)
+
+tactyk_table - performance adjustment - faster exit when checking for item not in table if/while the table is not full.
+  If item deletion is added to the table, the deletion function will have to place an invalid entry in the table which is distinct from an uninitialized entry.
+
+
+15 Aug 2022
+
+Begin development of the TACTYK (should) Affix Captions To Your Kitten Programming Language (TACTYK-PL)
+
