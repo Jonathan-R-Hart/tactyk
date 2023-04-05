@@ -55,17 +55,23 @@ Netwide Assembler is technically a large dependency, but the assembly-language t
 ## Getting Started
 
 Install Cmake
+
 Install Netwide-Assembler (NASM)
 
 download/unpack OR git-clone
+
 navigate to the project directory
 
 mkdir build
+
 cmake -B build .
+
 cd build
+
 cmake --build .
 
 ./tactyk examples/fib.tkp
+
 ./tactyk examples/lazy_quine.tkp
 
 
