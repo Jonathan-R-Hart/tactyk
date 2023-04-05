@@ -1,10 +1,9 @@
 # CMakeLists.txt
 cmake_minimum_required(VERSION 3.5)
 
-project(tactyk C CXX)
+project(tactyk-run C CXX)
 
-add_executable(tactyk 
-  src/main.c
+add_library(tactyk
   src/fibtest.c
   src/qstest.c
   src/tactyk_asmvm.c
@@ -14,8 +13,14 @@ add_executable(tactyk
   src/tactyk_assembler.c
   src/tactyk_emit.c
   src/tactyk_visa.c
+)
+
+add_executable(tactyk-run 
+  src/main.c
   src/aux_testlib.c
 )
+
+target_link_libraries( tactyk-run tactyk )
 
 add_compile_definitions(
     TACTYK_SHELL_INTERFACE
