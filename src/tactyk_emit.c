@@ -508,7 +508,7 @@ bool tactyk_emit__NullArg(struct tactyk_emit__Context *ctx, struct tactyk_dblock
 }
 
 bool tactyk_emit__Value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
-    //struct tactyk_dblock__DBlock *varvalue = tactyk_emit__fetch_var(ctx, "$VALUE", data->token->next);
+    struct tactyk_dblock__DBlock *varvalue = tactyk_emit__fetch_var(ctx, "$VALUE", data->token->next);
     tactyk_emit__comprehend_int_value(ctx, data->token->next);
     return true;
 }
