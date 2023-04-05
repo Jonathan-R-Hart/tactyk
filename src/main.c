@@ -123,9 +123,9 @@ int main() {
 
     dev_urand = fopen("/dev/urandom", "r");
 
-    tactyk_visa__init("../rsc/tactyk_core.visa");
+    tactyk_visa__init("rsc/tactyk_core.visa");
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
-    emitctx->visa_file_prefix = "../rsc/";
+    emitctx->visa_file_prefix = "rsc/";
     emitctx->rand = sys_rand;       // haven't yet decided to add a default PRNG, but when I do, it does need to be secure.
 
     tactyk_visa__init_emit(emitctx);
@@ -135,8 +135,8 @@ int main() {
 
     aux_configure(emitctx);
     //run_fib_test(emitctx, 10000000000, ctx);
-    //run_fib_test(emitctx, 2000000, ctx);
-    run_qsort_tests(emitctx, 10000000, 1, ctx);
+    run_fib_test(emitctx, 2000000, ctx);
+    //run_qsort_tests(emitctx, 10000000, 1, ctx);
     //run_qsort_tests(emitctx, 10, 1, ctx);
 
     //tactyk_visa_new__init("tactyk_core.visa");

@@ -16,11 +16,17 @@ char *fibtest_src = {
             8 iterations
 
         mem args fib_args 1
+
+        var iterations
+            get
+                load qword ? addr1 fib_args.iterations
+
         MAIN:
             assign a 0
             assign b 1
             bind addr1 args
-            load qword c addr1 fib_args.iterations
+            get c iterations
+            # load qword c addr1 fib_args.iterations
             FIBLOOP:
             swap a b
             add a b
@@ -30,6 +36,8 @@ char *fibtest_src = {
         DIAG:
             cpuclocks
             exit
+
+            # load qword c addr1 fib_args.iterations
     )"""
 };
 
@@ -69,7 +77,7 @@ void run_fib_test(struct tactyk_emit__Context *emitctx, uint64_t amount, struct 
     tactyk_asmvm__invoke(ctx, prg, "DIAG");
     c1 = ctx->diagnostic_data[0];
     tactyk_asmvm__invoke(ctx, prg, "MAIN");
-    tactyk_asmvm__print_context(ctx);
+    //tactyk_asmvm__print_context(ctx);
     tactyk_asmvm__invoke(ctx, prg, "DIAG");
     //
     c2 = ctx->diagnostic_data[0];

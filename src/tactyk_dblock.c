@@ -90,6 +90,19 @@ struct tactyk_dblock__DBlock* tactyk_dblock__shallow_copy(struct tactyk_dblock__
     return db;
 }
 
+struct tactyk_dblock__DBlock* tactyk_dblock__deep_copy(struct tactyk_dblock__DBlock *src) {
+    if (src == NULL) {
+        return NULL;
+    }
+    struct tactyk_dblock__DBlock *db = tactyk_dblock__shallow_copy(src);
+    db->child = tactyk_dblock__deep_copy(src->child);
+    db->next = tactyk_dblock__deep_copy(src->next);
+    db->store = tactyk_dblock__deep_copy(src->store);
+    db->token = tactyk_dblock__deep_copy(src->token);
+
+    return db;
+}
+
 struct tactyk_dblock__DBlock* tactyk_dblock__from_safe_c_string(char *data) {
     struct tactyk_dblock__DBlock *db = tactyk_dblock__alloc();
     db->type = tactyk_dblock__EXTERNAL;
@@ -227,6 +240,23 @@ void tactyk_dblock__dispose(struct tactyk_dblock__DBlock *dblock) {
     }
 }
 
+
+void tactyk_dblock__set_content(struct tactyk_dblock__DBlock *dest, struct tactyk_dblock__DBlock *source) {
+    if (dest->self_managed == true) {
+        free(dest->data);
+    }
+    uint8_t *data = calloc(1, source->length);
+    memcpy(data, source->data, source->length);
+    dest->data = data;
+    dest->length = source->length;
+    dest->capacity = source->length;
+    dest->element_capacity = source->element_count;
+    dest->element_count = source->element_count;
+    dest->stride = source->stride;
+    dest->hashcode = source->hashcode;
+    dest->self_managed = true;
+}
+
 // set the "fixed" flag.
 // This is only a prohibition on resizing the dblock internal buffer (or a promise not to resize or reposition or free a backing buffer)
 // This is used for formatted/heirarchical text and for maintaining heap-allocated data structures.
@@ -284,6 +314,23 @@ int64_t tactyk_dblock__count_tokens(struct tactyk_dblock__DBlock *dblock) {
         dblock = dblock->next;
     }
     return ct;
+}
+
+struct tactyk_dblock__DBlock* tactyk_dblock__last_peer(struct tactyk_dblock__DBlock *dblock) {
+    if (dblock == NULL) {
+        return NULL;
+    }
+    while (dblock->next != NULL) {
+        dblock = dblock->next;
+    }
+    return dblock;
+}
+
+struct tactyk_dblock__DBlock* tactyk_dblock__last_token(struct tactyk_dblock__DBlock *dblock) {
+    return tactyk_dblock__last_peer(dblock->token);
+}
+struct tactyk_dblock__DBlock* tactyk_dblock__last_child(struct tactyk_dblock__DBlock *dblock) {
+    return tactyk_dblock__last_peer(dblock->child);
 }
 
 struct tactyk_dblock__DBlock* tactyk_dblock__substring(struct tactyk_dblock__DBlock *out, struct tactyk_dblock__DBlock *dblock, uint64_t start, uint64_t amount) {

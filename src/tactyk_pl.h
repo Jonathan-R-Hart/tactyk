@@ -55,6 +55,9 @@ struct tactyk_pl__Context {
     struct tactyk_dblock__DBlock *memspec_lowlevel_buffer;
     struct tactyk_dblock__DBlock *memspec_highlevel_buffer;
     struct tactyk_asmvm__struct *default_mem_layout;
+
+    struct tactyk_dblock__DBlock *getters;
+    struct tactyk_dblock__DBlock *setters;
 };
 
 void tactyk_pl__tokenize_block_simple(struct tactyk_pl__thing *thing);
@@ -64,6 +67,9 @@ void tactyk_pl__mem(struct tactyk_emit__Context *emitctx, struct tactyk_pl__thin
 void tactyk_pl__extmem(struct tactyk_emit__Context *emitctx, struct tactyk_pl__thing *__tokens);
 void tactyk_pl__data(struct tactyk_emit__Context *emitctx, struct tactyk_pl__thing *__tokens);
 */
+bool tactyk_pl__var(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
+bool tactyk_pl__get(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
+bool tactyk_pl__set(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__extmem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);

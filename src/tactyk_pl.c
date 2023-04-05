@@ -35,7 +35,7 @@ void tactyk_pl__init() {
     //tkpl_sttext = tactyk_textbuf__new(1<<26, false);
 
     //tkpl_funcs = tactyk_table__new(4096);
-    tkpl_funcs = tactyk_dblock__new_table(8);
+    tkpl_funcs = tactyk_dblock__new_table(16);
 
     tactyk_dblock__put(tkpl_funcs, "mem", tactyk_pl__mem);
     tactyk_dblock__put(tkpl_funcs, "struct", tactyk_pl__struct);
@@ -43,6 +43,9 @@ void tactyk_pl__init() {
     tactyk_dblock__put(tkpl_funcs, "data", tactyk_pl__data);
     tactyk_dblock__put(tkpl_funcs, "text", tactyk_pl__text);
     tactyk_dblock__put(tkpl_funcs, "const", tactyk_pl__const);
+    tactyk_dblock__put(tkpl_funcs, "var", tactyk_pl__var);
+    tactyk_dblock__put(tkpl_funcs, "get", tactyk_pl__get);
+    tactyk_dblock__put(tkpl_funcs, "set", tactyk_pl__set);
 
     for (uint64_t i = 0; i < 256; i++) {
         comment_chars[i] = false;
@@ -93,7 +96,8 @@ struct tactyk_asmvm__Program* tactyk_pl__load(struct tactyk_emit__Context *emitc
     ctx.emitctx = emitctx;
     ctx.struct_table = tactyk_dblock__new_managedobject_table(64, sizeof(struct tactyk_asmvm__struct));
 
-    //ctx.const_table = tactyk_dblock__new_table(1024);
+    ctx.getters = tactyk_dblock__new_table(64);
+    ctx.setters = tactyk_dblock__new_table(64);
 
     ctx.default_mem_layout = calloc(1, sizeof(struct tactyk_asmvm__struct));
     ctx.default_mem_layout->byte_stride = 8;
@@ -137,6 +141,7 @@ struct tactyk_asmvm__Program* tactyk_pl__load(struct tactyk_emit__Context *emitc
             tactyk_pl__func func = tactyk_dblock__get(tkpl_funcs, dbcode->token);
             if (func == NULL) {
                 escape_block = false;
+
                 struct tactyk_dblock__DBlock *tok = dbcode->token;
                 assert (tok != NULL);
                 if (tactyk_dblock__lastchar(tok) == ':') {
@@ -187,6 +192,71 @@ struct tactyk_asmvm__Program* tactyk_pl__load(struct tactyk_emit__Context *emitc
     //tactyk_dblock__release((void**)mspec_ll, ctx.memspec_lowlevel_buffer);
 
     return tactyk_pl__prog;
+}
+
+bool tactyk_pl__get(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
+    struct tactyk_dblock__DBlock *arg = dblock->token->next;
+    struct tactyk_dblock__DBlock *name = tactyk_dblock__last_peer(arg);
+    struct tactyk_dblock__DBlock *templ = tactyk_dblock__get(ctx->getters, name);
+    templ = tactyk_dblock__deep_copy(templ);
+    struct tactyk_dblock__DBlock *tok = templ->token;
+    while (tok != NULL) {
+        if ( (tok->length == 1) && ( ((char*)tok->data)[0] == '?') ) {
+            if (arg == NULL) {
+                error("EMIT -- Not enough arguments to fill getter template", dblock);
+            }
+            tactyk_dblock__set_content(tok, arg);
+            arg = arg->next;
+        }
+        tok = tok->next;
+    }
+    if (templ == NULL) {
+        error("EMIT -- no getter template", name);
+    }
+
+    tactyk_emit__add_script_command(ctx->emitctx, templ->token, dblock);
+
+    return true;
+}
+bool tactyk_pl__set(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
+    struct tactyk_dblock__DBlock *name = dblock->token->next;
+    //printf("name: ");
+    struct tactyk_dblock__DBlock *arg = name->next;
+    struct tactyk_dblock__DBlock *templ = tactyk_dblock__get(ctx->setters, name);
+    templ = tactyk_dblock__deep_copy(templ);
+    struct tactyk_dblock__DBlock *tok = templ->token;
+    while (tok != NULL) {
+        if ( (tok->length == 1) && ( ((char*)tok->data)[0] == '?') ) {
+            if (arg == NULL) {
+                error("EMIT -- Not enough arguments to fill setter template", dblock);
+            }
+            tactyk_dblock__set_content(tok, arg);
+            arg = arg->next;
+        }
+        tok = tok->next;
+    }
+    if (templ == NULL) {
+        error("EMIT -- no setter template", name);
+    }
+
+    tactyk_emit__add_script_command(ctx->emitctx, templ->token, dblock);
+    return true;
+}
+bool tactyk_pl__var(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
+    struct tactyk_dblock__DBlock *name = dblock->token->next;
+    struct tactyk_dblock__DBlock *def = dblock->child;
+
+    while (def != NULL) {
+        struct tactyk_dblock__DBlock *def_tokens = def->child;
+        if (strncmp("get", (char*)def->data, 3) == 0) {
+            tactyk_dblock__put(ctx->getters, name, def_tokens);
+        }
+        else if (strncmp("set", (char*)def->data, 3) == 0) {
+            tactyk_dblock__put(ctx->setters, name, def_tokens);
+        }
+        def = def->next;
+    }
+    return true;
 }
 
 //
@@ -288,7 +358,6 @@ void tactyk_pl__define_mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock_
 
 
 bool tactyk_pl__mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
-    tactyk_dblock__print_structure(dblock, true, false, false, 0);
 
     struct tactyk_asmvm__memblock_lowlevel *m_ll;
     struct tactyk_asmvm__memblock_highlevel *m_hl;
@@ -299,7 +368,6 @@ bool tactyk_pl__mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock
 
     m_ll->base_address = m_hl->data;
 
-    printf("mblock, %ju bytes allocated.\n", m_hl->num_entries * m_hl->definition->byte_stride);
     for (uint64_t i = 0; i < (m_hl->num_entries * m_hl->definition->byte_stride); i += 1) {
         m_hl->data[i] = i;
     }
