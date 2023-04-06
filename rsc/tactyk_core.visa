@@ -809,6 +809,18 @@ instruction sub
   $INSTRUCTION sub
   sub simple_binary_instruction
 
+instruction and
+  $INSTRUCTION and
+  sub simple_binary_instruction
+
+instruction or
+  $INSTRUCTION or
+  sub simple_binary_instruction
+
+instruction xor
+  $INSTRUCTION xor
+  sub simple_binary_instruction
+
 #
 typespec address-offset
   select-operand
@@ -1124,15 +1136,17 @@ instruction ccall
         
         push rbp
         mov r10, $B
-        call r10   
-        ;pop rbp    
+        call r10
+        ;pop rbp
+
+        mov rTEMPD, rTEMPA
 
         wrfsbase r14
         wrgsbase r15
         
         load_context
         
-        mov $A, rTEMPA
+        mov $A, rTEMPD
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -1369,7 +1383,6 @@ instruction mctxpop
     dec rMCSI_16
     movzx rTEMPA, rMCSI_16
     shl rTEMPA, microcontext_size_bits
-    ;mov rF, rTEMPA
     add rTEMPA, fs:[context.microcontext_stack_address]
     wrgsbase rTEMPA
     xor rTEMPA, rTEMPA

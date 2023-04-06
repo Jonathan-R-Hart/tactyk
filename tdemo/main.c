@@ -73,6 +73,11 @@ void sys_rand(void *ptr, uint64_t nbytes) {
     x *= 2;
 }
 
+uint64_t tactyk__rand_uint64() {
+    uint64_t rand;
+    sys_rand(&rand, 8);
+    return rand;
+}
 // overridable error handler
 tactyk__error_handler error;
 tactyk__error_handler warn;

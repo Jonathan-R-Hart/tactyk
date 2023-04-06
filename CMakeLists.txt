@@ -62,4 +62,7 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E create_symlink
           ${CMAKE_SOURCE_DIR}/examples/hello_sdl.tkp
           ${CMAKE_CURRENT_BINARY_DIR}/examples/hello_sdl.tkp
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_SOURCE_DIR}/examples/recursive.tkp
+          ${CMAKE_CURRENT_BINARY_DIR}/examples/recursive.tkp
 )
