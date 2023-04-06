@@ -364,6 +364,9 @@ bool tactyk_pl__mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock
 
     tactyk_pl__define_mem(ctx, dblock, &m_ll, &m_hl);
 
+    m_ll->type = TACTYK_ASMVM__MEMBLOCK_TYPE__ALLOC;
+    m_hl->type = TACTYK_ASMVM__MEMBLOCK_TYPE__ALLOC;
+
     m_hl->data = calloc(m_hl->num_entries, m_hl->definition->byte_stride);
 
     m_ll->base_address = m_hl->data;
@@ -386,6 +389,9 @@ bool tactyk_pl__extmem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
 
     tactyk_pl__define_mem(ctx, dblock, &m_ll, &m_hl);
 
+    m_ll->type = TACTYK_ASMVM__MEMBLOCK_TYPE__EXTERNAL;
+    m_hl->type = TACTYK_ASMVM__MEMBLOCK_TYPE__EXTERNAL;
+
     return true;
 }
 
@@ -402,6 +408,9 @@ bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
 
     struct tactyk_asmvm__memblock_lowlevel *mem_ll = (struct tactyk_asmvm__memblock_lowlevel*) tactyk_dblock__new_object(ctx->memspec_lowlevel_buffer);
     struct tactyk_asmvm__memblock_highlevel *mem_hl = (struct tactyk_asmvm__memblock_highlevel*) tactyk_dblock__new_managedobject(ctx->memspec_highlevel_table, name);
+
+    mem_ll->type = TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC;
+    mem_hl->type = TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC;
 
     struct tactyk_dblock__DBlock *tbuf = tactyk_dblock__new(1024);
     struct tactyk_dblock__DBlock *line = dblock->child;
@@ -451,6 +460,9 @@ bool tactyk_pl__data(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
 
     struct tactyk_asmvm__memblock_lowlevel *m_ll;
     struct tactyk_asmvm__memblock_highlevel *m_hl;
+
+    m_ll->type = TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC;
+    m_hl->type = TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC;
 
     return true;
     /*

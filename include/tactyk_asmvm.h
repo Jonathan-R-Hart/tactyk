@@ -66,6 +66,16 @@ struct tactyk_asmvm__register_bank {
     uint64_t rF;
 };
 
+// memblock type hints
+// These are only the automatically assigned "type" specifications, which TACTYK-PL uses to indicate how a memblockw as specified
+// These are not to be construed as absolute rules
+// If you need a custom type declaration for a memblock, pick a unique integer, assign it to the memblock type fields, and use it
+//  as you see fit.
+#define TACTYK_ASMVM__MEMBLOCK_TYPE__UNKNOWN 0
+#define TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC 1
+#define TACTYK_ASMVM__MEMBLOCK_TYPE__ALLOC 2
+#define TACTYK_ASMVM__MEMBLOCK_TYPE__EXTERNAL 3
+
 // memory layout specification used within the virtual machine
 //      (basically just a pointer to the allocated memory, boundaries, and a pair of extra properties for implementing queues)
 //          (details about properties are provided to the emit itnerface as a set of named constants)
