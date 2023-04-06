@@ -51,12 +51,17 @@ Netwide-Assembler (not linked - run as a separate system process and interacted 
 
 Netwide Assembler is technically a large dependency, but the assembly-language templates in use are probably more relevant to considerations of complexity.  It could also theoretically be replaced by switching everything to binary templates - at the cost of having to understand x86 machine code instead of x86 assembly.
 
+## TACTYK-examples dependencies:
+
+SDL2
 
 ## Getting Started
 
 Install Cmake
 
 Install Netwide-Assembler (NASM)
+
+Install SDL2
 
 download/unpack OR git-clone
 
@@ -70,9 +75,11 @@ cd build
 
 cmake --build .
 
-./tactyk examples/fib.tkp
+./tdemo examples/fib.tkp
 
-./tactyk examples/lazy_quine.tkp
+./tdemo examples/lazy_quine.tkp
+
+./tdemo examples/hello_sdl.tkp
 
 
 ## History

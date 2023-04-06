@@ -7,7 +7,7 @@
 //  You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
+#include "tactyk.h"
 #include "tactyk_asmvm.h"
 #include "tactyk_dblock.h"
 
@@ -187,4 +187,18 @@ void tactyk_asmvm__print_diagnostic_data(struct tactyk_asmvm__Context *context, 
     for (int64_t i = 0; i < amount; i++) {
         printf("%ld:\t%ld\n", i, context->diagnostic_data[i]);
     }
+}
+
+void tactyk_asmvm__get_mblock(struct tactyk_asmvm__Context *asmvm_context, void* name, struct tactyk_asmvm__memblock_highlevel **m_hl, struct tactyk_asmvm__memblock_lowlevel **m_ll) {
+    struct tactyk_asmvm__memblock_lowlevel *mem_ll = NULL;
+    struct tactyk_asmvm__memblock_highlevel *mem_hl = tactyk_dblock__get(asmvm_context->hl_program_ref->memory_layout_hl, name);
+    if (mem_hl == NULL) {
+        error("ASMVM-GET_MBLOCK -- memory block not specified", name);
+    }
+    else {
+        mem_ll = mem_hl->memblock;
+    }
+
+    *m_hl = mem_hl;
+    *m_ll = mem_ll;
 }

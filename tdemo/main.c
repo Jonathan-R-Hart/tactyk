@@ -36,6 +36,7 @@
 #include "fibtest.h"
 
 #include "aux_testlib.h"
+#include "aux_sdl.h"
 
 //#include "qstest.h"
 
@@ -123,9 +124,9 @@ int main() {
 
     dev_urand = fopen("/dev/urandom", "r");
 
-    tactyk_visa__init("../rsc/tactyk_core.visa");
+    tactyk_visa__init("rsc/tactyk_core.visa");
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
-    emitctx->visa_file_prefix = "../rsc/";
+    emitctx->visa_file_prefix = "rsc/";
     emitctx->rand = sys_rand;       // haven't yet decided to add a default PRNG, but when I do, it does need to be secure.
 
     tactyk_visa__init_emit(emitctx);
@@ -134,10 +135,12 @@ int main() {
     struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
 
     aux_configure(emitctx);
+    aux_sdl__configure(emitctx);
+
     //run_fib_test(emitctx, 10000000000, ctx);
     //run_fib_test(emitctx, 2000000, ctx);
-    run_qsort_tests(emitctx, 10000000, 1, ctx);
-    //run_qsort_tests(emitctx, 10, 1, ctx);
+    //run_qsort_tests(emitctx, 10000000, 1, ctx);
+    run_qsort_tests(emitctx, 10, 1, ctx);
 
     //tactyk_visa_new__init("tactyk_core.visa");
 
@@ -195,6 +198,7 @@ int main(int argc, char *argv[], char *envp[]) {
     struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
 
     aux_configure(emitctx);
+    aux_sdl__configure(emitctx);
 
     // re-scan the args and ingest source code files.
     for (int64_t i = 1; i < argc; i += 1) {

@@ -1,3 +1,27 @@
+5 Apr 2023
+Restructure the project (decouple the test/demo components from library components)
+Update resource references in the unconfigured (non-shell) interface.
+Use Cmake to declare the version number
+Add a mechanism to tactky-PL for defining "variables".
+  tactyk-PL "variables" are basically just code templates dressed up as getters and setters.
+  The "var" keyword is used to declare a variable.
+    The "get" block within a variable declaration specifies the command (and arguments) used for the getter.
+    The "set" block within a variable declaration specifies the command (and arguments) used for the setter.
+    All arguments in the getter or setter which are equal to "?" are replaced with arguments from the source code [in order].
+  The "get" and "set" keywords outside of variable declarations invoke getters and setters.
+    For the "get" keyword, the last argument in the list is the variable name and all other arguments are tokens to insert into the command
+    For the "set" keyword, the first argument in the list is the variable name and all other arguments are tokens to insert into the command
+    This ordering is intended to reflect typical assembly syntax ( op <dest> <source> )
+Move the memory block get-by-name function from auxilliary support to tactyk_asmvm
+
+Add an auxilliary interface for rendering framebuffers with SDL2.
+Add an auxilliary interface sleep function
+Add an example demonstrating rendering a framebuffer through the auxilliary SDL interface.
+
+fixed incorrect c calls
+  printf can print floating point values when called from a callback from TACTYK!
+
+
 4 Apr 2023
 Add an introduction (readme.md)
 Moved source files to "src" directory

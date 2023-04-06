@@ -872,6 +872,62 @@ instruction assign
             mov %[$A]_32, fs:[$B]
             jmp $NEXT_INSTRUCTION
 
+instruction mul
+  operand
+    type data
+    $DEST $VALUE
+  operand
+    type data integer const
+    $SOURCE $VALUE
+    scramble rTEMPC $LD_SOURCE_IMMEDIATE
+  select-template
+    case DD
+      code
+        mov rTEMPA, $DEST
+        imul $SOURCE
+        mov $DEST, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DI DC
+      code
+        $LD_SOURCE_IMMEDIATE
+        mov rTEMPA, $DEST
+        imul rTEMPC
+        mov $DEST, rTEMPA
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+
+instruction div
+  operand
+    type data
+    $DEST $VALUE
+  operand
+    type data integer const
+    $SOURCE $VALUE
+    scramble rTEMPC $LD_SOURCE_IMMEDIATE
+  select-template
+    case DD
+      code
+        mov rTEMPA, $DEST
+        cqo
+        idiv $SOURCE
+        mov $DEST, rTEMPA
+        xor rTEMPA, rTEMPA
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    case DI DC
+      code
+        $LD_SOURCE_IMMEDIATE
+        mov rTEMPA, $DEST
+        cqo
+        idiv rTEMPC
+        mov $DEST, rTEMPA
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+
 subroutine shift
   operand 
     type data
@@ -962,9 +1018,11 @@ instruction tcall
     
     ;mov rbp, fs:[controlstate.runtime_registers + 8]
     ;mov rsp, fs:[controlstate.runtime_registers + 16]
-    
+
+    push rbp
     mov r10, $A
     call r10
+    ;pop rbp
     
     wrfsbase r14
     wrgsbase r15
@@ -1015,8 +1073,10 @@ instruction ccall
         ;mov rbp, fs:[controlstate.runtime_registers + 8]
         ;mov rsp, fs:[controlstate.runtime_registers + 16]
         
+        push rbp
         mov r10, $A
         call r10
+        ;pop rbp
         
         wrfsbase r14
         wrgsbase r15
@@ -1057,8 +1117,10 @@ instruction ccall
         ;mov rbp, fs:[controlstate.runtime_registers + 8]
         ;mov rsp, fs:[controlstate.runtime_registers + 16]
         
+        push rbp
         mov r10, $B
-        call r10       
+        call r10   
+        ;pop rbp    
 
         wrfsbase r14
         wrgsbase r15

@@ -18,6 +18,8 @@
 
 void aux_configure(struct tactyk_emit__Context *emit_context);
 
+void aux_sleep(uint64_t milliseconds);
+
 void aux__read_file(struct tactyk_asmvm__Context *asmvm_context);
 void aux__write_file(struct tactyk_asmvm__Context *asmvm_context);
 

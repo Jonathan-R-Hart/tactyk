@@ -46,6 +46,8 @@ void tactyk_dblock__testit();
 
 // copy the dblock and its data buffer, mark it as self-managed.
 struct tactyk_dblock__DBlock* tactyk_dblock__shallow_copy(struct tactyk_dblock__DBlock *src);
+// recursively copy the dblock and all subordinate dblocks
+struct tactyk_dblock__DBlock* tactyk_dblock__deep_copy(struct tactyk_dblock__DBlock *src);
 
 // basic dblock constructors
 struct tactyk_dblock__DBlock* tactyk_dblock__new(uint64_t capacity);
@@ -74,6 +76,7 @@ void tactyk_dblock__expand(struct tactyk_dblock__DBlock *dblock, uint64_t min_le
 void tactyk_dblock__reallocate(struct tactyk_dblock__DBlock *dblock, uint64_t min_length);
 // clear and de-allocate buffers from this and all linked or associated dblocks.
 void tactyk_dblock__dispose(struct tactyk_dblock__DBlock *dblock);
+void tactyk_dblock__set_content(struct tactyk_dblock__DBlock *dest, struct tactyk_dblock__DBlock *source);
 
 // count the number of adjacent dblocks (number of times the pointer chain, 'dblock->next->next-->...' can be followed before encountering a NULL pointer)
 // the resulting sum includes itself.
@@ -84,6 +87,10 @@ int64_t tactyk_dblock__count_children(struct tactyk_dblock__DBlock *dblock);
 // count the number of "token" dblocks (number of times the pointer chain, '(dblock->token)->next->next-->...' can be followed before encountering a NULL pointer)
 // the resulting sum does not include itself.
 int64_t tactyk_dblock__count_tokens(struct tactyk_dblock__DBlock *dblock);
+
+struct tactyk_dblock__DBlock* tactyk_dblock__last_peer(struct tactyk_dblock__DBlock *dblock);
+struct tactyk_dblock__DBlock* tactyk_dblock__last_token(struct tactyk_dblock__DBlock *dblock);
+struct tactyk_dblock__DBlock* tactyk_dblock__last_child(struct tactyk_dblock__DBlock *dblock);
 
 // create a dblock from a c-string, and use that c-string as a backing buffer (externally-managed buffer)
 struct tactyk_dblock__DBlock* tactyk_dblock__from_safe_c_string(char *data);
@@ -162,6 +169,8 @@ uint8_t tactyk_dblock__lastchar(struct tactyk_dblock__DBlock *dblock);
 // dblock-container: a flat array of structs
 // instantiate a dblock which holds an array of data structures.  stride specifies the size of each element.  Capacity specifies the initial size of the data set.
 struct tactyk_dblock__DBlock* tactyk_dblock__new_container(uint64_t capacity, uint64_t stride);
+// container with objects "pre-allocated"
+struct tactyk_dblock__DBlock* tactyk_dblock__new_allocated_container(uint64_t capacity, uint64_t stride);
 // return a pointer to the next uninitialized container entry.
 void* tactyk_dblock__new_object(struct tactyk_dblock__DBlock *container);
 // return a pointer to a specific container entry

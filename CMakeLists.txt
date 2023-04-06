@@ -1,24 +1,40 @@
 # CMakeLists.txt
 cmake_minimum_required(VERSION 3.5)
 
-project(tactyk C CXX)
+project(tactyk-p C CXX)
+project(tactyk-p VERSION 0.2.0)
 
-add_executable(tactyk 
-  src/main.c
-  src/fibtest.c
-  src/qstest.c
-  src/tactyk_asmvm.c
-  src/tactyk_dblock.c
-  src/tactyk_pl.c
-  src/tactyk_util.c
-  src/tactyk_assembler.c
-  src/tactyk_emit.c
-  src/tactyk_visa.c
-  src/aux_testlib.c
+add_library(tactyk
+  libtactyk/tactyk_asmvm.c
+  libtactyk/tactyk_dblock.c
+  libtactyk/tactyk_pl.c
+  libtactyk/tactyk_util.c
+  libtactyk/tactyk_assembler.c
+  libtactyk/tactyk_emit.c
+  libtactyk/tactyk_visa.c
 )
+
+add_executable(tdemo
+  tdemo/main.c
+  tdemo/aux_testlib.c
+  tdemo/aux_sdl.c
+)
+
+find_package(SDL2 REQUIRED)
+
+target_include_directories(tdemo PRIVATE 
+  ${CMAKE_SOURCE_DIR}/include
+  ${SDL2_INCLUDE_DIRS}
+)
+target_include_directories(tactyk PRIVATE 
+  ${CMAKE_SOURCE_DIR}/include
+)
+
+target_link_libraries( tdemo tactyk ${SDL2_LIBRARIES} )
 
 add_compile_definitions(
     TACTYK_SHELL_INTERFACE
+    TACTYK__VERSION="${CMAKE_PROJECT_VERSION}"
 )
 
 add_compile_options( -m64 -fPIC )
@@ -43,4 +59,7 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E create_symlink
           ${CMAKE_SOURCE_DIR}/examples/lazy_quine.tkp
           ${CMAKE_CURRENT_BINARY_DIR}/examples/lazy_quine.tkp
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_SOURCE_DIR}/examples/hello_sdl.tkp
+          ${CMAKE_CURRENT_BINARY_DIR}/examples/hello_sdl.tkp
 )

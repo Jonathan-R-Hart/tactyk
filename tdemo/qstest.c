@@ -23,6 +23,11 @@ char* tactyk_qsort_program = R"""(
 
     mem args qs_args 1
 
+    var stored_bounds
+        get
+            unstash e1f1
+        set
+            stash e1f1
     MAIN:
         bind addr1 args
         load qword f addr1 qs_args.last
@@ -47,7 +52,10 @@ char* tactyk_qsort_program = R"""(
         if e >= f QSORT_SKIP
 
         # copy the bounds into context local storage so they can be recovered after partition
-        stash e1f1
+
+        # stash e1f1
+        set stored_bounds
+
         goto QSORT_PARTITION
     QSORT_SKIP:
         # is there anything left on the stack?
@@ -58,7 +66,10 @@ char* tactyk_qsort_program = R"""(
     QSORT_EPILOGUE:
         # move the new partition point out of the way and recover the original bounds
         assign d f
-        unstash e1f1
+
+        # unstash e1f1
+        get stored_bounds
+
         # defer partition e->d.
         push addr4 e
         push addr4 d
