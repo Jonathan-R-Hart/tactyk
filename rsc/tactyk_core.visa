@@ -962,9 +962,11 @@ instruction tcall
     
     ;mov rbp, fs:[controlstate.runtime_registers + 8]
     ;mov rsp, fs:[controlstate.runtime_registers + 16]
-    
+
+    push rbp
     mov r10, $A
     call r10
+    ;pop rbp
     
     wrfsbase r14
     wrgsbase r15
@@ -1015,8 +1017,10 @@ instruction ccall
         ;mov rbp, fs:[controlstate.runtime_registers + 8]
         ;mov rsp, fs:[controlstate.runtime_registers + 16]
         
+        push rbp
         mov r10, $A
         call r10
+        ;pop rbp
         
         wrfsbase r14
         wrgsbase r15
@@ -1057,8 +1061,10 @@ instruction ccall
         ;mov rbp, fs:[controlstate.runtime_registers + 8]
         ;mov rsp, fs:[controlstate.runtime_registers + 16]
         
+        push rbp
         mov r10, $B
-        call r10       
+        call r10   
+        ;pop rbp    
 
         wrfsbase r14
         wrgsbase r15

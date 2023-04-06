@@ -16,6 +16,9 @@ Move the memory block get-by-name function from auxilliary support to tactyk_asm
 Add an auxilliary interface for rendering framebuffers with SDL2.
 Add an auxilliary interface sleep function
 
+fixed incorrect c calls
+  printf can print floating point values when called from a callback from TACTYK!
+
 4 Apr 2023
 Add an introduction (readme.md)
 Moved source files to "src" directory
