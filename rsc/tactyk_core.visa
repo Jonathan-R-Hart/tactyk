@@ -1357,7 +1357,7 @@ instruction lwreturn
 instruction mctxpush
   code
     inc rMCSI_16
-    mov rTEMPA, rMCSI
+    movzx rTEMPA, rMCSI_16
     shl rTEMPA, microcontext_size_bits
     add rTEMPA, fs:[context.microcontext_stack_address]
     wrgsbase rTEMPA
@@ -1367,8 +1367,9 @@ instruction mctxpush
 instruction mctxpop
   code
     dec rMCSI_16
-    mov rTEMPA, rMCSI
+    movzx rTEMPA, rMCSI_16
     shl rTEMPA, microcontext_size_bits
+    ;mov rF, rTEMPA
     add rTEMPA, fs:[context.microcontext_stack_address]
     wrgsbase rTEMPA
     xor rTEMPA, rTEMPA

@@ -48,9 +48,9 @@ char* tactyk_qsort_program = R"""(
         assign d 0
         assign e 0
         assign f 0
-        mctxpush
-        lwcall REDIR1
         mctxpop
+        lwcall REDIR1
+        mctxpush
         unstash a1b1c1d1e1f1
         exit
     DO_QSORT:

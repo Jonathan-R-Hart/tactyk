@@ -19,10 +19,10 @@ struct tactyk_asmvm__VM* tactyk_asmvm__new_vm() {
 
 struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM *vm) {
     struct tactyk_asmvm__Context *ctx = calloc(1, sizeof(struct tactyk_asmvm__Context));
-    ctx->microcontext_stack = calloc(32*1024, sizeof(uint64_t));
+    ctx->microcontext_stack = calloc(32*65536, sizeof(uint64_t));
     ctx->microcontext_stack_offset = 0;
-    ctx->microcontext_stack_size = 32*1024*sizeof(uint64_t);
-    ctx->lwcall_stack = calloc(1024, sizeof(uint64_t));
+    ctx->microcontext_stack_size = 32*65536*sizeof(uint64_t);
+    ctx->lwcall_stack = calloc(65536, sizeof(uint32_t));
     //ctx->mctxstack[0] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
     //ctx->mctxstack[1] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
     //ctx->mctxstack[2] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);

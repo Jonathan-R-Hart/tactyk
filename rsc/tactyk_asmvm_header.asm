@@ -272,7 +272,7 @@
         dwords addr4_element_bound, addr4_array_bound, addr4_left, addr4_right
     endstruc
     
-    %define microcontext_size_bits 5
+    %define microcontext_size_bits 8
     %define microcontext_stack_size 65536
     %define lwcall_stack_size 65536
 
