@@ -154,33 +154,6 @@ void tactyk_asmvm__print_context(struct tactyk_asmvm__Context *context) {
     printf("rD:         %ld\n", context->regbank_A.rD);
     printf("rE:         %ld\n", context->regbank_A.rE);
     printf("rF:         %ld\n", context->regbank_A.rF);
-    /*
-    printf("ctxA:       %ld\n", context->A);
-    printf("ctxB:       %ld\n", context->B);
-    printf("ctxC:       %ld\n", context->C);
-    printf("ctxD:       %ld\n", context->D);
-    printf("ctxE:       %ld\n", context->E);
-    printf("ctxF:       %ld\n", context->F);
-    printf("ctxG:       %ld\n", context->G);
-    printf("ctxH:       %ld\n", context->H);
-    */
-    //printf("lwcall pos: %ld\n", context->lwcall_position[0]);
-    //if (context->lwcall_position != 0) {
-    //    printf("lwret-to:   %d\n", context->lwcall_stack[context->lwcall_position[0]-4]);
-    //}
-    //printf("adrMAXPTR:  %ld\n", (uint64_t)context->ADDR_PTR_MAX);
-    //printf("adrMAXIDX:  %ld\n", context->ADDR_IDX_MAX);
-    /*
-    printf("st-imm-ptr: %ld\n", (uint64_t)context->immediates);
-    printf("runtimeA:   %ld\n", context->runtimeA);
-    printf("runtimeB:   %ld\n", context->runtimeB);
-    printf("runtimeC:   %ld\n", context->runtimeC);
-    printf("runtimeD:   %ld\n", context->runtimeD);
-    printf("runtimeE:   %ld\n", context->runtimeE);
-    printf("runtimeF:   %ld\n", context->runtimeF);
-    printf("runtimeG:   %ld\n", context->runtimeG);
-    printf("runtimeH:   %ld\n", context->runtimeH);
-    */
 }
 
 void tactyk_asmvm__print_diagnostic_data(struct tactyk_asmvm__Context *context, int64_t amount) {

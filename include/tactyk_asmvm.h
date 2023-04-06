@@ -44,58 +44,6 @@ typedef void (*tactyk_asmvm__op)();
 extern const int32_t STATIC_MEMORY_HEADER_LENGTH;
 extern const int32_t STATIC_MEMORY_LENGTH;
 
-union tactyk_asmvm__16bit_Field {
-    uint16_t value;
-    uint64_t __raw;
-};
-
-struct tactyk_asmvm__Immediate_b8 {
-    uint8_t a;
-    uint8_t b;
-    uint8_t c;
-    uint8_t d;
-    uint8_t e;
-    uint8_t f;
-    uint8_t g;
-    uint8_t h;
-    uint8_t i;
-    uint8_t j;
-    uint8_t k;
-    uint8_t l;
-    uint8_t m;
-    uint8_t n;
-    uint8_t o;
-};
-struct tactyk_asmvm__Immediate_b16 {
-    uint16_t a;
-    uint16_t b;
-    uint16_t c;
-    uint16_t d;
-    uint16_t e;
-    uint16_t f;
-    uint16_t g;
-    uint16_t h;
-};
-struct tactyk_asmvm__Immediate_b32 {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
-};
-struct tactyk_asmvm__Immediate_b64 {
-    uint64_t a;
-    uint64_t b;
-};
-union tactyk_asmvm__Immediate {
-    struct tactyk_asmvm__Immediate_b8 v8;
-    struct tactyk_asmvm__Immediate_b16 v16;
-    struct tactyk_asmvm__Immediate_b32 v32;
-    struct tactyk_asmvm__Immediate_b64 v64;
-    uint8_t i8[8];
-    uint16_t i16[4];
-    uint32_t i32[2];
-    uint64_t i64[1];
-};
 
 struct tactyk_asmvm__register_bank {
     uint64_t rFLAGS;                            // register bank position 0 technically is for the VM context pointer, but is never read by the VM, so the slot is
@@ -162,17 +110,6 @@ struct tactyk_asmvm__Context {
     void *microcontext_stack;
     uint64_t microcontext_stack_offset;
     uint64_t microcontext_stack_size;
-    /*
-    uint64_t lwcall_position[4];
-    uint32_t lwcall_stack[512];
-
-    uint64_t stash[MICROCONTEXT_SIZE*STASH_SCALE];
-
-    uint64_t mctxstack_position[4];
-    uint64_t *mctxstack[4];
-    uint64_t *active_mctxstack;
-    //uint64_t mctxstack[MICROCONTEXT_SIZE*MICROCONTEXT_SCALE];
-    */
 
     uint64_t diagnostic_data[1024];
 
