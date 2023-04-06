@@ -147,7 +147,6 @@
     %define rPROG_32 %[rPROG]_32
     %define rPROG_64 %[rPROG]_64
 
-
     %define rLWCSI_8 %[rLWCSI]_8
     %define rLWCSI_16 %[rLWCSI]_16
     %define rLWCSI_32 %[rLWCSI]_32
@@ -222,24 +221,6 @@
     %define rF_16 %[rF]_16
     %define rF_32 %[rF]_32
     %define rF_64 %[rF]_64
-
-
-    ;%define INDEX_rCTX      0
-    ;%define INDEX_rSTASH    1
-    ;%define INDEX_rPROG     2
-    ;%define INDEX_rLWCSI    3
-    ;%define INDEX_rTEMP     4
-    ;%define INDEX_rADDR1    5
-    ;%define INDEX_rADDR2    6
-    ;%define INDEX_rADDR3    7
-    ;%define INDEX_rADDR4    8
-    ;%define INDEX_rMCSI      9
-    ;%define INDEX_rA        10
-    ;%define INDEX_rB        11
-    ;%define INDEX_rC        12
-    ;%define INDEX_rD        13
-    ;%define INDEX_rE        14
-    ;%define INDEX_rF        15
 
     %macro dwords 1-*
         %rep %0
@@ -326,32 +307,6 @@
         
         qwords lwcall_stack_address, microcontext_stack_address, microcontext_stack_offset, microcontext_stack_size
 
-        ; 160
-        
-        ; .lwcall_stack:  resd 512
-        ; addrN:  base address
-        ; element_bound:  Offset of 8th from last byte in an element (stride-8)
-        ; (for simpler overflow prevention, small words at high offsets are prohibited)
-        ; array_bound: Offset of last element (array.length-1*stride)
-        ; left  [circular buffer interpretation]: left position
-        ; right  [circular buffer interpretation]: right position
-
-        ; 2208
-
-        ; .stash resb microcontext_size*STASH_SCALE
-
-        ; qwords mctxstack_position1, mctxstack_position2, mctxstack_position3, mctxstack_position4
-        ; qwords mctxstack1, mctxstack2, mctxstack3, mctxstack4, active_mctxstack
-
-        ;.mctxstack resb microcontext_size*MCTXSTACK_SCALE
-
-        ;qwords stack, stack_position, stack_bound
-        ;qwords queue, queue_left, queue_right, queue_bound
-
-        ;.mctxstash:     resq 32*8
-        ;.mctx_bufpositions:  resw 8
-        ;.mctxbuffer:    resq MCTX_BUFFER_QWORDS
-
         .diagnostic_out:resq 1024
 
         qwords controlstate, program, hl_program_ref, instruction_index, status, stepper
@@ -379,8 +334,9 @@
 
     %define iSIZE 8
 
+    ; runtime registers do not belong to tactyk, and so do not use internal tactyk names
+    ; The only thing that matters here is that they get correctly stored and restored.
     %macro store_runtimecontext 0
-        ;mov rTEMPA, [rCTX + context.controlstate]
         mov [rTEMPA + controlstate.runtime_registers + 0], rbx
         mov [rTEMPA + controlstate.runtime_registers + 8], rbp
         mov [rTEMPA + controlstate.runtime_registers + 16], rsp
@@ -410,15 +366,13 @@
     %endmacro
 
     %macro load_context 0
-        ;mov rSTASH, fs:[context.registers + regbank.stash]
         mov rPROG, fs:[context.registers + regbank.prog]
         mov rLWCSI, fs:[context.registers + regbank.lwcsi]
-        ;mov rTEMP, [context.registers + regbank.temp]
+        mov rMCSI, fs:[context.registers + regbank.mcsi]
         mov rADDR1, fs:[context.registers + regbank.addr1]
         mov rADDR2, fs:[context.registers + regbank.addr2]
         mov rADDR3, fs:[context.registers + regbank.addr3]
         mov rADDR4, fs:[context.registers + regbank.addr4]
-        mov rMCSI, fs:[context.registers + regbank.mcsi]
         mov rA, fs:[context.registers + regbank.a]
         mov rB, fs:[context.registers + regbank.b]
         mov rC, fs:[context.registers + regbank.c]
@@ -431,15 +385,12 @@
     %endmacro
 
     %macro store_context 0
-        ;mov fs:[context.registers + regbank.stash], rSTASH
-        ;mov fs:[context.registers + regbank.prog], rPROG
         mov fs:[context.registers + regbank.lwcsi], rLWCSI
-        ;mov fs:[context.registers + regbank.temp], rTEMP
+        mov fs:[context.registers + regbank.mcsi], rMCSI
         mov fs:[context.registers + regbank.addr1], rADDR1
         mov fs:[context.registers + regbank.addr2], rADDR2
         mov fs:[context.registers + regbank.addr3], rADDR3
         mov fs:[context.registers + regbank.addr4], rADDR4
-        mov fs:[context.registers + regbank.mcsi], rMCSI
         mov fs:[context.registers + regbank.a], rA
         mov fs:[context.registers + regbank.b], rB
         mov fs:[context.registers + regbank.c], rC
