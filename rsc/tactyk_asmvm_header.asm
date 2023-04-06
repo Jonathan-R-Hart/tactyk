@@ -125,7 +125,8 @@
     ; and places small values on the rsp and rbp registers so as to try to cause any unintended stack manipulation to trigger a segfault)
 
     %define rPROG   r12
-    %define rIPTR   rbp
+    %define rLWCSI  rbp
+    %define rMCSI   rsp
     %define rTEMPA  rax
     %define rTEMPC  rcx
     %define rTEMPD  rdx
@@ -133,7 +134,6 @@
     %define rADDR2  r15
     %define rADDR3  rbx
     %define rADDR4  r10
-    %define rFBR    rsp
     %define rA      rdi
     %define rB      rsi
     %define rC      r11
@@ -148,10 +148,10 @@
     %define rPROG_64 %[rPROG]_64
 
 
-    %define rIPTR_8 %[rIPTR]_8
-    %define rIPTR_16 %[rIPTR]_16
-    %define rIPTR_32 %[rIPTR]_32
-    %define rIPTR_64 %[rIPTR]_64
+    %define rLWCSI_8 %[rLWCSI]_8
+    %define rLWCSI_16 %[rLWCSI]_16
+    %define rLWCSI_32 %[rLWCSI]_32
+    %define rLWCSI_64 %[rLWCSI]_64
 
     %define rTEMPA_8 %[rTEMPA]_8
     %define rTEMPA_16 %[rTEMPA]_16
@@ -188,10 +188,10 @@
     %define rADDR4_32 %[rADDR4]_32
     %define rADDR4_64 %[rADDR4]_64
 
-    %define rFBR_8 %[rFBR]_8
-    %define rFBR_16 %[rFBR]_16
-    %define rFBR_32 %[rFBR]_32
-    %define rFBR_64 %[rFBR]_64
+    %define rMCSI_8 %[rMCSI]_8
+    %define rMCSI_16 %[rMCSI]_16
+    %define rMCSI_32 %[rMCSI]_32
+    %define rMCSI_64 %[rMCSI]_64
 
     %define rA_8 %[rA]_8
     %define rA_16 %[rA]_16
@@ -227,13 +227,13 @@
     ;%define INDEX_rCTX      0
     ;%define INDEX_rSTASH    1
     ;%define INDEX_rPROG     2
-    ;%define INDEX_rIPTR     3
+    ;%define INDEX_rLWCSI    3
     ;%define INDEX_rTEMP     4
     ;%define INDEX_rADDR1    5
     ;%define INDEX_rADDR2    6
     ;%define INDEX_rADDR3    7
     ;%define INDEX_rADDR4    8
-    ;%define INDEX_rFBR      9
+    ;%define INDEX_rMCSI      9
     ;%define INDEX_rA        10
     ;%define INDEX_rB        11
     ;%define INDEX_rC        12
@@ -256,11 +256,11 @@
     %endmacro
 
     struc regbank
-        qwords self,stash,prog,iptr,temp,addr1,addr2,addr3,addr4,fbr,a,b,c,d,e,f
+        qwords self,stash,prog,lwcsi,temp,addr1,addr2,addr3,addr4,mcsi,a,b,c,d,e,f
     endstruc
 
     struc mctx
-        qwords a,b,c,d,e,f, iptr, fbr
+        qwords a,b,c,d,e,f, lwcsi, mcsi
         qwords addr3, addr3_base, addr3_par_a, addr3_par_b
         qwords addr4, addr4_base, addr4_par_a, addr4_par_b
         qwords f0_low, f0_high, f1_low, f1_high, f2_low, f2_high, f3_low, f3_high, f4_low, f4_high, f5_low, f5_high, f6_low, f6_high, f7_low, f7_high
@@ -289,7 +289,7 @@
         qwords a1,b1,c1,d1,e1,f1
         qwords a2,b2,c2,d2,e2,f2
         qwords a3,b3,c3,d3,e3,f3
-        qwords iptr, fbr
+        qwords lwcsi, mcsi
         qwords addr1
         dwords addr1_element_bound, addr1_array_bound, addr1_left, addr1_right
         qwords addr2
@@ -379,18 +379,6 @@
 
     %define iSIZE 8
 
-    ; General setup for fetching and executing the next operation
-    ; This should be hard-coded into each function
-    ;
-    ;  jmp [rPTOG+rIPTR*iSIZE]
-    ;  ... SomeOperation ...
-    ;  add rIPTR, 1
-
-    ; General setup for accesing memory
-    ;
-    ;  mov rGSTR, [<rADDR1|rADDR2|rSTAT>+OFFSET*<1|2|4|8>]
-
-
     %macro store_runtimecontext 0
         ;mov rTEMPA, [rCTX + context.controlstate]
         mov [rTEMPA + controlstate.runtime_registers + 0], rbx
@@ -424,13 +412,13 @@
     %macro load_context 0
         ;mov rSTASH, fs:[context.registers + regbank.stash]
         mov rPROG, fs:[context.registers + regbank.prog]
-        mov rIPTR, fs:[context.registers + regbank.iptr]
+        mov rLWCSI, fs:[context.registers + regbank.lwcsi]
         ;mov rTEMP, [context.registers + regbank.temp]
         mov rADDR1, fs:[context.registers + regbank.addr1]
         mov rADDR2, fs:[context.registers + regbank.addr2]
         mov rADDR3, fs:[context.registers + regbank.addr3]
         mov rADDR4, fs:[context.registers + regbank.addr4]
-        mov rFBR, fs:[context.registers + regbank.fbr]
+        mov rMCSI, fs:[context.registers + regbank.mcsi]
         mov rA, fs:[context.registers + regbank.a]
         mov rB, fs:[context.registers + regbank.b]
         mov rC, fs:[context.registers + regbank.c]
@@ -445,13 +433,13 @@
     %macro store_context 0
         ;mov fs:[context.registers + regbank.stash], rSTASH
         ;mov fs:[context.registers + regbank.prog], rPROG
-        mov fs:[context.registers + regbank.iptr], rIPTR
+        mov fs:[context.registers + regbank.lwcsi], rLWCSI
         ;mov fs:[context.registers + regbank.temp], rTEMP
         mov fs:[context.registers + regbank.addr1], rADDR1
         mov fs:[context.registers + regbank.addr2], rADDR2
         mov fs:[context.registers + regbank.addr3], rADDR3
         mov fs:[context.registers + regbank.addr4], rADDR4
-        mov fs:[context.registers + regbank.fbr], rFBR
+        mov fs:[context.registers + regbank.mcsi], rMCSI
         mov fs:[context.registers + regbank.a], rA
         mov fs:[context.registers + regbank.b], rB
         mov fs:[context.registers + regbank.c], rC
@@ -468,7 +456,7 @@
     %macro reset_context 1
 
         mov qword [%1+context.registers+regbank.temp], 0
-        mov qword [%1+context.registers+regbank.fbr], 0
+        mov qword [%1+context.registers+regbank.mcsi], 0
         mov qword [%1+context.registers+regbank.addr1], 0
         mov qword [%1+context.registers+regbank.addr2], 0
         mov qword [%1+context.registers+regbank.addr3], 0
@@ -581,7 +569,7 @@
     ;mov [rCTX+context.internalH], rTEMPD
     errorlt STATUS_STACK_UNDERFLOW
     mov fs:[context.lwcall_position%1], rTEMPD_32
-    mov rIPTR_32, fs:[context.lwcall_stack+rTEMPD]
+    mov rLWCSI_32, fs:[context.lwcall_stack+rTEMPD]
     xor rTEMPD, rTEMPD
 %endmacro
 
