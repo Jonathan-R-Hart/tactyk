@@ -999,6 +999,13 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new_container(uint64_t element_capa
     db->persistence = 0;
     return db;
 }
+
+struct tactyk_dblock__DBlock* tactyk_dblock__new_allocated_container(uint64_t capacity, uint64_t stride) {
+    struct tactyk_dblock__DBlock *db = tactyk_dblock__new_container(capacity, stride);
+    db->length = db->capacity;
+    db->element_count = db->element_capacity;
+}
+
 void* tactyk_dblock__new_object(struct tactyk_dblock__DBlock *container) {
     //assert(container->fixed == true);
     if ( (container->fixed == true) && (container->element_count >= container->element_capacity) ) {

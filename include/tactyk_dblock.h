@@ -169,6 +169,8 @@ uint8_t tactyk_dblock__lastchar(struct tactyk_dblock__DBlock *dblock);
 // dblock-container: a flat array of structs
 // instantiate a dblock which holds an array of data structures.  stride specifies the size of each element.  Capacity specifies the initial size of the data set.
 struct tactyk_dblock__DBlock* tactyk_dblock__new_container(uint64_t capacity, uint64_t stride);
+// container with objects "pre-allocated"
+struct tactyk_dblock__DBlock* tactyk_dblock__new_allocated_container(uint64_t capacity, uint64_t stride);
 // return a pointer to the next uninitialized container entry.
 void* tactyk_dblock__new_object(struct tactyk_dblock__DBlock *container);
 // return a pointer to a specific container entry
