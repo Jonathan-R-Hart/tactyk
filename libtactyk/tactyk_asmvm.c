@@ -189,12 +189,11 @@ void tactyk_asmvm__print_diagnostic_data(struct tactyk_asmvm__Context *context, 
     }
 }
 
-
 void tactyk_asmvm__get_mblock(struct tactyk_asmvm__Context *asmvm_context, char* name, struct tactyk_asmvm__memblock_highlevel **m_hl, struct tactyk_asmvm__memblock_lowlevel **m_ll) {
     struct tactyk_asmvm__memblock_lowlevel *mem_ll = NULL;
     struct tactyk_asmvm__memblock_highlevel *mem_hl = tactyk_dblock__get(asmvm_context->hl_program_ref->memory_layout_hl, name);
     if (mem_hl == NULL) {
-        error("ASMCM-GET_MBLOCK -- memory block not specified", name);
+        error("ASMVM-GET_MBLOCK -- memory block not specified", name);
     }
     else {
         mem_ll = mem_hl->memblock;

@@ -1,6 +1,6 @@
 5 Apr 2023
 Restructure the project (decouple the test/demo components from library components)
-Update resource referneces in the unconfigured (non-shell) interface.
+Update resource references in the unconfigured (non-shell) interface.
 Add a mechanism to tactky-PL for defining "variables".
   tactyk-PL "variables" are basically just code templates dressed up as getters and setters.
   The "var" keyword is used to declare a variable.
@@ -11,6 +11,7 @@ Add a mechanism to tactky-PL for defining "variables".
     For the "get" keyword, the last argument in the list is the variable name and all other arguments are tokens to insert into the command
     For the "set" keyword, the first argument in the list is the variable name and all other arguments are tokens to insert into the command
     This ordering is intended to reflect typical assembly syntax ( op <dest> <source> )
+Move the memory block get-by-name function from auxilliary support to tactyk_asmvm
 
 4 Apr 2023
 Add an introduction (readme.md)
