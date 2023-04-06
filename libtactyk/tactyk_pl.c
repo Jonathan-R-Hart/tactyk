@@ -342,8 +342,8 @@ void tactyk_pl__define_mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock_
 
     mem_ll->array_bound = (scale-1) * layout->byte_stride + 1;
     mem_ll->element_bound = layout->byte_stride - 7;
-    mem_ll->left = 0;
-    mem_ll->right = 0;
+    mem_ll->memblock_index = id;
+    mem_ll->type = 0;
     mem_ll->base_address = NULL;
     //m_ll->base_address = m_hl->data;
 
@@ -425,8 +425,8 @@ bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
 
     mem_ll->array_bound = 1;
     mem_ll->element_bound = tbuf->length+8;
-    mem_ll->left = 0;
-    mem_ll->right = 0;
+    mem_ll->memblock_index = id;
+    mem_ll->type = 0;
     mem_ll->base_address = tbuf->data;
 
     struct tactyk_dblock__DBlock *memid = tactyk_dblock__from_int(id);

@@ -125,8 +125,8 @@ struct tactyk_asmvm__memblock_lowlevel {
     uint8_t* base_address;
     uint32_t element_bound;
     uint32_t array_bound;
-    uint32_t left;
-    uint32_t right;
+    uint32_t memblock_index;
+    uint32_t type;
 };
 // memory layout specification used outside of the virtual machine
 //      (a pointer to the allocated memory plus information about each property)
@@ -135,6 +135,7 @@ struct tactyk_asmvm__memblock_highlevel {
     struct tactyk_asmvm__memblock_lowlevel *memblock;
     uint64_t memblock_id;       // possibly not needed.
     uint64_t num_entries;       // number of [high-level] elements in the memblock.  (Element size is given by definition->byte_stride)
+    uint32_t type;
     uint8_t *data;              // binary data.
 };
 

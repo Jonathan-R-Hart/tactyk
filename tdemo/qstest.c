@@ -196,8 +196,8 @@ void run_qsort_tests(struct tactyk_emit__Context *emitctx, int64_t len, int64_t 
     dspec->base_address = dblk->data;
     dspec->element_bound = len*8;
     dspec->array_bound = 1;
-    dspec->left = 0;
-    dspec->right = 0;
+    //dspec->memblock_index = 0;
+    //dspec->type = 0;
 
     //tactyk_asmvm__invoke(ctx, program, "MAIN");
 

@@ -263,13 +263,13 @@
         qwords a3,b3,c3,d3,e3,f3
         qwords lwcsi, mcsi
         qwords addr1
-        dwords addr1_element_bound, addr1_array_bound, addr1_left, addr1_right
+        dwords addr1_element_bound, addr1_array_bound, addr1_memblock_index, addr1_type
         qwords addr2
-        dwords addr2_element_bound, addr2_array_bound, addr2_left, addr2_right
+        dwords addr2_element_bound, addr2_array_bound, addr2_memblock_index, addr2_type
         qwords addr3
-        dwords addr3_element_bound, addr3_array_bound, addr3_left, addr3_right
+        dwords addr3_element_bound, addr3_array_bound, addr3_memblock_index, addr3_type
         qwords addr4
-        dwords addr4_element_bound, addr4_array_bound, addr4_left, addr4_right
+        dwords addr4_element_bound, addr4_array_bound, addr4_memblock_index, addr4_type
     endstruc
     
     %define microcontext_size_bits 8
@@ -286,13 +286,13 @@
         ; 32
 
         qwords addr1
-        dwords addr1_element_bound, addr1_array_bound, addr1_left, addr1_right
+        dwords addr1_element_bound, addr1_array_bound, addr1_memblock_index, addr1_type
         qwords addr2
-        dwords addr2_element_bound, addr2_array_bound, addr2_left, addr2_right
+        dwords addr2_element_bound, addr2_array_bound, addr2_memblock_index, addr2_type
         qwords addr3
-        dwords addr3_element_bound, addr3_array_bound, addr3_left, addr3_right
+        dwords addr3_element_bound, addr3_array_bound, addr3_memblock_index, addr3_type
         qwords addr4
-        dwords addr4_element_bound, addr4_array_bound, addr4_left, addr4_right
+        dwords addr4_element_bound, addr4_array_bound, addr4_memblock_index, addr4_type
 
         ; 128
 

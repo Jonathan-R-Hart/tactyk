@@ -90,8 +90,8 @@ void aux__read_file(struct tactyk_asmvm__Context *asmvm_ctx) {
     m_ll->base_address = f_data;
     m_ll->array_bound = 1;
     m_ll->element_bound = len-7;
-    m_ll->left = 0;
-    m_ll->right = 0;
+    //m_ll->memblock_index = ;
+    //m_ll->type = 0;
 
     //asmvm_ctx->program->
     //struct tactyk_asmvm__memblock_lowlevel = tactyk_dblock__
