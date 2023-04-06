@@ -16,11 +16,20 @@ add_library(tactyk
 add_executable(tdemo
   tdemo/main.c
   tdemo/aux_testlib.c
+  tdemo/aux_sdl.c
 )
 
-target_include_directories(tdemo PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_include_directories(tactyk PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries( tdemo tactyk )
+find_package(SDL2 REQUIRED)
+
+target_include_directories(tdemo PRIVATE 
+  ${CMAKE_SOURCE_DIR}/include
+  ${SDL2_INCLUDE_DIRS}
+)
+target_include_directories(tactyk PRIVATE 
+  ${CMAKE_SOURCE_DIR}/include
+)
+
+target_link_libraries( tdemo tactyk ${SDL2_LIBRARIES} )
 
 add_compile_definitions(
     TACTYK_SHELL_INTERFACE

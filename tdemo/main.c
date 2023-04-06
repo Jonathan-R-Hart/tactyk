@@ -36,6 +36,7 @@
 #include "fibtest.h"
 
 #include "aux_testlib.h"
+#include "aux_sdl.h"
 
 //#include "qstest.h"
 
@@ -134,6 +135,8 @@ int main() {
     struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
 
     aux_configure(emitctx);
+    aux_sdl__configure(emitctx);
+
     //run_fib_test(emitctx, 10000000000, ctx);
     //run_fib_test(emitctx, 2000000, ctx);
     //run_qsort_tests(emitctx, 10000000, 1, ctx);
@@ -195,6 +198,7 @@ int main(int argc, char *argv[], char *envp[]) {
     struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
 
     aux_configure(emitctx);
+    aux_sdl__configure(emitctx);
 
     // re-scan the args and ingest source code files.
     for (int64_t i = 1; i < argc; i += 1) {
