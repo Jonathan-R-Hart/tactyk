@@ -239,7 +239,6 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     struct tactyk_dblock__DBlock *cmd_idx_next = tactyk_dblock__from_uint(ctx->iptr + 1);
     tactyk_dblock__put(ctx->local_vars, "$COMMAND_INDEX", cmd_idx);
     tactyk_dblock__put(ctx->local_vars, "$COMMAND_INDEX_NEXT", cmd_idx_next);
-
     tactyk_dblock__append(cmd->asm_code, TACTYK_EMIT__COMMAND_PREFIX);
     tactyk_dblock__append(cmd->asm_code, cmd_idx);
     tactyk_dblock__append(cmd->asm_code, ":\n");
@@ -286,7 +285,6 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
 }
 
 bool tactyk_emit__Type(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
-
     struct tactyk_dblock__DBlock *token = data->token->next;
     while (token != NULL) {
         struct tactyk_emit__subroutine_spec *type_applicator = tactyk_dblock__get(ctx->typespec_table, token);
@@ -295,6 +293,7 @@ bool tactyk_emit__Type(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
         }
         token = token->next;
     }
+    printf("ts-fail\n");
     return false;
 }
 
@@ -440,13 +439,6 @@ bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock
         error("EMIT -- Not enough arguments", ctx->active_command->pl_code);
     }
     ctx->pl_operand_raw = ctx->pl_operand_raw->next;
-    /*
-    if (ctx->pl_operand_raw == NULL) {
-        error("EMIT -- Not enough arguments", ctx->active_command->pl_code);
-    }
-
-    ctx->pl_operand_resolved = tactyk_emit__fetch_var(ctx, NULL, ctx->pl_operand_raw);
-    */
 
     if (ctx->pl_operand_raw != NULL) {
         ctx->pl_operand_resolved = tactyk_emit__fetch_var(ctx, NULL, ctx->pl_operand_raw);
@@ -529,6 +521,9 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     }
     else {
         sc_input = tactyk_emit__fetch_var(ctx, NULL, token);
+        struct tactyk_dblock__DBlock *sc_input_resolved = tactyk_emit__fetch_var(ctx, NULL, sc_input);
+        sc_input = sc_input_resolved;
+        tactyk_emit__comprehend_int_value(ctx, sc_input_resolved);
     }
     int64_t raw_val;
 
@@ -550,7 +545,6 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     uint64_t diff_val = (uint64_t)raw_val ^ rand_val;
 
     struct tactyk_dblock__DBlock *kw = tactyk_dblock__get(ctx->local_vars, "$KW");
-
 
     bool is_qword = false;
 

@@ -247,13 +247,6 @@
         qwords f0_low, f0_high, f1_low, f1_high, f2_low, f2_high, f3_low, f3_high, f4_low, f4_high, f5_low, f5_high, f6_low, f6_high, f7_low, f7_high
     endstruc
 
-    ; microcontext size
-    ; The microcontext buffer contains has space 2048 stack frames
-    ; Microcontext position is a buffer offset which is stored.  Safety is handled by masking any input values.
-    %define MCTX_BUFFER_QWORDS 65536
-    %define MCTX_BUFFER_MASK 0xffe0
-
-
     struc controlstate
         .runtime_registers:     resq 16
         .stack_position:        resq 1
@@ -263,9 +256,7 @@
         .dynamic_contexts:      resq 1024
     endstruc
 
-    %define STASH_SCALE 32
-    %define MCTXSTACK_SCALE 1024
-    %define MCTX_BITSHIFT 8
+    
     struc microcontext
         qwords a1,b1,c1,d1,e1,f1
         qwords a2,b2,c2,d2,e2,f2
@@ -280,6 +271,9 @@
         qwords addr4
         dwords addr4_element_bound, addr4_array_bound, addr4_left, addr4_right
     endstruc
+    
+    %define microcontext_stack_size 65536
+    %define lwcall_stack_size 65536
 
     struc context
 
@@ -448,21 +442,17 @@
 
     %macro tactyk_ret 0
         mov fs:[context.status], dword STATUS_HALT
-        ;swap_context
         store_context
         load_runtimecontext
         rdfsbase rax
-        ;mov rax, rCTX
         ret
     %endmacro
 
     %macro error 1
         mov fs:[context.status], dword %1
-        ;swap_context
         store_context
         load_runtimecontext
         rdfsbase rax
-        ;mov rax, rCTX
         ret
     %endmacro
 
@@ -517,7 +507,6 @@
     mov rTEMPD_32, fs:[context.lwcall_position%1]
     sub rTEMPD_32, 4
     cmp rTEMPD_32, 0
-    ;mov [rCTX+context.internalH], rTEMPD
     errorlt STATUS_STACK_UNDERFLOW
     mov fs:[context.lwcall_position%1], rTEMPD_32
     mov rLWCSI_32, fs:[context.lwcall_stack+rTEMPD]

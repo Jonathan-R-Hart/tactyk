@@ -902,9 +902,14 @@ void tactyk_dblock__print(void *ptr) {
     tactyk_dblock__print_indented(dblock, "");
 }
 void tactyk_dblock__println(void *ptr) {
-    struct tactyk_dblock__DBlock *dblock = tactyk_dblock__from_string_or_dblock(ptr);
-    tactyk_dblock__print_indented(dblock, "");
-    printf("\n");
+    if (ptr == NULL) {
+        printf("[[ NULL ]]\n");
+    }
+    else {
+        struct tactyk_dblock__DBlock *dblock = tactyk_dblock__from_string_or_dblock(ptr);
+        tactyk_dblock__print_indented(dblock, "");
+        printf("\n");
+    }
 }
 
 void tactyk_dblock__print_structure_simple(struct tactyk_dblock__DBlock *dblock) {

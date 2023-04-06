@@ -1,3 +1,8 @@
+6 Apr 2023
+Implement lightweight calls
+  lwcall ... lwreturn is the mechanism for treating labelled statements within tactyk as subroutines.
+  lwcall only redirects flow.  
+
 5 Apr 2023
 Restructure the project (decouple the test/demo components from library components)
 Update resource references in the unconfigured (non-shell) interface.

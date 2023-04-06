@@ -1330,8 +1330,30 @@ instruction unstash
   code
     jmp $NEXT_INSTRUCTION
 
+instruction lwcall
+  operand
+    type branch
+    $JTARGET $VALUE
+    scramble rTEMPC $LD_RETURN_TARGET $COMMAND_INDEX_NEXT
+  code
+    $LD_RETURN_TARGET
+    inc rLWCSI_16
+    movzx rTEMPA, rLWCSI_16
+    shl rTEMPA, 2
+    add rTEMPA, fs:[context.lwcall_stack_address]
+    mov dword [rTEMPA], rTEMPC_32
+    xor rTEMPA, rTEMPA
+    xor rTEMPC, rTEMPC
+    jmp $JTARGET
 
-
+instruction lwreturn
+  code
+    movzx rTEMPA, rLWCSI_16
+    shl rTEMPA, 2
+    add rTEMPA, fs:[context.lwcall_stack_address]
+    mov rTEMPA_32, [rTEMPA]
+    dec rLWCSI_16
+    jmp [rPROG+rTEMPA*8]
 
 
 

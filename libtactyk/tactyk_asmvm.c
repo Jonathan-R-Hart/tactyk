@@ -134,9 +134,11 @@ void tactyk_asmvm__dispose_VM(struct tactyk_asmvm__VM *vm) {
 
 void tactyk_asmvm__print_context(struct tactyk_asmvm__Context *context) {
     printf("Status:     %lu\n", context->STATUS);
-    printf("StashPTR:     %lu\n", (uint64_t)context->regbank_A.rSTASH);
+    printf("I-index:    %lu\n", context->instruction_index);
+    printf("StashPTR:   %lu\n", (uint64_t)context->regbank_A.rSTASH);
     printf("ProgPTR:    %lu\n", (uint64_t)context->regbank_A.rPROG);
-    printf("I-INDEX:    %lu\n", context->regbank_A.rIPTR);
+    printf("LWCSI:      %lu\n", context->regbank_A.rLWCSI);
+    printf("MCSI:       %ld\n", context->regbank_A.rMCSI);
     printf("TEMP:       %ld\n", context->regbank_A.rTEMP);
     printf("Addr1PTR:   %lu\n", (uint64_t)context->regbank_A.rADDR1);
     printf("a1bounds:   %lu, %lu\n", (uint64_t)context->active_memblocks[0].element_bound, (uint64_t)context->active_memblocks[0].array_bound);
@@ -146,7 +148,6 @@ void tactyk_asmvm__print_context(struct tactyk_asmvm__Context *context) {
     printf("a3bounds:   %lu, %lu\n", (uint64_t)context->active_memblocks[2].element_bound, (uint64_t)context->active_memblocks[2].array_bound);
     printf("Addr4PTR:   %lu\n", (uint64_t)context->regbank_A.rADDR4);
     printf("a4bounds:   %lu, %lu\n", (uint64_t)context->active_memblocks[3].element_bound, (uint64_t)context->active_memblocks[3].array_bound);
-    printf("max-iptr:   %ld\n", context->regbank_A.rMAXIP);
     printf("rA:         %ld\n", context->regbank_A.rA);
     printf("rB:         %ld\n", context->regbank_A.rB);
     printf("rC:         %ld\n", context->regbank_A.rC);
