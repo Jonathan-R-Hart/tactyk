@@ -24,21 +24,6 @@ void aux_configure(struct tactyk_emit__Context *emit_context) {
     tactyk_emit__add_tactyk_apifunc(emit_context, "readfile", aux__read_file);
 }
 
-// utility function to obtain a memory block by name
-void aux__get_mblock(struct tactyk_asmvm__Context *asmvm_context, char* name, struct tactyk_asmvm__memblock_highlevel **m_hl, struct tactyk_asmvm__memblock_lowlevel **m_ll) {
-    struct tactyk_asmvm__memblock_lowlevel *mem_ll = NULL;
-    struct tactyk_asmvm__memblock_highlevel *mem_hl = tactyk_dblock__get(asmvm_context->hl_program_ref->memory_layout_hl, name);
-    if (mem_hl == NULL) {
-        error("AUX-GET_MBLOCK -- memory block not specified", name);
-    }
-    else {
-        mem_ll = mem_hl->memblock;
-    }
-
-    *m_hl = mem_hl;
-    *m_ll = mem_ll;
-}
-
 FILE* aux_open_file__from_ctxref(struct tactyk_asmvm__Context *asmvm_ctx, char *mode) {
     //volatile struct tactyk_asmvm__memblock_lowlevel *fname_mem = &asmvm_ctx->active_memblocks[0];
     char fname[265];
@@ -80,7 +65,7 @@ void aux__read_file(struct tactyk_asmvm__Context *asmvm_ctx) {
     struct tactyk_asmvm__memblock_highlevel *m_hl;
     struct tactyk_asmvm__memblock_lowlevel *m_ll;
 
-    aux__get_mblock(asmvm_ctx, "file", &m_hl, &m_ll);
+    tactyk_asmvm__get_mblock(asmvm_ctx, "file", &m_hl, &m_ll);
     // for now, don't care about the high-level memory block specification, because there is no high-level code that depends on it for anything but the reference to the low-level spec.
     //      the low-level specification is what the compiled program uses.
 

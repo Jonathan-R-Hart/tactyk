@@ -1,5 +1,5 @@
 5 Apr 2023
-Adjust the build script to put tactyk components into a library.
+Restructure the project (decouple the test/demo components from library components)
 Update resource referneces in the unconfigured (non-shell) interface.
 Add a mechanism to tactky-PL for defining "variables".
   tactyk-PL "variables" are basically just code templates dressed up as getters and setters.

@@ -70,9 +70,9 @@ cd build
 
 cmake --build .
 
-./tactyk-run examples/fib.tkp
+./tdemo examples/fib.tkp
 
-./tactyk-run examples/lazy_quine.tkp
+./tdemo examples/lazy_quine.tkp
 
 
 ## History
