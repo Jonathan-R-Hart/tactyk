@@ -44,58 +44,6 @@ typedef void (*tactyk_asmvm__op)();
 extern const int32_t STATIC_MEMORY_HEADER_LENGTH;
 extern const int32_t STATIC_MEMORY_LENGTH;
 
-union tactyk_asmvm__16bit_Field {
-    uint16_t value;
-    uint64_t __raw;
-};
-
-struct tactyk_asmvm__Immediate_b8 {
-    uint8_t a;
-    uint8_t b;
-    uint8_t c;
-    uint8_t d;
-    uint8_t e;
-    uint8_t f;
-    uint8_t g;
-    uint8_t h;
-    uint8_t i;
-    uint8_t j;
-    uint8_t k;
-    uint8_t l;
-    uint8_t m;
-    uint8_t n;
-    uint8_t o;
-};
-struct tactyk_asmvm__Immediate_b16 {
-    uint16_t a;
-    uint16_t b;
-    uint16_t c;
-    uint16_t d;
-    uint16_t e;
-    uint16_t f;
-    uint16_t g;
-    uint16_t h;
-};
-struct tactyk_asmvm__Immediate_b32 {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
-};
-struct tactyk_asmvm__Immediate_b64 {
-    uint64_t a;
-    uint64_t b;
-};
-union tactyk_asmvm__Immediate {
-    struct tactyk_asmvm__Immediate_b8 v8;
-    struct tactyk_asmvm__Immediate_b16 v16;
-    struct tactyk_asmvm__Immediate_b32 v32;
-    struct tactyk_asmvm__Immediate_b64 v64;
-    uint8_t i8[8];
-    uint16_t i16[4];
-    uint32_t i32[2];
-    uint64_t i64[1];
-};
 
 struct tactyk_asmvm__register_bank {
     uint64_t rFLAGS;                            // register bank position 0 technically is for the VM context pointer, but is never read by the VM, so the slot is
@@ -118,6 +66,16 @@ struct tactyk_asmvm__register_bank {
     uint64_t rF;
 };
 
+// memblock type hints
+// These are only the automatically assigned "type" specifications, which TACTYK-PL uses to indicate how a memblockw as specified
+// These are not to be construed as absolute rules
+// If you need a custom type declaration for a memblock, pick a unique integer, assign it to the memblock type fields, and use it
+//  as you see fit.
+#define TACTYK_ASMVM__MEMBLOCK_TYPE__UNKNOWN 0
+#define TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC 1
+#define TACTYK_ASMVM__MEMBLOCK_TYPE__ALLOC 2
+#define TACTYK_ASMVM__MEMBLOCK_TYPE__EXTERNAL 3
+
 // memory layout specification used within the virtual machine
 //      (basically just a pointer to the allocated memory, boundaries, and a pair of extra properties for implementing queues)
 //          (details about properties are provided to the emit itnerface as a set of named constants)
@@ -125,8 +83,8 @@ struct tactyk_asmvm__memblock_lowlevel {
     uint8_t* base_address;
     uint32_t element_bound;
     uint32_t array_bound;
-    uint32_t left;
-    uint32_t right;
+    uint32_t memblock_index;
+    uint32_t type;
 };
 // memory layout specification used outside of the virtual machine
 //      (a pointer to the allocated memory plus information about each property)
@@ -135,6 +93,7 @@ struct tactyk_asmvm__memblock_highlevel {
     struct tactyk_asmvm__memblock_lowlevel *memblock;
     uint64_t memblock_id;       // possibly not needed.
     uint64_t num_entries;       // number of [high-level] elements in the memblock.  (Element size is given by definition->byte_stride)
+    uint32_t type;
     uint8_t *data;              // binary data.
 };
 
@@ -161,17 +120,6 @@ struct tactyk_asmvm__Context {
     void *microcontext_stack;
     uint64_t microcontext_stack_offset;
     uint64_t microcontext_stack_size;
-    /*
-    uint64_t lwcall_position[4];
-    uint32_t lwcall_stack[512];
-
-    uint64_t stash[MICROCONTEXT_SIZE*STASH_SCALE];
-
-    uint64_t mctxstack_position[4];
-    uint64_t *mctxstack[4];
-    uint64_t *active_mctxstack;
-    //uint64_t mctxstack[MICROCONTEXT_SIZE*MICROCONTEXT_SCALE];
-    */
 
     uint64_t diagnostic_data[1024];
 
@@ -255,7 +203,7 @@ typedef void (*tactyk_asmvm__debug_callback)(struct tactyk_asmvm__Context *ctx);
 void tactyk_asmvm__invoke_debug(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *tactyk_pl__prog, char* funcname, tactyk_asmvm__debug_callback dbg_callback);
 
 void tactyk_asmvm__get_mblock(struct tactyk_asmvm__Context *asmvm_context, void* name, struct tactyk_asmvm__memblock_highlevel **m_hl, struct tactyk_asmvm__memblock_lowlevel **m_ll);
-
+void tactyk_asmvm__update_dynamic_memblock(struct tactyk_asmvm__Context *asmvm_context, struct tactyk_asmvm__memblock_lowlevel *m_ll, int64_t active_index);
 //extern void tactyk_asmvm__run(struct tactyk_asmvm__Context *context);
 
 #endif /* TACTYK_ASMVM__INCLUDE_GUARD */

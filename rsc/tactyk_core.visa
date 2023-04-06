@@ -51,29 +51,29 @@ typespec address
       $CTX_ADDR context.addr1
       $CTX_ARRAY_BOUND context.addr1_array_bound
       $CTX_ELEMENT_BOUND context.addr1_element_bound
-      $CTX_LEFT context.addr1_left
-      $CTX_RIGHT context.addr1_right
+      $CTX_MEMBLOCK_INDEX context.addr1_memblock_index
+      $CTX_MEMBLOCK_TYPE context.addr1_type
     case @2 addr2
       value rADDR2
       $CTX_ADDR context.addr2
       $CTX_ARRAY_BOUND context.addr2_array_bound
       $CTX_ELEMENT_BOUND context.addr2_element_bound
-      $CTX_LEFT context.addr2_left
-      $CTX_RIGHT context.addr2_right
+      $CTX_MEMBLOCK_INDEX context.addr2_memblock_index
+      $CTX_MEMBLOCK_TYPE context.addr2_type
     case @3 addr3
       value rADDR3
       $CTX_ADDR context.addr3
       $CTX_ARRAY_BOUND context.addr3_array_bound
       $CTX_ELEMENT_BOUND context.addr3_element_bound
-      $CTX_LEFT context.addr3_left
-      $CTX_RIGHT context.addr3_right
+      $CTX_MEMBLOCK_INDEX context.addr3_memblock_index
+      $CTX_MEMBLOCK_TYPE context.addr3_type
     case @4 addr4
       value rADDR4
       $CTX_ADDR context.addr4
       $CTX_ARRAY_BOUND context.addr4_array_bound
       $CTX_ELEMENT_BOUND context.addr4_element_bound
-      $CTX_LEFT context.addr4_left
-      $CTX_RIGHT context.addr4_right
+      $CTX_MEMBLOCK_INDEX context.addr4_memblock_index
+      $CTX_MEMBLOCK_TYPE context.addr4_type
   pick A
 
 typespec data
@@ -302,11 +302,15 @@ instruction bind
         add rTEMPA, fs:[context.memblocks]
         mov $ADDRESS_REGISTER, [rTEMPA]
         mov fs:[$CTX_ADDR], $ADDRESS_REGISTER
-        mov rTEMPA, [rTEMPA+8]
-        mov fs:[$CTX_ADDR+8], rTEMPA
-        mov qword fs:[$CTX_ADDR+16], 0
+
+        mov rTEMPC, [rTEMPA+8]
+        mov rTEMPD, [rTEMPA+16]
+        mov fs:[$CTX_ADDR+8], rTEMPC
+        mov fs:[$CTX_ADDR+16], rTEMPD
         
         xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
         jmp $NEXT_INSTRUCTION
     
     # matchs data register or integer immediate
@@ -322,11 +326,15 @@ instruction bind
         add rTEMPA, fs:[context.memblocks]
         mov $ADDRESS_REGISTER, [rTEMPA]
         mov fs:[$CTX_ADDR], $ADDRESS_REGISTER
-        mov rTEMPA, [rTEMPA+8]
-        mov fs:[$CTX_ADDR+8], rTEMPA
-        mov qword fs:[$CTX_ADDR+16], 0
+        
+        mov rTEMPC, [rTEMPA+8]
+        mov rTEMPD, [rTEMPA+16]
+        mov fs:[$CTX_ADDR+8], rTEMPC
+        mov fs:[$CTX_ADDR+16], rTEMPD
         
         xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
         jmp $NEXT_INSTRUCTION
 
 # Read a word from a memory block and write it to a register

@@ -51,8 +51,14 @@ void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx) {
     }
     sdlctx->draw_area.x = 0;
     sdlctx->draw_area.y = 0;
-    sdlctx->draw_area.w = asmvm_ctx->regbank_A.rB;
-    sdlctx->draw_area.h = asmvm_ctx->regbank_A.rC;
+    int64_t mbpos = asmvm_ctx->regbank_A.rB-1;
+    if ( (mbpos < 0) || (mbpos > 3) ) {
+        error("AUX-SDL -- Invalid active-memblock index", NULL);
+        return;
+    }
+    //active_mblock->
+    sdlctx->draw_area.w = asmvm_ctx->regbank_A.rC;
+    sdlctx->draw_area.h = asmvm_ctx->regbank_A.rD;
 
     sdlctx->texw = tactyk_util__next_pow2(sdlctx->draw_area.w);
     sdlctx->texh = tactyk_util__next_pow2(sdlctx->draw_area.h);
@@ -67,13 +73,12 @@ void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx) {
     sdlctx->renderer = SDL_CreateRenderer(sdlctx->window, -1, 0);
     sdlctx->texture = SDL_CreateTexture(sdlctx->renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, sdlctx->texw, sdlctx->texh);
 
-    struct tactyk_asmvm__memblock_highlevel *mem_hl;
-    struct tactyk_asmvm__memblock_lowlevel *mem_ll;
+    struct tactyk_asmvm__memblock_lowlevel *mem_ll = &asmvm_ctx->active_memblocks[mbpos];
 
-    tactyk_asmvm__get_mblock(asmvm_ctx, "video", &mem_hl, &mem_ll);
+    //struct tactyk_asmvm__memblock_highlevel *mem_hl;
+    //struct tactyk_asmvm__memblock_lowlevel *mem_ll;
 
-    asmvm_ctx->regbank_A.rB = sdlctx->texw;
-    asmvm_ctx->regbank_A.rC = sdlctx->texh;
+    //tactyk_asmvm__get_mblock(asmvm_ctx, "video", &mem_hl, &mem_ll);
 
     sdlctx->bufsize = sdlctx->texw * sdlctx->texh * sizeof(uint32_t);
     uint8_t *fb = calloc(sdlctx->bufsize+8, 1);
@@ -81,11 +86,14 @@ void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx) {
     mem_ll->base_address = fb;
     mem_ll->array_bound = 1;
     mem_ll->element_bound = sdlctx->bufsize;
-    mem_ll->left = 0;
-    mem_ll->right = 0;
-
-    mem_hl->data = fb;
+    tactyk_asmvm__update_dynamic_memblock(asmvm_ctx, mem_ll, mbpos);
+    //mem_hl->data = fb;
     sdlctx->framebuffer = fb;
+
+    asmvm_ctx->regbank_A.rA = sdlctx->texw;
+    asmvm_ctx->regbank_A.rB = sdlctx->texh;
+    asmvm_ctx->regbank_A.rC = 0;
+    asmvm_ctx->regbank_A.rD = 0;
 
     // probably should update the rest of mem_hl
 }

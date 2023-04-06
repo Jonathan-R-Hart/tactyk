@@ -8,6 +8,9 @@ Implement the microcontext stack
   mctxpush + lwcall (passing the values by placing them on registers) is a complete tactyk function call.
   mctxpop + lwreturn (returning results by passing them on registers) is a complete tactyk return
 
+Repurpose low-level memblock specification "left" and "right" properties.  They are being replaced with a memblock identifier and a type declaration,
+to make memblocks a bit more dynamic.  The old "left" and "right" fields originally were meant for queue-like behavior (a cancelled feature).
+
 5 Apr 2023
 Restructure the project (decouple the test/demo components from library components)
 Update resource references in the unconfigured (non-shell) interface.
