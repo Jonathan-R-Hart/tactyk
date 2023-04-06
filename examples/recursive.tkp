@@ -1,4 +1,11 @@
-# Basic framebuffer rendering example using an auxilliary SDL interface
+# TACTYK recursion demo
+#
+# This uses the microcontext stack to store intermediate values from a modified random walk algorithm
+#   The random walk has an energy limit, and it avoids visiting position previously reached.
+#   All open positions are placed on the stack.
+#   When out of energy, trapped, or out of bounds, the stack is unwound and the walk proceeds from a
+#   preceding state.
+#   When there are no more open positions, it returns, waits for the user to close the window, then exits.
 
 extmem video
 
@@ -22,6 +29,7 @@ const FRAME_HEIGHT 480
 MAIN:
   bind addr1 header
   bind addr2 global_vars
+  bind addr4 video
   assign b 0
   
   PRINT_HEADER_CHAR:
@@ -34,23 +42,20 @@ MAIN:
   ccall printchar
 
   assign a 0
-  assign b FRAME_WIDTH
-  assign c FRAME_HEIGHT
 
   # obtain an SDL-backed framebuffer
   tcall sdl_init
   assign a 0
+  assign b 4
+  assign c FRAME_WIDTH
+  assign d FRAME_HEIGHT
   tcall fb_new
+  store qword addr2 global.width a
   assign a 0
-  
-  store qword addr2 global.width b
-  #store qword addr2 global.height c
-
   
   tcall fb_render
   
   # iterate each visible pixel in the frame buffer
-  bind addr4 video
 
   assign b FRAME_WIDTH
   assign c FRAME_HEIGHT
@@ -60,7 +65,7 @@ MAIN:
   
   lwcall RANDDRAW
 
-  FINISH:  
+  FINISH:
   assign a 0
   tcall fb_update
   tcall fb_render
@@ -104,7 +109,7 @@ MAIN:
   tcall fb_render
   assign a 1
   ccall sleep
-
+  
   tcall sdl_isclosing
   if a == 1 CLOSE
   
@@ -174,7 +179,7 @@ MAIN:
   SKIPIT:
   mctxpop
   lwreturn
-  
+
 
 
 

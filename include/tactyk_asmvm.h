@@ -203,7 +203,7 @@ typedef void (*tactyk_asmvm__debug_callback)(struct tactyk_asmvm__Context *ctx);
 void tactyk_asmvm__invoke_debug(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *tactyk_pl__prog, char* funcname, tactyk_asmvm__debug_callback dbg_callback);
 
 void tactyk_asmvm__get_mblock(struct tactyk_asmvm__Context *asmvm_context, void* name, struct tactyk_asmvm__memblock_highlevel **m_hl, struct tactyk_asmvm__memblock_lowlevel **m_ll);
-
+void tactyk_asmvm__update_dynamic_memblock(struct tactyk_asmvm__Context *asmvm_context, struct tactyk_asmvm__memblock_lowlevel *m_ll, int64_t active_index);
 //extern void tactyk_asmvm__run(struct tactyk_asmvm__Context *context);
 
 #endif /* TACTYK_ASMVM__INCLUDE_GUARD */

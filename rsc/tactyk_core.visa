@@ -302,11 +302,15 @@ instruction bind
         add rTEMPA, fs:[context.memblocks]
         mov $ADDRESS_REGISTER, [rTEMPA]
         mov fs:[$CTX_ADDR], $ADDRESS_REGISTER
-        mov rTEMPA, [rTEMPA+8]
-        mov fs:[$CTX_ADDR+8], rTEMPA
-        mov qword fs:[$CTX_ADDR+16], 0
+
+        mov rTEMPC, [rTEMPA+8]
+        mov rTEMPD, [rTEMPA+16]
+        mov fs:[$CTX_ADDR+8], rTEMPC
+        mov fs:[$CTX_ADDR+16], rTEMPD
         
         xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
         jmp $NEXT_INSTRUCTION
     
     # matchs data register or integer immediate
@@ -322,11 +326,15 @@ instruction bind
         add rTEMPA, fs:[context.memblocks]
         mov $ADDRESS_REGISTER, [rTEMPA]
         mov fs:[$CTX_ADDR], $ADDRESS_REGISTER
-        mov rTEMPA, [rTEMPA+8]
-        mov fs:[$CTX_ADDR+8], rTEMPA
-        mov qword fs:[$CTX_ADDR+16], 0
+        
+        mov rTEMPC, [rTEMPA+8]
+        mov rTEMPD, [rTEMPA+16]
+        mov fs:[$CTX_ADDR+8], rTEMPC
+        mov fs:[$CTX_ADDR+16], rTEMPD
         
         xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
         jmp $NEXT_INSTRUCTION
 
 # Read a word from a memory block and write it to a register

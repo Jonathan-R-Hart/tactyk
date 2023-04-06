@@ -135,7 +135,7 @@ void tactyk_asmvm__dispose_VM(struct tactyk_asmvm__VM *vm) {
 void tactyk_asmvm__print_context(struct tactyk_asmvm__Context *context) {
     printf("Status:     %lu\n", context->STATUS);
     printf("I-index:    %lu\n", context->instruction_index);
-    printf("StashPTR:   %lu\n", (uint64_t)context->regbank_A.rSTASH);
+    printf("StashPTR:   %lu\n", (uint64_t)context->microcontext_stack);
     printf("ProgPTR:    %lu\n", (uint64_t)context->regbank_A.rPROG);
     printf("LWCSI:      %lu\n", context->regbank_A.rLWCSI);
     printf("MCSI:       %ld\n", context->regbank_A.rMCSI);
@@ -175,4 +175,29 @@ void tactyk_asmvm__get_mblock(struct tactyk_asmvm__Context *asmvm_context, void*
 
     *m_hl = mem_hl;
     *m_ll = mem_ll;
+}
+void tactyk_asmvm__update_dynamic_memblock(struct tactyk_asmvm__Context *asmvm_context, struct tactyk_asmvm__memblock_lowlevel *m_ll, int64_t active_index) {
+    struct tactyk_asmvm__memblock_lowlevel *mem_ll = tactyk_dblock__index(asmvm_context->hl_program_ref->memory_layout_ll, m_ll->memblock_index);
+    struct tactyk_asmvm__memblock_highlevel *mem_hl = tactyk_dblock__index(asmvm_context->hl_program_ref->memory_layout_hl, m_ll->memblock_index);
+    mem_hl->data = m_ll->base_address;
+    *mem_ll = *m_ll;
+    switch(active_index) {
+        case 0: {
+            asmvm_context->regbank_A.rADDR1 = (uint64_t*) m_ll->base_address;
+            break;
+        }
+        case 1: {
+            asmvm_context->regbank_A.rADDR2 = (uint64_t*) m_ll->base_address;
+            break;
+        }
+        case 2: {
+            asmvm_context->regbank_A.rADDR3 = (uint64_t*) m_ll->base_address;
+            break;
+        }
+        case 3: {
+            asmvm_context->regbank_A.rADDR4 = (uint64_t*) m_ll->base_address;
+            break;
+        }
+        //if active_index is anything else (presumably -1), dont attempt to update an address register
+    }
 }

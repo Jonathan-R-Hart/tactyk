@@ -1031,6 +1031,9 @@ void* tactyk_dblock__new_object(struct tactyk_dblock__DBlock *container) {
 }
 
 void* tactyk_dblock__index(struct tactyk_dblock__DBlock *container, uint64_t index) {
+    if (container->store != NULL) {
+        return tactyk_dblock__index(container->store, index);
+    }
     if (index >= container->element_count) {
         error("DBLOCK-CONTAINER index out of bounds", NULL);
     }

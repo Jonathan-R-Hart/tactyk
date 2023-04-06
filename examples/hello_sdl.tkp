@@ -1,6 +1,5 @@
 # Basic framebuffer rendering example using an auxilliary SDL interface
 
-extmem video
 
 text header
   SDL framebuffer rendering demo
@@ -8,11 +7,13 @@ text header
 text footer
   Done.
 
+extmem video
 const newline 10
 const width 640
 const height 480
 
 MAIN:
+  bind addr4 video
   bind addr1 header
   assign b 0
   
@@ -25,18 +26,24 @@ MAIN:
   assign a newline
   ccall printchar
 
-
   assign a 0
-  assign b width
-  assign c height
 
   # obtain an SDL-backed framebuffer
   tcall sdl_init
-  tcall fb_new  
+
+  assign b 4
+  assign c width
+  assign d height
+  tcall fb_new
+  # result
+  # a = buffer width
+  # b = buffer height
+
+  assign b a
+  assign a 0
   tcall fb_render
   
   # iterate each visible pixel in the frame buffer
-  bind addr4 video
   assign f 0
   sub f 1
   ROW:
@@ -57,11 +64,11 @@ MAIN:
       # horizontal red gradient
       assign a e
       mul a 256
-      div a width      
+      div a width
       store byte addr4 d a
 
       # offset of 2nd byte (green channel)
-      add d 1     
+      add d 1
 
       # vertical green gradient
       assign a f
@@ -70,8 +77,7 @@ MAIN:
       store byte addr4 d a
   
       goto COL
-  
-  UPDATE_FB:  
+  UPDATE_FB:
   assign a 0
   tcall fb_update
   tcall fb_render
