@@ -591,4 +591,6 @@ run:
   wrfsbase rdi
   load_context
   mov fs:[context.status], dword STATUS_RUN
-  jmp [rPROG+rIPTR*8]
+  mov rTEMPA, fs:[context.instruction_index]
+  ; exception - In this one specific case, the temp register ca not be cleared before exiting an instruction.
+  jmp [rPROG+rTEMPA*8]

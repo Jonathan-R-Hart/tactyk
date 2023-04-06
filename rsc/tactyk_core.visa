@@ -195,8 +195,6 @@ typespec comparator
 #   code
 #     xor $TEMP, $TEMP
 
-# define DISPATCH_NEXT_INSTRUCTION jmp [rPROG+rIPTR*8]
-
 # immediate scrambling config
 # This sets up the scrambling system whereby the script-provided immediate values are scrabled in executable memory and
 # unscrambled when accessed.
@@ -224,10 +222,12 @@ subroutine scramble
 
 instruction break
   $KW dword
-  scramble rIPTR $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
+  scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
   code
     $LD_IPTR_IMMEDIATE
-    inc rIPTR
+    inc rTEMPA
+    mov fs:[context.instruction_index], rTEMPA
+    xor rTEMPA, rTEMPA
     mov fs:[context.status], dword STATUS_BREAK
     store_context
     load_runtimecontext
@@ -235,13 +235,16 @@ instruction break
 
 instruction step
   $KW dword
-  scramble rIPTR $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
+  scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
   code
-    $LD_IPTR_IMMEDIATE
     mov rTEMPA, qword fs:[context.stepper]
     cmp rTEMPA, 0
     je .pass
     mov fs:[context.status], dword STATUS_BREAK
+    $LD_IPTR_IMMEDIATE
+    inc rTEMPA
+    mov fs:[context.instruction_index], rTEMPA
+    xor rTEMPA, rTEMPA
     store_context
     load_runtimecontext
     ret
@@ -250,9 +253,11 @@ instruction step
 
 instruction exit
   $KW dword
-  scramble rIPTR $LD_IPTR_IMMEDIATE $COMMAND_INDEX
+  scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX
   code
     $LD_IPTR_IMMEDIATE
+    mov fs:[context.instruction_index], rTEMPA
+    xor rTEMPA, rTEMPA
     mov fs:[context.status], dword STATUS_HALT
     store_context
     load_runtimecontext
@@ -1324,7 +1329,7 @@ instruction unstash
         mov rF, gs:[microcontext.f3]
   code
     jmp $NEXT_INSTRUCTION
-    
+
 
 
 

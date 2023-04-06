@@ -68,7 +68,7 @@ void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_a
         //context->bank_A.rPROG = prog->executable;
         context->regbank_A.rPROG = prog->command_map;
         //context->bank_A.rIMM = prog->immediates;
-        context->regbank_A.rIPTR = iptr;
+        context->instruction_index = iptr;
         //context->program = prog->program;
         //context->stash = NULL;
         //context->bank_A.rMAXIP = prog->length-1;
@@ -89,7 +89,7 @@ extern void tactyk_asmvm__invoke_debug(struct tactyk_asmvm__Context *context, st
         context->regbank_A.rPROG = prog->executable;
         //context->bank_A.rPROG = prog->program_data;
         //context->bank_A.rIMM = prog->immediates;
-        context->regbank_A.rIPTR = iptr;
+        context->instruction_index = iptr;
         //context->bank_A.rMAXIP = prog->length-1;
         prog->run(context);
         //tactyk_asmvm__run(context);
