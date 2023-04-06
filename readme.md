@@ -81,6 +81,8 @@ cmake --build .
 
 ./tdemo examples/hello_sdl.tkp
 
+./tdemo examples/recursive.tkp
+
 
 ## History
 I considered embedding a scripting engine, attempted to examine its source code, noticed that it was beyond 20000 lines of C, and that the C code contains non-trivial 
