@@ -104,9 +104,7 @@ void aux__write_file(struct tactyk_asmvm__Context *asmvm_ctx) {
     This is to be implemented after the project is set up for multiple build targets (to avoid placing extraneous dependencies into the scripting engine).
 */
 void aux__term_write_int(int64_t val) {
-    double dv = (double)val;
-    printf("%f", dv);
-    //printf("%jd", val);
+    printf("%jd", val);
     fflush(stdout);
 }
 void aux__term_write_char(int64_t val) {
