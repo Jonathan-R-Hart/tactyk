@@ -30,6 +30,8 @@ MAIN:
 PRINTIT:
   load byte a addr2 b
   ccall printchar
+  assign a 10
+  ccall sleep
   add b 1
   if b < f PRINTIT
   assign a newline

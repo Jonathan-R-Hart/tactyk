@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "tactyk.h"
 #include "aux_testlib.h"
@@ -21,22 +22,14 @@
 void aux_configure(struct tactyk_emit__Context *emit_context) {
     tactyk_emit__add_c_apifunc(emit_context, "printchar", aux__term_write_char);
     tactyk_emit__add_c_apifunc(emit_context, "printint", aux__term_write_int);
+    tactyk_emit__add_c_apifunc(emit_context, "sleep", aux_sleep);
     tactyk_emit__add_tactyk_apifunc(emit_context, "readfile", aux__read_file);
+
 }
 
-// utility function to obtain a memory block by name
-void aux__get_mblock(struct tactyk_asmvm__Context *asmvm_context, char* name, struct tactyk_asmvm__memblock_highlevel **m_hl, struct tactyk_asmvm__memblock_lowlevel **m_ll) {
-    struct tactyk_asmvm__memblock_lowlevel *mem_ll = NULL;
-    struct tactyk_asmvm__memblock_highlevel *mem_hl = tactyk_dblock__get(asmvm_context->hl_program_ref->memory_layout_hl, name);
-    if (mem_hl == NULL) {
-        error("AUX-GET_MBLOCK -- memory block not specified", name);
-    }
-    else {
-        mem_ll = mem_hl->memblock;
-    }
 
-    *m_hl = mem_hl;
-    *m_ll = mem_ll;
+void aux_sleep(uint64_t milliseconds) {
+    usleep(milliseconds*1000);
 }
 
 FILE* aux_open_file__from_ctxref(struct tactyk_asmvm__Context *asmvm_ctx, char *mode) {
@@ -80,7 +73,7 @@ void aux__read_file(struct tactyk_asmvm__Context *asmvm_ctx) {
     struct tactyk_asmvm__memblock_highlevel *m_hl;
     struct tactyk_asmvm__memblock_lowlevel *m_ll;
 
-    aux__get_mblock(asmvm_ctx, "file", &m_hl, &m_ll);
+    tactyk_asmvm__get_mblock(asmvm_ctx, "file", &m_hl, &m_ll);
     // for now, don't care about the high-level memory block specification, because there is no high-level code that depends on it for anything but the reference to the low-level spec.
     //      the low-level specification is what the compiled program uses.
 
@@ -112,9 +105,11 @@ void aux__write_file(struct tactyk_asmvm__Context *asmvm_ctx) {
 */
 void aux__term_write_int(int64_t val) {
     printf("%jd", val);
+    fflush(stdout);
 }
 void aux__term_write_char(int64_t val) {
     printf("%c", (char)val);
+    fflush(stdout);
 }
 
 void aux__term_int(int64_t val) {
