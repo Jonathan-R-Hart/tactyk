@@ -1122,8 +1122,7 @@ void tactyk_dblock__reset_table(struct tactyk_dblock__DBlock *table, bool overwr
 
     for (uint64_t i = 0; i < table->element_capacity; i += 2) {
         struct tactyk_dblock__DBlock *tbl_key = (struct tactyk_dblock__DBlock*) fields[i];
-
-        if ( (tbl_key != NULL) && (tbl_key->self_managed == true) ) {
+        if ( (tbl_key != NULL) && (tbl_key != TACTYK_PSEUDONULL) && (tbl_key->self_managed == true) ) {
             tactyk_dblock__dispose(tbl_key);
         }
     }

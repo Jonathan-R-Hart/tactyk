@@ -15,6 +15,7 @@ Move the memory block get-by-name function from auxilliary support to tactyk_asm
 
 Add an auxilliary interface for rendering framebuffers with SDL2.
 Add an auxilliary interface sleep function
+Add an example demonstrating rendering a framebuffer through the auxilliary SDL interface.
 
 fixed incorrect c calls
   printf can print floating point values when called from a callback from TACTYK!
