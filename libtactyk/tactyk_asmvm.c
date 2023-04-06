@@ -19,10 +19,10 @@ struct tactyk_asmvm__VM* tactyk_asmvm__new_vm() {
 
 struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM *vm) {
     struct tactyk_asmvm__Context *ctx = calloc(1, sizeof(struct tactyk_asmvm__Context));
-    ctx->microcontext_stack = calloc(32*1024, sizeof(uint64_t));
+    ctx->microcontext_stack = calloc(32*65536, sizeof(uint64_t));
     ctx->microcontext_stack_offset = 0;
-    ctx->microcontext_stack_size = 32*1024*sizeof(uint64_t);
-    ctx->lwcall_stack = calloc(1024, sizeof(uint64_t));
+    ctx->microcontext_stack_size = 32*65536*sizeof(uint64_t);
+    ctx->lwcall_stack = calloc(65536, sizeof(uint32_t));
     //ctx->mctxstack[0] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
     //ctx->mctxstack[1] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
     //ctx->mctxstack[2] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
@@ -68,7 +68,7 @@ void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_a
         //context->bank_A.rPROG = prog->executable;
         context->regbank_A.rPROG = prog->command_map;
         //context->bank_A.rIMM = prog->immediates;
-        context->regbank_A.rIPTR = iptr;
+        context->instruction_index = iptr;
         //context->program = prog->program;
         //context->stash = NULL;
         //context->bank_A.rMAXIP = prog->length-1;
@@ -89,7 +89,7 @@ extern void tactyk_asmvm__invoke_debug(struct tactyk_asmvm__Context *context, st
         context->regbank_A.rPROG = prog->executable;
         //context->bank_A.rPROG = prog->program_data;
         //context->bank_A.rIMM = prog->immediates;
-        context->regbank_A.rIPTR = iptr;
+        context->instruction_index = iptr;
         //context->bank_A.rMAXIP = prog->length-1;
         prog->run(context);
         //tactyk_asmvm__run(context);
@@ -134,9 +134,11 @@ void tactyk_asmvm__dispose_VM(struct tactyk_asmvm__VM *vm) {
 
 void tactyk_asmvm__print_context(struct tactyk_asmvm__Context *context) {
     printf("Status:     %lu\n", context->STATUS);
-    printf("StashPTR:     %lu\n", (uint64_t)context->regbank_A.rSTASH);
+    printf("I-index:    %lu\n", context->instruction_index);
+    printf("StashPTR:   %lu\n", (uint64_t)context->regbank_A.rSTASH);
     printf("ProgPTR:    %lu\n", (uint64_t)context->regbank_A.rPROG);
-    printf("I-INDEX:    %lu\n", context->regbank_A.rIPTR);
+    printf("LWCSI:      %lu\n", context->regbank_A.rLWCSI);
+    printf("MCSI:       %ld\n", context->regbank_A.rMCSI);
     printf("TEMP:       %ld\n", context->regbank_A.rTEMP);
     printf("Addr1PTR:   %lu\n", (uint64_t)context->regbank_A.rADDR1);
     printf("a1bounds:   %lu, %lu\n", (uint64_t)context->active_memblocks[0].element_bound, (uint64_t)context->active_memblocks[0].array_bound);
@@ -146,7 +148,6 @@ void tactyk_asmvm__print_context(struct tactyk_asmvm__Context *context) {
     printf("a3bounds:   %lu, %lu\n", (uint64_t)context->active_memblocks[2].element_bound, (uint64_t)context->active_memblocks[2].array_bound);
     printf("Addr4PTR:   %lu\n", (uint64_t)context->regbank_A.rADDR4);
     printf("a4bounds:   %lu, %lu\n", (uint64_t)context->active_memblocks[3].element_bound, (uint64_t)context->active_memblocks[3].array_bound);
-    printf("max-iptr:   %ld\n", context->regbank_A.rMAXIP);
     printf("rA:         %ld\n", context->regbank_A.rA);
     printf("rB:         %ld\n", context->regbank_A.rB);
     printf("rC:         %ld\n", context->regbank_A.rC);

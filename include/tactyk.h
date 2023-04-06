@@ -21,6 +21,7 @@
 
 #define TACTYK_SE__DESCRIPTION (TACTYK__TITLE_LONG" - "TACTYK_SE__SUBTITLE" ["TACTYK__TITLE_SHORT"-"TACTYK_SE__SUBTITLE_SHORT"], VERSION "TACTYK__VERSION)
 
+#include <stdint.h>
 
 #include "tactyk_dblock.h"
 
@@ -35,6 +36,8 @@ typedef void (*tactyk__error_handler)(char *message, void *data);
 
 extern tactyk__error_handler error;
 extern tactyk__error_handler warn;
+
+uint64_t tactyk__rand_uint64();
 
 #endif  // TACTYK_H
 

@@ -102,14 +102,14 @@ struct tactyk_asmvm__register_bank {
     //union tactyk_asmvm__immediate_properties *rIMM;
     uint64_t* rSTASH;
     tactyk_asmvm__op *rPROG;
-    uint64_t rIPTR;             // no longer for holding instruction pointers (everything but the initial call into tactyk is now a direct jump).
+    uint64_t rLWCSI;             // no longer for holding instruction pointers (everything but the initial call into tactyk is now a direct jump).
                                 // To be renamed after deciding what to do with fastcalls.
     uint64_t rTEMP;
     uint64_t *rADDR1;
     uint64_t *rADDR2;
     uint64_t *rADDR3;
     uint64_t *rADDR4;
-    uint64_t rMAXIP;
+    uint64_t rMCSI;
     uint64_t rA;
     uint64_t rB;
     uint64_t rC;

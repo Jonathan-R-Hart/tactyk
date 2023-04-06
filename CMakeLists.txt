@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(tactyk-p C CXX)
-project(tactyk-p VERSION 0.2.0)
+project(tactyk-p VERSION 0.3.0)
 
 add_library(tactyk
   libtactyk/tactyk_asmvm.c
@@ -62,4 +62,7 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E create_symlink
           ${CMAKE_SOURCE_DIR}/examples/hello_sdl.tkp
           ${CMAKE_CURRENT_BINARY_DIR}/examples/hello_sdl.tkp
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_SOURCE_DIR}/examples/recursive.tkp
+          ${CMAKE_CURRENT_BINARY_DIR}/examples/recursive.tkp
 )

@@ -195,8 +195,6 @@ typespec comparator
 #   code
 #     xor $TEMP, $TEMP
 
-# define DISPATCH_NEXT_INSTRUCTION jmp [rPROG+rIPTR*8]
-
 # immediate scrambling config
 # This sets up the scrambling system whereby the script-provided immediate values are scrabled in executable memory and
 # unscrambled when accessed.
@@ -224,10 +222,12 @@ subroutine scramble
 
 instruction break
   $KW dword
-  scramble rIPTR $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
+  scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
   code
     $LD_IPTR_IMMEDIATE
-    inc rIPTR
+    inc rTEMPA
+    mov fs:[context.instruction_index], rTEMPA
+    xor rTEMPA, rTEMPA
     mov fs:[context.status], dword STATUS_BREAK
     store_context
     load_runtimecontext
@@ -235,13 +235,16 @@ instruction break
 
 instruction step
   $KW dword
-  scramble rIPTR $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
+  scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
   code
-    $LD_IPTR_IMMEDIATE
     mov rTEMPA, qword fs:[context.stepper]
     cmp rTEMPA, 0
     je .pass
     mov fs:[context.status], dword STATUS_BREAK
+    $LD_IPTR_IMMEDIATE
+    inc rTEMPA
+    mov fs:[context.instruction_index], rTEMPA
+    xor rTEMPA, rTEMPA
     store_context
     load_runtimecontext
     ret
@@ -250,9 +253,11 @@ instruction step
 
 instruction exit
   $KW dword
-  scramble rIPTR $LD_IPTR_IMMEDIATE $COMMAND_INDEX
+  scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX
   code
     $LD_IPTR_IMMEDIATE
+    mov fs:[context.instruction_index], rTEMPA
+    xor rTEMPA, rTEMPA
     mov fs:[context.status], dword STATUS_HALT
     store_context
     load_runtimecontext
@@ -804,6 +809,18 @@ instruction sub
   $INSTRUCTION sub
   sub simple_binary_instruction
 
+instruction and
+  $INSTRUCTION and
+  sub simple_binary_instruction
+
+instruction or
+  $INSTRUCTION or
+  sub simple_binary_instruction
+
+instruction xor
+  $INSTRUCTION xor
+  sub simple_binary_instruction
+
 #
 typespec address-offset
   select-operand
@@ -1119,15 +1136,17 @@ instruction ccall
         
         push rbp
         mov r10, $B
-        call r10   
-        ;pop rbp    
+        call r10
+        ;pop rbp
+
+        mov rTEMPD, rTEMPA
 
         wrfsbase r14
         wrgsbase r15
         
         load_context
         
-        mov $A, rTEMPA
+        mov $A, rTEMPD
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -1199,7 +1218,6 @@ instruction cpuclocks
     rdtsc
     shl rTEMPD, 32
     or rTEMPA, rTEMPD
-    mov rD, 12345
     mov fs:[context.diagnostic_out+0], rTEMPA
     xor rTEMPA, rTEMPA
     xor rTEMPD, rTEMPD
@@ -1324,10 +1342,51 @@ instruction unstash
         mov rF, gs:[microcontext.f3]
   code
     jmp $NEXT_INSTRUCTION
-    
 
+instruction lwcall
+  operand
+    type branch
+    $JTARGET $VALUE
+    scramble rTEMPC $LD_RETURN_TARGET $COMMAND_INDEX_NEXT
+  code
+    $LD_RETURN_TARGET
+    inc rLWCSI_16
+    movzx rTEMPA, rLWCSI_16
+    shl rTEMPA, 2
+    add rTEMPA, fs:[context.lwcall_stack_address]
+    mov dword [rTEMPA], rTEMPC_32
+    xor rTEMPA, rTEMPA
+    xor rTEMPC, rTEMPC
+    jmp $JTARGET
 
+instruction lwreturn
+  code
+    movzx rTEMPA, rLWCSI_16
+    shl rTEMPA, 2
+    add rTEMPA, fs:[context.lwcall_stack_address]
+    mov rTEMPA_32, [rTEMPA]
+    dec rLWCSI_16
+    jmp [rPROG+rTEMPA*8]
 
+instruction mctxpush
+  code
+    inc rMCSI_16
+    movzx rTEMPA, rMCSI_16
+    shl rTEMPA, microcontext_size_bits
+    add rTEMPA, fs:[context.microcontext_stack_address]
+    wrgsbase rTEMPA
+    xor rTEMPA, rTEMPA
+    jmp $NEXT_INSTRUCTION
+
+instruction mctxpop
+  code
+    dec rMCSI_16
+    movzx rTEMPA, rMCSI_16
+    shl rTEMPA, microcontext_size_bits
+    add rTEMPA, fs:[context.microcontext_stack_address]
+    wrgsbase rTEMPA
+    xor rTEMPA, rTEMPA
+    jmp $NEXT_INSTRUCTION
 
 
 

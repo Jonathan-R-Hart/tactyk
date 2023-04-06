@@ -1,3 +1,13 @@
+6 Apr 2023
+Implement lightweight calls
+  lwcall ... lwreturn is the mechanism for treating labelled statements within tactyk as subroutines.
+  lwcall only redirects flow.  
+
+Implement the microcontext stack
+  mctxpush ... mctxpop affects the position of the stash pointer (tactyk builtin locals)
+  mctxpush + lwcall (passing the values by placing them on registers) is a complete tactyk function call.
+  mctxpop + lwreturn (returning results by passing them on registers) is a complete tactyk return
+
 5 Apr 2023
 Restructure the project (decouple the test/demo components from library components)
 Update resource references in the unconfigured (non-shell) interface.

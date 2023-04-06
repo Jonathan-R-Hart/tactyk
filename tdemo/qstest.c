@@ -28,10 +28,34 @@ char* tactyk_qsort_program = R"""(
             unstash e1f1
         set
             stash e1f1
+    REDIR2:
+        lwcall DO_QSORT
+        lwreturn
+    REDIR1:
+        lwcall REDIR2
+        lwreturn
     MAIN:
+        assign a 12
+        assign b 23
+        assign c 34
+        assign d 45
+        assign e 56
+        assign f 67
+        stash a1b1c1d1e1f1
+        assign a 0
+        assign b 0
+        assign c 0
+        assign d 0
+        assign e 0
+        assign f 0
+        mctxpop
+        lwcall REDIR1
+        mctxpush
+        unstash a1b1c1d1e1f1
+        exit
+    DO_QSORT:
         bind addr1 args
         load qword f addr1 qs_args.last
-
         # pivot, low, and high pointers
         bind addr1 data
         bind addr2 data
@@ -53,8 +77,8 @@ char* tactyk_qsort_program = R"""(
 
         # copy the bounds into context local storage so they can be recovered after partition
 
-        # stash e1f1
-        set stored_bounds
+        stash e1f1
+        # set stored_bounds
 
         goto QSORT_PARTITION
     QSORT_SKIP:
@@ -67,8 +91,8 @@ char* tactyk_qsort_program = R"""(
         # move the new partition point out of the way and recover the original bounds
         assign d f
 
-        # unstash e1f1
-        get stored_bounds
+        unstash e1f1
+        # get stored_bounds
 
         # defer partition e->d.
         push addr4 e
@@ -117,7 +141,7 @@ char* tactyk_qsort_program = R"""(
         goto PARTITION_LOOP_LEFT
 
     DONE:
-        exit
+        lwreturn
 
     DIAG:
         cpuclocks
@@ -128,7 +152,7 @@ char* tactyk_qsort_program = R"""(
 struct tactyk_asmvm__Program *qsprogram;
 void doprintit(struct tactyk_asmvm__Context *ctx) {
 
-    qsprogram->debug_func(ctx->regbank_A.rIPTR, NULL);
+    qsprogram->debug_func(ctx->instruction_index, NULL);
     tactyk_asmvm__print_context(ctx);
 }
 

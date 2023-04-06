@@ -23,10 +23,15 @@ void aux_configure(struct tactyk_emit__Context *emit_context) {
     tactyk_emit__add_c_apifunc(emit_context, "printchar", aux__term_write_char);
     tactyk_emit__add_c_apifunc(emit_context, "printint", aux__term_write_int);
     tactyk_emit__add_c_apifunc(emit_context, "sleep", aux_sleep);
+    tactyk_emit__add_c_apifunc(emit_context, "rand", aux_rand);
     tactyk_emit__add_tactyk_apifunc(emit_context, "readfile", aux__read_file);
 
 }
 
+uint64_t aux_rand() {
+    uint64_t rnd = tactyk__rand_uint64();
+    return rnd;
+}
 
 void aux_sleep(uint64_t milliseconds) {
     usleep(milliseconds*1000);
