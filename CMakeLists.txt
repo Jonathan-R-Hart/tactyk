@@ -2,6 +2,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(tactyk-p C CXX)
+project(tactyk-p VERSION 0.2.0)
 
 add_library(tactyk
   libtactyk/tactyk_asmvm.c
@@ -33,6 +34,7 @@ target_link_libraries( tdemo tactyk ${SDL2_LIBRARIES} )
 
 add_compile_definitions(
     TACTYK_SHELL_INTERFACE
+    TACTYK__VERSION="${CMAKE_PROJECT_VERSION}"
 )
 
 add_compile_options( -m64 -fPIC )

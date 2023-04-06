@@ -1,6 +1,7 @@
 5 Apr 2023
 Restructure the project (decouple the test/demo components from library components)
 Update resource references in the unconfigured (non-shell) interface.
+Use Cmake to declare the version number
 Add a mechanism to tactky-PL for defining "variables".
   tactyk-PL "variables" are basically just code templates dressed up as getters and setters.
   The "var" keyword is used to declare a variable.
@@ -19,6 +20,7 @@ Add an example demonstrating rendering a framebuffer through the auxilliary SDL 
 
 fixed incorrect c calls
   printf can print floating point values when called from a callback from TACTYK!
+
 
 4 Apr 2023
 Add an introduction (readme.md)
