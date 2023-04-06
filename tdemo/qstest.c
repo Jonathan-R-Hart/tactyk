@@ -35,7 +35,23 @@ char* tactyk_qsort_program = R"""(
         lwcall REDIR2
         lwreturn
     MAIN:
+        assign a 12
+        assign b 23
+        assign c 34
+        assign d 45
+        assign e 56
+        assign f 67
+        stash a1b1c1d1e1f1
+        assign a 0
+        assign b 0
+        assign c 0
+        assign d 0
+        assign e 0
+        assign f 0
+        mctxpush
         lwcall REDIR1
+        mctxpop
+        unstash a1b1c1d1e1f1
         exit
     DO_QSORT:
         bind addr1 args
@@ -243,7 +259,7 @@ void run_qsort_tests(struct tactyk_emit__Context *emitctx, int64_t len, int64_t 
     checkit((int64_t*)dblk->data, len);
     printf("cycle count: %lu\n\n\n", c2-c1);
 
-    //tactyk_asmvm__print_context(ctx);
+    tactyk_asmvm__print_context(ctx);
 
 
 

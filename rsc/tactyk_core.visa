@@ -1204,7 +1204,6 @@ instruction cpuclocks
     rdtsc
     shl rTEMPD, 32
     or rTEMPA, rTEMPD
-    mov rD, 12345
     mov fs:[context.diagnostic_out+0], rTEMPA
     xor rTEMPA, rTEMPA
     xor rTEMPD, rTEMPD
@@ -1355,6 +1354,25 @@ instruction lwreturn
     dec rLWCSI_16
     jmp [rPROG+rTEMPA*8]
 
+instruction mctxpush
+  code
+    inc rMCSI_16
+    mov rTEMPA, rMCSI
+    shl rTEMPA, microcontext_size_bits
+    add rTEMPA, fs:[context.microcontext_stack_address]
+    wrgsbase rTEMPA
+    xor rTEMPA, rTEMPA
+    jmp $NEXT_INSTRUCTION
+
+instruction mctxpop
+  code
+    dec rMCSI_16
+    mov rTEMPA, rMCSI
+    shl rTEMPA, microcontext_size_bits
+    add rTEMPA, fs:[context.microcontext_stack_address]
+    wrgsbase rTEMPA
+    xor rTEMPA, rTEMPA
+    jmp $NEXT_INSTRUCTION
 
 
 
