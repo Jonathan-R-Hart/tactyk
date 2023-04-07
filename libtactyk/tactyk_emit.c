@@ -115,6 +115,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     tactyk_dblock__put(ctx->operator_table, "pick", tactyk_emit__Pick);
     tactyk_dblock__put(ctx->operator_table, "operand", tactyk_emit__Operand);
+    tactyk_dblock__put(ctx->operator_table, "opt-operand", tactyk_emit__OptionalOperand);
     tactyk_dblock__put(ctx->operator_table, "type", tactyk_emit__Type);
     tactyk_dblock__put(ctx->operator_table, "value", tactyk_emit__Value);
 
@@ -191,6 +192,9 @@ bool tactyk_emit__ExecSubroutine(struct tactyk_emit__Context *ctx, struct tactyk
     struct tactyk_dblock__DBlock *sub_data = data->child;
     while (sub_data != NULL) {
         struct tactyk_dblock__DBlock *name = sub_data->token;
+        //printf("token: ");
+        //tactyk_dblock__println(name);
+
         tactyk_emit__sub_func sfunc = tactyk_dblock__get(ctx->operator_table, name);
         if (sfunc != NULL) {
             if (!sfunc(ctx, sub_data)) {
@@ -199,11 +203,16 @@ bool tactyk_emit__ExecSubroutine(struct tactyk_emit__Context *ctx, struct tactyk
         }
         else {
             struct tactyk_dblock__DBlock *varname = name;
+                //p//rintf("setter: ");
+                //tactyk_dblock__println(varname);
             if (tactyk_dblock__getchar(varname, 0) == '$') {
-                struct tactyk_dblock__DBlock *varvalue_raw = varname->next;
 
+                struct tactyk_dblock__DBlock *varvalue_raw = varname->next;
                 if (varvalue_raw != NULL) {
-                    tactyk_emit__fetch_var(ctx, varname, varvalue_raw);
+                    struct tactyk_dblock__DBlock *result = tactyk_emit__fetch_var(ctx, varname, varvalue_raw);
+
+                    //printf("set-result: ");
+                    //tactyk_dblock__println(result);
                     goto do_next_sub;
                 };
             }
@@ -293,7 +302,6 @@ bool tactyk_emit__Type(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
         }
         token = token->next;
     }
-    printf("ts-fail\n");
     return false;
 }
 
@@ -389,8 +397,9 @@ bool tactyk_emit__Flags(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
 }
 bool tactyk_emit__SelectOp(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     ctx->select_token = ctx->pl_operand_raw;
-    //printf("seelect-operand: ");
-   // tactyk_dblock__println(ctx->pl_operand_raw);
+    if (ctx->select_token == NULL) {
+        ctx->select_token = tactyk_dblock__from_c_string("[[ NULL ]]");
+    }
     return tactyk_emit__ExecSelector(ctx, data);
 }
 bool tactyk_emit__SelectTemplate(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
@@ -446,12 +455,26 @@ bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock
     else {
         ctx->pl_operand_resolved = tactyk_dblock__from_c_string("[[ NULL ]]");
     }
-
     if (!tactyk_emit__ExecSubroutine(ctx, data)) {
-        tactyk_dblock__print_structure_simple(data);
-        error("EMIT -- failed to handle operand", data);
+        return false;
+    }
+
+    //if (!tactyk_emit__ExecSubroutine(ctx, data)) {
+    //    tactyk_dblock__print_structure_simple(data);
+    //    error("EMIT -- failed to handle operand", data);
+    //}
+    return true;
+}
+
+bool tactyk_emit__OptionalOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    struct tactyk_dblock__DBlock *raw_operand = ctx->pl_operand_raw;
+
+    // if the standard operand applicator fails, put the raw operand back so a non-optional operand can handle it.
+    if (!tactyk_emit__Operand(ctx, vopcfg)) {
+        ctx->pl_operand_raw = raw_operand;
     }
     return true;
+
 }
 
 // Called by functions which write to $VALUE to ensure $KW is updated with an appropriate keyword (for integer handling that differ based on word size).

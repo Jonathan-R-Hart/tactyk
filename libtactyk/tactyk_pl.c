@@ -282,7 +282,6 @@ void tactyk_pl__define_mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock_
                 error("PL -- Invalid Integer", tok);
             }
 
-            layout = ctx->default_mem_layout;
             break;
         }
         case 4: {
@@ -308,7 +307,7 @@ void tactyk_pl__define_mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock_
         }
     }
 
-    {
+    if (layout == NULL) {
         struct tactyk_dblock__DBlock *layout_ctn = tactyk_dblock__get(ctx->struct_table, mem_name);
         if (layout_ctn != NULL) {
             layout = (struct tactyk_asmvm__struct*) layout_ctn->data;
@@ -322,6 +321,12 @@ void tactyk_pl__define_mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock_
     //      (then rememebered that dblock-container covers that case as well)
 
     int64_t id = ctx->memspec_highlevel_table->element_count;
+
+    //printf("mem-st-name:  ");
+    //tactyk_dblock__println(st_name);
+
+    //printf("layout stride: %ju\n", layout->byte_stride);
+
 
     //printf("ctLL = %ju ctHL = %ju\n", ctx->memspec_lowlevel_buffer->element_count, ctx->memspec_highlevel_table->element_count );
 
@@ -714,7 +719,7 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
         sprintf(struct_sz_name, "%s_size", st->name);
         st->byte_stride = stride;
 
-        //printf("stride = %jd\n", stride);
+        //printf("name=%s stride = %jd\n", st->name, st->byte_stride);
 
         struct tactyk_dblock__DBlock *struct_sz_const = tactyk_dblock__from_int(stride);
         tactyk_dblock__put(ectx->const_table, struct_sz_name, struct_sz_const);

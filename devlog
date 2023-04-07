@@ -11,6 +11,12 @@ Implement the microcontext stack
 Repurpose low-level memblock specification "left" and "right" properties.  They are being replaced with a memblock identifier and a type declaration,
 to make memblocks a bit more dynamic.  The old "left" and "right" fields originally were meant for queue-like behavior (a cancelled feature).
 
+Add optional operands to virtual ISA configuration
+Fix memory block layout not respecting a specifying struct
+First steps toward for SIMD instructions
+Add basic floating point operations (using SSE2)
+
+
 5 Apr 2023
 Restructure the project (decouple the test/demo components from library components)
 Update resource references in the unconfigured (non-shell) interface.

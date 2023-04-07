@@ -34,6 +34,7 @@
 #include "tactyk.h"
 #include "qstest.h"
 #include "fibtest.h"
+#include "ftest.h"
 
 #include "aux_testlib.h"
 #include "aux_sdl.h"
@@ -142,10 +143,12 @@ int main() {
     aux_configure(emitctx);
     aux_sdl__configure(emitctx);
 
+    run_float_test(emitctx, ctx);
+
     //run_fib_test(emitctx, 10000000000, ctx);
     //run_fib_test(emitctx, 2000000, ctx);
     //run_qsort_tests(emitctx, 10000000, 1, ctx);
-    run_qsort_tests(emitctx, 10, 1, ctx);
+    //run_qsort_tests(emitctx, 10, 1, ctx);
 
     //tactyk_visa_new__init("tactyk_core.visa");
 

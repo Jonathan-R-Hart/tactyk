@@ -54,10 +54,10 @@ void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_a
 
     //printf("result= %lu\n", result);
 
+    //printf("...  pfuncs:  %p\n", prog);
     struct tactyk_asmvm__identifier *identifier = tactyk_dblock__get(prog->functions, funcname);
     //struct tactyk_asmvm__identifier *identifier = tactyk_table__get_strkey(prog->symbols.labeltbl, funcname);
     int64_t iptr = identifier->value;
-
     //printf("ip=%jd ln=%jd\n mbptr = %p\n", iptr, prog->length, prog->memory_layout_ll);
     context->hl_program_ref = prog;
     //iptr = 0;

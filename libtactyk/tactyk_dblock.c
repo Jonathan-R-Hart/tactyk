@@ -813,9 +813,6 @@ void tactyk_dblock__update_hash(struct tactyk_dblock__DBlock *dblock) {
 
 // strict eauality test
 bool tactyk_dblock__equals(struct tactyk_dblock__DBlock *dblock_a, struct tactyk_dblock__DBlock *dblock_b) {
-    //printf("eq\n");
-    //tactyk_dblock__println(dblock_a);
-    //tactyk_dblock__println(dblock_b);
     if (dblock_a->hashcode != dblock_b->hashcode) {
         //printf("reject-hash\n");
         return false;

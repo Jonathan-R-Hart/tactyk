@@ -92,6 +92,7 @@ typespec data
       value rF
   pick D
 
+
 # integers are recognized by casting to integer, then range-tested to obtain a byte width.
 typespec integer
   int-operand
@@ -1395,6 +1396,161 @@ instruction mctxpop
     wrgsbase rTEMPA
     xor rTEMPA, rTEMPA
     jmp $NEXT_INSTRUCTION
+
+typespec vec-float-format
+  $VECFMT SD
+  select-operand
+    case pd PD
+      $VECFMT pd
+    case ps PS
+      $VECFMT ps
+    case pd SD
+      $VECFMT sd
+    case ps SS
+      $VECFMT ss
+
+typespec xmmx
+  select-operand
+    case x0 xmm0
+      value xmm0
+    case x1 xmm1
+      value xmm1
+    case x2 xmm2
+      value xmm2
+    case x3 xmm3
+      value xmm3
+    case x4 xmm4
+      value xmm4
+    case x5 xmm5
+      value xmm5
+    case x6 xmm6
+      value xmm6
+    case x7 xmm7
+      value xmm7
+    case x8 xmm8
+      value xmm8
+    case x9 xmm9
+      value xmm9
+    case x10 xmm10
+      value xmm10
+    case x11 xmm11
+      value xmm11
+    case x12 xmm12
+      value xmm12
+    case x13 xmm13
+      value xmm13
+    case x14 xmm14
+      value xmm14
+    case x15 xmm15
+      value xmm15
+  pick F
+
+instruction vec-in
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type data fdata address
+    $SOURCE $VALUE
+  operand
+    type integer const none
+    $OFFSET $VALUE
+    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+  select-template
+    case FFN FDN
+      code
+        movq $DEST, $SOURCE
+        jmp $NEXT_INSTRUCTION
+    case FAI FAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        
+        movq $DEST, [$SOURCE+rTEMPC]
+        
+        jmp $NEXT_INSTRUCTION
+
+instruction vec-out
+  operand
+    type data address
+    $DST $VALUE
+  operand
+    type xmmx integer const
+    $B $VALUE
+    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+  operand
+    type xmmx none
+    $DEST $VALUE
+  select-template
+    case DFN
+      code
+        movq $DST, $B
+        jmp $NEXT_INSTRUCTION
+
+instruction vec-add
+  opt-operand
+    type vec-float-format
+  operand
+    type xmmx
+    $A $VALUE
+  operand
+    type xmmx
+    $B $VALUE
+  code
+    add$VECFMT $A, $B
+    jmp $NEXT_INSTRUCTION
+
+instruction vec-sub
+  opt-operand
+    type vec-float-format
+  operand
+    type xmmx
+    $A $VALUE
+  operand
+    type xmmx
+    $B $VALUE
+  code
+    sub$VECFMT $A, $B
+    jmp $NEXT_INSTRUCTION
+
+instruction vec-mul
+  opt-operand
+    type vec-float-format
+  operand
+    type xmmx
+    $A $VALUE
+  operand
+    type xmmx
+    $B $VALUE
+  code
+    mul$VECFMT $A, $B
+    jmp $NEXT_INSTRUCTION
+
+instruction vec-div
+  opt-operand
+    type vec-float-format
+  operand
+    type xmmx
+    $A $VALUE
+  operand
+    type xmmx
+    $B $VALUE
+  code
+    div$VECFMT $A, $B
+    jmp $NEXT_INSTRUCTION
+
+
+
+
+
+
+
+
 
 
 
