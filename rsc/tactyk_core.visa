@@ -1450,7 +1450,7 @@ instruction vec-in
     type xmmx
     $DEST $VALUE
   operand
-    type data fdata address
+    type data xmmx address
     $SOURCE $VALUE
   operand
     type integer const none
@@ -1485,11 +1485,25 @@ instruction vec-out
     scramble rTEMPC $LD_OFFSET_IMMEDIATE
   operand
     type xmmx none
-    $DEST $VALUE
+    $SOURCE $VALUE
   select-template
     case DFN
       code
         movq $DST, $B
+        jmp $NEXT_INSTRUCTION
+    case AIF ACF
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        
+        movq [$DST+rTEMPC], $SOURCE
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
 
 instruction vec-add
