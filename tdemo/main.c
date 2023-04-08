@@ -113,7 +113,6 @@ void testfunc(int64_t asdf) {
 
 #if !(defined TACTYK_SHELL_INTERFACE) && !(defined ASDF_FDSA)
 int main() {
-
     error = tactyk__default_error_handler;
     warn = tactyk__default_warning_handler;
 

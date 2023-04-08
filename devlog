@@ -10,6 +10,7 @@ Fix immediate operand scrambling for qwords, then fix it again
   If more than two scrambled immediates are needed (no such need at present), then one of the previously used registers must be reused.
 
 Add templates for conditional jumps using floating-point comparisons
+Add floating point templates to a few regular operators (add, sub, mul, div, assign)
 
 6 Apr 2023
 Implement lightweight calls

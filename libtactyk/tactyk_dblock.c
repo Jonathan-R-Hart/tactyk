@@ -169,6 +169,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_ptr(void *ptr) {
 
 struct tactyk_dblock__DBlock* tactyk_dblock__from_bytes(struct tactyk_dblock__DBlock *out, uint8_t *data, uint64_t start_index, uint64_t length, bool is_safe_data) {
     //printf("dblock from bytes out=%p data=%p si=%ju len=%ju\n", out, data, start_index, length);
+
     if (out == NULL) {
         out = tactyk_dblock__alloc();
     }

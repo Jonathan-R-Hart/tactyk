@@ -181,7 +181,7 @@ typespec context-property
     case addr4.right
       value context.addr4_right
       $KW dword
-  pick X
+  pick Ctx
 
 # set up a prototype paramter block 
 typespec comparator
@@ -379,8 +379,10 @@ instruction load
         pick D
       case qword i64
         pick Q
+      case float
+        pick X
   operand
-    type data
+    type data xmmx
     $DEST__DATA_REG $VALUE
   operand
     type address
@@ -505,6 +507,36 @@ instruction load
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
 
+    case XXAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movq $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XXAI QXAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movq $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+
 instruction store
   operand
     select-operand
@@ -516,6 +548,8 @@ instruction store
         pick D
       case qword i64
         pick Q
+      case float
+        pick X
   operand
     type address
     $ADDRESS_REGISTER $VALUE
@@ -524,7 +558,7 @@ instruction store
     $OFFSET $VALUE
     scramble rTEMPC $LD_OFFSET_IMMEDIATE
   operand
-    type data
+    type data xmmx
     $SRC $VALUE
     scramble rTEMPA $LD_SRC_IMMEDIATE
   select-template
@@ -740,6 +774,31 @@ instruction store
         xor rTEMPD, rTEMPD
         jmp $NEXT_INSTRUCTION
 
+    case XADX
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        movq [$ADDRESS_REGISTER+$OFFSET], $SRC
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XAIX XACX
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        movq [$ADDRESS_REGISTER+$OFFSET], $SRC
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+
 instruction pop
   operand
     type data
@@ -794,14 +853,37 @@ instruction push
 
 instruction swap
   operand 
-    type data
+    type data xmmx
     $A $VALUE
   operand
-    type data
+    type data xmmx
     $B $VALUE
-  code
-    xchg $A, $B
-    jmp $NEXT_INSTRUCTION
+  select-template
+    case DD
+      code
+        xchg $A, $B
+        jmp $NEXT_INSTRUCTION
+    case XD
+      code
+        cvtsi2sd xTEMPB, $B
+        cvttsd2si $B, $A
+        movq $A, xTEMPB
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    case DX
+      code
+        cvtsi2sd xTEMPA, $A
+        cvttsd2si $A, $B
+        movq $B, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XX
+      code
+        movq xTEMPA, $A
+        movq $B, $A
+        movq $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
 
 subroutine simple_unary_instruction
   operand 
@@ -816,7 +898,7 @@ subroutine simple_binary_instruction
     type data
     $A $VALUE
   operand
-    type data integer const
+    type data const integer
     $B $VALUE
     scramble rTEMPA $LD_B_IMMEDIATE
   select-template
@@ -831,13 +913,76 @@ subroutine simple_binary_instruction
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
 
+subroutine binary_instruction
+  operand
+    type data xmmx
+    $A $VALUE
+  operand
+    type data xmmx const fconst integer float
+    $B $VALUE
+    scramble rTEMPA $LD_B_IMMEDIATE
+  select-template
+    case DD
+      code
+        $INSTRUCTION $A, $B
+        jmp $NEXT_INSTRUCTION
+    case DI DC
+      code
+        $LD_B_IMMEDIATE
+        $INSTRUCTION $A, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DX
+      code
+        cvtsi2sd xTEMPA, $A
+        %[$INSTRUCTION]sd xTEMPA, $B
+        cvttsd2si $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DF DCf
+      code
+        $LD_B_IMMEDIATE
+        cvtsi2sd xTEMPB, rTEMPA
+        cvtsi2sd xTEMPA, $A
+        %[$INSTRUCTION]sd xTEMPA, $B
+        cvttsd2si $A, xTEMPA
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XX
+      code
+        %[$INSTRUCTION]sd $A, $B
+        jmp $NEXT_INSTRUCTION
+    case XD
+      code
+        cvtsi2sd xTEMPA, $B
+        %[$INSTRUCTION]sd $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI XC
+      code
+        $LD_B_IMMEDIATE
+        cvtsi2sd xTEMPA, rTEMPA
+        %[$INSTRUCTION]sd $A, xTEMPA
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XCf XF
+      code
+        $LD_B_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        %[$INSTRUCTION]sd $A, xTEMPA
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+
 instruction add
   $INSTRUCTION add
-  sub simple_binary_instruction
+  sub binary_instruction
 
 instruction sub
   $INSTRUCTION sub
-  sub simple_binary_instruction
+  sub binary_instruction
 
 instruction and
   $INSTRUCTION and
@@ -876,10 +1021,10 @@ typespec address-offset
 instruction assign
   $INSTRUCTION mov
   operand 
-    type data address-offset
+    type data xmmx address-offset
     $A $VALUE
   operand
-    type data integer const address-offset context-property
+    type data xmmx const fconst address-offset context-property integer float
     $B $VALUE
     scramble rTEMPA $LD_B_IMMEDIATE
   select-template
@@ -912,67 +1057,192 @@ instruction assign
         mov $A, rTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
-    case DX
+    case DCtx
       select-kw
         case dword
           code
             mov %[$A]_32, fs:[$B]
             jmp $NEXT_INSTRUCTION
+    case DX
+      code
+        cvttsd2si $A, $B
+        jmp $NEXT_INSTRUCTION
+    case DF DCf
+      code
+        $LD_B_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvttsd2si, $A, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XX
+      code
+        movq $A, $B
+        jmp $NEXT_INSTRUCTION
+    case XD
+      code
+        cvtsi2sd $A, $B
+        jmp $NEXT_INSTRUCTION
+    case XI XC
+      code
+        $LD_B_IMMEDIATE
+        cvtsi2sd $A, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF XCf
+      code
+        $LD_B_IMMEDIATE
+        movq $A, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+      
 
 instruction mul
   operand
-    type data
-    $DEST $VALUE
+    type data xmmx
+    $A $VALUE
   operand
-    type data integer const
-    $SOURCE $VALUE
-    scramble rTEMPC $LD_SOURCE_IMMEDIATE
+    type data xmmx const fconst integer float
+    $B $VALUE
+    scramble rTEMPC $LD_B_IMMEDIATE
   select-template
     case DD
       code
-        mov rTEMPA, $DEST
-        imul $SOURCE
-        mov $DEST, rTEMPA
+        mov rTEMPA, $A
+        imul $B
+        mov $A, rTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     case DI DC
       code
-        $LD_SOURCE_IMMEDIATE
-        mov rTEMPA, $DEST
+        $LD_B_IMMEDIATE
+        mov rTEMPA, $A
         imul rTEMPC
-        mov $DEST, rTEMPA
+        mov $A, rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case DX
+      code
+        cvtsi2sd xTEMPA, $A
+        mulsd xTEMPA, $B
+        cvttsd2si $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DF DCf
+      code
+        $LD_B_IMMEDIATE
+        movq xTEMPB, rTEMPC
+        cvtsi2sd xTEMPA, $A
+        mulsd xTEMPA, xTEMPB
+        cvttsd2si $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case XX
+      code
+        mulsd $A, $B
+        jmp $NEXT_INSTRUCTION
+    case XD
+      code
+        cvtsi2sd xTEMPA, $B
+        mulsd $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI XC
+      code
+        $LD_B_IMMEDIATE
+        cvtsi2sd xTEMPA, rTEMPC
+        mulsd $A, xTEMPA
+        mov rE, rTEMPC
+        xor rTEMPC, rTEMPC
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XCf XF
+      code
+        $LD_B_IMMEDIATE
+        movq xTEMPA, rTEMPC
+        mulsd $A, xTEMPA
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
 
 instruction div
   operand
-    type data
-    $DEST $VALUE
+    type data xmmx
+    $A $VALUE
   operand
-    type data integer const
-    $SOURCE $VALUE
-    scramble rTEMPC $LD_SOURCE_IMMEDIATE
+    type data xmmx const fconst integer float
+    $B $VALUE
+    scramble rTEMPC $LD_B_IMMEDIATE
   select-template
     case DD
       code
-        mov rTEMPA, $DEST
+        mov rTEMPA, $A
         cqo
-        idiv $SOURCE
-        mov $DEST, rTEMPA
+        idiv $B
+        mov $A, rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPD, rTEMPD
         jmp $NEXT_INSTRUCTION
     case DI DC
       code
-        $LD_SOURCE_IMMEDIATE
-        mov rTEMPA, $DEST
+        $LD_B_IMMEDIATE
+        mov rTEMPA, $A
         cqo
         idiv rTEMPC
-        mov $DEST, rTEMPA
+        mov $A, rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    case DX
+      code
+        $LD_B_IMMEDIATE
+        cvtsi2sd xTEMPA, $A
+        cvtsi2sd xTEMPB, rTEMPC
+        divsd xTEMPA, xTEMPB
+        cvttsd2si $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        pxor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case DF DCf
+      code
+        $LD_B_IMMEDIATE
+        movq xTEMPB, rTEMPC
+        cvtsi2sd xTEMPA, $A
+        divsd xTEMPA, xTEMPB
+        cvttsd2si $A, xTEMPA
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        pxor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case XX
+      code
+        divsd $A, $B
+        jmp $NEXT_INSTRUCTION
+    case XD
+      code
+        cvtsi2sd xTEMPA, $B
+        divsd $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI XC
+      code
+        $LD_B_IMMEDIATE
+        cvtsi2sd xTEMPA, rTEMPC
+        divsd $A, xTEMPA
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XCf XF
+      code
+        $LD_B_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        divsd $A, xTEMPA
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
 
 subroutine shift
@@ -1012,6 +1282,10 @@ instruction rotate-left
 instruction rotate-right
   $INSTRUCTION ror
   sub shift
+
+instruction inc
+  $INSTRUCTION inc
+  sub simple_unary_instruction
 
 instruction dec
   $INSTRUCTION dec

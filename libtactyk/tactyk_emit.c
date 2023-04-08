@@ -420,8 +420,10 @@ bool tactyk_emit__SelectOp(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
 }
 bool tactyk_emit__SelectTemplate(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     ctx->select_token = ctx->code_template;
-    //printf("SELECT-TEMPLATE:  ");
-    //tactyk_dblock__println(ctx->select_token);
+    #ifdef DEBUG
+    printf("SELECT-TEMPLATE:  ");
+    tactyk_dblock__println(ctx->select_token);
+    #endif // DEBUG
     return tactyk_emit__ExecSelector(ctx, data);
 }
 
@@ -712,8 +714,6 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     for (uint64_t i = 0; i < ctx->script_commands->element_count; i += 1) {
         struct tactyk_emit__script_command *cmd = tactyk_dblock__index(ctx->script_commands, i);
-        //printf("CMD #%ju: ", i);
-        //tactyk_dblock__println(cmd->name);
         ctx->iptr = i;
         ctx->active_command = cmd;
         struct tactyk_dblock__DBlock *label = cmd->labels;
@@ -726,12 +726,14 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
 
         sub->func(ctx, sub->vopcfg);
 
-        /*{
+        #ifdef DEBUG
+        {
             printf("COMMAND: ");
             tactyk_dblock__println(cmd->name);
             tactyk_dblock__println(cmd->asm_code);
             printf("---\n");
-        }*/
+        }
+        #endif // DEBUG
     }
 
     uint64_t program_size = ctx->script_commands->element_count;
