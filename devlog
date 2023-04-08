@@ -1,3 +1,11 @@
+6-8 Apr 2023
+Begin work on an SIMD handling
+Add basic floating point operations (using SSE2)
+Add example program: Julia fractal evaluator/renderer
+
+Fix incorrect table entry removal
+Fix immediate operand scrambling for qwords
+
 6 Apr 2023
 Implement lightweight calls
   lwcall ... lwreturn is the mechanism for treating labelled statements within tactyk as subroutines.
@@ -13,8 +21,6 @@ to make memblocks a bit more dynamic.  The old "left" and "right" fields origina
 
 Add optional operands to virtual ISA configuration
 Fix memory block layout not respecting a specifying struct
-First steps toward for SIMD instructions
-Add basic floating point operations (using SSE2)
 
 
 5 Apr 2023

@@ -98,6 +98,10 @@ typespec integer
   int-operand
   pick I
 
+typespec float
+  float-operand
+  pick F
+
 # symbolic fields are handled by looking them up in symbol tables.
 typespec branch
   label
@@ -113,11 +117,11 @@ typespec memblock
 
 typespec capi
   symbol capi
-  pick F
+  pick Cfunc
 
 typespec tapi
   symbol tapi
-  pick T
+  pick Tfunc
 
 typespec none
   nullarg
@@ -213,13 +217,11 @@ subroutine scramble
     case qword
       code $SC
         xor $SC_DEST, $SC_DEST
-        mov $SC_DEST, $SC_RAND_LOW
-        mov rTEMPD, $SC_DIFF_LOW
-        xor $SC_DEST, rTEMPD
+        mov $SC_DEST, $SC_RAND_HIGH
+        xor $SC_DEST, $SC_DIFF_HIGH
         shl $SC_DEST, 32
-        xor $SC_DEST, $SC_RAND_HIGH
-        mov rTEMPD, $SC_DIFF_HIGH
-        xor $SC_DEST, rTEMPD
+        xor $SC_DEST, $SC_RAND_LOW
+        xor $SC_DEST, $SC_DIFF_LOW
 
 instruction break
   $KW dword
@@ -1070,7 +1072,7 @@ instruction ccall
     type capi none
     $B $VALUE
   select-template
-    case FN
+    case CfuncN
       code
         store_context
         
@@ -1114,7 +1116,7 @@ instruction ccall
         xor rTEMPD, rTEMPD
         
         jmp $NEXT_INSTRUCTION
-    case DF
+    case DCfunc
       code
         store_context
         
@@ -1162,7 +1164,7 @@ instruction ccall
         xor rTEMPD, rTEMPD
         
         jmp $NEXT_INSTRUCTION
-    case FF DN
+    case CfuncCfunc DN
       error
 
 instruction if
@@ -1443,7 +1445,7 @@ typespec xmmx
       value xmm14
     case x15 xmm15
       value xmm15
-  pick F
+  pick X
 
 instruction vec-in
   opt-operand
@@ -1455,22 +1457,28 @@ instruction vec-in
     type xmmx
     $DEST $VALUE
   operand
-    type data xmmx address
+    type data xmmx address integer float
     $SOURCE $VALUE
+    scramble rTEMPD $LD_SOURCE_IMMEDIATE
   operand
     type integer const none
-    $OFFSET $VALUE
     scramble rTEMPC $LD_OFFSET_IMMEDIATE
   select-template
-    
     # load a floating point from a data register or transfer between xmm registers
-    case FFN FDN
+    case XXN XDN
       code
         movq $DEST, $SOURCE
         jmp $NEXT_INSTRUCTION
     
+    case XFN
+      code
+        $LD_SOURCE_IMMEDIATE
+        movq $DEST, rTEMPD
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+      
     # load floating point value(s) from memory
-    case FAI FAC
+    case XAI XAC
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
@@ -1480,16 +1488,22 @@ instruction vec-in
         errorlt STATUS_ROGUE_POINTER
         lfence
         movq $DEST, [$SOURCE+rTEMPC]
+        xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
     
+    case IXIN
+      code
+        $LD_SOURCE_IMMEDIATE
+        CVTSI2SD $DEST, rTEMPD
+        jmp $NEXT_INSTRUCTION
     # load an integer value from a data register, convert it to a float
-    case IFDN
+    case IXDN
       code
         CVTSI2SD $DEST, $SOURCE
         jmp $NEXT_INSTRUCTION
     
     # load floating point value(s) from memory
-    case FAI FAC
+    case IXAI IXAC
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
@@ -1499,6 +1513,7 @@ instruction vec-in
         errorlt STATUS_ROGUE_POINTER
         lfence
         CVTSI2SD $DEST, [$SOURCE+rTEMPC]
+        xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
         
 
@@ -1518,11 +1533,11 @@ instruction vec-out
     type xmmx none
     $SOURCE $VALUE
   select-template
-    case DFN
+    case DXN
       code
         movq $DST, $B
         jmp $NEXT_INSTRUCTION
-    case AIF ACF
+    case AIX ACX
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
@@ -1536,11 +1551,11 @@ instruction vec-out
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
-    case IDFN
+    case IDXN
       code
         CVTTSD2SI $DST, $B
         jmp $NEXT_INSTRUCTION
-    case IAIF IACF
+    case IAIX IACX
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
@@ -1554,7 +1569,6 @@ instruction vec-out
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
-      
 
 instruction vec-add
   opt-operand

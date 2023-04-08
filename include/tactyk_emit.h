@@ -219,6 +219,7 @@ bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
 bool tactyk_emit__Args(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__IntOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+bool tactyk_emit__FloatOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__NullArg(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 
 bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
