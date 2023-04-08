@@ -4,7 +4,12 @@ Add basic floating point operations (using SSE2)
 Add example program: Julia fractal evaluator/renderer
 
 Fix incorrect table entry removal
-Fix immediate operand scrambling for qwords
+Fix immediate operand scrambling for qwords, then fix it again
+  It now uses loads the random value onto the target register, then the difference onto rTEMPD (rdx), and combines them with one xor.
+  rTEMPD is cleared at the end of the unscrambler.
+  If more than two scrambled immediates are needed (no such need at present), then one of the previously used registers must be reused.
+
+Add templates for conditional jumps using floating-point comparisons
 
 6 Apr 2023
 Implement lightweight calls

@@ -27,6 +27,8 @@ char *floattest_src = {
             64 padding
         mem fdat fmt 1024
 
+        const fc 5432
+
         MAIN:
             bind addr1 fdat
             vec-in xmm1 addr1 fmt.v0a
@@ -35,7 +37,7 @@ char *floattest_src = {
             vec-in xmm4 addr1 fmt.v3
             vec-add PS xmm1 xmm2
             vec-div SD xmm3 xmm4
-            # vec-out ftoi e xmm3
+            vec-out ftoi e xmm3
             vec-out f xmm1
 
             assign a 123
@@ -55,9 +57,30 @@ char *floattest_src = {
             vec-out ftoi d xmm6
 
             vec-in itof xmm8 addr1 fmt.v7
-            vec-out ftoi e xmm8
-            vec-out ftoi addr1 fmt.v8 xmm8
+            # vec-out ftoi e xmm8
+            vec-out addr1 fmt.v8 xmm8
+            assign a 5432
+            # vec-in xmm9 5432.001
 
+            if xmm8 > fc PRINTSOMETHING
+
+            exit
+
+            PRINTSOMETHING:
+            assign a 10
+            ccall printchar
+            assign a 65
+            ccall printchar
+            ccall printchar
+            add a 1
+            ccall printchar
+            ccall printchar
+            add a 1
+            ccall printchar
+            ccall printchar
+            assign a 10
+            ccall printchar
+            ccall printchar
             exit
 
             # load qword c addr1 fib_args.iterations
@@ -105,6 +128,6 @@ void run_float_test(struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__C
 
     printf("d[5] = %f\n", ddata[5]);
     printf("(int) d[6] = %jd\n", idata[6]);
-    printf("(int) d[8] = %jd\n", idata[8]);
+    printf("(float) d[8] = %f\n", ddata[8]);
 
 }

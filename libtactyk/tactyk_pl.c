@@ -731,6 +731,15 @@ bool tactyk_pl__const(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlo
     struct tactyk_dblock__DBlock *name = dblock->token->next;
     struct tactyk_dblock__DBlock *value = dblock->token->next->next;
 
-    tactyk_dblock__put(ectx->const_table, name, value);
+    union tactyk_util__float_int v;
+    if (tactyk_dblock__try_parseint(&v.ival, value)) {
+        tactyk_dblock__put(ectx->const_table, name, value);
+        return true;
+    }
+    if (tactyk_dblock__try_parsedouble(&v.fval, value)) {
+        value = tactyk_dblock__from_uint(v.ival);
+        tactyk_dblock__put(ectx->fconst_table, name, value);
+        return true;
+    }
     return true;
 }

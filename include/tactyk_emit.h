@@ -119,6 +119,7 @@ struct tactyk_emit__Context {
 
     struct tactyk_dblock__DBlock *symbol_tables;
     struct tactyk_dblock__DBlock *const_table;
+    struct tactyk_dblock__DBlock *fconst_table;
     struct tactyk_dblock__DBlock *memblock_table;
     struct tactyk_dblock__DBlock *label_table;
     struct tactyk_dblock__DBlock *api_table;

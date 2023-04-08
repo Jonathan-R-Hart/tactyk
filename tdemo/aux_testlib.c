@@ -18,10 +18,12 @@
 #include "tactyk_emit.h"
 #include "tactyk_dblock.h"
 #include "tactyk_asmvm.h"
+#include "tactyk_util.h"
 
 void aux_configure(struct tactyk_emit__Context *emit_context) {
     tactyk_emit__add_c_apifunc(emit_context, "printchar", aux__term_write_char);
     tactyk_emit__add_c_apifunc(emit_context, "printint", aux__term_write_int);
+    tactyk_emit__add_c_apifunc(emit_context, "printfloat", aux__term_write_float);
     tactyk_emit__add_tactyk_apifunc(emit_context, "dump", aux__dump);
     tactyk_emit__add_c_apifunc(emit_context, "sleep", aux_sleep);
     tactyk_emit__add_c_apifunc(emit_context, "rand", aux_rand);
@@ -115,6 +117,11 @@ void aux__write_file(struct tactyk_asmvm__Context *asmvm_ctx) {
 */
 void aux__term_write_int(int64_t val) {
     printf("%jd", val);
+    fflush(stdout);
+}
+
+void aux__term_write_float(double val) {
+    printf("%f", val);
     fflush(stdout);
 }
 void aux__term_write_char(int64_t val) {

@@ -104,6 +104,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     //tactyk_textbuf__init(&ctx->main_codebuf, TACTYK_EMIT__CODEBUF_INITCAPACITY, true);
 
     tactyk_dblock__put(ctx->operator_table, "symbol", tactyk_emit__Symbol);
+    //tactyk_dblock__put(ctx->operator_table, "fsymbol", tactyk_emit__FSymbol);
 
     tactyk_dblock__put(ctx->operator_table, "select-operand", tactyk_emit__SelectOp);
     tactyk_dblock__put(ctx->operator_table, "select-template", tactyk_emit__SelectTemplate);
@@ -278,12 +279,14 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
     ctx->symbol_tables = tactyk_dblock__new_table(128);
     ctx->label_table = tactyk_dblock__new_table(256);
     ctx->const_table = tactyk_dblock__new_table(64);
+    ctx->fconst_table = tactyk_dblock__new_table(64);
     ctx->memblock_table = tactyk_dblock__new_table(64);
 
     ctx->program->functions = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_asmvm__identifier));
 
     tactyk_dblock__put(ctx->symbol_tables, "label", ctx->label_table);
     tactyk_dblock__put(ctx->symbol_tables, "const", ctx->const_table);
+    tactyk_dblock__put(ctx->symbol_tables, "fconst", ctx->fconst_table);
     tactyk_dblock__put(ctx->symbol_tables, "mem", ctx->memblock_table);
     tactyk_dblock__put(ctx->symbol_tables, "capi", ctx->c_api_table);
     tactyk_dblock__put(ctx->symbol_tables, "tapi", ctx->api_table);
@@ -365,6 +368,7 @@ bool tactyk_emit__Symbol(struct tactyk_emit__Context *ctx, struct tactyk_dblock_
     }
     return true;
 }
+
 
 bool tactyk_emit__ExecSelector(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     struct tactyk_dblock__DBlock *sub_data = data->child;
@@ -584,10 +588,10 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     uint64_t rand_val;
     ctx->rand(&rand_val, 8);
     uint64_t diff_val = (uint64_t)raw_val ^ rand_val;
-    bool is_qword = false;
+    //bool is_qword = false;
 
     if (raw_val < 0) {
-        is_qword = true;
+        //is_qword = true;
     }
     else if (raw_val <= 0xff) {
         rand_val &= 0xff;
@@ -602,32 +606,14 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
         diff_val &= 0xffffffff;
     }
     else {
-        is_qword = true;
+        //is_qword = true;
     }
 
-    if (is_qword) {
-        uint64_t rand_high = rand_val >> 32;
-        uint64_t rand_low = rand_val & 0xffffffff;
-        uint64_t diff_high = diff_val >> 32;
-        uint64_t diff_low = diff_val & 0xffffffff;
-
-        struct tactyk_dblock__DBlock *sc_rand_high = tactyk_dblock__from_int((int32_t)rand_high);
-        struct tactyk_dblock__DBlock *sc_diff_high = tactyk_dblock__from_int((int32_t)diff_high);
-        struct tactyk_dblock__DBlock *sc_rand_low = tactyk_dblock__from_int((int32_t)rand_low);
-        struct tactyk_dblock__DBlock *sc_diff_low = tactyk_dblock__from_int((int32_t)diff_low);
-        tactyk_dblock__put(ctx->local_vars, "$SC_RAND_HIGH", sc_rand_high);
-        tactyk_dblock__put(ctx->local_vars, "$SC_DIFF_HIGH", sc_diff_high);
-        tactyk_dblock__put(ctx->local_vars, "$SC_RAND_LOW", sc_rand_low);
-        tactyk_dblock__put(ctx->local_vars, "$SC_DIFF_LOW", sc_diff_low);
-        tactyk_dblock__put(ctx->local_vars, "$SC_DEST", sc_dest_register);
-    }
-    else {
-        struct tactyk_dblock__DBlock *sc_rand = tactyk_dblock__from_int((int32_t)rand_val);
-        struct tactyk_dblock__DBlock *sc_diff = tactyk_dblock__from_int((int32_t)diff_val);
-        tactyk_dblock__put(ctx->local_vars, "$SC_RAND", sc_rand);
-        tactyk_dblock__put(ctx->local_vars, "$SC_DIFF", sc_diff);
-        tactyk_dblock__put(ctx->local_vars, "$SC_DEST", sc_dest_register);
-    }
+    struct tactyk_dblock__DBlock *sc_rand = tactyk_dblock__from_uint(rand_val);
+    struct tactyk_dblock__DBlock *sc_diff = tactyk_dblock__from_uint(diff_val);
+    tactyk_dblock__put(ctx->local_vars, "$SC_RAND", sc_rand);
+    tactyk_dblock__put(ctx->local_vars, "$SC_DIFF", sc_diff);
+    tactyk_dblock__put(ctx->local_vars, "$SC_DEST", sc_dest_register);
 
     tactyk_dblock__delete(ctx->local_vars, "$SC");
     struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->subroutine_table, "scramble");

@@ -8,6 +8,7 @@ text footer
 
 extmem video
 const newline 10
+const sp 32
 const width 640
 const height 480
 
@@ -36,7 +37,19 @@ MAIN:
   assign b 0
   sub a 1
   stash a1b1
+
+  
+  vec-in float x10 2.0
+  vec-transfer x11 x10
+  vec-in itof x12 width
+  vec-div x10 x12
+  vec-in itof x12 height
+  vec-div x11 x12
+  vec-in float x12 1.0
+  vec-transfer x0 x11
+  ccall printfloat
   # goto MAINLOOP
+  goto CLOSE_AND_EXIT
 
 MAINLOOP:
   assign a 0
@@ -58,7 +71,10 @@ MAINLOOP:
   mul c b    
   add c a
   mul c 4
-      
+  
+  vec-in itof xa a
+  vec-in itof xb b
+
   # placeholder rendering function from hello_sdl.tkp
   assign e a
   mul e 256
@@ -78,6 +94,7 @@ WAIT_FOR_CLOSE_REQUEST:
   assign a 50
   ccall sleep
   assign a 0
+  tcall fb_update
   tcall fb_render
   tcall sdl_isclosing
   if a == 1 CLOSE_AND_EXIT
@@ -93,7 +110,6 @@ CLOSE_AND_EXIT:
   lwcall PRINTIT
 
   exit
-
 
 PRINTIT:
   assign c 0

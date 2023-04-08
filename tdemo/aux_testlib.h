@@ -15,6 +15,7 @@
 
 #include "tactyk_emit.h"
 #include "tactyk_asmvm.h"
+#include "tactyk_util.h"
 
 void aux_configure(struct tactyk_emit__Context *emit_context);
 
@@ -26,6 +27,7 @@ void aux__read_file(struct tactyk_asmvm__Context *asmvm_context);
 void aux__write_file(struct tactyk_asmvm__Context *asmvm_context);
 
 void aux__term_write_int(int64_t val);
+void aux__term_write_float(double val);
 void aux__term_write_char(int64_t val);
 void aux__term_int(int64_t val);
 void aux__term_char(int64_t val);

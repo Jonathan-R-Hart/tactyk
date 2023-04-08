@@ -141,6 +141,8 @@
     %define rE      r8
     %define rF      r9
 
+    %define xTEMPA xmm14
+    %define xTEMPB xmm15
 
     %define rPROG_8 %[rPROG]_8
     %define rPROG_16 %[rPROG]_16
