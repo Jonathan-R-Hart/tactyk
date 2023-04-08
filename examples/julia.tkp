@@ -1,0 +1,107 @@
+# Julia Fractal on some level
+
+text header
+  SDL framebuffer rendering demo
+
+text footer
+  Done.
+
+extmem video
+const newline 10
+const width 640
+const height 480
+
+struct globals
+  8 padding
+
+mem g globals 1
+
+MAIN:
+  bind addr4 video
+  bind addr2 g
+  bind addr1 header
+  assign b header_size
+  lwcall PRINTIT
+  
+  tcall sdl_init  
+  assign a 0
+  assign b 4
+  assign c width
+  assign d height
+  tcall fb_new
+  assign c a
+  # store budder width in stash
+  stash c1
+  assign a 0
+  assign b 0
+  sub a 1
+  stash a1b1
+  # goto MAINLOOP
+
+MAINLOOP:
+  assign a 0
+  tcall fb_render
+  
+  SELECT_NEXT_PIXEL:
+    unstash a1b1
+    add a 1
+    if a < width RENDER_PIXEL
+      add b 1
+      assign a 0
+      if b == height WAIT_FOR_CLOSE_REQUEST
+      
+  RENDER_PIXEL:
+  stash a1b1
+  
+  # pixel buffer position - ([stashed] buffer width * y + x) * 4
+  unstash c1
+  mul c b    
+  add c a
+  mul c 4
+      
+  # placeholder rendering function from hello_sdl.tkp
+  assign e a
+  mul e 256
+  div e width
+  
+  store byte addr4 c e
+  add c 1
+
+  assign e b
+  mul e 256
+  div e height
+  
+  store byte addr4 c e
+  goto SELECT_NEXT_PIXEL
+
+WAIT_FOR_CLOSE_REQUEST:
+  assign a 50
+  ccall sleep
+  assign a 0
+  tcall fb_render
+  tcall sdl_isclosing
+  if a == 1 CLOSE_AND_EXIT
+  goto WAIT_FOR_CLOSE_REQUEST
+  
+CLOSE_AND_EXIT:
+  assign a 0
+  tcall fb_release
+  tcall sdl_quit
+
+  bind addr1 footer
+  assign b footer_size
+  lwcall PRINTIT
+
+  exit
+
+
+PRINTIT:
+  assign c 0
+  PRINTIT_LOOP:
+  load byte a addr1 c
+  ccall printchar
+  add c 1
+  if c < b PRINTIT_LOOP
+  assign a newline
+  ccall printchar
+  lwreturn
