@@ -1446,6 +1446,11 @@ typespec xmmx
   pick F
 
 instruction vec-in
+  opt-operand
+    select-operand
+      case itof
+        pick I
+      case float
   operand
     type xmmx
     $DEST $VALUE
@@ -1457,10 +1462,14 @@ instruction vec-in
     $OFFSET $VALUE
     scramble rTEMPC $LD_OFFSET_IMMEDIATE
   select-template
+    
+    # load a floating point from a data register or transfer between xmm registers
     case FFN FDN
       code
         movq $DEST, $SOURCE
         jmp $NEXT_INSTRUCTION
+    
+    # load floating point value(s) from memory
     case FAI FAC
       code
         $LD_OFFSET_IMMEDIATE
@@ -1470,12 +1479,34 @@ instruction vec-in
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
         lfence
-        
         movq $DEST, [$SOURCE+rTEMPC]
-        
         jmp $NEXT_INSTRUCTION
+    
+    # load an integer value from a data register, convert it to a float
+    case IFDN
+      code
+        CVTSI2SD $DEST, $SOURCE
+        jmp $NEXT_INSTRUCTION
+    
+    # load floating point value(s) from memory
+    case FAI FAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        CVTSI2SD $DEST, [$SOURCE+rTEMPC]
+        jmp $NEXT_INSTRUCTION
+        
 
 instruction vec-out
+  opt-operand
+    select-operand
+      case ftoi
+        pick I
   operand
     type data address
     $DST $VALUE
@@ -1505,6 +1536,25 @@ instruction vec-out
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
+    case IDFN
+      code
+        CVTTSD2SI $DST, $B
+        jmp $NEXT_INSTRUCTION
+    case IAIF IACF
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        CVTTSD2SI rTEMPA, $SOURCE
+        mov [$DST+rTEMPC], rTEMPA
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+      
 
 instruction vec-add
   opt-operand
