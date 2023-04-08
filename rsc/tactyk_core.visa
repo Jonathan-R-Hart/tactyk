@@ -1413,37 +1413,37 @@ typespec vec-float-format
 
 typespec xmmx
   select-operand
-    case x0 xmm0
+    case x0 xmm0 xa
       value xmm0
-    case x1 xmm1
+    case x1 xmm1 xb
       value xmm1
-    case x2 xmm2
+    case x2 xmm2 xc
       value xmm2
-    case x3 xmm3
+    case x3 xmm3 xd
       value xmm3
-    case x4 xmm4
+    case x4 xmm4 xe
       value xmm4
-    case x5 xmm5
+    case x5 xmm5 xf
       value xmm5
-    case x6 xmm6
+    case x6 xmm6 xg
       value xmm6
-    case x7 xmm7
+    case x7 xmm7 xh
       value xmm7
-    case x8 xmm8
+    case x8 xmm8 xi
       value xmm8
-    case x9 xmm9
+    case x9 xmm9 xj
       value xmm9
-    case x10 xmm10
+    case x10 xmm10 xk
       value xmm10
-    case x11 xmm11
+    case x11 xmm11 xl
       value xmm11
-    case x12 xmm12
+    case x12 xmm12 xm
       value xmm12
-    case x13 xmm13
+    case x13 xmm13 xn
       value xmm13
-    case x14 xmm14
+    case x14 xmm14 xo
       value xmm14
-    case x15 xmm15
+    case x15 xmm15 xp
       value xmm15
   pick X
 
