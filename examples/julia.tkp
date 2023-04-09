@@ -38,18 +38,52 @@ MAIN:
   sub a 1
   stash a1b1
 
+  # setup floating point constants
+  # xk:  2.0/width
+  # xl:  1.0/height
+  # xj:  2.0
+  # xm:  1.0
+
+  assign xj 2
+  assign xk xj
+  assign xl xj
+  div xk width
+  div xl height
+  assign xm 1
+
+  # escape radius, radius**2
+  assign xn 2
+  assign xo xn
+  mul xo xo
   
-  vec-in float x10 2.0
-  vec-transfer x11 x10
-  vec-in itof x12 width
-  vec-div x10 x12
-  vec-in itof x12 height
-  vec-div x11 x12
-  vec-in float x12 1.0
-  vec-transfer x0 x11
+  assign a newline
+  ccall printchar
+  assign xa xk
   ccall printfloat
+  ccall printchar
+  assign xa xl
+  ccall printfloat
+  ccall printchar
+  assign xa xm
+  ccall printfloat
+  ccall printchar
+  mul xn xn
+  assign xa xn
+  ccall printfloat
+  ccall printchar
+  ccall printfloat
+  ccall printchar
+
+  exit
+
+  assign e 10000
+  assign xg e
+  
   # goto MAINLOOP
-  goto CLOSE_AND_EXIT
+
+  # const additive
+  assign xh 0.25
+  assign xi 0.125
 
 MAINLOOP:
   assign a 0
@@ -68,26 +102,70 @@ MAINLOOP:
   
   # pixel buffer position - ([stashed] buffer width * y + x) * 4
   unstash c1
-  mul c b    
+  mul c b
   add c a
   mul c 4
   
-  vec-in itof xa a
-  vec-in itof xb b
+  # normlaized coordinates (a,b -> range -1 to 1)
+  assign xa a
+  assign xb b
+  mul xa xk
+  mul xb xl
+  sub xa xm
+  sub xb xm
+  mul xa xn
+  mul xb xn
 
-  # placeholder rendering function from hello_sdl.tkp
-  assign e a
-  mul e 256
-  div e width
+  #assign a xg
+  
+  assign d 0
+  ITERATE:
+    
+    # iteration-limit test
+    if d == e EMIT_PIXEL
+    
+    # xa**2, xb**2
+    assign xc xa
+    assign xd xb
+    mul xc xc
+    mul xd xd
+
+    # xd = xa**2 + xb**2    
+    assign xe xc
+    add xe xd
+    
+    # escape test
+    if xd < xo EMIT_PIXEL
+    
+    # xd -> xa**2 - xb**2    
+    sub xc xd
+
+    # xb = 2 * xa * xb + xi
+    mul xb xj
+    mul xb xa
+    add xb xi
+    
+    # xa = previous[xa**2] - previous[xb**2] + xh
+    assign xa xc
+    add xa xh
+    
+    add d 1
+    
+    goto ITERATE
+
+  EMIT_PIXEL:
+  assign xf d
+  mul xf xg
+  div xf 256
+
+  assign e xf
   
   store byte addr4 c e
   add c 1
-
-  assign e b
-  mul e 256
-  div e height
-  
   store byte addr4 c e
+  add c 1
+  store byte addr4 c e
+  
   goto SELECT_NEXT_PIXEL
 
 WAIT_FOR_CLOSE_REQUEST:

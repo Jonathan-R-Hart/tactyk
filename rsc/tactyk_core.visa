@@ -1784,6 +1784,103 @@ instruction stash
     contains f3
       code
         mov gs:[microcontext.f3], rF
+    contains x1a
+      code
+        movq gs:[microcontext.x1a], xA
+    contains x1b
+      code
+        movq gs:[microcontext.x1b], xB
+    contains x1c
+      code
+        movq gs:[microcontext.x1c], xC
+    contains x1d
+      code
+        movq gs:[microcontext.x1d], xD
+    contains x1e
+      code
+        movq gs:[microcontext.x1e], xE
+    contains x1f
+      code
+        movq gs:[microcontext.x1f], xF
+    contains x1g
+      code
+        movq gs:[microcontext.x1g], xG
+    contains x1h
+      code
+        movq gs:[microcontext.x1h], xH
+    contains x1i
+      code
+        movq gs:[microcontext.x1i], xI
+    contains x1j
+      code
+        movq gs:[microcontext.x1j], xJ
+    contains x1k
+      code
+        movq gs:[microcontext.x1k], xK
+    contains x1l
+      code
+        movq gs:[microcontext.x1l], xL
+    contains x1m
+      code
+        movq gs:[microcontext.x1m], xM
+    contains x1n
+      code
+        movq gs:[microcontext.x1n], xN
+    contains x1o
+      code
+        movq gs:[microcontext.x1o], xO
+    #contains x1p
+    #  code
+    #    movq gs:[microcontext.x1p], xP
+    
+    contains x2a
+      code
+        movq gs:[microcontext.x2a], xA
+    contains x2b
+      code
+        movq gs:[microcontext.x2b], xB
+    contains x2c
+      code
+        movq gs:[microcontext.x2c], xC
+    contains x2d
+      code
+        movq gs:[microcontext.x2d], xD
+    contains x2e
+      code
+        movq gs:[microcontext.x2e], xE
+    contains x2f
+      code
+        movq gs:[microcontext.x2f], xF
+    contains x2g
+      code
+        movq gs:[microcontext.x2g], xG
+    contains x2h
+      code
+        movq gs:[microcontext.x2h], xH
+    contains x2i
+      code
+        movq gs:[microcontext.x2i], xI
+    contains x2j
+      code
+        movq gs:[microcontext.x2j], xJ
+    contains x2k
+      code
+        movq gs:[microcontext.x2k], xK
+    contains x2l
+      code
+        movq gs:[microcontext.x2l], xL
+    contains x2m
+      code
+        movq gs:[microcontext.x2m], xM
+    contains x2n
+      code
+        movq gs:[microcontext.x2n], xN
+    contains x2o
+      code
+        movq gs:[microcontext.x2o], xO
+    #contains x2p
+    #  code
+    #    movq gs:[microcontext.x2p], xP
   code
     jmp $NEXT_INSTRUCTION
 
@@ -1844,6 +1941,103 @@ instruction unstash
     contains f3
       code
         mov rF, gs:[microcontext.f3]
+    contains x1a
+      code
+        movq xA, gs:[microcontext.x1a]
+    contains x1b
+      code
+        movq xB, gs:[microcontext.x1b]
+    contains x1c
+      code
+        movq xC, gs:[microcontext.x1c]
+    contains x1d
+      code
+        movq xD, gs:[microcontext.x1d]
+    contains x1e
+      code
+        movq xE, gs:[microcontext.x1e]
+    contains x1f
+      code
+        movq xF, gs:[microcontext.x1f]
+    contains x1g
+      code
+        movq xG, gs:[microcontext.x1g]
+    contains x1h
+      code
+        movq xH, gs:[microcontext.x1h]
+    contains x1i
+      code
+        movq xI, gs:[microcontext.x1i]
+    contains x1j
+      code
+        movq xJ, gs:[microcontext.x1j]
+    contains x1k
+      code
+        movq xK, gs:[microcontext.x1k]
+    contains x1l
+      code
+        movq xL, gs:[microcontext.x1l]
+    contains x1m
+      code
+        movq xM, gs:[microcontext.x1m]
+    contains x1n
+      code
+        movq xN, gs:[microcontext.x1n]
+    contains x1o
+      code
+        movq xO, gs:[microcontext.x1o]
+    #contains x1p
+    #  code
+    #    movq xP, gs:[microcontext.x1p]
+    
+    contains x2a
+      code
+        movq xA, gs:[microcontext.x2a]
+    contains x2b
+      code
+        movq xB, gs:[microcontext.x2b]
+    contains x2c
+      code
+        movq xC, gs:[microcontext.x2c]
+    contains x2d
+      code
+        movq xD, gs:[microcontext.x2d]
+    contains x2e
+      code
+        movq xE, gs:[microcontext.x2e]
+    contains x2f
+      code
+        movq xF, gs:[microcontext.x2f]
+    contains x2g
+      code
+        movq xG, gs:[microcontext.x2g]
+    contains x2h
+      code
+        movq xH, gs:[microcontext.x2h]
+    contains x2i
+      code
+        movq xI, gs:[microcontext.x2i]
+    contains x2j
+      code
+        movq xJ, gs:[microcontext.x2j]
+    contains x2k
+      code
+        movq xK, gs:[microcontext.x2k]
+    contains x2l
+      code
+        movq xL, gs:[microcontext.x2l]
+    contains x2m
+      code
+        movq xM, gs:[microcontext.x2m]
+    contains x2n
+      code
+        movq xN, gs:[microcontext.x2n]
+    contains x2o
+      code
+        movq xO, gs:[microcontext.x2o]
+    #contains x2p
+    #  code
+    #    movq xP, gs:[microcontext.x2p]
   code
     jmp $NEXT_INSTRUCTION
 

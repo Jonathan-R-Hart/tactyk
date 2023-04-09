@@ -242,12 +242,6 @@
         qwords self,stash,prog,lwcsi,temp,addr1,addr2,addr3,addr4,mcsi,a,b,c,d,e,f
     endstruc
 
-    struc mctx
-        qwords a,b,c,d,e,f, lwcsi, mcsi
-        qwords addr3, addr3_base, addr3_par_a, addr3_par_b
-        qwords addr4, addr4_base, addr4_par_a, addr4_par_b
-        qwords f0_low, f0_high, f1_low, f1_high, f2_low, f2_high, f3_low, f3_high, f4_low, f4_high, f5_low, f5_high, f6_low, f6_high, f7_low, f7_high
-    endstruc
 
     struc controlstate
         .runtime_registers:     resq 16
@@ -272,9 +266,11 @@
         dwords addr3_element_bound, addr3_array_bound, addr3_memblock_index, addr3_type
         qwords addr4
         dwords addr4_element_bound, addr4_array_bound, addr4_memblock_index, addr4_type
+        qwords x1a, x1b, x1c, x1d, x1e, x1f, x1g, x1h, x1i, x1j, x1k, x1l, x1m, x1n, x1o, x1p
+        qwords x2a, x2b, x2c, x2d, x2e, x2f, x2g, x2h, x2i, x2j, x2k, x2l, x2m, x2n, x2o, x2p
     endstruc
     
-    %define microcontext_size_bits 8
+    %define microcontext_size_bits 9
     %define microcontext_stack_size 65536
     %define lwcall_stack_size 65536
 
@@ -525,3 +521,4 @@ run:
   mov rTEMPA, fs:[context.instruction_index]
   ; exception - In this one specific case, the temp register ca not be cleared before exiting an instruction.
   jmp [rPROG+rTEMPA*8]
+

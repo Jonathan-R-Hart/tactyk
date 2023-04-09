@@ -11,6 +11,12 @@ Fix immediate operand scrambling for qwords, then fix it again
 
 Add templates for conditional jumps using floating-point comparisons
 Add floating point templates to a few regular operators (add, sub, mul, div, assign)
+Add 2 banks of floating point values to the microcontext stash (shadowing the xmmx registers and doubling the stash size)
+Add options to the stash and unstash to handle floating point values
+
+NOTE:  It might be necessesary to control sharing of xmmx registers between tactyk and native contexts.
+       It at least doesn't *seem* like there would be much sensitive data getting placed on them, but there also doesn't seem to
+       be much mentioned about it in the unix64 calling convention (and I did have a function [with no return value] that has a printf in it wipe out xmm0).
 
 6 Apr 2023
 Implement lightweight calls
