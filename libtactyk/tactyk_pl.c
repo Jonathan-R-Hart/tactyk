@@ -369,9 +369,6 @@ bool tactyk_pl__mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock
 
     m_ll->base_address = m_hl->data;
 
-    for (uint64_t i = 0; i < (m_hl->num_entries * m_hl->definition->byte_stride); i += 1) {
-        m_hl->data[i] = i;
-    }
     return true;
 }
 
