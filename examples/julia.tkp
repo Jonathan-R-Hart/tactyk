@@ -67,14 +67,9 @@ MAIN:
   assign xa xm
   ccall printfloat
   ccall printchar
-  mul xn xn
   assign xa xn
   ccall printfloat
   ccall printchar
-  ccall printfloat
-  ccall printchar
-
-  exit
 
   assign e 10000
   assign xg e
@@ -106,7 +101,7 @@ MAINLOOP:
   add c a
   mul c 4
   
-  # normlaized coordinates (a,b -> range -1 to 1)
+  # normlized coordinates (a,b -> range -1 to 1)
   assign xa a
   assign xb b
   mul xa xk
@@ -115,8 +110,6 @@ MAINLOOP:
   sub xb xm
   mul xa xn
   mul xb xn
-
-  #assign a xg
   
   assign d 0
   ITERATE:
@@ -148,7 +141,7 @@ MAINLOOP:
     # xa = previous[xa**2] - previous[xb**2] + xh
     assign xa xc
     add xa xh
-    
+    ccall printfloat
     add d 1
     
     goto ITERATE
@@ -159,7 +152,12 @@ MAINLOOP:
   div xf 256
 
   assign e xf
-  
+    
+  assign a c
+  ccall printint
+  assign a newline
+  ccall printchar
+
   store byte addr4 c e
   add c 1
   store byte addr4 c e
@@ -170,6 +168,7 @@ MAINLOOP:
 
 WAIT_FOR_CLOSE_REQUEST:
   assign a 50
+  ccall printint
   ccall sleep
   assign a 0
   tcall fb_update

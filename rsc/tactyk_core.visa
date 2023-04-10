@@ -242,37 +242,6 @@ subroutine scramble
         # xor %[$SC_DEST]_32, $SC_RAND_LOW
         # xor %[$SC_DEST]_32, $SC_DIFF_LOW
 
-instruction break
-  $KW dword
-  scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
-  code
-    $LD_IPTR_IMMEDIATE
-    inc rTEMPA
-    mov fs:[context.instruction_index], rTEMPA
-    xor rTEMPA, rTEMPA
-    mov fs:[context.status], dword STATUS_BREAK
-    store_context
-    load_runtimecontext
-    ret
-
-instruction step
-  $KW dword
-  scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
-  code
-    mov rTEMPA, qword fs:[context.stepper]
-    cmp rTEMPA, 0
-    je .pass
-    mov fs:[context.status], dword STATUS_BREAK
-    $LD_IPTR_IMMEDIATE
-    inc rTEMPA
-    mov fs:[context.instruction_index], rTEMPA
-    xor rTEMPA, rTEMPA
-    store_context
-    load_runtimecontext
-    ret
-    .pass:
-    jmp $NEXT_INSTRUCTION
-
 instruction exit
   $KW dword
   scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX

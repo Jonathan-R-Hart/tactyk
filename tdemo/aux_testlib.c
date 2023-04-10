@@ -21,13 +21,16 @@
 #include "tactyk_util.h"
 
 void aux_configure(struct tactyk_emit__Context *emit_context) {
+    tactyk_emit__add_tactyk_apifunc(emit_context, "break", aux__break);
+    tactyk_emit__add_tactyk_apifunc(emit_context, "dump", aux__dump);
+
+    tactyk_emit__add_tactyk_apifunc(emit_context, "readfile", aux__read_file);
+
     tactyk_emit__add_c_apifunc(emit_context, "printchar", aux__term_write_char);
     tactyk_emit__add_c_apifunc(emit_context, "printint", aux__term_write_int);
     tactyk_emit__add_c_apifunc(emit_context, "printfloat", aux__term_write_float);
-    tactyk_emit__add_tactyk_apifunc(emit_context, "dump", aux__dump);
     tactyk_emit__add_c_apifunc(emit_context, "sleep", aux_sleep);
     tactyk_emit__add_c_apifunc(emit_context, "rand", aux_rand);
-    tactyk_emit__add_tactyk_apifunc(emit_context, "readfile", aux__read_file);
 
 }
 
@@ -42,6 +45,16 @@ void aux_sleep(uint64_t milliseconds) {
 
 void aux__dump(struct tactyk_asmvm__Context *asmvm_context) {
     tactyk_asmvm__print_context(asmvm_context);
+}
+
+void aux__break(struct tactyk_asmvm__Context *asmvm_context) {
+    tactyk_asmvm__print_context(asmvm_context);
+
+    char ch = getchar( );
+    if (ch == 'q') {
+        printf("Farewell!\n");
+        exit(0);
+    }
 }
 
 FILE* aux_open_file__from_ctxref(struct tactyk_asmvm__Context *asmvm_ctx, char *mode) {

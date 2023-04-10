@@ -75,53 +75,7 @@ void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_a
         //tactyk_asmvm__run(context);
     }
 }
-extern void tactyk_asmvm__invoke_debug(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname, tactyk_asmvm__debug_callback dbg_callback) {
-    //struct tactyk_asmvm__identifier *identifier = tactyk_table__get_strkey(prog->symbols.labeltbl, funcname);
-    struct tactyk_asmvm__identifier *identifier = tactyk_dblock__get(prog->functions, funcname);
-    int64_t iptr = identifier->value;
-    context->hl_program_ref = prog;
-    if (iptr < prog->length) {
-        context->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) prog->memory_layout_ll->data;
-        //context->memblocks = prog->memory_layout_ll;
-        context->memblock_count = TACTYK_ASMVM__MEMBLOCK_CAPACITY;
-        context->max_instruction_pointer = prog->length-1;
-        context->regbank_A.rPROG = prog->executable;
-        //context->bank_A.rPROG = prog->program_data;
-        //context->bank_A.rIMM = prog->immediates;
-        context->instruction_index = iptr;
-        //context->bank_A.rMAXIP = prog->length-1;
-        prog->run(context);
-        //tactyk_asmvm__run(context);
-        while (context->STATUS == TACTYK_ASMVM_STATUS_BREAK) {
-            dbg_callback(context);
-            printf( "Type somethign with 's' to toggle stepping.  Press ENTER proceed to next break point ...\n");
-            if (context->stepper == 0) {
-                printf("stepper:  OFF\n");
-            }
-            else {
-                printf("stepper:  ON\n");
-            }
-            char ch;
-            //prog->debug_func(context->bank_A.rIPTR, prog->debug_info);
-            do {
-                ch = getchar( );
-                if (ch == 's') {
-                    if (context->stepper == 0) {
-                        context->stepper = 1;
-                    }
-                    else {
-                        context->stepper = 0;
-                    }
-                }
-                //printf("%d\n", ch);
-            }
-            while (ch != 10);
-            prog->run(context);
-            //tactyk_asmvm__run(context);
-        }
-    }
 
-}
 /*
 void tactyk_asmvm__dispose_VM(struct tactyk_asmvm__VM *vm) {
     free(vm->contexts);
