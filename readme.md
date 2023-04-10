@@ -75,6 +75,8 @@ cd build
 
 cmake --build .
 
+./tdemo examples/julia.tkp
+
 ./tdemo examples/fib.tkp
 
 ./tdemo examples/lazy_quine.tkp

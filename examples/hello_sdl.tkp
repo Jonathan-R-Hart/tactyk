@@ -1,18 +1,30 @@
 # Basic framebuffer rendering example using an auxilliary SDL interface
 
 text header
-  SDL framebuffer rendering demo
+  TACTYK Example - Framebuffer rendering with SDL
 
 text footer
   Done.
 
-extmem video
 const newline 10
 const width 640
 const height 480
 
+struct sdl_state
+  8 mpos_x
+  8 mpos_y
+  8 key
+  1 closing
+  1 mousemoved
+  6 unused
+  8 padding
+
+extmem video
+mem s_state sdl_state 1
+
 MAIN:
   bind addr4 video
+  bind addr3 s_state
   bind addr1 header
   assign b 0
   
@@ -25,21 +37,20 @@ MAIN:
   assign a newline
   ccall printchar
 
-  assign a 0
-
   # obtain an SDL-backed framebuffer
   tcall sdl_init
 
-  assign b 4
+  assign a 4
+  assign b 3
   assign c width
   assign d height
   tcall fb_new
+  
   # result
   # a = buffer width
   # b = buffer height
 
   assign b a
-  assign a 0
   tcall fb_render
   
   # iterate each visible pixel in the frame buffer
@@ -77,16 +88,14 @@ MAIN:
   
       goto COL
   UPDATE_FB:
-  assign a 0
   tcall fb_update
   tcall fb_render
   
-  # wait 5 seconds
-  assign a 5000
+  # show it for 1.5 seconds, then exit.
+  assign a 1500
   ccall sleep  
   
   # close the SDL window and clean up
-  assign a 0
   tcall fb_release
   tcall sdl_quit
   

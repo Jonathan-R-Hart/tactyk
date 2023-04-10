@@ -1,12 +1,37 @@
-# Julia Fractal on some level
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#   Copyright 2023, Jonathan Hart
+#   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
+#   either version 3 of the License, or (at your option) any later version.
+#   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE. See the GNU General Public License for more details.
+#   You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 text header
-  SDL framebuffer rendering demo
+  TACTYK Example:  Julia Fractal
+  This one is interactive - mouse-over the window to change the fractal parameters.
+  The implementation is a bit sub-optimal.
+  A large performance improvement could be attained by using vectorized math
+  As of the time this was successfully tested, a few more instructions are/where needed for packing and unpacking.
+  With some more work, it could also use some techniques for bypassing large portions of the connected set instead of running max iterations every pixel
+  And there's probably a few places where the code could be cleaned up a bit.
+  Press 'q' or 'escape' to quit.  Or close the window.  It all suppsedly works.
 
 text footer
   Done.
 
+struct sdl_state
+  8 mpos_x
+  8 mpos_y
+  8 key
+  1 closing
+  1 mousemoved
+  6 unused
+  8 padding
+
 extmem video
+mem s_state sdl_state 1
+
 const newline 10
 const sp 32
 const width 640
@@ -19,14 +44,15 @@ mem g globals 1
 
 MAIN:
   bind addr4 video
+  bind addr3 s_state
   bind addr2 g
   bind addr1 header
   assign b header_size
   lwcall PRINTIT
-
-  tcall sdl_init  
-  assign a 0
-  assign b 4
+  
+  tcall sdl_init 
+  assign a 4
+  assign b 3
   assign c width
   assign d height
   tcall fb_new
@@ -49,34 +75,57 @@ MAIN:
   assign xl xj
   div xk width
   div xl height
-  assign xm 1
-
-  tcall dump-ctx
-  tcall break
-
+  
   # escape radius, radius**2
   assign xn 2
-  assign xo xn
-  mul xo xo
+  assign xm xn
+  mul xm xm
   
-  assign e 10000
+  assign e 128
   assign xg e
   
-  # goto MAINLOOP
-
   # const additive
-  assign xh 0.25
-  assign xi 0.125
-
-  tcall dump-ctx
-  tcall break
-
+  assign xh 0.405
+  assign xi 0.135
+  
   assign xa xj
 
-  exit
-MAINLOOP:
-  assign a 0
+goto RENDER_FRAC
+DISPLAY_IT:  
+  tcall fb_update
   tcall fb_render
+  goto MAINLOOP
+DELAY_AND_RETRY:
+  assign a 10
+  ccall sleep
+MAINLOOP:
+  tcall sdl_update_state
+  load qword a addr3 sdl_state.key
+  if a == 20 CLOSE_AND_EXIT
+  if a == 41 CLOSE_AND_EXIT
+  load qword a addr3 sdl_state.mousemoved
+  if a == 0 DELAY_AND_RETRY
+  load qword b addr3 sdl_state.mpos_x
+  load qword c addr3 sdl_state.mpos_y
+  load byte a addr3 sdl_state.closing
+  if a == 1 CLOSE_AND_EXIT
+  assign xh b
+  assign xi c
+  div xh width
+  mul xh 2
+  sub xh 1
+  div xi height
+  mul xi 2
+  sub xi 1
+  
+  tcall fb_update
+  tcall fb_render
+  add xh 0.02
+  assign a 0
+  assign b 0
+  sub a 1
+  stash a1b1
+RENDER_FRAC:
   
   SELECT_NEXT_PIXEL:
     unstash a1b1
@@ -84,8 +133,8 @@ MAINLOOP:
     if a < width RENDER_PIXEL
       add b 1
       assign a 0
-      if b == height WAIT_FOR_CLOSE_REQUEST
-      
+      if b == height DISPLAY_IT
+  
   RENDER_PIXEL:
   stash a1b1
   
@@ -100,16 +149,13 @@ MAINLOOP:
   assign xb b
   mul xa xk
   mul xb xl
-  sub xa xm
-  sub xb xm
-  mul xa xn
-  mul xb xn
+  sub xa 1
+  sub xb 1
+  # mul xa xn
+  # mul xb xn
   
   assign d 0
   ITERATE:
-    
-    tcall dump-ctx
-    tcall break
 
     # iteration-limit test
     if d == e EMIT_PIXEL
@@ -125,7 +171,7 @@ MAINLOOP:
     add xe xd
     
     # escape test
-    if xd < xo EMIT_PIXEL
+    if xe >= xm EMIT_PIXEL
     
     # xd -> xa**2 - xb**2    
     sub xc xd
@@ -145,31 +191,19 @@ MAINLOOP:
   EMIT_PIXEL:
   assign xf d
   mul xf xg
-  div xf 256
+  div xf 16
 
-  assign e xf
+  assign f xf
 
-  store byte addr4 c e
+  store byte addr4 c f
   add c 1
-  store byte addr4 c e
+  store byte addr4 c f
   add c 1
-  store byte addr4 c e
+  store byte addr4 c f
   
   goto SELECT_NEXT_PIXEL
-
-WAIT_FOR_CLOSE_REQUEST:
-  assign a 50
-  ccall printint
-  ccall sleep
-  assign a 0
-  tcall fb_update
-  tcall fb_render
-  tcall sdl_isclosing
-  if a == 1 CLOSE_AND_EXIT
-  goto WAIT_FOR_CLOSE_REQUEST
   
 CLOSE_AND_EXIT:
-  assign a 0
   tcall fb_release
   tcall sdl_quit
 

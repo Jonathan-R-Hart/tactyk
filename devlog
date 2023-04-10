@@ -1,10 +1,14 @@
 10 Apr 2023
+Completed the Julia Fractal example.  It in real-time at 128 max iterations.
+
 Add all xmm registers to context management.  This will increase context switch overhead, but is needed calling into functions which
 operate directly on tactyk contexts, to avoid potential data leakage to untrusted code, and [eventually] will also be needed for automated testing.
 Add full 128-bit xmm register storage to stash and unstash command.
   (the 128-bit storage competes with 64-bit storage - a stashed 128-bit register uses both 64-bit slots)
 
 New debug system (simpler, calls into a debug C function instead of relying on a specialized debug invoker)
+Reworked register allocation to undermine unexpected memory copy operations (movsb).
+Also updated the internal representation of registers.
 
 Pending feature:  managed function calls
 ccall operation is to be redesigned to prevent undeclared parameters from being passed or received (mostly, this means a function signatures will be needed to configure tactyk-emit, and any unused parameter slots will be zeroed out by the generated code).

@@ -1122,7 +1122,6 @@ instruction mul
         $LD_B_IMMEDIATE
         cvtsi2sd xTEMPA, rTEMPC
         mulsd $A, xTEMPA
-        mov rE, rTEMPC
         xor rTEMPC, rTEMPC
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
