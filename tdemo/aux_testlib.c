@@ -21,8 +21,6 @@
 #include "tactyk_util.h"
 
 void aux_configure(struct tactyk_emit__Context *emit_context) {
-    tactyk_emit__add_tactyk_apifunc(emit_context, "break", aux__break);
-    tactyk_emit__add_tactyk_apifunc(emit_context, "dump", aux__dump);
 
     tactyk_emit__add_tactyk_apifunc(emit_context, "readfile", aux__read_file);
 
@@ -41,20 +39,6 @@ uint64_t aux_rand() {
 
 void aux_sleep(uint64_t milliseconds) {
     usleep(milliseconds*1000);
-}
-
-void aux__dump(struct tactyk_asmvm__Context *asmvm_context) {
-    tactyk_asmvm__print_context(asmvm_context);
-}
-
-void aux__break(struct tactyk_asmvm__Context *asmvm_context) {
-    tactyk_asmvm__print_context(asmvm_context);
-
-    char ch = getchar( );
-    if (ch == 'q') {
-        printf("Farewell!\n");
-        exit(0);
-    }
 }
 
 FILE* aux_open_file__from_ctxref(struct tactyk_asmvm__Context *asmvm_ctx, char *mode) {

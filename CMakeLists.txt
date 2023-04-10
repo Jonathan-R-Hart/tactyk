@@ -12,6 +12,7 @@ add_library(tactyk
   libtactyk/tactyk_assembler.c
   libtactyk/tactyk_emit.c
   libtactyk/tactyk_visa.c
+  libtactyk/tactyk_debug.c
 )
 
 add_executable(tdemo

@@ -1,6 +1,8 @@
 #include <stdint.h>
 
 #include "ftest.h"
+
+#include "tactyk_debug.h"
 #include "tactyk_pl.h"
 #include "tactyk_asmvm.h"
 #include "tactyk_emit.h"
@@ -94,7 +96,7 @@ void run_float_test(struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__C
     idata[7] = 5432;
     */
     tactyk_asmvm__invoke(ctx, prg, "MAIN");
-    tactyk_asmvm__print_context(ctx);
+    tactyk_debug__print_context(ctx);
 
     printf("AS-INT:\n");
     for (int64_t i = 0; i < 8; i++) {

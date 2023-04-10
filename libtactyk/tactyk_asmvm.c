@@ -84,38 +84,6 @@ void tactyk_asmvm__dispose_VM(struct tactyk_asmvm__VM *vm) {
 }
 */
 
-
-void tactyk_asmvm__print_context(struct tactyk_asmvm__Context *context) {
-    printf("Status:     %lu\n", context->STATUS);
-    printf("I-index:    %lu\n", context->instruction_index);
-    printf("StashPTR:   %lu\n", (uint64_t)context->microcontext_stack);
-    printf("ProgPTR:    %lu\n", (uint64_t)context->regbank_A.rPROG);
-    printf("LWCSI:      %lu\n", context->regbank_A.rLWCSI);
-    printf("MCSI:       %ld\n", context->regbank_A.rMCSI);
-    printf("TEMP:       %ld\n", context->regbank_A.rTEMP);
-    printf("Addr1PTR:   %lu\n", (uint64_t)context->regbank_A.rADDR1);
-    printf("a1bounds:   %lu, %lu\n", (uint64_t)context->active_memblocks[0].element_bound, (uint64_t)context->active_memblocks[0].array_bound);
-    printf("Addr2PTR:   %lu\n", (uint64_t)context->regbank_A.rADDR2);
-    printf("a2bounds:   %lu, %lu\n", (uint64_t)context->active_memblocks[1].element_bound, (uint64_t)context->active_memblocks[1].array_bound);
-    printf("Addr3PTR:   %lu\n", (uint64_t)context->regbank_A.rADDR3);
-    printf("a3bounds:   %lu, %lu\n", (uint64_t)context->active_memblocks[2].element_bound, (uint64_t)context->active_memblocks[2].array_bound);
-    printf("Addr4PTR:   %lu\n", (uint64_t)context->regbank_A.rADDR4);
-    printf("a4bounds:   %lu, %lu\n", (uint64_t)context->active_memblocks[3].element_bound, (uint64_t)context->active_memblocks[3].array_bound);
-    printf("rA:         %ld\n", context->regbank_A.rA);
-    printf("rB:         %ld\n", context->regbank_A.rB);
-    printf("rC:         %ld\n", context->regbank_A.rC);
-    printf("rD:         %ld\n", context->regbank_A.rD);
-    printf("rE:         %ld\n", context->regbank_A.rE);
-    printf("rF:         %ld\n", context->regbank_A.rF);
-}
-
-void tactyk_asmvm__print_diagnostic_data(struct tactyk_asmvm__Context *context, int64_t amount) {
-    printf("diagnistic data: \n");
-    for (int64_t i = 0; i < amount; i++) {
-        printf("%ld:\t%ld\n", i, context->diagnostic_data[i]);
-    }
-}
-
 void tactyk_asmvm__get_mblock(struct tactyk_asmvm__Context *asmvm_context, void* name, struct tactyk_asmvm__memblock_highlevel **m_hl, struct tactyk_asmvm__memblock_lowlevel **m_ll) {
     struct tactyk_asmvm__memblock_lowlevel *mem_ll = NULL;
     struct tactyk_asmvm__memblock_highlevel *mem_hl = tactyk_dblock__get(asmvm_context->hl_program_ref->memory_layout_hl, name);

@@ -28,7 +28,7 @@
 #include "tactyk_emit.h"
 #include "tactyk_pl.h"
 #include "tactyk_visa.h"
-
+#include "tactyk_debug.h"
 #include "tactyk_dblock.h"
 
 #include "tactyk.h"
@@ -140,15 +140,16 @@ int main() {
     struct tactyk_asmvm__VM *vm = tactyk_asmvm__new_vm();
     struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
 
+    tactyk_debug__configure_api(emitctx);
     aux_configure(emitctx);
     aux_sdl__configure(emitctx);
 
-    //run_float_test(emitctx, ctx);
+    run_float_test(emitctx, ctx);
 
     //run_fib_test(emitctx, 10000000000, ctx);
     //run_fib_test(emitctx, 2000000, ctx);
     //run_qsort_tests(emitctx, 10000000, 1, ctx);
-    run_qsort_tests(emitctx, 10, 1, ctx);
+    //.run_qsort_tests(emitctx, 10, 1, ctx);
 
     //tactyk_visa_new__init("tactyk_core.visa");
 
@@ -205,6 +206,7 @@ int main(int argc, char *argv[], char *envp[]) {
     struct tactyk_asmvm__VM *vm = tactyk_asmvm__new_vm();
     struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
 
+    tactyk_debug__configure_api(emitctx);
     aux_configure(emitctx);
     aux_sdl__configure(emitctx);
 

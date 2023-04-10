@@ -7,6 +7,7 @@
 //  You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+#include "tactyk_debug.h"
 
 #include "qstest.h"
 
@@ -150,11 +151,6 @@ char* tactyk_qsort_program = R"""(
 
 
 struct tactyk_asmvm__Program *qsprogram;
-void doprintit(struct tactyk_asmvm__Context *ctx) {
-
-    qsprogram->debug_func(ctx->instruction_index, NULL);
-    tactyk_asmvm__print_context(ctx);
-}
 
 void run_qsort_tests(struct tactyk_emit__Context *emitctx, int64_t len, int64_t seed, struct tactyk_asmvm__Context *ctx) {
 
@@ -247,7 +243,6 @@ void run_qsort_tests(struct tactyk_emit__Context *emitctx, int64_t len, int64_t 
     c1 = ctx->diagnostic_data[0];
 
 
-    //tactyk_asmvm__invoke_debug(ctx, program, "MAIN", doprintit);
     tactyk_asmvm__invoke(ctx, program, "MAIN");
 
     tactyk_asmvm__invoke(ctx, program, "DIAG");
@@ -259,7 +254,7 @@ void run_qsort_tests(struct tactyk_emit__Context *emitctx, int64_t len, int64_t 
     checkit((int64_t*)dblk->data, len);
     printf("cycle count: %lu\n\n\n", c2-c1);
 
-    tactyk_asmvm__print_context(ctx);
+    tactyk_debug__print_context(ctx);
 
 
 
