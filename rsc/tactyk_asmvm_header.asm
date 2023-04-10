@@ -119,25 +119,22 @@
     %define r15_32 r15d
     %define r15_64 r15
 
-    ; register allocation.  For now, these have been selected to align with UNIX calls.
-    ; But it might be better to deliberately misalign it with UNIX calls (placing only constants and values not under script control
-    ; on registers used to pass parameters), so as to further impair Return-oriented-programming (it already sidelines the call stack
-    ; and places small values on the rsp and rbp registers so as to try to cause any unintended stack manipulation to trigger a segfault)
 
-    %define rPROG   r12
-    %define rLWCSI  rbp
+
+    %define rPROG   rdi
     %define rMCSI   rsp
+    %define rLWCSI  rbp
     %define rTEMPA  rax
     %define rTEMPC  rcx
     %define rTEMPD  rdx
-    %define rADDR1  r14
-    %define rADDR2  r15
-    %define rADDR3  rbx
-    %define rADDR4  r10
-    %define rA      rdi
-    %define rB      rsi
-    %define rC      r11
-    %define rD      r13
+    %define rADDR1  r10
+    %define rADDR2  r11
+    %define rADDR3  rsi
+    %define rADDR4  rbx
+    %define rA      r12
+    %define rB      r13
+    %define rC      r14
+    %define rD      r15
     %define rE      r8
     %define rF      r9
 
@@ -238,17 +235,17 @@
         %endrep %1
     %endmacro
 
-    %macro twords 1-*
+    %macro owords 1-*
         %rep %0
-            .%[%1]: rest 1
+            .%[%1]: reso 1
             %rotate 1
         %endrep %1
     %endmacro
 
 
     struc regbank
-        qwords self,stash,prog,lwcsi,temp,addr1,addr2,addr3,addr4,mcsi,a,b,c,d,e,f
-        twords xa,xb,xc,xd, xe,xf,xg,xh, xi,xj,xk,xl, xm,xn,xo,xp
+        qwords prog,mcsi,lwcsi,tempa,tempc,tempd,addr1,addr2,addr3,addr4,a,b,c,d,e,f
+        owords xa,xb,xc,xd, xe,xf,xg,xh, xi,xj,xk,xl, xm,xn,xo,xp
     endstruc
 
 
@@ -346,22 +343,23 @@
         mov [rTEMPA + controlstate.runtime_registers + 56], r12
         mov [rTEMPA + controlstate.runtime_registers + 64], r13
         
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+0   ], xmm0
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+8   ], xmm1
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+16  ], xmm2
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+32  ], xmm3
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+40  ], xmm4
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+48  ], xmm5
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+56  ], xmm6
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+64  ], xmm7
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+72  ], xmm8
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+80  ], xmm9
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+88  ], xmm10
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+96  ], xmm11
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+104 ], xmm12
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+112 ], xmm13
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+120 ], xmm14
-        movdqu [rTEMPA + controlstate.runtime_registers + 128+128 ], xmm15
+        ; supposedly not needed:
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+0   ], xmm0
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+8   ], xmm1
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+16  ], xmm2
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+32  ], xmm3
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+40  ], xmm4
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+48  ], xmm5
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+56  ], xmm6
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+64  ], xmm7
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+72  ], xmm8
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+80  ], xmm9
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+88  ], xmm10
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+96  ], xmm11
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+104 ], xmm12
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+112 ], xmm13
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+120 ], xmm14
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+128 ], xmm15
     %endmacro
 
     %macro load_runtimecontext 0
@@ -378,22 +376,23 @@
         mov r14, [rTEMPA + controlstate.runtime_registers + 40]
         mov r15, [rTEMPA + controlstate.runtime_registers + 48]
 
-        movdqu xmm0,  [rTEMPA + controlstate.runtime_registers + 128+0   ]
-        movdqu xmm1,  [rTEMPA + controlstate.runtime_registers + 128+8   ]
-        movdqu xmm2,  [rTEMPA + controlstate.runtime_registers + 128+16  ]
-        movdqu xmm3,  [rTEMPA + controlstate.runtime_registers + 128+32  ]
-        movdqu xmm4,  [rTEMPA + controlstate.runtime_registers + 128+40  ]
-        movdqu xmm5,  [rTEMPA + controlstate.runtime_registers + 128+48  ]
-        movdqu xmm6,  [rTEMPA + controlstate.runtime_registers + 128+56  ]
-        movdqu xmm7,  [rTEMPA + controlstate.runtime_registers + 128+64  ]
-        movdqu xmm8,  [rTEMPA + controlstate.runtime_registers + 128+72  ]
-        movdqu xmm9,  [rTEMPA + controlstate.runtime_registers + 128+80  ]
-        movdqu xmm10, [rTEMPA + controlstate.runtime_registers + 128+88  ]
-        movdqu xmm11, [rTEMPA + controlstate.runtime_registers + 128+96  ]
-        movdqu xmm12, [rTEMPA + controlstate.runtime_registers + 128+104 ]
-        movdqu xmm13, [rTEMPA + controlstate.runtime_registers + 128+112 ]
-        movdqu xmm14, [rTEMPA + controlstate.runtime_registers + 128+120 ]
-        movdqu xmm15, [rTEMPA + controlstate.runtime_registers + 128+128 ]
+        ; supposedly not needed:
+        ;movdqu xmm0,  [rTEMPA + controlstate.runtime_registers + 128+0   ]
+        ;movdqu xmm1,  [rTEMPA + controlstate.runtime_registers + 128+8   ]
+        ;movdqu xmm2,  [rTEMPA + controlstate.runtime_registers + 128+16  ]
+        ;movdqu xmm3,  [rTEMPA + controlstate.runtime_registers + 128+32  ]
+        ;movdqu xmm4,  [rTEMPA + controlstate.runtime_registers + 128+40  ]
+        ;movdqu xmm5,  [rTEMPA + controlstate.runtime_registers + 128+48  ]
+        ;movdqu xmm6,  [rTEMPA + controlstate.runtime_registers + 128+56  ]
+        ;movdqu xmm7,  [rTEMPA + controlstate.runtime_registers + 128+64  ]
+        ;movdqu xmm8,  [rTEMPA + controlstate.runtime_registers + 128+72  ]
+        ;movdqu xmm9,  [rTEMPA + controlstate.runtime_registers + 128+80  ]
+        ;movdqu xmm10, [rTEMPA + controlstate.runtime_registers + 128+88  ]
+        ;movdqu xmm11, [rTEMPA + controlstate.runtime_registers + 128+96  ]
+        ;movdqu xmm12, [rTEMPA + controlstate.runtime_registers + 128+104 ]
+        ;movdqu xmm13, [rTEMPA + controlstate.runtime_registers + 128+112 ]
+        ;movdqu xmm14, [rTEMPA + controlstate.runtime_registers + 128+120 ]
+        ;movdqu xmm15, [rTEMPA + controlstate.runtime_registers + 128+128 ]
     %endmacro
 
     %macro load_context 0

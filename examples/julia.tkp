@@ -23,7 +23,7 @@ MAIN:
   bind addr1 header
   assign b header_size
   lwcall PRINTIT
-  
+
   tcall sdl_init  
   assign a 0
   assign b 4
@@ -51,26 +51,14 @@ MAIN:
   div xl height
   assign xm 1
 
+  tcall dump-ctx
+  tcall break
+
   # escape radius, radius**2
   assign xn 2
   assign xo xn
   mul xo xo
   
-  assign a newline
-  ccall printchar
-  assign xa xk
-  ccall printfloat
-  ccall printchar
-  assign xa xl
-  ccall printfloat
-  ccall printchar
-  assign xa xm
-  ccall printfloat
-  ccall printchar
-  assign xa xn
-  ccall printfloat
-  ccall printchar
-
   assign e 10000
   assign xg e
   
@@ -80,6 +68,12 @@ MAIN:
   assign xh 0.25
   assign xi 0.125
 
+  tcall dump-ctx
+  tcall break
+
+  assign xa xj
+
+  exit
 MAINLOOP:
   assign a 0
   tcall fb_render
@@ -114,6 +108,9 @@ MAINLOOP:
   assign d 0
   ITERATE:
     
+    tcall dump-ctx
+    tcall break
+
     # iteration-limit test
     if d == e EMIT_PIXEL
     
@@ -141,7 +138,6 @@ MAINLOOP:
     # xa = previous[xa**2] - previous[xb**2] + xh
     assign xa xc
     add xa xh
-    ccall printfloat
     add d 1
     
     goto ITERATE
@@ -152,11 +148,6 @@ MAINLOOP:
   div xf 256
 
   assign e xf
-    
-  assign a c
-  ccall printint
-  assign a newline
-  ccall printchar
 
   store byte addr4 c e
   add c 1

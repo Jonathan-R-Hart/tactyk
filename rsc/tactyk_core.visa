@@ -1281,34 +1281,33 @@ instruction tcall
     type tapi
     $A $VALUE
   code
-    store_context
+    store_context    
     
     ; align the data registers with the unix call
-    ;rA, rB are aligned
-    mov rTEMPD, rC
-    mov rTEMPC, rD
+    rdfsbase rdi
+    mov rsi, rB
+    mov rdx, rC
+    mov rcx, rD
     ;rE, rF are aligned
-    
-    rdfsbase rA
+
     rdfsbase r14
     rdgsbase r15
     
-    mov rTEMPA, fs:[context.controlstate]
-    mov r12, [rTEMPA + controlstate.runtime_registers + 56]
-    mov r13, [rTEMPA + controlstate.runtime_registers + 64]
+    mov rax, fs:[context.controlstate]
+    mov r12, [rax + controlstate.runtime_registers + 56]
+    mov r13, [rax + controlstate.runtime_registers + 64]
     wrfsbase r12
     wrgsbase r13
-    mov rbx, [rTEMPA + controlstate.runtime_registers + 0]
-    mov rbp, [rTEMPA + controlstate.runtime_registers + 8]
-    mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
-    mov r12, [rTEMPA + controlstate.runtime_registers + 24]
-    mov r13, [rTEMPA + controlstate.runtime_registers + 32]
-    ;mov r14, [rTEMPA + controlstate.runtime_registers + 40]
-    ;mov r15, [rTEMPA + controlstate.runtime_registers + 48]
+    mov rbx, [rax + controlstate.runtime_registers + 0]
+    mov rbp, [rax + controlstate.runtime_registers + 8]
+    mov rsp, [rax + controlstate.runtime_registers + 16]
+    mov r12, [rax + controlstate.runtime_registers + 24]
+    mov r13, [rax + controlstate.runtime_registers + 32]
     
-    ;mov rbp, fs:[controlstate.runtime_registers + 8]
-    ;mov rsp, fs:[controlstate.runtime_registers + 16]
-
+    xor rax, rax
+    xor r10, r10
+    xor r11, r11
+    
     push rbp
     mov r10, $A
     call r10
@@ -1339,10 +1338,11 @@ instruction ccall
         store_context
         
         ; align the data registers with the unix call
-        ;rA, rB are aligned
+        mov rdi, rA
+        mov rsi, rB
         mov rdx, rC
         mov rcx, rD
-        ;rE, rF are aligned
+        ;rE, rF are already aligned
         
         rdfsbase r14
         rdgsbase r15
@@ -1357,11 +1357,6 @@ instruction ccall
         mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
         mov r12, [rTEMPA + controlstate.runtime_registers + 24]
         mov r13, [rTEMPA + controlstate.runtime_registers + 32]
-        ;mov r14, [rTEMPA + controlstate.runtime_registers + 40]
-        ;mov r15, [rTEMPA + controlstate.runtime_registers + 48]
-        
-        ;mov rbp, fs:[controlstate.runtime_registers + 8]
-        ;mov rsp, fs:[controlstate.runtime_registers + 16]
         
         push rbp
         mov r10, $A
@@ -1383,10 +1378,11 @@ instruction ccall
         store_context
         
         ; align the data registers with the unix call
-        ;rA, rB are aligned
-        mov rTEMPD, rC
-        mov rTEMPC, rD
-        ;rE, rF are aligned
+        mov rdi, rA
+        mov rsi, rB
+        mov rdx, rC
+        mov rcx, rD
+        ;rE, rF are already aligned
         
         rdfsbase r14
         rdgsbase r15
@@ -1401,11 +1397,6 @@ instruction ccall
         mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
         mov r12, [rTEMPA + controlstate.runtime_registers + 24]
         mov r13, [rTEMPA + controlstate.runtime_registers + 32]
-        ;mov r14, [rTEMPA + controlstate.runtime_registers + 40]
-        ;mov r15, [rTEMPA + controlstate.runtime_registers + 48]
-        
-        ;mov rbp, fs:[controlstate.runtime_registers + 8]
-        ;mov rsp, fs:[controlstate.runtime_registers + 16]
         
         push rbp
         mov r10, $B

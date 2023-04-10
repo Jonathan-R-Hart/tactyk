@@ -56,18 +56,16 @@ union tactyk_asmvm__reg128 {
 };
 
 struct tactyk_asmvm__register_bank {
-    uint64_t rFLAGS;                            // register bank position 0 technically is for the VM context pointer, but is never read by the VM, so the slot is
-    //union tactyk_asmvm__immediate_properties *rIMM;
-    uint64_t* rSTASH;
     tactyk_asmvm__op *rPROG;
-    uint64_t rLWCSI;             // no longer for holding instruction pointers (everything but the initial call into tactyk is now a direct jump).
-                                // To be renamed after deciding what to do with fastcalls.
-    uint64_t rTEMP;
+    uint64_t rLWCSI;
+    uint64_t rMCSI;
+    uint64_t rTEMPA;
+    uint64_t rTEMPC;
+    uint64_t rTEMPD;
     uint64_t *rADDR1;
     uint64_t *rADDR2;
     uint64_t *rADDR3;
     uint64_t *rADDR4;
-    uint64_t rMCSI;
     uint64_t rA;
     uint64_t rB;
     uint64_t rC;

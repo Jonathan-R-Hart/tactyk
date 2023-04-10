@@ -420,10 +420,10 @@ bool tactyk_emit__SelectOp(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
 }
 bool tactyk_emit__SelectTemplate(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     ctx->select_token = ctx->code_template;
-    #ifdef DEBUG
+    #ifdef TACTYK_DEBUG
     printf("SELECT-TEMPLATE:  ");
     tactyk_dblock__println(ctx->select_token);
-    #endif // DEBUG
+    #endif // TACTYK_DEBUG
     return tactyk_emit__ExecSelector(ctx, data);
 }
 
@@ -726,14 +726,14 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
 
         sub->func(ctx, sub->vopcfg);
 
-        #ifdef DEBUG
+        #ifdef TACTYK_DEBUG
         {
             printf("COMMAND: ");
             tactyk_dblock__println(cmd->name);
             tactyk_dblock__println(cmd->asm_code);
             printf("---\n");
         }
-        #endif // DEBUG
+        #endif // TACTYK_DEBUG
     }
 
     uint64_t program_size = ctx->script_commands->element_count;
