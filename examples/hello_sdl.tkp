@@ -1,6 +1,5 @@
 # Basic framebuffer rendering example using an auxilliary SDL interface
 
-
 text header
   SDL framebuffer rendering demo
 
@@ -60,7 +59,7 @@ MAIN:
       mul d b
       add d e
       mul d 4
-      
+
       # horizontal red gradient
       assign a e
       mul a 256

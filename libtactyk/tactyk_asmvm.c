@@ -16,7 +16,6 @@ struct tactyk_asmvm__VM* tactyk_asmvm__new_vm() {
     return vm;
 }
 
-
 struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM *vm) {
     struct tactyk_asmvm__Context *ctx = calloc(1, sizeof(struct tactyk_asmvm__Context));
     ctx->microcontext_stack = calloc(64*65536, sizeof(uint64_t));

@@ -1,3 +1,13 @@
+10 Apr 2023
+Add all xmm registers to context management.  This will increase context switch overhead, but is needed calling into functions which
+operate directly on tactyk contexts, to avoid potential data leakage to untrusted code, and [eventually] will also be needed for automated testing.
+Add full 128-bit xmm register storage to stash and unstash command.
+  (the 128-bit storage competes with 64-bit storage - a stashed 128-bit register uses both 64-bit slots)
+
+Pending feature:  managed function calls
+ccall operation is to be redesigned to prevent undeclared parameters from being passed or received (mostly, this means a function signatures will be needed to configure tactyk-emit, and any unused parameter slots will be zeroed out by the generated code).
+  - It might also be worth considering adding ADA-like range restrictions on parameters passed to C functions
+
 6-8 Apr 2023
 Begin work on an SIMD handling
 Add basic floating point operations (using SSE2)
@@ -13,10 +23,6 @@ Add templates for conditional jumps using floating-point comparisons
 Add floating point templates to a few regular operators (add, sub, mul, div, assign)
 Add 2 banks of floating point values to the microcontext stash (shadowing the xmmx registers and doubling the stash size)
 Add options to the stash and unstash to handle floating point values
-
-NOTE:  It might be necessesary to control sharing of xmmx registers between tactyk and native contexts.
-       It at least doesn't *seem* like there would be much sensitive data getting placed on them, but there also doesn't seem to
-       be much mentioned about it in the unix64 calling convention (and I did have a function [with no return value] that has a printf in it wipe out xmm0).
 
 6 Apr 2023
 Implement lightweight calls

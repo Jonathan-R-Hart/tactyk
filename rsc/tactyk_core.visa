@@ -1371,8 +1371,8 @@ instruction ccall
         
         ; align the data registers with the unix call
         ;rA, rB are aligned
-        mov rTEMPD, rC
-        mov rTEMPC, rD
+        mov rdx, rC
+        mov rcx, rD
         ;rE, rF are aligned
         
         rdfsbase r14
@@ -1881,6 +1881,55 @@ instruction stash
     #contains x2p
     #  code
     #    movq gs:[microcontext.x2p], xP
+    
+    contains xa
+      code
+        movdqu gs:[microcontext.xa], xA
+    contains xb
+      code
+        movdqu gs:[microcontext.xb], xB
+    contains xc
+      code
+        movdqu gs:[microcontext.xc], xC
+    contains xd
+      code
+        movdqu gs:[microcontext.xd], xD
+    contains xe
+      code
+        movdqu gs:[microcontext.xe], xE
+    contains xf
+      code
+        movdqu gs:[microcontext.xf], xF
+    contains xg
+      code
+        movdqu gs:[microcontext.xg], xG
+    contains xh
+      code
+        movdqu gs:[microcontext.xh], xH
+    contains xi
+      code
+        movdqu gs:[microcontext.xi], xI
+    contains xj
+      code
+        movdqu gs:[microcontext.xj], xJ
+    contains xk
+      code
+        movdqu gs:[microcontext.xk], xK
+    contains xl
+      code
+        movdqu gs:[microcontext.xl], xL
+    contains xm
+      code
+        movdqu gs:[microcontext.xm], xM
+    contains xn
+      code
+        movdqu gs:[microcontext.xn], xN
+    contains xo
+      code
+        movdqu gs:[microcontext.xo], xO
+    #contains xp
+    #  code
+    #    movdqu gs:[microcontext.xp], xP
   code
     jmp $NEXT_INSTRUCTION
 
@@ -2038,6 +2087,56 @@ instruction unstash
     #contains x2p
     #  code
     #    movq xP, gs:[microcontext.x2p]
+
+    contains xa
+      code
+        movdqu xA, gs:[microcontext.xa]
+    contains xb
+      code
+        movdqu xB, gs:[microcontext.xb]
+    contains xc
+      code
+        movdqu xC, gs:[microcontext.xc]
+    contains xd
+      code
+        movdqu xD, gs:[microcontext.xd]
+    contains xe
+      code
+        movdqu xE, gs:[microcontext.xe]
+    contains xf
+      code
+        movdqu xF, gs:[microcontext.xf]
+    contains xg
+      code
+        movqdqu xG, gs:[microcontext.xg]
+    contains xh
+      code
+        movqdqu xH, gs:[microcontext.xh]
+    contains xi
+      code
+        movqdqu xI, gs:[microcontext.xi]
+    contains xj
+      code
+        movdqu xJ, gs:[microcontext.xj]
+    contains xk
+      code
+        movdqu xK, gs:[microcontext.xk]
+    contains xl
+      code
+        movdqu xL, gs:[microcontext.xl]
+    contains xm
+      code
+        movdqu xM, gs:[microcontext.xm]
+    contains xn
+      code
+        movdqu xN, gs:[microcontext.xn]
+    contains xo
+      code
+        movdqu xO, gs:[microcontext.xo]
+    #contains xp
+    #  code
+    #    movdqu xP, gs:[microcontext.xp]
+    
   code
     jmp $NEXT_INSTRUCTION
 
