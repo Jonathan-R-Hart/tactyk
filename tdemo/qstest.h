@@ -19,7 +19,7 @@
 //#include "asm/tactyk_asmvm_symbols.h"
 #include "tactyk_pl.h"
 
-void run_qsort_tests(struct tactyk_emit__Context *emitctx, int64_t len, int64_t seed, struct tactyk_asmvm__Context *ctx);
+struct tactyk_asmvm__Program* run_qsort_tests(struct tactyk_emit__Context *emitctx, int64_t len, int64_t seed, struct tactyk_asmvm__Context *ctx);
 
 void cqsort(int64_t *data, int64_t low, int64_t high);
 int64_t compute_hash(int64_t *data, int64_t len);

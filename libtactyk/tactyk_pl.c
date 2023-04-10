@@ -87,6 +87,7 @@ char *tactyk_pl__debug_cmdname = "step";
 char *tactyk_pl__debug_tokens[16];
 
 struct tactyk_asmvm__Program* tactyk_pl__load(struct tactyk_emit__Context *emitctx, char *code) {
+    tactyk_emit__reset(emitctx);
     struct tactyk_asmvm__Program *tactyk_pl__prog = calloc(1, sizeof(struct tactyk_asmvm__Program));
     emitctx->program = tactyk_pl__prog;
 
@@ -117,6 +118,13 @@ struct tactyk_asmvm__Program* tactyk_pl__load(struct tactyk_emit__Context *emitc
         tactyk_dblock__make_pseudosafe(ctx.memspec_lowlevel_buffer);
         ctx.memspec_highlevel_table = tactyk_dblock__new_managedobject_table(ln, sizeof(struct tactyk_asmvm__memblock_highlevel));
     }
+
+    // the struct table gets to survive garbage collection!  barely ... (the only real purpose of it is reflection)
+    tactyk_dblock__set_persistence_code(ctx.struct_table, 2);
+    //tactyk_dblock__set_persistence_code(ctx.getters, 2);
+    //tactyk_dblock__set_persistence_code(ctx.setters, 2);
+    tactyk_dblock__set_persistence_code(ctx.memspec_lowlevel_buffer, 2);
+    tactyk_dblock__set_persistence_code(ctx.memspec_highlevel_table, 2);
 
     next_memblock_id = 0;
 
@@ -190,6 +198,8 @@ struct tactyk_asmvm__Program* tactyk_pl__load(struct tactyk_emit__Context *emitc
     //tactyk_pl__prog->memory_layout_ll = m
     //struct tactyk_asmvm__memblock_lowlevel **mspec_ll = &tactyk_pl__prog->memory_layout_ll;
     //tactyk_dblock__release((void**)mspec_ll, ctx.memspec_lowlevel_buffer);
+
+    tactyk_dblock__cull(0);
 
     return tactyk_pl__prog;
 }

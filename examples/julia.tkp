@@ -165,8 +165,8 @@ RENDER_FRAC:
     assign xd xb
     mul xc xc
     mul xd xd
-
-    # xd = xa**2 + xb**2    
+    
+    # xd = xa**2 + xb**2
     assign xe xc
     add xe xd
     
@@ -175,7 +175,7 @@ RENDER_FRAC:
     
     # xd -> xa**2 - xb**2    
     sub xc xd
-
+    
     # xb = 2 * xa * xb + xi
     mul xb xj
     mul xb xa
@@ -191,7 +191,7 @@ RENDER_FRAC:
   EMIT_PIXEL:
   assign xf d
   mul xf xg
-  div xf 16
+  div xf 128
 
   assign f xf
 
@@ -210,7 +210,7 @@ CLOSE_AND_EXIT:
   bind addr1 footer
   assign b footer_size
   lwcall PRINTIT
-
+  
   exit
 
 PRINTIT:

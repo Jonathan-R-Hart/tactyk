@@ -53,7 +53,6 @@ struct tactyk_pl__Context {
     //struct tactyk_dblock__DBlock *const_table;
     struct tactyk_dblock__DBlock *memspec_highlevel_table;
     struct tactyk_dblock__DBlock *memspec_lowlevel_buffer;
-    struct tactyk_dblock__DBlock *memspec_highlevel_buffer;
     struct tactyk_asmvm__struct *default_mem_layout;
 
     struct tactyk_dblock__DBlock *getters;

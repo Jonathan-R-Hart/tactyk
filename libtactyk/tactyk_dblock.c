@@ -75,7 +75,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new(uint64_t capacity) {
     db->next = NULL;
     db->stride = 1;
     db->fixed = false;
-    db->persistence = 0;
+    db->persistence_code = 0;
     tactyk_dblock__update_hash(db);
     return db;
 }
@@ -86,7 +86,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__shallow_copy(struct tactyk_dblock__
     db->self_managed = true;
     db->data = calloc(db->capacity, 1);
     memcpy(db->data, src->data, db->length);
-    db->persistence = 0;
+    db->persistence_code = 0;
     return db;
 }
 
@@ -115,7 +115,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_safe_c_string(char *data) {
     db->self_managed = false;
     db->data = (uint8_t*) data;
     tactyk_dblock__update_hash(db);
-    db->persistence = 0;
+    db->persistence_code = 0;
     return db;
 }
 
@@ -132,7 +132,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_c_string(char *data) {
     db->data = calloc(db->length, 1);
     memcpy(db->data, data, db->length);
     tactyk_dblock__update_hash(db);
-    db->persistence = 0;
+    db->persistence_code = 0;
     return db;
 }
 struct tactyk_dblock__DBlock* tactyk_dblock__from_int(int64_t value) {
@@ -163,7 +163,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_ptr(void *ptr) {
     db->type = tactyk_dblock__EXTERNAL;
     db->self_managed = false;
     db->data = ptr;
-    db->persistence = 0;
+    db->persistence_code = 0;
     return db;
 }
 
@@ -191,7 +191,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_bytes(struct tactyk_dblock__DB
         memcpy(out->data, &data[start_index], length);
     }
     tactyk_dblock__update_hash(out);
-    out->persistence = 0;
+    out->persistence_code = 0;
     return out;
 }
 
@@ -201,6 +201,23 @@ bool tactyk_dblock__is_dblock(void *ptr) {
     int64_t ofs = (int64_t)ptr - (int64_t)dblocks;
     return (ofs > 0) && (ofs < (int64_t)sizeof(dblocks));
 }
+
+void tactyk_dblock__set_content(struct tactyk_dblock__DBlock *dest, struct tactyk_dblock__DBlock *source) {
+    if (dest->self_managed == true) {
+        free(dest->data);
+    }
+    uint8_t *data = calloc(1, source->length);
+    memcpy(data, source->data, source->length);
+    dest->data = data;
+    dest->length = source->length;
+    dest->capacity = source->length;
+    dest->element_capacity = source->element_count;
+    dest->element_count = source->element_count;
+    dest->stride = source->stride;
+    dest->hashcode = source->hashcode;
+    dest->self_managed = true;
+}
+
 // reset the dblock so it can be reused.
 void tactyk_dblock__dispose(struct tactyk_dblock__DBlock *dblock) {
     if (dblock == NULL) {
@@ -218,13 +235,6 @@ void tactyk_dblock__dispose(struct tactyk_dblock__DBlock *dblock) {
     if (dblock->store != NULL) {
         tactyk_dblock__dispose(dblock->store);
     }
-    /*
-    switch(dblock->type) {
-        case tactyk_dblock__TABLE: {
-            tactyk_dblock__reset_table(dblock, false, false);
-        }
-    }
-    */
     if (dblock->self_managed) {
         if (dblock->data != NULL) {
             free(dblock->data);
@@ -241,22 +251,29 @@ void tactyk_dblock__dispose(struct tactyk_dblock__DBlock *dblock) {
     }
 }
 
-
-void tactyk_dblock__set_content(struct tactyk_dblock__DBlock *dest, struct tactyk_dblock__DBlock *source) {
-    if (dest->self_managed == true) {
-        free(dest->data);
+void tactyk_dblock__set_persistence_code(struct tactyk_dblock__DBlock *dblock, uint64_t persist_code) {
+    if (dblock->child != NULL) {
+        tactyk_dblock__set_persistence_code(dblock->child, persist_code);
     }
-    uint8_t *data = calloc(1, source->length);
-    memcpy(data, source->data, source->length);
-    dest->data = data;
-    dest->length = source->length;
-    dest->capacity = source->length;
-    dest->element_capacity = source->element_count;
-    dest->element_count = source->element_count;
-    dest->stride = source->stride;
-    dest->hashcode = source->hashcode;
-    dest->self_managed = true;
+    if (dblock->next != NULL) {
+        tactyk_dblock__set_persistence_code(dblock->next, persist_code);
+    }
+    if (dblock->token != NULL) {
+        tactyk_dblock__set_persistence_code(dblock->token, persist_code);
+    }
+    if (dblock->store != NULL) {
+        tactyk_dblock__set_persistence_code(dblock->store, persist_code);
+    }
 }
+void tactyk_dblock__cull(uint64_t persist_code) {
+    for (uint64_t i = 0; i < DBLOCKS_CAPACITY; i += 1) {
+        struct tactyk_dblock__DBlock *db = &dblocks[i];
+        if (db->persistence_code = persist_code) {
+            tactyk_dblock__dispose(db);
+        }
+    }
+}
+
 
 // set the "fixed" flag.
 // This is only a prohibition on resizing the dblock internal buffer (or a promise not to resize or reposition or free a backing buffer)
@@ -1008,7 +1025,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new_container(uint64_t element_capa
     db->next = NULL;
     db->stride = stride;
     db->fixed = false;
-    db->persistence = 0;
+    db->persistence_code = 0;
     return db;
 }
 
@@ -1122,7 +1139,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new_table(uint64_t element_capacity
     db->next = NULL;
     db->stride = stride;
     db->fixed = false;
-    db->persistence = 0;
+    db->persistence_code = 0;
     return db;
 }
 struct tactyk_dblock__DBlock* tactyk_dblock__new_managedobject_table(uint64_t element_capacity, uint64_t stride) {

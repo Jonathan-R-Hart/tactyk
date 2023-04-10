@@ -92,25 +92,14 @@ struct tactyk_emit__Context {
 
     char *asm_header;
 
-    //struct tactyk_textbuf__Buffer asm_output;
     tactyk_emit__tolabel sanitize_label;
     tactyk_emit__random rand;
-
-    //struct tactyk_emit_sub subroutine_list[TACTYK_EMIT_SUBROUTINE_CAPACITY];
-    //int32_t subroutine_count;
 
     struct tactyk_dblock__DBlock *operator_table;
 
     struct tactyk_dblock__DBlock *instruction_table;
     struct tactyk_dblock__DBlock *subroutine_table;
     struct tactyk_dblock__DBlock *typespec_table;
-    //struct tactyk_dblock__DBlock *special_table;
-    //struct tactyk_table__Table *definition_table;
-
-    struct tactyk_dblock__DBlock *codebuf_table;
-    struct tactyk_dblock__DBlock *codebuf_list[TACTYK_EMIT__CODEBUF_BUFLIST_CAPACITY];
-    struct tactyk_dblock__DBlock *main_codebuf;
-    int32_t codebuf_index;
 
     struct tactyk_asmvm__Program *program;
 
@@ -124,10 +113,6 @@ struct tactyk_emit__Context {
     struct tactyk_dblock__DBlock *label_table;
     struct tactyk_dblock__DBlock *api_table;
     struct tactyk_dblock__DBlock *c_api_table;
-    //struct tactyk_dblock__DBlock *struct_table;
-    //struct tactyk_dblock__DBlock *memblock_table;
-
-    //struct tactyk_dblock__DBlock tbuf;
 
     struct tactyk_dblock__DBlock *code_template;
 
@@ -138,9 +123,6 @@ struct tactyk_emit__Context {
 
     struct tactyk_dblock__DBlock *active_labels;
     struct tactyk_dblock__DBlock *active_labels_last;
-
-    //struct tactyk_dblock__DBlock *instruction_prototype_label;
-    //struct tactyk_dblock__DBlock *command_label;
 
     bool valid_parse_result;
     struct tactyk_dblock__DBlock *pl_operand_raw;
@@ -154,12 +136,10 @@ struct tactyk_emit__Context {
 
     bool namechars[256];
     uint64_t iptr;
-
-    struct tactyk_dblock__DBlock *temp;
-    struct tactyk_dblock__DBlock *temp_last;
 };
 
 struct tactyk_emit__Context* tactyk_emit__init();
+void tactyk_emit__reset(struct tactyk_emit__Context *emitctx);
 void tactyk_emit__dispose(struct tactyk_emit__Context *ctx);
 void tactyk_emit__error(struct tactyk_emit__Context *ctx, void *msg);
 

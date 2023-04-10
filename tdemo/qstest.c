@@ -152,7 +152,7 @@ char* tactyk_qsort_program = R"""(
 
 struct tactyk_asmvm__Program *qsprogram;
 
-void run_qsort_tests(struct tactyk_emit__Context *emitctx, int64_t len, int64_t seed, struct tactyk_asmvm__Context *ctx) {
+struct tactyk_asmvm__Program* run_qsort_tests(struct tactyk_emit__Context *emitctx, int64_t len, int64_t seed, struct tactyk_asmvm__Context *ctx) {
 
     printf("\n");
     printf("QUICKSORT TEST\n");
@@ -257,7 +257,7 @@ void run_qsort_tests(struct tactyk_emit__Context *emitctx, int64_t len, int64_t 
     tactyk_debug__print_context(ctx);
 
 
-
+    return program;
 }
 
 void print_a_few(int64_t *data, int64_t amount) {

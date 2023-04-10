@@ -34,11 +34,6 @@
 #define TACTYK_EMIT__BRANCHTARGET_PREFIX_SIZE (sizeof(TACTYK_EMIT__BRANCHTARGET_PREFIX)-1)
 #define TACTYK_EMIT__COMMAND_PREFIX_SIZE (sizeof(TACTYK_EMIT__COMMAND_PREFIX)-1)
 
-// buffer for strings returned by the fetch_value function.
-// The extra char at the end is for a guaranteed null terminator.
-// The buffer is not expected to be filled.
-char emit_txt_buf[FETCH_VALUE_CAPACITY+1];
-
 struct tactyk_emit__Context emit_settings;
 
 #define TACTYK_EMIT__ERROR_MSG_MAXLENGTH 1024
@@ -84,27 +79,22 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     ctx->api_table = tactyk_dblock__new_table(64);
     ctx->c_api_table = tactyk_dblock__new_table(64);
-    ctx->global_vars = tactyk_dblock__new_table(256);
-    ctx->local_vars = tactyk_dblock__new_table(256);
     ctx->operator_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
     ctx->typespec_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
     ctx->instruction_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
     ctx->subroutine_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
-    //ctx->special_table = tactyk_dblock__new_managedobject_table(64);
-    //ctx->definition_table = tactyk_dblock__new_table(64);
 
-    ctx->script_commands = tactyk_dblock__new_container(8, sizeof(struct tactyk_emit__script_command));
+    ctx->global_vars = tactyk_dblock__new_table(256);
 
-    emit_txt_buf[FETCH_VALUE_CAPACITY] = 0;      // ensure it has a null terminator
-
-    //tactyk_textbuf__init(&ctx->tbuf, TACTYK_EMIT_MAINTEXTBUF_CAPACITY, false);
-
-    ctx->codebuf_index = 0;
-    //tactyk_table__init(&ctx->codebuf_table, TACTYK_EMIT__CODEBUF_BUFLIST_CAPACITY);
-    //tactyk_textbuf__init(&ctx->main_codebuf, TACTYK_EMIT__CODEBUF_INITCAPACITY, true);
+    tactyk_dblock__set_persistence_code(ctx->global_vars, 1);
+    tactyk_dblock__set_persistence_code(ctx->api_table, 1);
+    tactyk_dblock__set_persistence_code(ctx->c_api_table, 1);
+    tactyk_dblock__set_persistence_code(ctx->operator_table, 1);
+    tactyk_dblock__set_persistence_code(ctx->typespec_table, 1);
+    tactyk_dblock__set_persistence_code(ctx->instruction_table, 1);
+    tactyk_dblock__set_persistence_code(ctx->subroutine_table, 1);
 
     tactyk_dblock__put(ctx->operator_table, "symbol", tactyk_emit__Symbol);
-    //tactyk_dblock__put(ctx->operator_table, "fsymbol", tactyk_emit__FSymbol);
 
     tactyk_dblock__put(ctx->operator_table, "select-operand", tactyk_emit__SelectOp);
     tactyk_dblock__put(ctx->operator_table, "select-template", tactyk_emit__SelectTemplate);
@@ -133,10 +123,6 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     ctx->active_labels = NULL;
     ctx->active_labels_last = NULL;
 
-    ctx->code_template = tactyk_dblock__new(16);
-    ctx->temp = tactyk_dblock__new(1);
-    ctx->temp_last = ctx->temp;
-
     error_handler = tactyk_emit__default_error_handler;
 
     if (setjmp(err_jbuf)) {
@@ -147,6 +133,12 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     return ctx;
 }
 
+void tactyk_emit__reset(struct tactyk_emit__Context *emitctx) {
+    emitctx->local_vars = tactyk_dblock__new_table(256);
+    emitctx->script_commands = tactyk_dblock__new_container(8, sizeof(struct tactyk_emit__script_command));
+    emitctx->code_template = tactyk_dblock__new(16);
+}
+
 // release all memory belonging to an emit context.
 void tactyk_emit__dispose(struct tactyk_emit__Context *ctx) {
     tactyk_dblock__dispose(ctx->global_vars);
@@ -155,20 +147,9 @@ void tactyk_emit__dispose(struct tactyk_emit__Context *ctx) {
     tactyk_dblock__dispose(ctx->typespec_table);
     tactyk_dblock__dispose(ctx->instruction_table);
     tactyk_dblock__dispose(ctx->subroutine_table);
-    tactyk_dblock__dispose(ctx->codebuf_table);
     tactyk_dblock__dispose(ctx->active_labels);
 
-    //tactyk_dblock__dispose(ctx->special_table);
-
-    //tactyk_textbuf__dispose(&ctx->tbuf);
-    //tactyk_textbuf__dispose(&ctx->instruction_prototype_label);
-    //tactyk_textbuf__dispose(&ctx->command_label);
     tactyk_dblock__dispose(ctx->code_template);
-    tactyk_dblock__dispose(ctx->main_codebuf);
-
-    for (int32_t i = 0; i < ctx->codebuf_index; i++) {
-        tactyk_dblock__dispose(ctx->codebuf_list[i]);
-    }
 
     free(ctx);
 }
@@ -255,9 +236,6 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
 
     bool result = tactyk_emit__ExecSubroutine(ctx, data);
     // clean up any temp dblocks (mostly dynamically text chunks)
-    tactyk_dblock__dispose(ctx->temp->next);
-    ctx->temp->next = NULL;
-    ctx->temp_last = ctx->temp;
 
     ctx->pl_operand_raw = NULL;
     ctx->pl_operand_resolved = NULL;

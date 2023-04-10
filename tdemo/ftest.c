@@ -65,7 +65,7 @@ char *floattest_src = {
     )"""
 };
 
-void run_float_test(struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__Context *ctx) {
+struct tactyk_asmvm__Program* run_float_test(struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__Context *ctx) {
 
     struct tactyk_asmvm__Program *prg = tactyk_pl__load(emitctx, floattest_src);
 
@@ -111,5 +111,5 @@ void run_float_test(struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__C
         printf("  %jd: %f\n", i, ddata[i]);
     }
 
-
+    return prg;
 }

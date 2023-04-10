@@ -20,7 +20,7 @@
 #include "tactyk_pl.h"
 
 void run_fib_native(uint64_t amount);
-void run_fib_test(struct tactyk_emit__Context *emitctx, uint64_t amount, struct tactyk_asmvm__Context *ctx);
+struct tactyk_asmvm__Program* run_fib_test(struct tactyk_emit__Context *emitctx, uint64_t amount, struct tactyk_asmvm__Context *ctx);
 
 
 #endif // FIB_TEST__INCLUDE_GUARD

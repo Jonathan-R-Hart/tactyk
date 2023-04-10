@@ -32,7 +32,7 @@ struct tactyk_dblock__DBlock {
     uint64_t hashcode;
     void *ptr;
     void *data;
-    uint64_t persistence;
+    uint64_t persistence_code;
     bool fixed;
     bool self_managed;
     struct tactyk_dblock__DBlock *next;
@@ -77,6 +77,9 @@ void tactyk_dblock__reallocate(struct tactyk_dblock__DBlock *dblock, uint64_t mi
 // clear and de-allocate buffers from this and all linked or associated dblocks.
 void tactyk_dblock__dispose(struct tactyk_dblock__DBlock *dblock);
 void tactyk_dblock__set_content(struct tactyk_dblock__DBlock *dest, struct tactyk_dblock__DBlock *source);
+
+void tactyk_dblock__set_persistence_code(struct tactyk_dblock__DBlock *dblock, uint64_t persist_code);
+void tactyk_dblock__cull(uint64_t persist_code);
 
 // count the number of adjacent dblocks (number of times the pointer chain, 'dblock->next->next-->...' can be followed before encountering a NULL pointer)
 // the resulting sum includes itself.
