@@ -119,28 +119,27 @@
     %define r15_32 r15d
     %define r15_64 r15
 
-    ; register allocation.  For now, these have been selected to align with UNIX calls.
-    ; But it might be better to deliberately misalign it with UNIX calls (placing only constants and values not under script control
-    ; on registers used to pass parameters), so as to further impair Return-oriented-programming (it already sidelines the call stack
-    ; and places small values on the rsp and rbp registers so as to try to cause any unintended stack manipulation to trigger a segfault)
 
-    %define rPROG   r12
-    %define rLWCSI  rbp
+
+    %define rPROG   rdi
     %define rMCSI   rsp
+    %define rLWCSI  rbp
     %define rTEMPA  rax
     %define rTEMPC  rcx
     %define rTEMPD  rdx
-    %define rADDR1  r14
-    %define rADDR2  r15
-    %define rADDR3  rbx
-    %define rADDR4  r10
-    %define rA      rdi
-    %define rB      rsi
-    %define rC      r11
-    %define rD      r13
+    %define rADDR1  r10
+    %define rADDR2  r11
+    %define rADDR3  rsi
+    %define rADDR4  rbx
+    %define rA      r12
+    %define rB      r13
+    %define rC      r14
+    %define rD      r15
     %define rE      r8
     %define rF      r9
 
+    %define xTEMPA xmm14
+    %define xTEMPB xmm15
 
     %define rPROG_8 %[rPROG]_8
     %define rPROG_16 %[rPROG]_16
@@ -236,19 +235,22 @@
         %endrep %1
     %endmacro
 
+    %macro owords 1-*
+        %rep %0
+            .%[%1]: reso 1
+            %rotate 1
+        %endrep %1
+    %endmacro
+
+
     struc regbank
-        qwords self,stash,prog,lwcsi,temp,addr1,addr2,addr3,addr4,mcsi,a,b,c,d,e,f
+        qwords prog,mcsi,lwcsi,tempa,tempc,tempd,addr1,addr2,addr3,addr4,a,b,c,d,e,f
+        owords xa,xb,xc,xd, xe,xf,xg,xh, xi,xj,xk,xl, xm,xn,xo,xp
     endstruc
 
-    struc mctx
-        qwords a,b,c,d,e,f, lwcsi, mcsi
-        qwords addr3, addr3_base, addr3_par_a, addr3_par_b
-        qwords addr4, addr4_base, addr4_par_a, addr4_par_b
-        qwords f0_low, f0_high, f1_low, f1_high, f2_low, f2_high, f3_low, f3_high, f4_low, f4_high, f5_low, f5_high, f6_low, f6_high, f7_low, f7_high
-    endstruc
 
     struc controlstate
-        .runtime_registers:     resq 16
+        .runtime_registers:     resq 48
         .stack_position:        resq 1
         .stack:                 resq 1024
         .static_contexts:       resq 1024
@@ -270,9 +272,11 @@
         dwords addr3_element_bound, addr3_array_bound, addr3_memblock_index, addr3_type
         qwords addr4
         dwords addr4_element_bound, addr4_array_bound, addr4_memblock_index, addr4_type
+        qwords x1a, x1b, x1c, x1d, x1e, x1f, x1g, x1h, x1i, x1j, x1k, x1l, x1m, x1n, x1o, x1p
+        qwords x2a, x2b, x2c, x2d, x2e, x2f, x2g, x2h, x2i, x2j, x2k, x2l, x2m, x2n, x2o, x2p
     endstruc
     
-    %define microcontext_size_bits 8
+    %define microcontext_size_bits 9
     %define microcontext_stack_size 65536
     %define lwcall_stack_size 65536
 
@@ -296,21 +300,18 @@
 
         ; 128
 
-        ; storage for return targets for lightweight function falls (minimal context changes)
-        ; qwords lwcall_position1, lwcall_position2, lwcall_position3, lwcall_position4
-
-        
         qwords lwcall_stack_address, microcontext_stack_address, microcontext_stack_offset, microcontext_stack_size
-
-        .diagnostic_out:resq 1024
-
+        
         qwords controlstate, program, hl_program_ref, instruction_index, status, stepper
-        .registers:             resq 16
+        
+        .registers:  resq 48
+        
+        .diagnostic_out:resq 1024
     endstruc
 
-
+    %unmacro dwords 1-*
     %unmacro qwords 1-*
-
+    %unmacro twords 1-*
 
     %define STATUS_OFF 0
     %define STATUS_RUN 1
@@ -327,8 +328,6 @@
     %define STATUS_MEMORY_OVERFLOW 105      ; a generic overflow to be used in place of "stack" overflow when there is a conceptual mismatch
     %define STATUS_MEMORY_UNDERFLOW 106     ; a generic underflow to be used in place of "stack" underflow when there is a conceptual mismatch
 
-    %define iSIZE 8
-
     ; runtime registers do not belong to tactyk, and so do not use internal tactyk names
     ; The only thing that matters here is that they get correctly stored and restored.
     %macro store_runtimecontext 0
@@ -343,6 +342,24 @@
         rdgsbase r13
         mov [rTEMPA + controlstate.runtime_registers + 56], r12
         mov [rTEMPA + controlstate.runtime_registers + 64], r13
+        
+        ; supposedly not needed:
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+0   ], xmm0
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+8   ], xmm1
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+16  ], xmm2
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+32  ], xmm3
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+40  ], xmm4
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+48  ], xmm5
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+56  ], xmm6
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+64  ], xmm7
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+72  ], xmm8
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+80  ], xmm9
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+88  ], xmm10
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+96  ], xmm11
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+104 ], xmm12
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+112 ], xmm13
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+120 ], xmm14
+        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+128 ], xmm15
     %endmacro
 
     %macro load_runtimecontext 0
@@ -358,6 +375,24 @@
         mov r13, [rTEMPA + controlstate.runtime_registers + 32]
         mov r14, [rTEMPA + controlstate.runtime_registers + 40]
         mov r15, [rTEMPA + controlstate.runtime_registers + 48]
+
+        ; supposedly not needed:
+        ;movdqu xmm0,  [rTEMPA + controlstate.runtime_registers + 128+0   ]
+        ;movdqu xmm1,  [rTEMPA + controlstate.runtime_registers + 128+8   ]
+        ;movdqu xmm2,  [rTEMPA + controlstate.runtime_registers + 128+16  ]
+        ;movdqu xmm3,  [rTEMPA + controlstate.runtime_registers + 128+32  ]
+        ;movdqu xmm4,  [rTEMPA + controlstate.runtime_registers + 128+40  ]
+        ;movdqu xmm5,  [rTEMPA + controlstate.runtime_registers + 128+48  ]
+        ;movdqu xmm6,  [rTEMPA + controlstate.runtime_registers + 128+56  ]
+        ;movdqu xmm7,  [rTEMPA + controlstate.runtime_registers + 128+64  ]
+        ;movdqu xmm8,  [rTEMPA + controlstate.runtime_registers + 128+72  ]
+        ;movdqu xmm9,  [rTEMPA + controlstate.runtime_registers + 128+80  ]
+        ;movdqu xmm10, [rTEMPA + controlstate.runtime_registers + 128+88  ]
+        ;movdqu xmm11, [rTEMPA + controlstate.runtime_registers + 128+96  ]
+        ;movdqu xmm12, [rTEMPA + controlstate.runtime_registers + 128+104 ]
+        ;movdqu xmm13, [rTEMPA + controlstate.runtime_registers + 128+112 ]
+        ;movdqu xmm14, [rTEMPA + controlstate.runtime_registers + 128+120 ]
+        ;movdqu xmm15, [rTEMPA + controlstate.runtime_registers + 128+128 ]
     %endmacro
 
     %macro load_context 0
@@ -377,6 +412,23 @@
         mov rTEMPA, fs:[context.microcontext_stack_address]
         add rTEMPA, fs:[context.microcontext_stack_offset]
         wrgsbase rTEMPA
+
+        movdqu xmm0, fs:[context.registers + regbank.xa ]
+        movdqu xmm1, fs:[context.registers + regbank.xb ]
+        movdqu xmm2, fs:[context.registers + regbank.xc ]
+        movdqu xmm3, fs:[context.registers + regbank.xd ]
+        movdqu xmm4, fs:[context.registers + regbank.xe ]
+        movdqu xmm5, fs:[context.registers + regbank.xf ]
+        movdqu xmm6, fs:[context.registers + regbank.xg ]
+        movdqu xmm7, fs:[context.registers + regbank.xh ]
+        movdqu xmm8, fs:[context.registers + regbank.xi ]
+        movdqu xmm9, fs:[context.registers + regbank.xj ]
+        movdqu xmm10, fs:[context.registers + regbank.xk ]
+        movdqu xmm11, fs:[context.registers + regbank.xl ]
+        movdqu xmm12, fs:[context.registers + regbank.xm ]
+        movdqu xmm13, fs:[context.registers + regbank.xn ]
+        movdqu xmm14, fs:[context.registers + regbank.xo ]
+        movdqu xmm15, fs:[context.registers + regbank.xp ]
     %endmacro
 
     %macro store_context 0
@@ -394,6 +446,23 @@
         mov fs:[context.registers + regbank.f], rF
         ; rdgsbase rTEMPA
         ; mov fs:[context.microcontext_stack_address], rTEMPA
+        
+        movdqu fs:[context.registers + regbank.xa ], xmm0
+        movdqu fs:[context.registers + regbank.xb ], xmm1
+        movdqu fs:[context.registers + regbank.xc ], xmm2
+        movdqu fs:[context.registers + regbank.xd ], xmm3
+        movdqu fs:[context.registers + regbank.xe ], xmm4
+        movdqu fs:[context.registers + regbank.xf ], xmm5
+        movdqu fs:[context.registers + regbank.xg ], xmm6
+        movdqu fs:[context.registers + regbank.xh ], xmm7
+        movdqu fs:[context.registers + regbank.xi ], xmm8
+        movdqu fs:[context.registers + regbank.xj ], xmm9
+        movdqu fs:[context.registers + regbank.xk ], xmm10
+        movdqu fs:[context.registers + regbank.xl ], xmm11
+        movdqu fs:[context.registers + regbank.xm ], xmm12
+        movdqu fs:[context.registers + regbank.xn ], xmm13
+        movdqu fs:[context.registers + regbank.xo ], xmm14
+        movdqu fs:[context.registers + regbank.xp ], xmm15
     %endmacro
 
     ; zero data/address registers and memory locations which augment context state.
@@ -523,3 +592,4 @@ run:
   mov rTEMPA, fs:[context.instruction_index]
   ; exception - In this one specific case, the temp register ca not be cleared before exiting an instruction.
   jmp [rPROG+rTEMPA*8]
+

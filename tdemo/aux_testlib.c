@@ -14,18 +14,23 @@
 #include <unistd.h>
 
 #include "tactyk.h"
-#include "aux_testlib.h"
+#include "tactyk_debug.h"
 #include "tactyk_emit.h"
 #include "tactyk_dblock.h"
 #include "tactyk_asmvm.h"
+#include "tactyk_util.h"
+
+#include "aux_testlib.h"
 
 void aux_configure(struct tactyk_emit__Context *emit_context) {
+
+    tactyk_emit__add_tactyk_apifunc(emit_context, "readfile", aux__read_file);
+
     tactyk_emit__add_c_apifunc(emit_context, "printchar", aux__term_write_char);
     tactyk_emit__add_c_apifunc(emit_context, "printint", aux__term_write_int);
-    tactyk_emit__add_tactyk_apifunc(emit_context, "dump", aux__dump);
+    tactyk_emit__add_c_apifunc(emit_context, "printfloat", aux__term_write_float);
     tactyk_emit__add_c_apifunc(emit_context, "sleep", aux_sleep);
     tactyk_emit__add_c_apifunc(emit_context, "rand", aux_rand);
-    tactyk_emit__add_tactyk_apifunc(emit_context, "readfile", aux__read_file);
 
 }
 
@@ -36,10 +41,6 @@ uint64_t aux_rand() {
 
 void aux_sleep(uint64_t milliseconds) {
     usleep(milliseconds*1000);
-}
-
-void aux__dump(struct tactyk_asmvm__Context *asmvm_context) {
-    tactyk_asmvm__print_context(asmvm_context);
 }
 
 FILE* aux_open_file__from_ctxref(struct tactyk_asmvm__Context *asmvm_ctx, char *mode) {
@@ -95,11 +96,6 @@ void aux__read_file(struct tactyk_asmvm__Context *asmvm_ctx) {
     m_ll->base_address = f_data;
     m_ll->array_bound = 1;
     m_ll->element_bound = len-7;
-    //m_ll->memblock_index = ;
-    //m_ll->type = 0;
-
-    //asmvm_ctx->program->
-    //struct tactyk_asmvm__memblock_lowlevel = tactyk_dblock__
 }
 void aux__write_file(struct tactyk_asmvm__Context *asmvm_ctx) {
 
@@ -115,6 +111,11 @@ void aux__write_file(struct tactyk_asmvm__Context *asmvm_ctx) {
 */
 void aux__term_write_int(int64_t val) {
     printf("%jd", val);
+    fflush(stdout);
+}
+
+void aux__term_write_float(double val) {
+    printf("%f", val);
     fflush(stdout);
 }
 void aux__term_write_char(int64_t val) {

@@ -44,26 +44,68 @@ typedef void (*tactyk_asmvm__op)();
 extern const int32_t STATIC_MEMORY_HEADER_LENGTH;
 extern const int32_t STATIC_MEMORY_LENGTH;
 
+// 128-bit data type to represent an xmm register.
+// Future considerations:  it might be worthwhile to consider respecting the avx extentions, if there is a sensible way to do it without
+//                         breaking compatibility with older devices.
+union tactyk_asmvm__reg128 {
+    uint64_t u64[2];
+    uint32_t u32[4];
+    uint16_t u16[8];
+    double f64[2];
+    float f32[4];
+};
 
 struct tactyk_asmvm__register_bank {
-    uint64_t rFLAGS;                            // register bank position 0 technically is for the VM context pointer, but is never read by the VM, so the slot is
-    //union tactyk_asmvm__immediate_properties *rIMM;
-    uint64_t* rSTASH;
     tactyk_asmvm__op *rPROG;
-    uint64_t rLWCSI;             // no longer for holding instruction pointers (everything but the initial call into tactyk is now a direct jump).
-                                // To be renamed after deciding what to do with fastcalls.
-    uint64_t rTEMP;
+    uint64_t rLWCSI;
+    uint64_t rMCSI;
+    uint64_t rTEMPA;
+    uint64_t rTEMPC;
+    uint64_t rTEMPD;
     uint64_t *rADDR1;
     uint64_t *rADDR2;
     uint64_t *rADDR3;
     uint64_t *rADDR4;
-    uint64_t rMCSI;
     uint64_t rA;
     uint64_t rB;
     uint64_t rC;
     uint64_t rD;
     uint64_t rE;
     uint64_t rF;
+
+    union tactyk_asmvm__reg128 xa;
+    union tactyk_asmvm__reg128 xb;
+    union tactyk_asmvm__reg128 xc;
+    union tactyk_asmvm__reg128 xd;
+
+    union tactyk_asmvm__reg128 xe;
+    union tactyk_asmvm__reg128 xf;
+    union tactyk_asmvm__reg128 xg;
+    union tactyk_asmvm__reg128 xh;
+
+    union tactyk_asmvm__reg128 xi;
+    union tactyk_asmvm__reg128 xj;
+    union tactyk_asmvm__reg128 xk;
+    union tactyk_asmvm__reg128 xl;
+
+    union tactyk_asmvm__reg128 xm;
+    union tactyk_asmvm__reg128 xn;
+    union tactyk_asmvm__reg128 xo;
+    union tactyk_asmvm__reg128 xp;
+
+    // maybe should consider also includ a set of "long double" entries to represent the x87 fpu
+    //      But for now, there is no aspect of tactyk which itneracts with it, and sse2 was selected for floating point math
+    //      (supposedly the x87 fpu is better for high-precision math)
+};
+
+// low-level function signature
+// This is used to build function calls (and prevent tactyk programs from passing or receiving undeclared parameters)
+struct tactyk_asmvm__c_function_spec {
+    void *fptr;
+    uint64_t intarg_count;
+    uint64_t floatarg_count;
+    uint64_t intret_count;
+    uint64_t floatret_count;
 };
 
 // memblock type hints
@@ -121,8 +163,6 @@ struct tactyk_asmvm__Context {
     uint64_t microcontext_stack_offset;
     uint64_t microcontext_stack_size;
 
-    uint64_t diagnostic_data[1024];
-
     struct tactyk_asmvm__VM *vm;
     tactyk_asmvm__op *program;
     struct tactyk_asmvm__Program *hl_program_ref;      // a pointer to help high-level code access representative data structures.
@@ -136,6 +176,8 @@ struct tactyk_asmvm__Context {
 
     struct tactyk_asmvm__register_bank regbank_A;     // main register storage bank - for runtime <-> calls into VM
     //struct tactyk_asmvm__register_bank regbank_B;     // secondary register storage bank - for VM <-> calls into other things
+
+    uint64_t diagnostic_data[1024];
 };
 void tactyk_asmvm__print_context(struct tactyk_asmvm__Context *context);
 void tactyk_asmvm__print_diagnostic_data(struct tactyk_asmvm__Context *context, int64_t amount);

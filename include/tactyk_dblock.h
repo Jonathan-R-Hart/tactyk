@@ -112,10 +112,12 @@ void tactyk_dblock__append(struct tactyk_dblock__DBlock *out, void *dblock);
 void tactyk_dblock__append_char(struct tactyk_dblock__DBlock *dblock, uint8_t ch);
 // append a substring of one dblock to another dblock
 void tactyk_dblock__append_substring(struct tactyk_dblock__DBlock *out, struct tactyk_dblock__DBlock *dblock, uint64_t start, uint64_t amount);
-// attempt to parse the dblock's content as a signed integer.  if it succeeds, export the result via pointer anr return true, otherwise return false
+// attempt to parse the dblock's content as a signed integer.  if it succeeds, export the result via pointer and return true, otherwise return false
 bool tactyk_dblock__try_parseint(int64_t *out, struct tactyk_dblock__DBlock *dblock_a);
-// attempt to parse the dblock's content as an unsigned integer.  if it succeeds, export the result via pointer anr return true, otherwise return false
+// attempt to parse the dblock's content as an unsigned integer.  if it succeeds, export the result via pointer and return true, otherwise return false
 bool tactyk_dblock__try_parseuint(uint64_t *out, struct tactyk_dblock__DBlock *dblock_a);
+// attempt to parse the dblock's content as floating point number.  if it succeeds, export the result via pointer and return true, otherwise return false
+bool tactyk_dblock__try_parsedouble(double *out, struct tactyk_dblock__DBlock *dblock);
 
 // Structured text parsing
 // These functions are used to create data structures from formatted text using only plain delimiter chars and the "off-side" rule.

@@ -7,9 +7,11 @@
 //  You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
+#include <stdlib.h>
 #include <stdint.h>
 #include <ctype.h>
+#include <errno.h>
+#include <stdio.h>
 
 #include "tactyk_util.h"
 
@@ -96,6 +98,22 @@ bool tactyk_util__is_uintstring(char* str) {
         }
     }
     return true;
+}
+
+bool tactyk_util__try_parsedouble(double *out, char *str, uint64_t str_len) {
+    char *tail = NULL;
+    char *end = &str[str_len];
+    errno = 0;
+    *out = strtod(str, &tail);
+    if (tail != end) {
+        return false;
+    }
+    if (errno == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 bool tactyk_util__try_parseuint(uint64_t *out, char *str, bool permissive) {

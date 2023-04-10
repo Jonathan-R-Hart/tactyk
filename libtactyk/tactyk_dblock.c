@@ -169,6 +169,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_ptr(void *ptr) {
 
 struct tactyk_dblock__DBlock* tactyk_dblock__from_bytes(struct tactyk_dblock__DBlock *out, uint8_t *data, uint64_t start_index, uint64_t length, bool is_safe_data) {
     //printf("dblock from bytes out=%p data=%p si=%ju len=%ju\n", out, data, start_index, length);
+
     if (out == NULL) {
         out = tactyk_dblock__alloc();
     }
@@ -469,6 +470,16 @@ bool tactyk_dblock__try_parseuint(uint64_t *out, struct tactyk_dblock__DBlock *d
     *out = result;
     return true;
 }
+bool tactyk_dblock__try_parsedouble(double *out, struct tactyk_dblock__DBlock *dblock) {
+    if (dblock->length == 0) {
+        return false;
+    }
+    char *buf = calloc(dblock->length+1, 1);
+    memcpy(buf, dblock->data, dblock->length);
+    bool result = tactyk_util__try_parsedouble(out, buf, dblock->length);
+    free(buf);
+    return result;
+}
 
 // resize the dblock.  If the dblock uses a backing buffer, this also copies the buffer and decouples from it.
 void tactyk_dblock__expand(struct tactyk_dblock__DBlock *dblock, uint64_t min_length) {
@@ -502,7 +513,6 @@ void tactyk_dblock__reallocate(struct tactyk_dblock__DBlock *dblock, uint64_t mi
             dblock->capacity *= 2;
             dblock->element_capacity *= 2;
         }
-        uint8_t *data = (uint8_t*) dblock->data;
         uint8_t *ndata = calloc(dblock->capacity, 1);
         free(dblock->data);
 
@@ -813,9 +823,6 @@ void tactyk_dblock__update_hash(struct tactyk_dblock__DBlock *dblock) {
 
 // strict eauality test
 bool tactyk_dblock__equals(struct tactyk_dblock__DBlock *dblock_a, struct tactyk_dblock__DBlock *dblock_b) {
-    //printf("eq\n");
-    //tactyk_dblock__println(dblock_a);
-    //tactyk_dblock__println(dblock_b);
     if (dblock_a->hashcode != dblock_b->hashcode) {
         //printf("reject-hash\n");
         return false;
@@ -1009,6 +1016,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new_allocated_container(uint64_t ca
     struct tactyk_dblock__DBlock *db = tactyk_dblock__new_container(capacity, stride);
     db->length = db->capacity;
     db->element_count = db->element_capacity;
+    return db;
 }
 
 void* tactyk_dblock__new_object(struct tactyk_dblock__DBlock *container) {
@@ -1046,8 +1054,6 @@ struct tactyk_dblock__DBlock* tactyk_dblock__interpolate(
     struct tactyk_dblock__DBlock *result = tactyk_dblock__new(16);
     struct tactyk_dblock__DBlock *varname = tactyk_dblock__new(16);
     int64_t pos = 0;
-    int64_t start_pos = 0;
-    int64_t end_pos = 0;
     int64_t len = (int64_t)pattern->length;
 
     uint8_t *text = (uint8_t*)pattern->data;
@@ -1146,12 +1152,11 @@ int64_t tactyk_dblock__table_find(struct tactyk_dblock__DBlock *table, struct ta
     uint64_t pref_index = hash & (table->element_capacity-1);
     //uint64_t stride = sizeof(void*);
     struct tactyk_dblock__DBlock **fields = (struct tactyk_dblock__DBlock**)table->data;
-
     for (uint64_t i = pref_index; i < table->element_capacity; i += 1) {
         uint64_t ofs = i * 2;
         struct tactyk_dblock__DBlock *tbl_key = fields[ofs];
         struct tactyk_dblock__DBlock *tbl_value = fields[ofs+1];
-        if (tbl_value == NULL) {
+        if ((tbl_value == NULL) || (tbl_value == TACTYK_PSEUDONULL)) {
             return i;
         }
         if (tactyk_dblock__equals(key, tbl_key)) {
@@ -1250,7 +1255,7 @@ void tactyk_dblock__put(struct tactyk_dblock__DBlock *table, void *key, void *va
         //if (tactyk_dblock__is_dblock(tbl_value)) {
         //    struct tactyk_dblock__DBlock *tblv = (struct tactyk_dblock__DBlock*)tbl_value;
         //}
-        fields[offset] = TACTYK_PSEUDONULL;
+        fields[offset+1] = TACTYK_PSEUDONULL;
 
     }
     else if ( (value != NULL) && (tbl_value != NULL) ) {
@@ -1277,7 +1282,6 @@ void* tactyk_dblock__get(struct tactyk_dblock__DBlock *table, void *key) {
         }
         return NULL;
     }
-
     void **fields = (void**)table->data;
 
     uint64_t offset = (uint64_t)idx*2;
@@ -1287,7 +1291,6 @@ void* tactyk_dblock__get(struct tactyk_dblock__DBlock *table, void *key) {
     if (tmp_key != key) {
         tactyk_dblock__dispose(tmp_key);
     }
-
     if (tbl_value != TACTYK_PSEUDONULL) {
         return tbl_value;
     }

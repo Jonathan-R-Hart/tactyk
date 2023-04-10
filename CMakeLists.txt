@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(tactyk-p C CXX)
-project(tactyk-p VERSION 0.4.0)
+project(tactyk-p VERSION 0.5.0)
 
 add_library(tactyk
   libtactyk/tactyk_asmvm.c
@@ -12,6 +12,7 @@ add_library(tactyk
   libtactyk/tactyk_assembler.c
   libtactyk/tactyk_emit.c
   libtactyk/tactyk_visa.c
+  libtactyk/tactyk_debug.c
 )
 
 add_executable(tdemo
@@ -65,4 +66,7 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E create_symlink
           ${CMAKE_SOURCE_DIR}/examples/recursive.tkp
           ${CMAKE_CURRENT_BINARY_DIR}/examples/recursive.tkp
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_SOURCE_DIR}/examples/julia.tkp
+          ${CMAKE_CURRENT_BINARY_DIR}/examples/julia.tkp
 )

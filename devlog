@@ -1,3 +1,35 @@
+10 Apr 2023
+Completed the Julia Fractal example.  It in real-time at 128 max iterations.
+
+Add all xmm registers to context management.  This will increase context switch overhead, but is needed calling into functions which
+operate directly on tactyk contexts, to avoid potential data leakage to untrusted code, and [eventually] will also be needed for automated testing.
+Add full 128-bit xmm register storage to stash and unstash command.
+  (the 128-bit storage competes with 64-bit storage - a stashed 128-bit register uses both 64-bit slots)
+
+New debug system (simpler, calls into a debug C function instead of relying on a specialized debug invoker)
+Reworked register allocation to undermine unexpected memory copy operations (movsb).
+Also updated the internal representation of registers.
+
+Pending feature:  managed function calls
+ccall operation is to be redesigned to prevent undeclared parameters from being passed or received (mostly, this means a function signatures will be needed to configure tactyk-emit, and any unused parameter slots will be zeroed out by the generated code).
+  - It might also be worth considering adding ADA-like range restrictions on parameters passed to C functions
+
+6-8 Apr 2023
+Begin work on an SIMD handling
+Add basic floating point operations (using SSE2)
+Add example program: Julia fractal evaluator/renderer
+
+Fix incorrect table entry removal
+Fix immediate operand scrambling for qwords, then fix it again
+  It now uses loads the random value onto the target register, then the difference onto rTEMPD (rdx), and combines them with one xor.
+  rTEMPD is cleared at the end of the unscrambler.
+  If more than two scrambled immediates are needed (no such need at present), then one of the previously used registers must be reused.
+
+Add templates for conditional jumps using floating-point comparisons
+Add floating point templates to a few regular operators (add, sub, mul, div, assign)
+Add 2 banks of floating point values to the microcontext stash (shadowing the xmmx registers and doubling the stash size)
+Add options to the stash and unstash to handle floating point values
+
 6 Apr 2023
 Implement lightweight calls
   lwcall ... lwreturn is the mechanism for treating labelled statements within tactyk as subroutines.
@@ -10,6 +42,10 @@ Implement the microcontext stack
 
 Repurpose low-level memblock specification "left" and "right" properties.  They are being replaced with a memblock identifier and a type declaration,
 to make memblocks a bit more dynamic.  The old "left" and "right" fields originally were meant for queue-like behavior (a cancelled feature).
+
+Add optional operands to virtual ISA configuration
+Fix memory block layout not respecting a specifying struct
+
 
 5 Apr 2023
 Restructure the project (decouple the test/demo components from library components)

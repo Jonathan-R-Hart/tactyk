@@ -17,11 +17,17 @@
 
 #define TACTYK_PSEUDONULL ((void*)1)
 
+union tactyk_util__float_int {
+    double fval;
+    int64_t ival;
+};
+
 uint64_t tactyk_util__next_pow2(uint64_t val);
 bool tactyk_util__is_intstring(char* str);
 bool tactyk_util__try_parseint(int64_t *out, char *str, bool permissive);
 bool tactyk_util__is_uintstring(char* str);
 bool tactyk_util__try_parseuint(uint64_t *out, char *str, bool permissive);
+bool tactyk_util__try_parsedouble(double *out, char *str, uint64_t max_len);
 void tactyk_util__lcase(char *txt, int32_t max_length);
 void tactyk_util__ucase(char *txt, int32_t max_length);
 

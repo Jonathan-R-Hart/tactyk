@@ -104,6 +104,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     //tactyk_textbuf__init(&ctx->main_codebuf, TACTYK_EMIT__CODEBUF_INITCAPACITY, true);
 
     tactyk_dblock__put(ctx->operator_table, "symbol", tactyk_emit__Symbol);
+    //tactyk_dblock__put(ctx->operator_table, "fsymbol", tactyk_emit__FSymbol);
 
     tactyk_dblock__put(ctx->operator_table, "select-operand", tactyk_emit__SelectOp);
     tactyk_dblock__put(ctx->operator_table, "select-template", tactyk_emit__SelectTemplate);
@@ -115,6 +116,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     tactyk_dblock__put(ctx->operator_table, "pick", tactyk_emit__Pick);
     tactyk_dblock__put(ctx->operator_table, "operand", tactyk_emit__Operand);
+    tactyk_dblock__put(ctx->operator_table, "opt-operand", tactyk_emit__OptionalOperand);
     tactyk_dblock__put(ctx->operator_table, "type", tactyk_emit__Type);
     tactyk_dblock__put(ctx->operator_table, "value", tactyk_emit__Value);
 
@@ -122,6 +124,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__put(ctx->operator_table, "code", tactyk_emit__Code);
 
     tactyk_dblock__put(ctx->operator_table, "int-operand", tactyk_emit__IntOperand);
+    tactyk_dblock__put(ctx->operator_table, "float-operand", tactyk_emit__FloatOperand);
 
     tactyk_dblock__put(ctx->operator_table, "sub", tactyk_emit__DoSub);
     tactyk_dblock__put(ctx->operator_table, "label", tactyk_emit__CheckedLabel);
@@ -191,6 +194,9 @@ bool tactyk_emit__ExecSubroutine(struct tactyk_emit__Context *ctx, struct tactyk
     struct tactyk_dblock__DBlock *sub_data = data->child;
     while (sub_data != NULL) {
         struct tactyk_dblock__DBlock *name = sub_data->token;
+        //printf("token: ");
+        //tactyk_dblock__println(name);
+
         tactyk_emit__sub_func sfunc = tactyk_dblock__get(ctx->operator_table, name);
         if (sfunc != NULL) {
             if (!sfunc(ctx, sub_data)) {
@@ -200,8 +206,8 @@ bool tactyk_emit__ExecSubroutine(struct tactyk_emit__Context *ctx, struct tactyk
         else {
             struct tactyk_dblock__DBlock *varname = name;
             if (tactyk_dblock__getchar(varname, 0) == '$') {
-                struct tactyk_dblock__DBlock *varvalue_raw = varname->next;
 
+                struct tactyk_dblock__DBlock *varvalue_raw = varname->next;
                 if (varvalue_raw != NULL) {
                     tactyk_emit__fetch_var(ctx, varname, varvalue_raw);
                     goto do_next_sub;
@@ -273,12 +279,14 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
     ctx->symbol_tables = tactyk_dblock__new_table(128);
     ctx->label_table = tactyk_dblock__new_table(256);
     ctx->const_table = tactyk_dblock__new_table(64);
+    ctx->fconst_table = tactyk_dblock__new_table(64);
     ctx->memblock_table = tactyk_dblock__new_table(64);
 
     ctx->program->functions = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_asmvm__identifier));
 
     tactyk_dblock__put(ctx->symbol_tables, "label", ctx->label_table);
     tactyk_dblock__put(ctx->symbol_tables, "const", ctx->const_table);
+    tactyk_dblock__put(ctx->symbol_tables, "fconst", ctx->fconst_table);
     tactyk_dblock__put(ctx->symbol_tables, "mem", ctx->memblock_table);
     tactyk_dblock__put(ctx->symbol_tables, "capi", ctx->c_api_table);
     tactyk_dblock__put(ctx->symbol_tables, "tapi", ctx->api_table);
@@ -293,7 +301,6 @@ bool tactyk_emit__Type(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
         }
         token = token->next;
     }
-    printf("ts-fail\n");
     return false;
 }
 
@@ -327,6 +334,22 @@ bool tactyk_emit__IntOperand(struct tactyk_emit__Context *ctx, struct tactyk_dbl
     }
 }
 
+// parse a float.
+//  If success, use a 64-bit integer as an intermediate representation so it can be treated like any other 64-bit field (required for immediate scrambling).
+bool tactyk_emit__FloatOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    union tactyk_util__float_int val;
+
+    if (tactyk_dblock__try_parsedouble(&val.fval, ctx->pl_operand_resolved)) {
+        ctx->pl_operand_resolved = tactyk_dblock__from_int(val.ival);
+        tactyk_dblock__put(ctx->local_vars, "$KW", tactyk_dblock__from_c_string("qword"));
+        tactyk_dblock__put(ctx->local_vars, "$VALUE",  ctx->pl_operand_resolved);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 int64_t tactyk_dblock__table_find(struct tactyk_dblock__DBlock *table, struct tactyk_dblock__DBlock *key);
 
 bool tactyk_emit__Symbol(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
@@ -345,6 +368,7 @@ bool tactyk_emit__Symbol(struct tactyk_emit__Context *ctx, struct tactyk_dblock_
     }
     return true;
 }
+
 
 bool tactyk_emit__ExecSelector(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     struct tactyk_dblock__DBlock *sub_data = data->child;
@@ -389,12 +413,17 @@ bool tactyk_emit__Flags(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
 }
 bool tactyk_emit__SelectOp(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     ctx->select_token = ctx->pl_operand_raw;
-    //printf("seelect-operand: ");
-   // tactyk_dblock__println(ctx->pl_operand_raw);
+    if (ctx->select_token == NULL) {
+        ctx->select_token = tactyk_dblock__from_c_string("[[ NULL ]]");
+    }
     return tactyk_emit__ExecSelector(ctx, data);
 }
 bool tactyk_emit__SelectTemplate(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     ctx->select_token = ctx->code_template;
+    #ifdef TACTYK_DEBUG
+    printf("SELECT-TEMPLATE:  ");
+    tactyk_dblock__println(ctx->select_token);
+    #endif // TACTYK_DEBUG
     return tactyk_emit__ExecSelector(ctx, data);
 }
 
@@ -446,12 +475,26 @@ bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock
     else {
         ctx->pl_operand_resolved = tactyk_dblock__from_c_string("[[ NULL ]]");
     }
-
     if (!tactyk_emit__ExecSubroutine(ctx, data)) {
-        tactyk_dblock__print_structure_simple(data);
-        error("EMIT -- failed to handle operand", data);
+        return false;
+    }
+
+    //if (!tactyk_emit__ExecSubroutine(ctx, data)) {
+    //    tactyk_dblock__print_structure_simple(data);
+    //    error("EMIT -- failed to handle operand", data);
+    //}
+    return true;
+}
+
+bool tactyk_emit__OptionalOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    struct tactyk_dblock__DBlock *raw_operand = ctx->pl_operand_raw;
+
+    // if the standard operand applicator fails, put the raw operand back so a non-optional operand can handle it.
+    if (!tactyk_emit__Operand(ctx, vopcfg)) {
+        ctx->pl_operand_raw = raw_operand;
     }
     return true;
+
 }
 
 // Called by functions which write to $VALUE to ensure $KW is updated with an appropriate keyword (for integer handling that differ based on word size).
@@ -492,6 +535,7 @@ bool tactyk_emit__NullArg(struct tactyk_emit__Context *ctx, struct tactyk_dblock
     char buf[16];
     tactyk_dblock__export_cstring(buf, 16, ctx->pl_operand_resolved);
     if (strncmp(buf, "[[ NULL ]]", 16) == 0) {
+        tactyk_dblock__put(ctx->local_vars, "$VALUE",  ctx->pl_operand_resolved);
         return true;
     }
     else {
@@ -500,7 +544,7 @@ bool tactyk_emit__NullArg(struct tactyk_emit__Context *ctx, struct tactyk_dblock
 }
 
 bool tactyk_emit__Value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
-    struct tactyk_dblock__DBlock *varvalue = tactyk_emit__fetch_var(ctx, "$VALUE", data->token->next);
+    tactyk_emit__fetch_var(ctx, "$VALUE", data->token->next);
     tactyk_emit__comprehend_int_value(ctx, data->token->next);
     return true;
 }
@@ -527,6 +571,9 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     }
     int64_t raw_val;
 
+    //printf("SCRAMBLE:  ");
+    //tactyk_dblock__println(sc_input);
+
     // if no integer input, cancel and output a dummy value as "de-scrambling" code.
     //      This looseness is a hack to allow operands to resolve to non-integer tokens without having to make the type specification subroutines
     //      aware either of other type specifiers or of the target variables that their outputs are to be stored in.
@@ -543,13 +590,10 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     uint64_t rand_val;
     ctx->rand(&rand_val, 8);
     uint64_t diff_val = (uint64_t)raw_val ^ rand_val;
-
-    struct tactyk_dblock__DBlock *kw = tactyk_dblock__get(ctx->local_vars, "$KW");
-
-    bool is_qword = false;
+    //bool is_qword = false;
 
     if (raw_val < 0) {
-        is_qword = true;
+        //is_qword = true;
     }
     else if (raw_val <= 0xff) {
         rand_val &= 0xff;
@@ -564,41 +608,23 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
         diff_val &= 0xffffffff;
     }
     else {
-        is_qword = true;
+        //is_qword = true;
     }
 
-    if (is_qword) {
-        uint64_t rand_high = rand_val >> 32;
-        uint64_t rand_low = rand_val & 0xffffffff;
-        uint64_t diff_high = diff_val >> 32;
-        uint64_t diff_low = diff_val & 0xffffffff;
+    struct tactyk_dblock__DBlock *sc_rand = tactyk_dblock__from_uint(rand_val);
+    struct tactyk_dblock__DBlock *sc_diff = tactyk_dblock__from_uint(diff_val);
+    tactyk_dblock__put(ctx->local_vars, "$SC_RAND", sc_rand);
+    tactyk_dblock__put(ctx->local_vars, "$SC_DIFF", sc_diff);
+    tactyk_dblock__put(ctx->local_vars, "$SC_DEST", sc_dest_register);
 
-        struct tactyk_dblock__DBlock *sc_rand_high = tactyk_dblock__from_uint(rand_high);
-        struct tactyk_dblock__DBlock *sc_diff_high = tactyk_dblock__from_uint(diff_high);
-        struct tactyk_dblock__DBlock *sc_rand_low = tactyk_dblock__from_uint(rand_low);
-        struct tactyk_dblock__DBlock *sc_diff_low = tactyk_dblock__from_uint(diff_low);
-        tactyk_dblock__put(ctx->local_vars, "$SC_RAND_HIGH", sc_rand_high);
-        tactyk_dblock__put(ctx->local_vars, "$SC_DIFF_HIGH", sc_diff_high);
-        tactyk_dblock__put(ctx->local_vars, "$SC_RAND_LOW", sc_rand_low);
-        tactyk_dblock__put(ctx->local_vars, "$SC_DIFF_LOW", sc_diff_low);
-        tactyk_dblock__put(ctx->local_vars, "$SC_DEST", sc_dest_register);
-    }
-    else {
-        struct tactyk_dblock__DBlock *sc_rand = tactyk_dblock__from_uint(rand_val);
-        struct tactyk_dblock__DBlock *sc_diff = tactyk_dblock__from_uint(diff_val);
-        tactyk_dblock__put(ctx->local_vars, "$SC_RAND", sc_rand);
-        tactyk_dblock__put(ctx->local_vars, "$SC_DIFF", sc_diff);
-        tactyk_dblock__put(ctx->local_vars, "$SC_DEST", sc_dest_register);
-    }
-
+    tactyk_dblock__delete(ctx->local_vars, "$SC");
     struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->subroutine_table, "scramble");
-    bool result = sub->func(ctx, sub->vopcfg);
-
-    struct tactyk_dblock__DBlock *code = tactyk_dblock__get(ctx->local_vars, "$SC");
-    tactyk_dblock__put(ctx->local_vars, sc_code_name, code);
+    if (sub->func(ctx, sub->vopcfg)) {
+        struct tactyk_dblock__DBlock *code = tactyk_dblock__get(ctx->local_vars, "$SC");
+        tactyk_dblock__put(ctx->local_vars, sc_code_name, code);
+    }
     return true;
 }
-
 
 bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     struct tactyk_dblock__DBlock *target_name = data->token->next;
@@ -672,7 +698,7 @@ void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tact
 }
 
 void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *token, struct tactyk_dblock__DBlock *line) {
-    struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->subroutine_table, token);
+    //struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->subroutine_table, token);
     struct tactyk_dblock__DBlock *name = token;
     struct tactyk_emit__script_command *cmd = tactyk_dblock__new_object(ctx->script_commands);
     cmd->name = name;
@@ -688,8 +714,6 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     for (uint64_t i = 0; i < ctx->script_commands->element_count; i += 1) {
         struct tactyk_emit__script_command *cmd = tactyk_dblock__index(ctx->script_commands, i);
-        //printf("CMD #%ju: ", i);
-        //tactyk_dblock__println(cmd->name);
         ctx->iptr = i;
         ctx->active_command = cmd;
         struct tactyk_dblock__DBlock *label = cmd->labels;
@@ -702,13 +726,14 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
 
         sub->func(ctx, sub->vopcfg);
 
-        /*{
+        #ifdef TACTYK_DEBUG
+        {
             printf("COMMAND: ");
             tactyk_dblock__println(cmd->name);
             tactyk_dblock__println(cmd->asm_code);
             printf("---\n");
-        }*/
-
+        }
+        #endif // TACTYK_DEBUG
     }
 
     uint64_t program_size = ctx->script_commands->element_count;

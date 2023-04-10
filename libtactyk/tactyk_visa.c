@@ -80,7 +80,6 @@ void tactyk_visa__init(char *fname) {
     //
     // Afterward, apply the configuration by invoking the handler for component top-level item in the data structure
     FILE *f = fopen(fname, "r");
-
     fseek(f, 0, SEEK_END);
     int64_t len = ftell(f);
     uint8_t *fbytes = calloc(len, sizeof(uint8_t));

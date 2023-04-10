@@ -8,4 +8,4 @@ void aux_sdl__render(struct tactyk_asmvm__Context *asmvm_ctx);
 void aux_sdl__update_buffer(struct tactyk_asmvm__Context *asmvm_ctx);
 void aux_sdl__release(struct tactyk_asmvm__Context *asmvm_ctx);
 void aux_sdl__quit(struct tactyk_asmvm__Context *asmvm_ctx);
-void aux_sdl__is_window_closing(struct tactyk_asmvm__Context *asmvm_ctx);
+void aux_sdl__consume_events(struct tactyk_asmvm__Context *asmvm_ctx);

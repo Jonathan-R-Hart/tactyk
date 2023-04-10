@@ -7,17 +7,30 @@
 #   preceding state.
 #   When there are no more open positions, it returns, waits for the user to close the window, then exits.
 
-extmem video
 
 struct global
   8 width
   8 height
   8 padding
 
+struct sdl_state
+  8 mpos_x
+  8 mpos_y
+  8 key
+  1 closing
+  1 mousemoved
+  6 unused
+  8 padding
+
 mem global_vars global 1
 
+extmem video
+mem s_state sdl_state 1
+
 text header
-  SDL framebuffer rendering demo
+  TACTYK Example - Recursion
+  This uses a randomized recursive backtracker to draw a blob.  This does not use memory very efficiently...
+  Press 'q' or 'escape' to quit.  Or close the window.  It all suppsedly works.
 
 text footer
   Done.
@@ -29,6 +42,7 @@ const FRAME_HEIGHT 480
 MAIN:
   bind addr1 header
   bind addr2 global_vars
+  bind addr3 s_state
   bind addr4 video
   assign b 0
   
@@ -41,17 +55,14 @@ MAIN:
   assign a newline
   ccall printchar
 
-  assign a 0
-
   # obtain an SDL-backed framebuffer
   tcall sdl_init
-  assign a 0
-  assign b 4
+  assign a 4
+  assign b 3
   assign c FRAME_WIDTH
   assign d FRAME_HEIGHT
   tcall fb_new
   store qword addr2 global.width a
-  assign a 0
   
   tcall fb_render
   
@@ -66,7 +77,6 @@ MAIN:
   lwcall RANDDRAW
 
   FINISH:
-  assign a 0
   tcall fb_update
   tcall fb_render
 
@@ -74,17 +84,14 @@ MAIN:
   assign a 50
   ccall sleep
   
-  assign a 0
+  lwcall CHK_UI_STATE
+  
   tcall fb_render
-  tcall sdl_isclosing
-  if a == 1 CLOSE
   
   goto WAIT
   
-  CLOSE:
-  
+  CLOSE_AND_EXIT:  
   # close the SDL window and clean up
-  assign a 0
   tcall fb_release
   tcall sdl_quit
   
@@ -104,14 +111,12 @@ MAIN:
   exit
 
   RANDDRAW:
-  assign a 0
   tcall fb_update
   tcall fb_render
   assign a 1
   ccall sleep
   
-  tcall sdl_isclosing
-  if a == 1 CLOSE
+  lwcall CHK_UI_STATE
   
   mctxpush
   stash b1c1e1
@@ -180,6 +185,12 @@ MAIN:
   mctxpop
   lwreturn
 
-
-
+CHK_UI_STATE:
+  tcall sdl_update_state
+  load qword a addr3 sdl_state.key
+  if a == 20 CLOSE_AND_EXIT
+  if a == 41 CLOSE_AND_EXIT
+  load byte a addr3 sdl_state.closing
+  if a == 1 CLOSE_AND_EXIT
+  lwreturn
 
