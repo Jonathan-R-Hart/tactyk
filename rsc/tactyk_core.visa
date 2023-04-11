@@ -1785,9 +1785,9 @@ instruction stash
     contains x1n
       code
         movq gs:[microcontext.x1n], xN
-    contains x1o
-      code
-        movq gs:[microcontext.x1o], xO
+    #contains x1o
+    #  code
+    #    movq gs:[microcontext.x1o], xO
     #contains x1p
     #  code
     #    movq gs:[microcontext.x1p], xP
@@ -1834,9 +1834,9 @@ instruction stash
     contains x2n
       code
         movq gs:[microcontext.x2n], xN
-    contains x2o
-      code
-        movq gs:[microcontext.x2o], xO
+    #contains x2o
+    #  code
+    #    movq gs:[microcontext.x2o], xO
     #contains x2p
     #  code
     #    movq gs:[microcontext.x2p], xP
@@ -1883,9 +1883,9 @@ instruction stash
     contains xn
       code
         movdqu gs:[microcontext.xn], xN
-    contains xo
-      code
-        movdqu gs:[microcontext.xo], xO
+    #contains xo
+    #  code
+    #    movdqu gs:[microcontext.xo], xO
     #contains xp
     #  code
     #    movdqu gs:[microcontext.xp], xP
@@ -1991,9 +1991,9 @@ instruction unstash
     contains x1n
       code
         movq xN, gs:[microcontext.x1n]
-    contains x1o
-      code
-        movq xO, gs:[microcontext.x1o]
+    #contains x1o
+    #  code
+    #    movq xO, gs:[microcontext.x1o]
     #contains x1p
     #  code
     #    movq xP, gs:[microcontext.x1p]
@@ -2089,9 +2089,9 @@ instruction unstash
     contains xn
       code
         movdqu xN, gs:[microcontext.xn]
-    contains xo
-      code
-        movdqu xO, gs:[microcontext.xo]
+    #contains xo
+    #  code
+    #    movdqu xO, gs:[microcontext.xo]
     #contains xp
     #  code
     #    movdqu xP, gs:[microcontext.xp]
@@ -2186,8 +2186,6 @@ typespec xmmx
       value xmm12
     case x13 xmm13 xn
       value xmm13
-    case x14 xmm14 xo
-      value xmm14
   pick X
 
 instruction vec-in

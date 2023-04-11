@@ -90,8 +90,8 @@ struct tactyk_asmvm__register_bank {
 
     union tactyk_asmvm__reg128 xm;
     union tactyk_asmvm__reg128 xn;
-    union tactyk_asmvm__reg128 xo;
-    union tactyk_asmvm__reg128 xp;
+    union tactyk_asmvm__reg128 xTEMPA;
+    union tactyk_asmvm__reg128 xTEMPB;
 
     // maybe should consider also includ a set of "long double" entries to represent the x87 fpu
     //      But for now, there is no aspect of tactyk which itneracts with it, and sse2 was selected for floating point math

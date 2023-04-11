@@ -29,8 +29,8 @@ void tactyk_debug__print_context(struct tactyk_asmvm__Context *ctx) {
     printf("| rADDR4   (r10) | %20p | xL (xmm11)     | %-20f | %-20f |\n", ctx->regbank_A.rADDR4, ctx->regbank_A.xl.f64[1], ctx->regbank_A.xl.f64[0]);
     printf("| rA       (rdi) | %20jd | xM (xmm12)     | %-20f | %-20f |\n", ctx->regbank_A.rA, ctx->regbank_A.xm.f64[1], ctx->regbank_A.xm.f64[0]);
     printf("| rB       (rsi) | %20jd | xN (xmm13)     | %-20f | %-20f |\n", ctx->regbank_A.rB, ctx->regbank_A.xn.f64[1], ctx->regbank_A.xn.f64[0]);
-    printf("| rC       (r11) | %20jd | xTEMPA (xmm14) | %-20f | %-20f |\n", ctx->regbank_A.rC, ctx->regbank_A.xo.f64[1], ctx->regbank_A.xo.f64[0]);
-    printf("| rD       (r13) | %20jd | xTEMPB (xmm15) | %-20f | %-20f |\n", ctx->regbank_A.rD, ctx->regbank_A.xp.f64[1], ctx->regbank_A.xp.f64[0]);
+    printf("| rC       (r11) | %20jd | xTEMPA (xmm14) | %-20f | %-20f |\n", ctx->regbank_A.rC, ctx->regbank_A.xTEMPA.f64[1], ctx->regbank_A.xTEMPA.f64[0]);
+    printf("| rD       (r13) | %20jd | xTEMPB (xmm15) | %-20f | %-20f |\n", ctx->regbank_A.rD, ctx->regbank_A.xTEMPB.f64[1], ctx->regbank_A.xTEMPB.f64[0]);
     printf("| rE       (r8)  | %20jd | ---            |                  --- |                  --- |\n", ctx->regbank_A.rE);
     printf("| rF       (r8)  | %20jd | ---            |                  --- |                  --- |\n", ctx->regbank_A.rF);
     printf("========================================================================================================\n");
