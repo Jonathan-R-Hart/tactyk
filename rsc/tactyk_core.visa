@@ -212,10 +212,6 @@ typespec comparator
       $VPREDCOMPLEMENT 4
   pick T
 
-# define RESET_TEMP
-#   code
-#     xor $TEMP, $TEMP
-
 # immediate scrambling config
 # This sets up the scrambling system whereby the script-provided immediate values are scrabled in executable memory and
 # unscrambled when accessed.
@@ -2188,12 +2184,17 @@ typespec xmmx
       value xmm13
   pick X
 
+typespec vec-transform
+  select-operand
+    case itof
+      pick Itof
+    case float
+    case ftoi
+      pick Ftoi
+
 instruction vec-in
   opt-operand
-    select-operand
-      case itof
-        pick I
-      case float
+    type vec-transform
   operand
     type xmmx
     $DEST $VALUE
@@ -2232,20 +2233,20 @@ instruction vec-in
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
     
-    case IXIN IXCN
+    case ItofXIN ItofXCN
       code
         $LD_SOURCE_IMMEDIATE
         cvtsi2sd $DEST, rTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     # load an integer value from a data register, convert it to a float
-    case IXDN
+    case ItofXDN
       code
         CVTSI2SD $DEST, $SOURCE
         jmp $NEXT_INSTRUCTION
     
     # load floating point value(s) from memory
-    case IXAI IXAC
+    case ItofXAI ItofXAC
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
@@ -2258,12 +2259,9 @@ instruction vec-in
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
         
-
 instruction vec-out
   opt-operand
-    select-operand
-      case ftoi
-        pick I
+    type vec-transform
   operand
     type data address
     $DST $VALUE
@@ -2293,11 +2291,11 @@ instruction vec-out
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
-    case IDXN
+    case FtoiDXN
       code
         CVTTSD2SI $DST, $B
         jmp $NEXT_INSTRUCTION
-    case IAIX IACX
+    case FtoiAIX FtoiACX
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
