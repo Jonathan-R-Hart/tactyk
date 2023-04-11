@@ -15,7 +15,13 @@ struct tactyk_dblock__DBlock *cmd_lasttoken;
 struct tactyk_dblock__DBlock* tactyk_emit_svc__get_text(struct tactyk_asmvm__Context *asmvm_ctx, uint64_t slot);
 struct tactyk_dblock__DBlock* tactyk_emit_svc__get_token(uint64_t handle);
 
+void tactyk_emit_svc__declare_memblock(struct tactyk_asmvm__Context *asmvm_ctx, struct tactyk_asmvm__memblock_lowlevel **m_ll, struct tactyk_asmvm__memblock_highlevel **m_hl);
+void tactyk_emit_svc__define_memblock(struct tactyk_asmvm__Context *asmvm_ctx, struct tactyk_asmvm__memblock_lowlevel **m_ll, struct tactyk_asmvm__memblock_highlevel **m_hl);
+
 void tactyk_emit_svc__configure(struct tactyk_emit__Context *emit_context) {
+    tactyk_emit_svc__emitctx = emit_context;
+}
+void tactyk_emit_svc__disconfigure(struct tactyk_emit__Context *emit_context) {
     tactyk_emit_svc__emitctx = emit_context;
 }
 
@@ -29,25 +35,59 @@ void tactyk_emit_svc__build(struct tactyk_asmvm__Context *asmvm_ctx) {
 }
 
 void tactyk_emit_svc__mem_external(struct tactyk_asmvm__Context *asmvm_ctx) {
-    struct tactyk_dblock__DBlock *mname = tactyk_emit_svc__get_text(asmvm_ctx, 0);
-    // declare a memblock
+    struct tactyk_asmvm__memblock_lowlevel *mem_ll = NULL;
+    struct tactyk_asmvm__memblock_highlevel *mem_hl = NULL;
+
+    tactyk_emit_svc__declare_memblock(asmvm_ctx, &mem_ll, &mem_hl);
+}
+
+void tactyk_emit_svc__mem_ref(struct tactyk_asmvm__Context *asmvm_ctx) {
+    // copy a memblock ref from the asmvm_ctx
+    struct tactyk_asmvm__memblock_lowlevel *mem_ll = NULL;
+    struct tactyk_asmvm__memblock_highlevel *mem_hl = NULL;
+
+    tactyk_emit_svc__declare_memblock(asmvm_ctx, &mem_ll, &mem_hl);
+
+    struct tactyk_asmvm__memblock_lowlevel *refm_ll = &asmvm_ctx->active_memblocks[1];
+    struct tactyk_asmvm__memblock_highlevel *refm_hl = tactyk_dblock__index(asmvm_ctx->hl_program_ref->memory_layout_hl, refm_ll->memblock_index);
+
+    if ( (refm_ll->array_bound <= 0) || (refm_ll->element_bound <= 0) ) {
+        error("EMIT-SVC -- invalid source memblock", NULL);
+    }
+
+    mem_ll->array_bound = refm_ll->array_bound;
+    mem_ll->element_bound = refm_ll->element_bound;
+    mem_ll->type = refm_ll->type;
+    mem_ll->base_address = refm_ll->base_address;
+
+    mem_hl->num_entries = refm_hl->num_entries;
+    mem_hl->type = refm_hl->type;
+    mem_hl->data = refm_hl->data;
+    mem_hl->definition = refm_hl->definition;
 }
 
 void tactyk_emit_svc__mem_empty(struct tactyk_asmvm__Context *asmvm_ctx) {
-    struct tactyk_dblock__DBlock *mname = tactyk_emit_svc__get_text(asmvm_ctx, 0);
-    uint64_t capacity = asmvm_ctx->regbank_A.rC;
+    struct tactyk_asmvm__memblock_lowlevel *mem_ll = NULL;
+    struct tactyk_asmvm__memblock_highlevel *mem_hl = NULL;
 
-    // make empty memblock
+    tactyk_emit_svc__define_memblock(asmvm_ctx, &mem_ll, &mem_hl);
 }
 
 void tactyk_emit_svc__mem_data(struct tactyk_asmvm__Context *asmvm_ctx) {
-    struct tactyk_dblock__DBlock *mname = tactyk_emit_svc__get_text(asmvm_ctx, 0);
-    struct tactyk_dblock__DBlock *db = tactyk_emit_svc__get_text(asmvm_ctx, 1);
-    uint8_t *data = (uint8_t*) db->data;
-    uint64_t capacity = db->length;
-    tactyk_dblock__release(db);
+    struct tactyk_asmvm__memblock_lowlevel *mem_ll = NULL;
+    struct tactyk_asmvm__memblock_highlevel *mem_hl = NULL;
+    tactyk_emit_svc__declare_memblock(asmvm_ctx, &mem_ll, &mem_hl);
 
-    // make memblock with data
+    struct tactyk_asmvm__memblock_lowlevel *refm_ll = &asmvm_ctx->active_memblocks[1];
+    struct tactyk_asmvm__memblock_highlevel *refm_hl = tactyk_dblock__index(asmvm_ctx->hl_program_ref->memory_layout_hl, refm_ll->memblock_index);
+
+    if ( (refm_ll->array_bound <= 0) || (refm_ll->element_bound <= 0) ) {
+        error("EMIT-SVC -- invalid source memblock", NULL);
+    }
+
+    uint64_t len = refm_ll->array_bound + refm_ll->element_bound + 7;
+    uint8_t *data = calloc(1, len);
+    memcpy(data, refm_ll->base_address, len);
 }
 
 void tactyk_emit_svc__label(struct tactyk_asmvm__Context *asmvm_ctx) {
@@ -169,6 +209,55 @@ struct tactyk_dblock__DBlock* tactyk_emit_svc__get_token(uint64_t handle) {
     return t;
 }
 
+void tactyk_emit_svc__declare_memblock(struct tactyk_asmvm__Context *asmvm_ctx, struct tactyk_asmvm__memblock_lowlevel **m_ll, struct tactyk_asmvm__memblock_highlevel **m_hl) {
+    struct tactyk_dblock__DBlock *mem_name = tactyk_emit_svc__get_text(asmvm_ctx, 0);
+    int64_t id = tactyk_emit_svc__plctx->memspec_highlevel_table->element_count;
 
+    assert(tactyk_emit_svc__plctx->memspec_lowlevel_buffer->element_count == tactyk_emit_svc__plctx->memspec_highlevel_table->element_count);
+
+    *m_ll = (struct tactyk_asmvm__memblock_lowlevel*) tactyk_dblock__new_object(tactyk_emit_svc__plctx->memspec_lowlevel_buffer);
+    *m_hl = (struct tactyk_asmvm__memblock_highlevel*) tactyk_dblock__new_managedobject(tactyk_emit_svc__plctx->memspec_highlevel_table, mem_name);
+
+    struct tactyk_asmvm__memblock_lowlevel *mem_ll = *m_ll;
+    struct tactyk_asmvm__memblock_highlevel *mem_hl = *m_hl;
+
+    mem_ll->array_bound = 0;
+    mem_ll->element_bound = 0;
+    mem_ll->memblock_index = id;
+    mem_ll->type = 0;
+    mem_ll->base_address = NULL;
+
+    mem_hl->memblock = mem_ll;
+    mem_hl->num_entries = 0;
+    mem_hl->memblock_id = id;
+    mem_hl->data = NULL;
+    mem_hl->definition = calloc(1, sizeof(struct tactyk_asmvm__struct));
+    mem_hl->definition->byte_stride = 0;
+    mem_hl->definition->num_properties = 0;
+
+    struct tactyk_dblock__DBlock *memid = tactyk_dblock__from_int(id);
+    tactyk_dblock__put(tactyk_emit_svc__emitctx->memblock_table, mem_name, memid);
+}
+
+void tactyk_emit_svc__define_memblock(struct tactyk_asmvm__Context *asmvm_ctx, struct tactyk_asmvm__memblock_lowlevel **m_ll, struct tactyk_asmvm__memblock_highlevel **m_hl) {
+    struct tactyk_dblock__DBlock *mem_name = tactyk_emit_svc__get_text(asmvm_ctx, 0);
+    uint64_t element_count = asmvm_ctx->regbank_A.rC;
+    uint64_t element_size = asmvm_ctx->regbank_A.rD;
+
+    tactyk_emit_svc__declare_memblock(asmvm_ctx, m_ll, m_hl);
+
+    struct tactyk_asmvm__memblock_lowlevel *mem_ll = *m_ll;
+    struct tactyk_asmvm__memblock_highlevel *mem_hl = *m_hl;
+
+    mem_ll->array_bound = (element_count-1) * element_size + 1;
+    mem_ll->element_bound = element_size - 7;
+    mem_hl->num_entries = element_count;
+    mem_hl->definition->byte_stride = element_size;
+    mem_hl->definition->num_properties = 0;
+
+    uint8_t *data = calloc(element_count, element_size);
+    mem_ll->base_address = data;
+    mem_hl->data = data;
+}
 
 

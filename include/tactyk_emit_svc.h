@@ -18,11 +18,13 @@
 */
 
 void tactyk_emit_svc__configure(struct tactyk_emit__Context *emit_context);
+void tactyk_emit_svc__disconfigure(struct tactyk_emit__Context *emit_context);
 
 void tactyk_emit_svc__new(struct tactyk_asmvm__Context *asmvm_ctx);
 void tactyk_emit_svc__build(struct tactyk_asmvm__Context *asmvm_ctx);
 
 void tactyk_emit_svc__mem_external(struct tactyk_asmvm__Context *asmvm_ctx);
+void tactyk_emit_svc__mem_ref(struct tactyk_asmvm__Context *asmvm_ctx);
 void tactyk_emit_svc__mem_empty(struct tactyk_asmvm__Context *asmvm_ctx);
 void tactyk_emit_svc__mem_data(struct tactyk_asmvm__Context *asmvm_ctx);
 
