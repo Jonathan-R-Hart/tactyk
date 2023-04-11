@@ -31,7 +31,7 @@ void tactyk_pl__init() {
     tactyk_dblock__put(tkpl_funcs, "var", tactyk_pl__var);
     tactyk_dblock__put(tkpl_funcs, "get", tactyk_pl__get);
     tactyk_dblock__put(tkpl_funcs, "set", tactyk_pl__set);
-    tactyk_dblock__put(tkpl_funcs, "vconstants", tactyk_pl__ld_visa_constants);
+    tactyk_dblock__put(tkpl_funcs, "add_vconstants", tactyk_pl__ld_visa_constants);
 
     default_mem_layout.byte_stride = 8;
     strcpy(default_mem_layout.name, "default-layout");
@@ -96,8 +96,8 @@ void tactyk_pl__load(struct tactyk_pl__Context *plctx, char *code) {
             tactyk_pl__func func = tactyk_dblock__get(tkpl_funcs, dbcode->token);
             if (func == NULL) {
                 escape_block = false;
-
                 struct tactyk_dblock__DBlock *tok = dbcode->token;
+
                 assert (tok != NULL);
                 if (tactyk_dblock__lastchar(tok) == ':') {
                     tok->length -= 1;       // ignore the ':'
@@ -659,17 +659,18 @@ bool tactyk_pl__const(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlo
     return true;
 }
 bool tactyk_pl__ld_visa_constants(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
-    printf("VISA-CONSTANTS\n");
-    struct tactyk_dblock__DBlock *ctable = ctx->emitctx->visa_token_constants;
-    struct tactyk_dblock__DBlock **fields = (struct tactyk_dblock__DBlock**) ctable->data;
-    for (uint64_t i = 0; i < ctable->capacity; i += 2) {
-        struct tactyk_dblock__DBlock *key = fields[i];
-        struct tactyk_dblock__DBlock *value = fields[i];
-        if ( (key != NULL) && (value != NULL) && (value != TACTYK_PSEUDONULL) ) {
-            tactyk_dblock__print(key);
-            printf("::: ");
-            tactyk_dblock__print(value);
+    struct tactyk_emit__Context *ectx = ctx->emitctx;
+    if (ectx->has_visa_constants == false) {
+        ectx->has_visa_constants = true;
+        struct tactyk_dblock__DBlock *ctable = ectx->visa_token_constants;
+        struct tactyk_dblock__DBlock **fields = (struct tactyk_dblock__DBlock**) ctable->data;
+        for (uint64_t i = 0; i < ctable->element_capacity; i += 1) {
+            uint64_t ofs = i*2;
+            struct tactyk_dblock__DBlock *key = fields[ofs];
+            struct tactyk_dblock__DBlock *value = fields[ofs+1];
+            if ( (key != NULL) && (value != NULL) && (value != TACTYK_PSEUDONULL) ) {
+                tactyk_dblock__put(ectx->const_table, key, value);
+            }
         }
-
     }
 }

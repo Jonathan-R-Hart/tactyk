@@ -151,14 +151,17 @@ bool tactyk_visa__mk_typespec(struct tactyk_emit__Context *ctx, struct tactyk_db
         uint64_t index = ctx->type_specifier_count;
         ctx->type_specifier_count += 1;
         struct tactyk_dblock__DBlock *ts_value = tactyk_dblock__from_uint(index);
-        struct tactyk_dblock__DBlock *spec_token = specifier->token;
-
+        struct tactyk_dblock__DBlock *spec_token = specifier->token->next;
+        struct tactyk_dblock__DBlock *ts_name;
         while (spec_token != NULL) {
-            struct tactyk_dblock__DBlock *ts_name = tactyk_dblock__data_copy(name);
+            ts_name = tactyk_dblock__new(16);
             tactyk_dblock__append_char(ts_name, '.');
             tactyk_dblock__append(ts_name, spec_token);
             tactyk_dblock__put(ctx->visa_token_constants, ts_name, ts_value);
             spec_token = spec_token->next;
+        }
+        if (ts_name != NULL) {
+            tactyk_dblock__put(ctx->visa_token_invmap, ts_value, ts_name);
         }
         specifier = specifier->next;
     }

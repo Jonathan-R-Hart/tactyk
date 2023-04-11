@@ -80,7 +80,9 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     ctx->api_table = tactyk_dblock__new_table(64);
     ctx->c_api_table = tactyk_dblock__new_table(64);
     ctx->visa_token_constants = tactyk_dblock__new_table(512);
+    ctx->visa_token_invmap = tactyk_dblock__new_table(512);
     ctx->type_specifier_count = 0;
+    ctx->has_visa_constants = false;
     ctx->operator_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
     ctx->typespec_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
     ctx->instruction_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
@@ -92,6 +94,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__set_persistence_code(ctx->api_table, 1);
     tactyk_dblock__set_persistence_code(ctx->c_api_table, 1);
     tactyk_dblock__set_persistence_code(ctx->visa_token_constants, 1);
+    tactyk_dblock__set_persistence_code(ctx->visa_token_invmap, 1);
     tactyk_dblock__set_persistence_code(ctx->operator_table, 1);
     tactyk_dblock__set_persistence_code(ctx->typespec_table, 1);
     tactyk_dblock__set_persistence_code(ctx->instruction_table, 1);
@@ -232,6 +235,7 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     tactyk_dblock__append(cmd->asm_code, TACTYK_EMIT__COMMAND_PREFIX);
     tactyk_dblock__append(cmd->asm_code, cmd_idx);
     tactyk_dblock__append(cmd->asm_code, ":\n");
+    uint64_t code_len = cmd->asm_code->length;
 
     struct tactyk_dblock__DBlock *next_instruction_label = tactyk_dblock__from_c_string(TACTYK_EMIT__COMMAND_PREFIX);
     tactyk_dblock__append(next_instruction_label, cmd_idx_next);
@@ -239,7 +243,9 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
 
     bool result = tactyk_emit__ExecSubroutine(ctx, data);
     // clean up any temp dblocks (mostly dynamically text chunks)
-
+    if (code_len == cmd->asm_code->length) {
+        error("EMIT -- Code generation failed", cmd->pl_code);
+    }
     ctx->pl_operand_raw = NULL;
     ctx->pl_operand_resolved = NULL;
 

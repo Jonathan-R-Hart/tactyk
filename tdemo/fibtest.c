@@ -21,6 +21,8 @@ char *fibtest_src = {
             get
                 load qword ? addr1 fib_args.iterations
 
+        add_vconstants
+
         MAIN:
             assign a 0
             assign b 1
@@ -33,6 +35,8 @@ char *fibtest_src = {
             dec c
             if c > 0 FIBLOOP
             ccall printuint
+            assign f .==
+            tcall dump-ctx
             exit
         DIAG:
             cpuclocks
@@ -62,7 +66,6 @@ struct tactyk_asmvm__Program* run_fib_test(struct tactyk_emit__Context *emitctx,
     struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
     tactyk_pl__load(plctx, fibtest_src);
     struct tactyk_asmvm__Program *prg = tactyk_pl__build(plctx);
-
     struct tactyk_asmvm__memblock_highlevel *mblk = tactyk_dblock__get(prg->memory_layout_hl, "args");
 
     uint64_t *data = (uint64_t*) mblk->data;
