@@ -63,4 +63,6 @@ bool tactyk_pl__data(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
 bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__const(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 
+bool tactyk_pl__ld_visa_constants(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
+
 #endif /* TACTYK_PL__INCLUDE_GUARD */

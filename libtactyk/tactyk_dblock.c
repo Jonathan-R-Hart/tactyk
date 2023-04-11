@@ -56,6 +56,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__alloc() {
         error("DBLOCK -- internal storage capacity exceeded", NULL);
     }
     struct tactyk_dblock__DBlock *db = dblocks_stack[dblocks_stack_idx];
+    db->type = tactyk_dblock__UNSPECIFIED;
     dblocks_stack[dblocks_stack_idx] = NULL;
     if (db == NULL) {
         error("NULL ENTRY ON DBLOCK STACK", NULL);
@@ -78,6 +79,12 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new(uint64_t capacity) {
     db->persistence_code = 0;
     tactyk_dblock__update_hash(db);
     return db;
+}
+
+struct tactyk_dblock__DBlock* tactyk_dblock__data_copy(struct tactyk_dblock__DBlock *source) {
+    struct tactyk_dblock__DBlock *copy = tactyk_dblock__alloc();
+    tactyk_dblock__set_content(copy, source);
+    return copy;
 }
 
 struct tactyk_dblock__DBlock* tactyk_dblock__shallow_copy(struct tactyk_dblock__DBlock *src) {
@@ -199,7 +206,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_bytes(struct tactyk_dblock__DB
 //      (It is assumed to be a managed dblcok if it addresses anything within the stattically allocated sblock array)
 bool tactyk_dblock__is_dblock(void *ptr) {
     int64_t ofs = (int64_t)ptr - (int64_t)dblocks;
-    return (ofs > 0) && (ofs < (int64_t)sizeof(dblocks));
+    return (ofs >= 0) && (ofs < (int64_t)sizeof(dblocks));
 }
 
 void tactyk_dblock__set_content(struct tactyk_dblock__DBlock *dest, struct tactyk_dblock__DBlock *source) {
@@ -221,6 +228,9 @@ void tactyk_dblock__set_content(struct tactyk_dblock__DBlock *dest, struct tacty
 // reset the dblock so it can be reused.
 void tactyk_dblock__dispose(struct tactyk_dblock__DBlock *dblock) {
     if (dblock == NULL) {
+        return;
+    }
+    if (dblock->type == tactyk_dblock__NONE) {
         return;
     }
     if (dblock->child != NULL) {
@@ -252,6 +262,7 @@ void tactyk_dblock__dispose(struct tactyk_dblock__DBlock *dblock) {
 }
 
 void tactyk_dblock__set_persistence_code(struct tactyk_dblock__DBlock *dblock, uint64_t persist_code) {
+    dblock->persistence_code = persist_code;
     if (dblock->child != NULL) {
         tactyk_dblock__set_persistence_code(dblock->child, persist_code);
     }
@@ -264,14 +275,26 @@ void tactyk_dblock__set_persistence_code(struct tactyk_dblock__DBlock *dblock, u
     if (dblock->store != NULL) {
         tactyk_dblock__set_persistence_code(dblock->store, persist_code);
     }
+    if (dblock->type == tactyk_dblock__TABLE) {
+        struct tactyk_dblock__DBlock **fields = (struct tactyk_dblock__DBlock**) dblock->data;
+        for (uint64_t i = 0; i < dblock->element_capacity; i += 1) {
+            uint64_t ofs = i*2;
+            struct tactyk_dblock__DBlock *key = fields[ofs];
+            if ((key != NULL) && (key->length != 0)) {
+                tactyk_dblock__set_persistence_code(key, persist_code);
+            }
+        }
+    }
 }
 void tactyk_dblock__cull(uint64_t persist_code) {
+    /*
     for (uint64_t i = 0; i < DBLOCKS_CAPACITY; i += 1) {
         struct tactyk_dblock__DBlock *db = &dblocks[i];
-        if (db->persistence_code = persist_code) {
+        if (db->persistence_code == persist_code) {
             tactyk_dblock__dispose(db);
         }
     }
+    */
 }
 
 
@@ -1246,6 +1269,7 @@ void tactyk_dblock__put(struct tactyk_dblock__DBlock *table, void *key, void *va
     else if ( (value != NULL) && (tbl_value == NULL) ) {
         // if using a temp key, make it persistent [by using it directly and not disposing it]
         if (tmp_key != key) {
+            tactyk_dblock__set_persistence_code(tmp_key, table->persistence_code);
             fields[offset] = tmp_key;
             fields[offset+1] = value;
             table->element_count += 1;

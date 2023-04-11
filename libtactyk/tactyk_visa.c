@@ -135,6 +135,34 @@ bool tactyk_visa__mk_typespec(struct tactyk_emit__Context *ctx, struct tactyk_db
     struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__new_managedobject(ctx->typespec_table, name);
     sub->func = tactyk_emit__ExecSubroutine;
     sub->vopcfg = vopcfg;
+    //tactyk_dblock__print_structure_simple(vopcfg);
+    struct tactyk_dblock__DBlock *tlist = vopcfg->child;
+    while (tlist != NULL) {
+        if (strncmp(tlist->data, "select-operand", 14) == 0) {
+            goto extract_tokens;
+        }
+        tlist = tlist->next;
+    }
+    return true;
+
+    extract_tokens:
+    struct tactyk_dblock__DBlock *specifier = tlist->child;
+    while (specifier != NULL) {
+        uint64_t index = ctx->type_specifier_count;
+        ctx->type_specifier_count += 1;
+        struct tactyk_dblock__DBlock *ts_value = tactyk_dblock__from_uint(index);
+        struct tactyk_dblock__DBlock *spec_token = specifier->token;
+
+        while (spec_token != NULL) {
+            struct tactyk_dblock__DBlock *ts_name = tactyk_dblock__data_copy(name);
+            tactyk_dblock__append_char(ts_name, '.');
+            tactyk_dblock__append(ts_name, spec_token);
+            tactyk_dblock__put(ctx->visa_token_constants, ts_name, ts_value);
+            spec_token = spec_token->next;
+        }
+        specifier = specifier->next;
+    }
+
     return true;
 }
 bool tactyk_visa__mk_subroutine(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {

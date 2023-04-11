@@ -1,3 +1,7 @@
+#include "tactyk_asmvm.h"
+#include "tactyk_emit.h"
+#include "tactyk_emit_svc.h"
+
 void tactyk_emit_svc__configure(struct tactyk_emit__Context *emit_context, char *base_tokens_src) {
 
 }

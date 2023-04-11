@@ -114,6 +114,8 @@ struct tactyk_emit__Context {
     struct tactyk_dblock__DBlock *api_table;
     struct tactyk_dblock__DBlock *c_api_table;
 
+    struct tactyk_dblock__DBlock *visa_token_constants;
+
     struct tactyk_dblock__DBlock *code_template;
 
     struct tactyk_dblock__DBlock *script_commands;
@@ -136,6 +138,8 @@ struct tactyk_emit__Context {
 
     bool namechars[256];
     uint64_t iptr;
+
+    uint64_t type_specifier_count;
 };
 
 struct tactyk_emit__Context* tactyk_emit__init();

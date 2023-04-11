@@ -79,6 +79,8 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     ctx->api_table = tactyk_dblock__new_table(64);
     ctx->c_api_table = tactyk_dblock__new_table(64);
+    ctx->visa_token_constants = tactyk_dblock__new_table(512);
+    ctx->type_specifier_count = 0;
     ctx->operator_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
     ctx->typespec_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
     ctx->instruction_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
@@ -89,6 +91,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__set_persistence_code(ctx->global_vars, 1);
     tactyk_dblock__set_persistence_code(ctx->api_table, 1);
     tactyk_dblock__set_persistence_code(ctx->c_api_table, 1);
+    tactyk_dblock__set_persistence_code(ctx->visa_token_constants, 1);
     tactyk_dblock__set_persistence_code(ctx->operator_table, 1);
     tactyk_dblock__set_persistence_code(ctx->typespec_table, 1);
     tactyk_dblock__set_persistence_code(ctx->instruction_table, 1);
