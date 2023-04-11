@@ -191,7 +191,7 @@ RENDER_FRAC:
   EMIT_PIXEL:
   assign xf d
   mul xf xg
-  div xf 128
+  div xf 64
 
   assign f xf
 
