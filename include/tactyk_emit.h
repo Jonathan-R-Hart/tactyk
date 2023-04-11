@@ -115,7 +115,7 @@ struct tactyk_emit__Context {
     struct tactyk_dblock__DBlock *c_api_table;
 
     struct tactyk_dblock__DBlock *visa_token_constants;
-    struct tactyk_dblock__DBlock *visa_token_invmap;
+    struct tactyk_dblock__DBlock **visa_token_invmap;
 
     struct tactyk_dblock__DBlock *code_template;
 

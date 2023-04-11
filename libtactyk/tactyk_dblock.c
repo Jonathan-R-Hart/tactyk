@@ -156,6 +156,12 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_uint(uint64_t value) {
     struct tactyk_dblock__DBlock *dblock = tactyk_dblock__from_c_string(txt);
     return dblock;
 }
+struct tactyk_dblock__DBlock* tactyk_dblock__from_float(double value) {
+    char txt[256];
+    sprintf(txt, "%f", value);
+    struct tactyk_dblock__DBlock *dblock = tactyk_dblock__from_c_string(txt);
+    return dblock;
+}
 
 
 struct tactyk_dblock__DBlock* tactyk_dblock__from_ptr(void *ptr) {

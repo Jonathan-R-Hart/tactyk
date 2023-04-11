@@ -673,4 +673,5 @@ bool tactyk_pl__ld_visa_constants(struct tactyk_pl__Context *ctx, struct tactyk_
             }
         }
     }
+    return true;
 }

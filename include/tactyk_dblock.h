@@ -106,6 +106,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_c_string(char *data);
 struct tactyk_dblock__DBlock* tactyk_dblock__from_int(int64_t value);
 // convert an unsigned integer to a string, then create a dblock from that string
 struct tactyk_dblock__DBlock* tactyk_dblock__from_uint(uint64_t value);
+struct tactyk_dblock__DBlock* tactyk_dblock__from_float(double value);
 
 // create a dblock from a substring taken from another dblock.
 // The created dblock uses the source dblock as a backing buffer (externally managed)

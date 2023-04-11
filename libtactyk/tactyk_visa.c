@@ -120,6 +120,25 @@ void tactyk_visa__init_emit(struct tactyk_emit__Context *ctx) {
         tvisa_sub(ctx, st_code);
         st_code = st_code->next;
     }
+    // generate an inverse mapping of handles to visa-tokens by reading the token table
+    // Where there are collisions, the last entry in the token table "wins".  THis is arbitrary and should make no difference,
+    //      as colliding entries are all supposed to resolve to the same thing.
+    struct tactyk_dblock__DBlock **fields = (struct tactyk_dblock__DBlock**) ctx->visa_token_constants->data;
+    uint64_t t_count = ctx->visa_token_constants->element_count;
+    ctx->visa_token_invmap = calloc(t_count, sizeof(void*));
+    for (uint64_t i = 0; i < ctx->visa_token_constants->element_capacity; i += 1) {
+        uint64_t ofs = i*2;
+        struct tactyk_dblock__DBlock *key = fields[ofs];
+        struct tactyk_dblock__DBlock *value = fields[ofs+1];
+        uint64_t ival = 0;
+        if (key != NULL) {
+            if (!tactyk_dblock__try_parseuint(&ival, value)) {
+                error("VISA -- invalid or corrupt visa-token handle (impossible condition)", NULL);
+            }
+            assert(ival < t_count);
+            ctx->visa_token_invmap[ival] = key;
+        }
+    }
 }
 
 bool tactyk_visa__mk_instruction(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
@@ -167,9 +186,6 @@ bool tactyk_visa__mk_typespec(struct tactyk_emit__Context *ctx, struct tactyk_db
             tactyk_dblock__append(th_name, spec_token);
             tactyk_dblock__put(ctx->visa_token_constants, th_name, th_value);
             spec_token = spec_token->next;
-        }
-        if (th_name != NULL) {
-            tactyk_dblock__put(ctx->visa_token_invmap, th_value, th_name);
         }
         specifier = specifier->next;
     }
