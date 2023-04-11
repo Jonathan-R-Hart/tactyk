@@ -1,3 +1,7 @@
+11 Apr 2023
+Begin work on compilation support.
+  This is intended to allow for the use of high-level languages in tactyk - with a toolchain which is to run entirely within the sandbox.
+
 10 Apr 2023
 Completed the Julia Fractal example.  It in real-time at 128 max iterations.
 
