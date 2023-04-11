@@ -29,7 +29,9 @@
 #define TACTYK_PL__MAX_BLOCK_TOKENS 4096
 
 void tactyk_pl__init();
-struct tactyk_asmvm__Program* tactyk_pl__load(struct tactyk_emit__Context *emitctx, char *code);
+struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx);
+void tactyk_pl__load(struct tactyk_pl__Context *plctx, char *code);
+struct tactyk_asmvm__Program* tactyk_pl__build(struct tactyk_pl__Context *plctx);
 
 struct text_definition {
     char input[TACTYK_PL__RAW_TEXT_MAX_LENGTH];
@@ -42,10 +44,10 @@ struct text_definition {
 
 struct tactyk_pl__Context {
     struct tactyk_emit__Context *emitctx;
+    struct tactyk_asmvm__Program *program;
     struct tactyk_dblock__DBlock *struct_table;
     struct tactyk_dblock__DBlock *memspec_highlevel_table;
     struct tactyk_dblock__DBlock *memspec_lowlevel_buffer;
-    struct tactyk_asmvm__struct *default_mem_layout;
 
     struct tactyk_dblock__DBlock *getters;
     struct tactyk_dblock__DBlock *setters;

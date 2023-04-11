@@ -144,7 +144,7 @@ int main() {
     aux_configure(emitctx);
     aux_sdl__configure(emitctx);
 
-    struct tactyk_asmvm__Program *floatprg = run_float_test(emitctx, ctx);
+    //struct tactyk_asmvm__Program *floatprg = run_float_test(emitctx, ctx);
 
     //run_fib_test(emitctx, 10000000000, ctx);
     //struct tactyk_asmvm__Program *fibprg = run_fib_test(emitctx, 2000000, ctx);
@@ -152,7 +152,7 @@ int main() {
     //run_qsort_tests(emitctx, 10000000, 1, ctx);
     struct tactyk_asmvm__Program *qsprg = run_qsort_tests(emitctx, 10, 1, ctx);
 
-    tactyk_asmvm__invoke(ctx, fibprg, "MAIN");
+    //tactyk_asmvm__invoke(ctx, fibprg, "MAIN");
     //tactyk_asmvm__invoke(ctx, qsprg, "MAIN");
 
     //tactyk_visa_new__init("tactyk_core.visa");
@@ -214,6 +214,15 @@ int main(int argc, char *argv[], char *envp[]) {
     aux_configure(emitctx);
     aux_sdl__configure(emitctx);
 
+    // intermediate storage for loaded data
+    //  (tactyk uses the allocated data passed in as a backing data source during compilation, so it can't be freed
+    //   immediately after passing it to tactyk_pl, but it is safe to free it immediately after compilation [before running]
+    //   as all generated symbol tables use copied / managed memory).
+    int64_t module_count = 0;
+    char **module_src = calloc(argc, sizeof(void*));
+
+    struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
+
     // re-scan the args and ingest source code files.
     for (int64_t i = 1; i < argc; i += 1) {
         char *arg = argv[i];
@@ -225,14 +234,21 @@ int main(int argc, char *argv[], char *envp[]) {
             fseek(f,0, SEEK_SET);
             fread(pl_src, len, 1, f);
             fclose(f);
-
-            struct tactyk_asmvm__Program *prg = tactyk_pl__load(emitctx, pl_src);
-            tactyk_asmvm__invoke(ctx, prg, "MAIN");
-            //tactyk_asmvm__print_context(ctx);
-            free(pl_src);
-            exit(0);
+            module_src[module_count] = pl_src;
+            module_count += 1;
+            tactyk_pl__load(plctx, pl_src);
         }
     }
+    if (module_count > 0) {
+        struct tactyk_asmvm__Program *prg = tactyk_pl__build(plctx);
+
+        for (int64_t i = 0; i < module_count; i += 1) {
+            free(module_src[i]);
+        }
+
+        tactyk_asmvm__invoke(ctx, prg, "MAIN");
+    }
+    free(module_src);
     exit(0);
 }
 #endif // TACTYK_SHELL_INTERFACE

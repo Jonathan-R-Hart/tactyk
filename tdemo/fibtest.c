@@ -59,11 +59,12 @@ struct tactyk_asmvm__Program* run_fib_test(struct tactyk_emit__Context *emitctx,
     uint64_t c2 = 0;
 
 
-
-    struct tactyk_asmvm__Program *prg = tactyk_pl__load(emitctx, fibtest_src);
+    struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
+    tactyk_pl__load(plctx, fibtest_src);
+    struct tactyk_asmvm__Program *prg = tactyk_pl__build(plctx);
 
     struct tactyk_asmvm__memblock_highlevel *mblk = tactyk_dblock__get(prg->memory_layout_hl, "args");
-    //struct tactyk_asmvm__memblock_highlevel *mblk = tactyk_table__get_strkey(prg->symbols.memtbl, "args");
+
     uint64_t *data = (uint64_t*) mblk->data;
 
     data[0] = amount;

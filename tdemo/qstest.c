@@ -11,7 +11,7 @@
 
 #include "qstest.h"
 
-char* tactyk_qsort_program = R"""(
+char* tactyk_qsort_program_ctl = R"""(
     # quicksort.tactykpl
     # Sort input words using the quicksort algorithm
 
@@ -54,6 +54,9 @@ char* tactyk_qsort_program = R"""(
         mctxpush
         unstash a1b1c1d1e1f1
         exit
+)""";
+
+char* tactyk_qsort_program_qs = R"""(
     DO_QSORT:
         bind addr1 args
         load qword f addr1 qs_args.last
@@ -143,7 +146,9 @@ char* tactyk_qsort_program = R"""(
 
     DONE:
         lwreturn
+)""";
 
+char* tactyk_qsort_program_diag = R"""(
     DIAG:
         cpuclocks
         exit
@@ -159,16 +164,14 @@ struct tactyk_asmvm__Program* run_qsort_tests(struct tactyk_emit__Context *emitc
 
     int64_t c1, c2, init_hash, final_hash;
 
-    //struct tactyk_textbuf__Buffer *sc = tactyk_textbuf__new(512);
-    //tactyk_textbuf__append(sc, tactyk_qsort_program);
-    //sc.code = tactyk_qsort_program;
-    //sc.length = strlen(sc.code);
-    struct tactyk_asmvm__Program *program;
-    program = tactyk_pl__load(emitctx, tactyk_qsort_program);
-    qsprogram = program;
-    //ctx->stash = calloc(18*8, 8);
+    struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
+    tactyk_pl__load(plctx, tactyk_qsort_program_diag);
+    tactyk_pl__load(plctx, tactyk_qsort_program_qs);
+    tactyk_pl__load(plctx, tactyk_qsort_program_ctl);
+    struct tactyk_asmvm__Program *program = tactyk_pl__build(plctx);
 
-    //struct tactyk_asmvm__memblock_highlevel *mblk = tactyk_table__get_strkey(program->symbols.memtbl, "args");
+    qsprogram = program;
+
     struct tactyk_asmvm__memblock_highlevel *mblk = tactyk_dblock__get(program->memory_layout_hl, "args");
     uint64_t *dat = (uint64_t*)mblk->data;
     dat[0] = len-1;
@@ -176,7 +179,6 @@ struct tactyk_asmvm__Program* run_qsort_tests(struct tactyk_emit__Context *emitc
     // Define the data memory
     //      (boilerplate code for specifying an externally-managed array of 8-byte words).
     struct tactyk_asmvm__memblock_highlevel *dblk = tactyk_dblock__get(program->memory_layout_hl, "data");
-   // struct tactyk_asmvm__memblock_highlevel *dblk = tactyk_table__get_strkey(program->symbols.memtbl, "data");
     dblk->data = calloc(len, 8);
 
     dblk->num_entries = len;
@@ -192,14 +194,6 @@ struct tactyk_asmvm__Program* run_qsort_tests(struct tactyk_emit__Context *emitc
     dspec->base_address = dblk->data;
     dspec->element_bound = len*8;
     dspec->array_bound = 1;
-    //dspec->memblock_index = 0;
-    //dspec->type = 0;
-
-    //tactyk_asmvm__invoke(ctx, program, "MAIN");
-
-    //tactyk_asmvm__print_context(ctx);
-
-    //return 0;
 
     int64_t *data = calloc(len, 8);
     randfill(data, len, seed);
@@ -212,7 +206,6 @@ struct tactyk_asmvm__Program* run_qsort_tests(struct tactyk_emit__Context *emitc
     c1 = ctx->diagnostic_data[0];
 
     cqsort(data, 0, len-1);
-    //return;
 
     tactyk_asmvm__invoke(ctx, program, "DIAG");
     c2 = ctx->diagnostic_data[0];
@@ -223,22 +216,12 @@ struct tactyk_asmvm__Program* run_qsort_tests(struct tactyk_emit__Context *emitc
     checkit(data, len);
     printf("cycle count: %lu\n\n\n", c2-c1);
 
-    //struct tactyk_asmvm__memblock_spec *minfo = &program->memory_layout[5];
-
-    //int64_t *data = calloc(len, 8);
     randfill((int64_t*)dblk->data, len, seed);
-    //int64_t *data2 = randfill(len, seed);
     init_hash = compute_hash((int64_t*)dblk->data, len);
     print_a_few((int64_t*)dblk->data, 8);
     printf("init hash: %lu\n", init_hash);
     printf("\n");
 
-
-    //struct tactyk_asmvm__memblock *mb = tactyk_table__get_strkey(program->symbols.memtbl, "input");
-    //uint64_t *input_data = (uint64_t*)mb->data;
-    //input_data[1] = len-1;
-    //printf("...%ld\n", ((uint64_t*)mb->data)[1]);
-    //return;
     tactyk_asmvm__invoke(ctx, program, "DIAG");
     c1 = ctx->diagnostic_data[0];
 
@@ -268,34 +251,19 @@ void print_a_few(int64_t *data, int64_t amount) {
 
 int64_t partition(int64_t *data, int64_t low, int64_t high) {
     int64_t pivot = data[(low+high)>>1];
-    //printf("partition ... %ld %ld %ld\n", low, high, pivot);
-    //uint64_t pivot = data[high];
     low -= 1;
     high += 1;
     while (true) {
-        //if ((low < -1) || (high <0) || (low > 2000) || (high > 2000)) {
-        //    printf("ERROR:  %ld %ld\n", low, high);
-        //}
         do {
             low += 1;
         } while (data[low] < pivot);
-        //if ((low < -1) || (high <0) || (low > 2000) || (high > 2000)) {
-       //    printf("ERROR2:  %ld %ld\n", low, high);
-        //}
         do {
             high -= 1;
         } while (data[high] > pivot);
 
-        //if ((low < -1) || (high <0) || (low > 2000) || (high > 2000)) {
-        //    printf("ERROR3:  %ld %ld\n", low, high);
-        //}
         if (low >= high) {
-            //printf("select . %ld\n", high);
             return high;
         }
-        //if ((low < 0) || (high < 0) || (low >= 2000) || (high >= 2000)) {
-        //    printf("ERROR4:  %ld %ld\n", low, high);
-        //}
         int64_t tmp = data[low];
         data[low] = data[high];
         data[high] = tmp;
@@ -326,8 +294,6 @@ int64_t compute_hash(int64_t *data, int64_t len) {
 // allocate and fill a block of memory with seeded random data.
 //  PRNG is xorshift64
 void randfill(int64_t *data, int64_t len, int64_t seed) {
-    //int64_t *data = calloc(len, 8);
-    //printf("len=%ld seed=%ld\n", len, seed);
     int64_t state = seed;
     for (int64_t i = 0; i < len; i++) {
         state += i;
@@ -335,9 +301,7 @@ void randfill(int64_t *data, int64_t len, int64_t seed) {
         state ^= state >> 7;
         state ^= state << 17;
         data[i] = state & 0x7fffffffffffffff;
-        //printf("i=%ld val=%ld\n", i, state);
     }
-    //return data;
 }
 
 void checkit(int64_t *data, int64_t len) {
