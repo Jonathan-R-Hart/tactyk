@@ -7,7 +7,6 @@
 //  You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 #include <assert.h>
 
 #include "tactyk_asmvm.h"
@@ -16,25 +15,11 @@
 
 #include "tactyk_dblock.h"
 
-//struct tactyk_textbuf__Buffer *tkpl_buf1;
-//struct tactyk_textbuf__Buffer *tkpl_buf2;
-//struct tactyk_textbuf__Buffer *tkpl_sttext;
-
-
-//typedef bool (*tactyk_pl__func)(struct tactyk_emit__Context *emitctx, struct tactyk_pl__thing *__tokens);
 typedef bool (*tactyk_pl__func)(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
-//struct tactyk_table__Table *tkpl_funcs;
 struct tactyk_dblock__DBlock *tkpl_funcs;
-
-bool comment_chars[256];
-bool def_chars[256];
+struct tactyk_asmvm__struct default_mem_layout;
 
 void tactyk_pl__init() {
-    //tkpl_buf1 = tactyk_textbuf__new(1<<16, true);
-    //tkpl_buf2 = tactyk_textbuf__new(1<<16, true);
-    //tkpl_sttext = tactyk_textbuf__new(1<<26, false);
-
-    //tkpl_funcs = tactyk_table__new(4096);
     tkpl_funcs = tactyk_dblock__new_table(16);
 
     tactyk_dblock__put(tkpl_funcs, "mem", tactyk_pl__mem);
@@ -47,81 +32,50 @@ void tactyk_pl__init() {
     tactyk_dblock__put(tkpl_funcs, "get", tactyk_pl__get);
     tactyk_dblock__put(tkpl_funcs, "set", tactyk_pl__set);
 
-    for (uint64_t i = 0; i < 256; i++) {
-        comment_chars[i] = false;
-        def_chars[i] = false;
-    }
-    comment_chars[';'] = true;
-    comment_chars['/'] = true;
-    comment_chars['#'] = true;
-    for (char c = 'a'; c <= 'z'; c++) {
-        def_chars[(uint8_t)c] = true;
-    }
-    for (char c = 'A'; c <= 'Z'; c++) {
-        def_chars[(uint8_t)c] = true;
-    }
-    for (char c = '0'; c <= '9'; c++) {
-        def_chars[(uint8_t)c] = true;
-    }
-    def_chars[(uint8_t)'_'] = true;
-    def_chars[(uint8_t)'.'] = true;
+    default_mem_layout.byte_stride = 8;
+    strcpy(default_mem_layout.name, "default-layout");
+    default_mem_layout.num_properties = 1;
+    default_mem_layout.properties = calloc(1, sizeof(struct tactyk_asmvm__property));
+    default_mem_layout.properties->byte_offset = 0;
+    default_mem_layout.properties->byte_width = 8;
+    strncpy(default_mem_layout.properties->name, "item", MAX_IDENTIFIER_LENGTH);
 }
 
-int64_t j;
-char c;
-char *text;
-int64_t text_length;
-int64_t numlines;
-int64_t num_tokens;
-int64_t next_memblock_id;
+struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx) {
+    tactyk_emit__reset(emitctx);
+    struct tactyk_pl__Context *ctx = calloc(1, sizeof(struct tactyk_pl__Context));
+    ctx->program = calloc(1, sizeof(struct tactyk_asmvm__Program));
+    emitctx->program = ctx->program;
+    ctx->emitctx = emitctx;
 
-char line[TACTYK_PL__RAW_TEXT_MAX_LENGTH];
-char token[TACTYK_PL__RAW_TEXT_MAX_LENGTH];
-
-struct tactyk_pl__thing tokens[128];
-
-int64_t num_rewrite_infos;
-struct text_definition rewrite_infos[2048];
-
-char *tactyk_pl__debug_cmdname = "step";
-char *tactyk_pl__debug_tokens[16];
-
-struct tactyk_asmvm__Program* tactyk_pl__load(struct tactyk_emit__Context *emitctx, char *code) {
-    struct tactyk_asmvm__Program *tactyk_pl__prog = calloc(1, sizeof(struct tactyk_asmvm__Program));
-    emitctx->program = tactyk_pl__prog;
-
-    memset(tactyk_pl__debug_tokens, 0, 16*8);
-
-    struct tactyk_pl__Context ctx;
-    ctx.emitctx = emitctx;
-    ctx.struct_table = tactyk_dblock__new_managedobject_table(64, sizeof(struct tactyk_asmvm__struct));
-
-    ctx.getters = tactyk_dblock__new_table(64);
-    ctx.setters = tactyk_dblock__new_table(64);
-
-    ctx.default_mem_layout = calloc(1, sizeof(struct tactyk_asmvm__struct));
-    ctx.default_mem_layout->byte_stride = 8;
-    strcpy(ctx.default_mem_layout->name, "default-layout");
-    //ctx.default_mem_layout->name = "default-layout";
-    ctx.default_mem_layout->num_properties = 1;
-    ctx.default_mem_layout->properties = calloc(1, sizeof(struct tactyk_asmvm__property));
-    ctx.default_mem_layout->properties->byte_offset = 0;
-    ctx.default_mem_layout->properties->byte_width = 8;
-    strncpy(ctx.default_mem_layout->properties->name, "item", MAX_IDENTIFIER_LENGTH);
-    //ctx.default_mem_layout->properties->name = "item";
+    ctx->struct_table = tactyk_dblock__new_managedobject_table(64, sizeof(struct tactyk_asmvm__struct));
+    ctx->getters = tactyk_dblock__new_table(64);
+    ctx->setters = tactyk_dblock__new_table(64);
 
     {
         uint64_t ln = TACTYK_ASMVM__MEMBLOCK_CAPACITY;
-        ctx.memspec_lowlevel_buffer = tactyk_dblock__new_container(ln, sizeof(struct tactyk_asmvm__memblock_lowlevel));
-        tactyk_dblock__fix(ctx.memspec_lowlevel_buffer);
-        tactyk_dblock__make_pseudosafe(ctx.memspec_lowlevel_buffer);
-        ctx.memspec_highlevel_table = tactyk_dblock__new_managedobject_table(ln, sizeof(struct tactyk_asmvm__memblock_highlevel));
+        ctx->memspec_lowlevel_buffer = tactyk_dblock__new_container(ln, sizeof(struct tactyk_asmvm__memblock_lowlevel));
+        tactyk_dblock__fix(ctx->memspec_lowlevel_buffer);
+        tactyk_dblock__make_pseudosafe(ctx->memspec_lowlevel_buffer);
+        ctx->memspec_highlevel_table = tactyk_dblock__new_managedobject_table(ln, sizeof(struct tactyk_asmvm__memblock_highlevel));
     }
 
-    next_memblock_id = 0;
+    // the struct table gets to survive garbage collection!  barely ... (the only real purpose of it is reflection)
+    tactyk_dblock__set_persistence_code(ctx->struct_table, 2);
+    //tactyk_dblock__set_persistence_code(ctx.getters, 2);
+    //tactyk_dblock__set_persistence_code(ctx.setters, 2);
+    tactyk_dblock__set_persistence_code(ctx->memspec_lowlevel_buffer, 2);
+    tactyk_dblock__set_persistence_code(ctx->memspec_highlevel_table, 2);
+
+    ctx->program->memory_layout_hl = ctx->memspec_highlevel_table;
+    ctx->program->memory_layout_ll = ctx->memspec_lowlevel_buffer;
 
     tactyk_emit__init_program(emitctx);
+    return ctx;
+}
 
+void tactyk_pl__load(struct tactyk_pl__Context *plctx, char *code) {
+    struct tactyk_emit__Context *emitctx = plctx->emitctx;
     struct tactyk_dblock__DBlock *dbcode = tactyk_dblock__from_safe_c_string(code);
 
     tactyk_dblock__fix(dbcode);
@@ -155,7 +109,7 @@ struct tactyk_asmvm__Program* tactyk_pl__load(struct tactyk_emit__Context *emitc
                 }
             }
             else {
-                escape_block = func(&ctx, dbcode);
+                escape_block = func(plctx, dbcode);
             }
         }
         if (dbcode != NULL) {
@@ -173,7 +127,7 @@ struct tactyk_asmvm__Program* tactyk_pl__load(struct tactyk_emit__Context *emitc
                 do {
                     dbstack_index -= 1;
                     if (dbstack_index == -1) {
-                        goto exit;
+                        return;
                     }
                     dbcode = dbstack[dbstack_index]->next;
                 } while (dbcode == NULL);
@@ -181,18 +135,16 @@ struct tactyk_asmvm__Program* tactyk_pl__load(struct tactyk_emit__Context *emitc
             }
         }
     }
-    exit:
-    tactyk_emit__compile(emitctx);
-
-    tactyk_pl__prog->memory_layout_hl = ctx.memspec_highlevel_table;
-    tactyk_pl__prog->memory_layout_ll = ctx.memspec_lowlevel_buffer;
-    //tactyk_pl__prog->memory_layout_ll = tactyk_dblock__release(ctx.memspec_lowlevel_buffer);
-    //tactyk_pl__prog->memory_layout_ll = m
-    //struct tactyk_asmvm__memblock_lowlevel **mspec_ll = &tactyk_pl__prog->memory_layout_ll;
-    //tactyk_dblock__release((void**)mspec_ll, ctx.memspec_lowlevel_buffer);
-
-    return tactyk_pl__prog;
 }
+
+struct tactyk_asmvm__Program* tactyk_pl__build(struct tactyk_pl__Context *plctx) {
+    tactyk_emit__compile(plctx->emitctx);
+    struct tactyk_asmvm__Program *program = plctx->program;
+    tactyk_dblock__cull(0);
+    free(plctx);
+    return program;
+}
+
 
 bool tactyk_pl__get(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
     struct tactyk_dblock__DBlock *arg = dblock->token->next;
@@ -220,7 +172,6 @@ bool tactyk_pl__get(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock
 }
 bool tactyk_pl__set(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
     struct tactyk_dblock__DBlock *name = dblock->token->next;
-    //printf("name: ");
     struct tactyk_dblock__DBlock *arg = name->next;
     struct tactyk_dblock__DBlock *templ = tactyk_dblock__get(ctx->setters, name);
     templ = tactyk_dblock__deep_copy(templ);
@@ -311,7 +262,7 @@ void tactyk_pl__define_mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock_
             layout = (struct tactyk_asmvm__struct*) layout_ctn->data;
         }
         else {
-            layout = ctx->default_mem_layout;
+            layout = &default_mem_layout;
         }
     }
 
@@ -319,14 +270,6 @@ void tactyk_pl__define_mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock_
     //      (then rememebered that dblock-container covers that case as well)
 
     int64_t id = ctx->memspec_highlevel_table->element_count;
-
-    //printf("mem-st-name:  ");
-    //tactyk_dblock__println(st_name);
-
-    //printf("layout stride: %ju\n", layout->byte_stride);
-
-
-    //printf("ctLL = %ju ctHL = %ju\n", ctx->memspec_lowlevel_buffer->element_count, ctx->memspec_highlevel_table->element_count );
 
     assert(ctx->memspec_lowlevel_buffer->element_count == ctx->memspec_highlevel_table->element_count);
 
@@ -348,7 +291,6 @@ void tactyk_pl__define_mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock_
     mem_ll->memblock_index = id;
     mem_ll->type = 0;
     mem_ll->base_address = NULL;
-    //m_ll->base_address = m_hl->data;
 
     struct tactyk_dblock__DBlock *memid = tactyk_dblock__from_int(id);
     tactyk_dblock__put(ectx->memblock_table, mem_name, memid);
@@ -425,7 +367,6 @@ bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
     mem_hl->num_entries = 1;
     mem_hl->memblock_id = id;
     mem_hl->data = tbuf->data;
-    //mem_hl->definition = layout;
 
     mem_ll->array_bound = 1;
     mem_ll->element_bound = tbuf->length+8;
@@ -596,19 +537,10 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
 
     struct tactyk_dblock__DBlock *st_name = dblock->token->next;
 
-    //printf("NAME:  ");
-    //tactyk_dblock__println(st_name);
-    //printf("hash = %ju\n", st_name->hashcode);
-
-    //tactyk_dblock__print_structure(dblock, true, false, false, 0);
-
     struct tactyk_asmvm__struct *st = (struct tactyk_asmvm__struct*) tactyk_dblock__new_managedobject(ctx->struct_table, st_name);
-    tactyk_dblock__export_cstring(st->name, MAX_IDENTIFIER_LENGTH, st_name);
-    //struct tactyk_asmvm__struct *st = (struct tactyk_asmvm__struct*) tactyk_dblock__new_object(ctx->struct_buffer);
-    //st->name = tactyk_dblock__export_cstring(st_name);
-    st->num_properties = tactyk_dblock__count_children(dblock);
 
-    //tactyk_dblock__put(ctx->struct_table, st_name, st);
+    tactyk_dblock__export_cstring(st->name, MAX_IDENTIFIER_LENGTH, st_name);
+    st->num_properties = tactyk_dblock__count_children(dblock);
 
     st->properties = calloc(st->num_properties, sizeof(struct tactyk_asmvm__property));
 
@@ -663,20 +595,8 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
         char prop_qname[1024];
         sprintf(prop_qname, "%s.%s", st->name, prop->name);
 
-        //printf("st_name:  '%s'\n", st->name);
-        //printf("p_qname:  '%s'\n", prop_qname);
-        //printf("p_name:  '%s'\n", prop_name);
-        //printf("p_width = %ju\n", p_width);
-
-        //struct tactyk_dblock__DBlock *db_prop_qname = tactyk_dblock__from_c_string(prop_qname);
-        //printf("HASH = %ju\n", db_prop_qname->hashcode);
-
         struct tactyk_dblock__DBlock *propid = tactyk_dblock__from_int(offset);
-        //tactyk_dblock__println(propid);
         tactyk_dblock__put(ectx->const_table, prop_qname, propid);
-        //printf("ctable-ptr:  %p\n", ectx->const_table);
-
-        //printf("struct-entry:  name=%s offset=%jd width=%ju directive=%c \n", prop->name, offset, p_width, directive);
 
         switch(directive) {
             case '.': {
@@ -708,8 +628,6 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
         sprintf(struct_sz_name, "%s_size", st->name);
         st->byte_stride = stride;
 
-        //printf("name=%s stride = %jd\n", st->name, st->byte_stride);
-
         struct tactyk_dblock__DBlock *struct_sz_const = tactyk_dblock__from_int(stride);
         tactyk_dblock__put(ectx->const_table, struct_sz_name, struct_sz_const);
     }
@@ -718,7 +636,6 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
 
 bool tactyk_pl__const(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
 
-    //printf("CONST: \n");
     struct tactyk_emit__Context *ectx = ctx->emitctx;
 
     if ( (dblock->token == NULL) || (dblock->token->next == NULL) || (dblock->token->next->next == NULL) ) {

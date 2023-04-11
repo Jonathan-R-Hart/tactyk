@@ -95,6 +95,8 @@ void tactyk_visa__init(char *fname) {
     tactyk_dblock__stratify(tactyk_visa_spec, ' ');
     tactyk_dblock__trim(tactyk_visa_spec);
     tactyk_dblock__tokenize(tactyk_visa_spec, ' ', true);
+
+    tactyk_dblock__set_persistence_code(tactyk_visa_spec, 1);
 }
 
 void tactyk_visa__init_emit(struct tactyk_emit__Context *ctx) {
@@ -107,13 +109,10 @@ void tactyk_visa__init_emit(struct tactyk_emit__Context *ctx) {
         char ch = nchars[i];
         ctx->namechars[(int32_t)ch] = true;
     }
-
     //generate top-level visa subroutines routines (they're context-specific)
     struct tactyk_dblock__DBlock *st_code = tactyk_visa_spec;
     while (st_code != NULL) {
         struct tactyk_dblock__DBlock *tok = st_code->token;
-        //tactyk_dblock__println(tok);
-        //tactyk_dblock__println(tok->next);
         tactyk_emit__sub_func tvisa_sub = (tactyk_emit__sub_func) tactyk_dblock__get(visa_hl_subroutines, tok);
         if (tvisa_sub == NULL) {
             error("TACTYK-VISA -- Unrecognized top-level tactyk-visa subroutine", st_code);

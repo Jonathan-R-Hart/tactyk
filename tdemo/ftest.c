@@ -65,16 +65,14 @@ char *floattest_src = {
     )"""
 };
 
-void run_float_test(struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__Context *ctx) {
+struct tactyk_asmvm__Program* run_float_test(struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__Context *ctx) {
 
-    struct tactyk_asmvm__Program *prg = tactyk_pl__load(emitctx, floattest_src);
-
+    struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
+    tactyk_pl__load(plctx, floattest_src);
+    struct tactyk_asmvm__Program *prg = tactyk_pl__build(plctx);
 
     struct tactyk_asmvm__memblock_highlevel *mblk = tactyk_dblock__get(prg->memory_layout_hl, "fdat");
 
-    //struct tactyk_asmvm__memblock_lowlevel *lb = mblk->memblock;
-
-    //struct tactyk_asmvm__memblock_highlevel *mblk = tactyk_table__get_strkey(prg->symbols.memtbl, "args");
     float *fdata = (float*) mblk->data;
     double *ddata = (double*) mblk->data;
     int64_t *idata = (int64_t*) mblk->data;
@@ -111,5 +109,5 @@ void run_float_test(struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__C
         printf("  %jd: %f\n", i, ddata[i]);
     }
 
-
+    return prg;
 }

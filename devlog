@@ -8,7 +8,13 @@ Add full 128-bit xmm register storage to stash and unstash command.
 
 New debug system (simpler, calls into a debug C function instead of relying on a specialized debug invoker)
 Reworked register allocation to undermine unexpected memory copy operations (movsb).
-Also updated the internal representation of registers.
+  Also updated the internal representation of registers.
+Added a tracing garbage collector
+  (collects objects marked with specific tags)
+Made the emit context recyclable (can compile multiple programs)
+Made tactyk programs modular
+  program loading is broken up into initilization, loading, and compilation phases.
+  So long as block structures are not broken up, it can effectively concatenate any number of source code files.
 
 Pending feature:  managed function calls
 ccall operation is to be redesigned to prevent undeclared parameters from being passed or received (mostly, this means a function signatures will be needed to configure tactyk-emit, and any unused parameter slots will be zeroed out by the generated code).

@@ -8,6 +8,6 @@
 #include "tactyk_emit.h"
 
 
-void run_float_test(struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__Context *ctx);
+struct tactyk_asmvm__Program* run_float_test(struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__Context *ctx);
 
 #endif  // FLOAT_TEST__INCLUDE_GUARD
