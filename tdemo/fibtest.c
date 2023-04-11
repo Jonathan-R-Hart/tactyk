@@ -21,7 +21,7 @@ char *fibtest_src = {
             get
                 load qword ? addr1 fib_args.iterations
 
-        add_vconstants
+        use_vconstants
 
         MAIN:
             assign a 0
@@ -35,6 +35,8 @@ char *fibtest_src = {
             dec c
             if c > 0 FIBLOOP
             ccall printuint
+            assign a 10
+            ccall printchar
             assign f .==
             tcall dump-ctx
             exit

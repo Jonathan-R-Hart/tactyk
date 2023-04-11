@@ -127,6 +127,14 @@ bool tactyk_visa__mk_instruction(struct tactyk_emit__Context *ctx, struct tactyk
     struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__new_managedobject(ctx->instruction_table, name);
     sub->func = tactyk_emit__ExecInstruction;
     sub->vopcfg = vopcfg;
+
+    uint64_t index = ctx->token_handle_count;
+    ctx->token_handle_count += 1;
+    struct tactyk_dblock__DBlock *th_value = tactyk_dblock__from_uint(index);
+    struct tactyk_dblock__DBlock *th_name = tactyk_dblock__new(16);
+    tactyk_dblock__append_char(th_name, '.');
+    tactyk_dblock__append(th_name, name);
+    tactyk_dblock__put(ctx->visa_token_constants, th_name, th_value);
     return true;
 }
 
@@ -148,20 +156,20 @@ bool tactyk_visa__mk_typespec(struct tactyk_emit__Context *ctx, struct tactyk_db
     extract_tokens:
     struct tactyk_dblock__DBlock *specifier = tlist->child;
     while (specifier != NULL) {
-        uint64_t index = ctx->type_specifier_count;
-        ctx->type_specifier_count += 1;
-        struct tactyk_dblock__DBlock *ts_value = tactyk_dblock__from_uint(index);
+        uint64_t index = ctx->token_handle_count;
+        ctx->token_handle_count += 1;
+        struct tactyk_dblock__DBlock *th_value = tactyk_dblock__from_uint(index);
         struct tactyk_dblock__DBlock *spec_token = specifier->token->next;
-        struct tactyk_dblock__DBlock *ts_name;
+        struct tactyk_dblock__DBlock *th_name;
         while (spec_token != NULL) {
-            ts_name = tactyk_dblock__new(16);
-            tactyk_dblock__append_char(ts_name, '.');
-            tactyk_dblock__append(ts_name, spec_token);
-            tactyk_dblock__put(ctx->visa_token_constants, ts_name, ts_value);
+            th_name = tactyk_dblock__new(16);
+            tactyk_dblock__append_char(th_name, '.');
+            tactyk_dblock__append(th_name, spec_token);
+            tactyk_dblock__put(ctx->visa_token_constants, th_name, th_value);
             spec_token = spec_token->next;
         }
-        if (ts_name != NULL) {
-            tactyk_dblock__put(ctx->visa_token_invmap, ts_value, ts_name);
+        if (th_name != NULL) {
+            tactyk_dblock__put(ctx->visa_token_invmap, th_value, th_name);
         }
         specifier = specifier->next;
     }

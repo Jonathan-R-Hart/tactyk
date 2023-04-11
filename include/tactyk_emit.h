@@ -140,7 +140,7 @@ struct tactyk_emit__Context {
     bool namechars[256];
     uint64_t iptr;
 
-    uint64_t type_specifier_count;
+    uint64_t token_handle_count;
     bool has_visa_constants;
 };
 

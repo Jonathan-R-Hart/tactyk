@@ -31,7 +31,7 @@ void tactyk_pl__init() {
     tactyk_dblock__put(tkpl_funcs, "var", tactyk_pl__var);
     tactyk_dblock__put(tkpl_funcs, "get", tactyk_pl__get);
     tactyk_dblock__put(tkpl_funcs, "set", tactyk_pl__set);
-    tactyk_dblock__put(tkpl_funcs, "add_vconstants", tactyk_pl__ld_visa_constants);
+    tactyk_dblock__put(tkpl_funcs, "use_vconstants", tactyk_pl__ld_visa_constants);
 
     default_mem_layout.byte_stride = 8;
     strcpy(default_mem_layout.name, "default-layout");

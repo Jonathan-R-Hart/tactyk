@@ -81,7 +81,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     ctx->c_api_table = tactyk_dblock__new_table(64);
     ctx->visa_token_constants = tactyk_dblock__new_table(512);
     ctx->visa_token_invmap = tactyk_dblock__new_table(512);
-    ctx->type_specifier_count = 0;
+    ctx->token_handle_count = 0;
     ctx->has_visa_constants = false;
     ctx->operator_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
     ctx->typespec_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
