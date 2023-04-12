@@ -684,7 +684,6 @@ void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tact
 }
 
 void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *token, struct tactyk_dblock__DBlock *line) {
-    //struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->subroutine_table, token);
     struct tactyk_dblock__DBlock *name = token;
     struct tactyk_emit__script_command *cmd = tactyk_dblock__new_object(ctx->script_commands);
     cmd->name = name;
@@ -700,6 +699,12 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     for (uint64_t i = 0; i < ctx->script_commands->element_count; i += 1) {
         struct tactyk_emit__script_command *cmd = tactyk_dblock__index(ctx->script_commands, i);
+        #ifdef TACTYK_DEBUG
+            printf("---------\n");
+            printf("CMD #%ju: ", i);
+            tactyk_dblock__println(cmd->tokens);
+            printf("\n");
+        #endif // TACTYK_DEBUG
         ctx->iptr = i;
         ctx->active_command = cmd;
         struct tactyk_dblock__DBlock *label = cmd->labels;
@@ -717,7 +722,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
             printf("COMMAND: ");
             tactyk_dblock__println(cmd->name);
             tactyk_dblock__println(cmd->asm_code);
-            printf("---\n");
+            printf("\n");
         }
         #endif // TACTYK_DEBUG
     }

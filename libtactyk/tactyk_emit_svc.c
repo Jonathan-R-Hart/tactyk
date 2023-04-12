@@ -20,24 +20,25 @@ void tactyk_emit_svc__define_memblock(struct tactyk_asmvm__Context *asmvm_ctx, s
 
 void tactyk_emit_svc__configure(struct tactyk_emit__Context *emit_context) {
     tactyk_emit_svc__emitctx = emit_context;
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-new", tactyk_emit_svc__new);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-build", tactyk_emit_svc__build);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-mem-external", tactyk_emit_svc__mem_external);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-mem", tactyk_emit_svc__mem_empty);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-mem-ref", tactyk_emit_svc__mem_ref);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-mem-copy", tactyk_emit_svc__mem_data);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-label", tactyk_emit_svc__label);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-intlabel", tactyk_emit_svc__intlabel);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-token-1", tactyk_emit_svc__token1);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-token-2", tactyk_emit_svc__token2);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-token-3", tactyk_emit_svc__token3);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-token-4", tactyk_emit_svc__token4);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-token-5", tactyk_emit_svc__token5);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-token-6", tactyk_emit_svc__token6);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-text", tactyk_emit_svc__text);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-int", tactyk_emit_svc__int);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-float", tactyk_emit_svc__float);
-    tactyk_dblock__put(tactyk_emit_svc__emitctx->api_table, "emit-cmd-end", tactyk_emit_svc__end_cmd);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-new", tactyk_emit_svc__new);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-build", tactyk_emit_svc__build);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-mem-external", tactyk_emit_svc__mem_external);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-mem", tactyk_emit_svc__mem_empty);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-mem-ref", tactyk_emit_svc__mem_ref);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-mem-copy", tactyk_emit_svc__mem_data);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-label", tactyk_emit_svc__label);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-intlabel", tactyk_emit_svc__intlabel);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-cmd", tactyk_emit_svc__cmd);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-token-1", tactyk_emit_svc__token1);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-token-2", tactyk_emit_svc__token2);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-token-3", tactyk_emit_svc__token3);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-token-4", tactyk_emit_svc__token4);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-token-5", tactyk_emit_svc__token5);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-token-6", tactyk_emit_svc__token6);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-text", tactyk_emit_svc__text);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-int", tactyk_emit_svc__int);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-float", tactyk_emit_svc__float);
+    tactyk_emit__add_tactyk_apifunc(tactyk_emit_svc__emitctx, "emit-cmd-end", tactyk_emit_svc__end_cmd);
 }
 void tactyk_emit_svc__disconfigure(struct tactyk_emit__Context *emit_context) {
     tactyk_dblock__delete(tactyk_emit_svc__emitctx->api_table, "emit-new");
@@ -191,7 +192,7 @@ void tactyk_emit_svc__float(struct tactyk_asmvm__Context *asmvm_ctx) {
     tactyk_emit_svc__append_token(tactyk_dblock__from_float(asmvm_ctx->regbank_A.xa.f64[0]));
 }
 void tactyk_emit_svc__end_cmd(struct tactyk_asmvm__Context *asmvm_ctx) {
-    tactyk_emit__add_script_command(tactyk_emit_svc__emitctx, cmd, NULL);
+    tactyk_emit__add_script_command(tactyk_emit_svc__emitctx, cmd->token, cmd);
     cmd = NULL;
     cmd_lasttoken = NULL;
 }
@@ -239,9 +240,11 @@ struct tactyk_dblock__DBlock* tactyk_emit_svc__get_token(uint64_t handle) {
     if (handle >= tactyk_emit_svc__emitctx->token_handle_count) {
         error("EMIT-SVC -- Invalid token handle", NULL);
     }
-    struct tactyk_dblock__DBlock *t = tactyk_emit_svc__emitctx->visa_token_invmap[handle];
-    assert (t != NULL);
-    return t;
+    struct tactyk_dblock__DBlock *t_base = tactyk_emit_svc__emitctx->visa_token_invmap[handle];
+    assert(t_base != NULL);
+    assert(t_base->length > 1);
+    uint8_t *data = (uint8_t*) t_base->data;
+    return tactyk_dblock__from_bytes(NULL, data, 1, t_base->length-1, true);
 }
 
 void tactyk_emit_svc__declare_memblock(struct tactyk_asmvm__Context *asmvm_ctx, struct tactyk_asmvm__memblock_lowlevel **m_ll, struct tactyk_asmvm__memblock_highlevel **m_hl) {
