@@ -5,6 +5,7 @@ project(tactyk-p C CXX)
 project(tactyk-p VERSION 0.5.1)
 
 add_library(tactyk
+  libtactyk/tactyk.c
   libtactyk/tactyk_asmvm.c
   libtactyk/tactyk_dblock.c
   libtactyk/tactyk_pl.c
@@ -34,6 +35,7 @@ target_include_directories(tactyk PRIVATE
 target_link_libraries( tdemo tactyk ${SDL2_LIBRARIES} )
 
 add_compile_definitions(
+    # USE_TACTYK_RANDOM_ALLOCATOR
     TACTYK_SHELL_INTERFACE
     TACTYK__VERSION="${CMAKE_PROJECT_VERSION}"
 )

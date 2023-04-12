@@ -44,7 +44,7 @@ int64_t dblocks_stack_idx;
 struct tactyk_dblock__DBlock* tactyk_dblock__from_string_or_dblock(void *ptr);
 
 void tactyk_dblock__init() {
-    //dblocks_list = calloc
+    //dblocks_list = talloc
     for (int64_t i = 0; i < DBLOCKS_CAPACITY; i += 1) {
         dblocks_stack[i] = &dblocks[i];
     }
@@ -70,7 +70,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new(uint64_t capacity) {
     db->type = tactyk_dblock__STRING;
     db->length = 0;
     db->capacity = capacity;
-    db->data = calloc(capacity, 1);
+    db->data = talloc(capacity, 1);
     db->self_managed = true;
     db->child = NULL;
     db->next = NULL;
@@ -91,7 +91,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__shallow_copy(struct tactyk_dblock__
     struct tactyk_dblock__DBlock *db = tactyk_dblock__alloc();
     memcpy(db, src, sizeof(struct tactyk_dblock__DBlock));
     db->self_managed = true;
-    db->data = calloc(db->capacity, 1);
+    db->data = talloc(db->capacity, 1);
     memcpy(db->data, src->data, db->length);
     db->persistence_code = 0;
     return db;
@@ -136,7 +136,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_c_string(char *data) {
     db->stride = 1;
     db->fixed = false;
     db->self_managed = true;
-    db->data = calloc(db->length, 1);
+    db->data = talloc(db->length, 1);
     memcpy(db->data, data, db->length);
     tactyk_dblock__update_hash(db);
     db->persistence_code = 0;
@@ -200,7 +200,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_bytes(struct tactyk_dblock__DB
     else {
         out->type = tactyk_dblock__STRING;
         out->self_managed = true;
-        out->data = calloc(length, 1);
+        out->data = talloc(length, 1);
         memcpy(out->data, &data[start_index], length);
     }
     tactyk_dblock__update_hash(out);
@@ -217,9 +217,9 @@ bool tactyk_dblock__is_dblock(void *ptr) {
 
 void tactyk_dblock__set_content(struct tactyk_dblock__DBlock *dest, struct tactyk_dblock__DBlock *source) {
     if (dest->self_managed == true) {
-        free(dest->data);
+        tfree(dest->data);
     }
-    uint8_t *data = calloc(1, source->length);
+    uint8_t *data = talloc(1, source->length);
     memcpy(data, source->data, source->length);
     dest->data = data;
     dest->length = source->length;
@@ -253,7 +253,7 @@ void tactyk_dblock__dispose(struct tactyk_dblock__DBlock *dblock) {
     }
     if (dblock->self_managed) {
         if (dblock->data != NULL) {
-            free(dblock->data);
+            tfree(dblock->data);
         }
     }
     memset(dblock, 0, sizeof(struct tactyk_dblock__DBlock));
@@ -318,7 +318,7 @@ void tactyk_dblock__break(struct tactyk_dblock__DBlock *dblock) {
         dblock->fixed = false;
         if (!dblock->self_managed) {
             dblock->self_managed = true;
-            uint8_t* ndata = calloc(dblock->capacity, 1);
+            uint8_t* ndata = talloc(dblock->capacity, 1);
             memcpy(ndata, dblock->data, dblock->length);
             dblock->data = ndata;
         }
@@ -520,10 +520,10 @@ bool tactyk_dblock__try_parsedouble(double *out, struct tactyk_dblock__DBlock *d
     if (dblock->length == 0) {
         return false;
     }
-    char *buf = calloc(dblock->length+1, 1);
+    char *buf = talloc(dblock->length+1, 1);
     memcpy(buf, dblock->data, dblock->length);
     bool result = tactyk_util__try_parsedouble(out, buf, dblock->length);
-    free(buf);
+    tfree(buf);
     return result;
 }
 
@@ -544,10 +544,10 @@ void tactyk_dblock__expand(struct tactyk_dblock__DBlock *dblock, uint64_t min_le
     }
 
     uint8_t *data = (uint8_t*) dblock->data;
-    uint8_t *ndata = calloc(dblock->capacity, 1);
+    uint8_t *ndata = talloc(dblock->capacity, 1);
     memcpy(ndata, &data[0], dblock->length);
     if (was_self_managed == true) {
-        free(data);
+        tfree(data);
     }
     dblock->data = ndata;
 }
@@ -559,8 +559,8 @@ void tactyk_dblock__reallocate(struct tactyk_dblock__DBlock *dblock, uint64_t mi
             dblock->capacity *= 2;
             dblock->element_capacity *= 2;
         }
-        uint8_t *ndata = calloc(dblock->capacity, 1);
-        free(dblock->data);
+        uint8_t *ndata = talloc(dblock->capacity, 1);
+        tfree(dblock->data);
 
         dblock->self_managed = true;
         dblock->data = ndata;
@@ -942,12 +942,12 @@ void tactyk_dblock__print_indented(struct tactyk_dblock__DBlock *dblock, char *i
         printf("%s%s", indent, printbuf);
     }
     else {
-        char *cpy = calloc(dblock->length+1,1);
+        char *cpy = talloc(dblock->length+1,1);
         //printf("?printit? %ju\n", len);
         memcpy(cpy, dblock->data, len);
         cpy[len] = 0;
         printf("%s%s", indent, cpy);
-        free(cpy);
+        tfree(cpy);
     }
 }
 void tactyk_dblock__print(void *ptr) {
@@ -973,7 +973,7 @@ void tactyk_dblock__print_structure(struct tactyk_dblock__DBlock *dblock, bool c
         indent_level = TACTYK_DBLOCK__PRINT_MAX_INDENT;
     }
 
-    char *indent = calloc(indent_level*2+1,1);
+    char *indent = talloc(indent_level*2+1,1);
     for (uint64_t i = 0; i < indent_level; i += 1) {
         indent[i*2+0] = ' ';
         indent[i*2+1] = ' ';
@@ -1048,7 +1048,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new_container(uint64_t element_capa
     db->element_count = 0;
     db->length = 0;
     db->capacity = element_capacity*stride;
-    db->data = calloc(element_capacity, stride);
+    db->data = talloc(element_capacity, stride);
     db->self_managed = true;
     db->child = NULL;
     db->next = NULL;
@@ -1162,7 +1162,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new_table(uint64_t element_capacity
     db->element_count = 0;
     db->length = 0;
     db->capacity = element_capacity*stride*2;
-    db->data = calloc(element_capacity, stride*2);
+    db->data = talloc(element_capacity, stride*2);
     db->self_managed = true;
     db->child = NULL;
     db->next = NULL;
@@ -1235,7 +1235,7 @@ void tactyk_dblock__rebuild_table(struct tactyk_dblock__DBlock *table, uint64_t 
 
     if (table->capacity < min_length) {
         table->capacity = min_length;
-        table->data = calloc(min_length, 1);
+        table->data = talloc(min_length, 1);
     }
     table->element_count = 0;
     for (uint64_t i = 0; i < prev_element_capacity; i += 1) {
@@ -1248,7 +1248,7 @@ void tactyk_dblock__rebuild_table(struct tactyk_dblock__DBlock *table, uint64_t 
             tactyk_dblock__put(table, key, value);
         }
     }
-    free(fields);
+    tfree(fields);
 }
 
 

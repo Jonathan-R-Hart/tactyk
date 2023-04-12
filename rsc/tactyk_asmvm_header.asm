@@ -523,6 +523,8 @@
         store_context
         rdfsbase rax
         load_runtimecontext rax
+        mov r14, [rax + context.runtime_registers + 40]
+        mov r15, [rax + context.runtime_registers + 48]
         mov rax, STATUS_HALT
         ret
     %endmacro
@@ -532,6 +534,8 @@
         store_context
         rdfsbase rax
         load_runtimecontext rax
+        mov r14, [rax + context.runtime_registers + 40]
+        mov r15, [rax + context.runtime_registers + 48]
         mov rax, %1
         ret
     %endmacro

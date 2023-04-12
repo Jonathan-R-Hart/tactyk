@@ -66,47 +66,6 @@
 //      of VM options that would need to be prepared (due to restricting buffer sizes to powers of two).
 //
 
-// simple and safe random number generator
-//          -- safe if safe means favoring a secure PRNG over something one has personally invented.
-//          -- not so safe if safe is also supposed to mean 'unable to overwrite arbtrary amounts of arbitrarilly positioned memory.'
-//          -- Some would say this is not a very portable approach, but the entire product line at issue got decertified for personal use years ago -- "free isn't freedom".
-FILE *dev_urand;
-void sys_rand(void *ptr, uint64_t nbytes) {
-    uint64_t x = fread(ptr, nbytes, 1, dev_urand);
-    x *= 2;
-}
-
-uint64_t tactyk__rand_uint64() {
-    uint64_t rand;
-    sys_rand(&rand, 8);
-    return rand;
-}
-// overridable error handler
-tactyk__error_handler error;
-tactyk__error_handler warn;
-static jmp_buf tactyk_err_jbuf;
-
-void tactyk__default_warning_handler(char *msg, void *data) {
-    if (data == NULL) {
-        printf("WARNING -- %s\n", msg);
-    }
-    else {
-        printf("WARNING -- %s: ", msg);
-        tactyk_dblock__println(data);
-    }
-}
-
-
-void tactyk__default_error_handler(char *msg, void *data) {
-    if (data == NULL) {
-        printf("ERROR -- %s\n", msg);
-    }
-    else {
-        printf("ERROR -- %s: ", msg);
-        tactyk_dblock__println(data);
-    }
-    longjmp(tactyk_err_jbuf, 1);
-}
 
 void testfunc(int64_t asdf) {
     printf("----------------------------------------------- test func %jd!\n", asdf);
@@ -115,27 +74,13 @@ void testfunc(int64_t asdf) {
 
 #if !(defined TACTYK_SHELL_INTERFACE) && !(defined ASDF_FDSA)
 int main() {
-    error = tactyk__default_error_handler;
-    warn = tactyk__default_warning_handler;
+    tactyk_init();
 
     printf("%s\n", TACTYK_SE__DESCRIPTION);
-
-    // standalone erorr handling is to exit()
-    // when invoked as library,t error handling should be to return NULL
-    //      (the host application will have to override the error handler to get messages out)
-    if (setjmp(tactyk_err_jbuf)) {
-        printf("Error out.\n");
-        exit(1);
-    }
-
-    tactyk_dblock__init();
-
-    dev_urand = fopen("/dev/urandom", "r");
 
     tactyk_visa__init("rsc/tactyk_core.visa");
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
     emitctx->visa_file_prefix = "rsc/";
-    emitctx->rand = sys_rand;       // haven't yet decided to add a default PRNG, but when I do, it does need to be secure.
 
     tactyk_visa__init_emit(emitctx);
     tactyk_pl__init();
@@ -161,35 +106,17 @@ int main() {
     //tactyk_visa_new__init("tactyk_core.visa");
 
     struct tactyk_asmvm__Program *esvcprg = run_esvc_test(emitctx, ctx);
-
-    // is closing /dev/urandom needed?  (or, for that matter, anything read-only [if the process is going to terminate immediately afterward])
-    // If so, then all calls to exit() should be replaced with something that exits properly.
-    // If not so, then I'd prefer to get out of the cargo cult and delete whatever is superfluous.
-    fclose(dev_urand);
     return 0;
 }
 #endif // default [testing] interface
 
 #ifdef TACTYK_SHELL_INTERFACE
 int main(int argc, char *argv[], char *envp[]) {
-    error = tactyk__default_error_handler;
-    warn = tactyk__default_warning_handler;
+    tactyk_init();
 
     printf("%s\n", TACTYK_SE__DESCRIPTION);
 
-    // standalone erorr handling is to exit()
-    // when invoked as library,t error handling should be to return NULL
-    //      (the host application will have to override the error handler to get messages out)
-    if (setjmp(tactyk_err_jbuf)) {
-        printf("Error out.\n");
-        exit(1);
-    }
-    dev_urand = fopen("/dev/urandom", "r");
-
-    tactyk_dblock__init();
-
     char *visa_fname = "rsc/tactyk_core.visa";
-
 
     bool printctx = false;
 
@@ -209,7 +136,6 @@ int main(int argc, char *argv[], char *envp[]) {
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
                                         //tactyk_visa__init(fname);
     emitctx->visa_file_prefix = "rsc/";
-    emitctx->rand = sys_rand;       // haven't yet decided to add a default PRNG, but when I do, it does need to be secure.
     tactyk_visa__init_emit(emitctx);
     tactyk_pl__init();
     struct tactyk_asmvm__VM *vm = tactyk_asmvm__new_vm();

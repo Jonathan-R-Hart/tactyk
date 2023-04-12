@@ -44,8 +44,8 @@ void tactyk_pl__init() {
 
 struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx) {
     tactyk_emit__reset(emitctx);
-    struct tactyk_pl__Context *ctx = calloc(1, sizeof(struct tactyk_pl__Context));
-    ctx->program = calloc(1, sizeof(struct tactyk_asmvm__Program));
+    struct tactyk_pl__Context *ctx = talloc(1, sizeof(struct tactyk_pl__Context));
+    ctx->program = talloc(1, sizeof(struct tactyk_asmvm__Program));
     emitctx->program = ctx->program;
     ctx->emitctx = emitctx;
 
@@ -142,7 +142,7 @@ struct tactyk_asmvm__Program* tactyk_pl__build(struct tactyk_pl__Context *plctx)
     tactyk_emit__compile(plctx->emitctx);
     struct tactyk_asmvm__Program *program = plctx->program;
     tactyk_dblock__cull(0);
-    free(plctx);
+    tfree(plctx);
     return program;
 }
 
@@ -284,7 +284,6 @@ void tactyk_pl__define_mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock_
     mem_hl->num_entries = scale;
     mem_hl->memblock_id = id;
     mem_hl->data = NULL;
-    //m_hl->data = calloc(scale, layout->byte_stride);
     mem_hl->definition = layout;
 
     mem_ll->array_bound = (scale-1) * layout->byte_stride + 1;
@@ -308,7 +307,7 @@ bool tactyk_pl__mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock
     m_ll->type = TACTYK_ASMVM__MEMBLOCK_TYPE__ALLOC;
     m_hl->type = TACTYK_ASMVM__MEMBLOCK_TYPE__ALLOC;
 
-    m_hl->data = calloc(m_hl->num_entries, m_hl->definition->byte_stride);
+    m_hl->data = talloc(m_hl->num_entries, m_hl->definition->byte_stride);
 
     m_ll->base_address = m_hl->data;
 
@@ -439,7 +438,7 @@ bool tactyk_pl__data(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
         def->num_properties = num_items;
 
         def->name = name;
-        struct tactyk_asmvm__property *props = calloc(def->num_properties, sizeof(struct tactyk_asmvm__property));
+        struct tactyk_asmvm__property *props = talloc(def->num_properties, sizeof(struct tactyk_asmvm__property));
         def->properties = props;
 
         // define generic properties (for now).
@@ -464,7 +463,7 @@ bool tactyk_pl__data(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
     }
 
     // allocate the block
-    mb->data = calloc(mb->num_entries, def->byte_stride);
+    mb->data = talloc(mb->num_entries, def->byte_stride);
     mb->definition = def;
     mb->memblock_id = next_memblock_id++;
 

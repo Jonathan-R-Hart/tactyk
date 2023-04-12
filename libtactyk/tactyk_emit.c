@@ -73,7 +73,7 @@ void tactyk_emit__error(struct tactyk_emit__Context *ctx, void *msg_ptr) {
 }
 
 struct tactyk_emit__Context* tactyk_emit__init() {
-    struct tactyk_emit__Context *ctx = calloc(1, sizeof(struct tactyk_emit__Context));
+    struct tactyk_emit__Context *ctx = talloc(1, sizeof(struct tactyk_emit__Context));
 
     ctx->visa_file_prefix = "";
 
@@ -157,7 +157,7 @@ void tactyk_emit__dispose(struct tactyk_emit__Context *ctx) {
 
     tactyk_dblock__dispose(ctx->code_template);
 
-    free(ctx);
+    tfree(ctx);
 }
 
 bool tactyk_emit__comprehend_int_value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data);
@@ -574,8 +574,7 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     }
     tactyk_dblock__dispose(sc_input);
 
-    uint64_t rand_val;
-    ctx->rand(&rand_val, 8);
+    uint64_t rand_val = tactyk__rand_uint64();
     uint64_t diff_val = (uint64_t)raw_val ^ rand_val;
     //bool is_qword = false;
 
@@ -729,7 +728,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     }
 
     uint64_t program_size = ctx->script_commands->element_count;
-    uint64_t *program_map = calloc(program_size, sizeof(uint64_t));
+    uint64_t *program_map = talloc(program_size, sizeof(uint64_t));
     for (uint64_t i = 0; i < program_size; i++) {
         program_map[i] = i;
     }
@@ -751,8 +750,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
         uint64_t max = 0xffffffffffffffff / sz;
         max *= sz;
         do {
-            //getrandom(&j, 8,0);
-            ctx->rand(&j, 8);
+            j = tactyk__rand_uint64();
         } while (j > max);
         j %= sz;
         j = j + i;
@@ -797,8 +795,13 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     //ctx->program->jump_target_table = jt_table;
 
     uint64_t ex_size = tactyk_util__next_pow2(assembly->length);
-
+    #ifdef USE_TACTYK_ALLOCATOR
+    void *target_address = tactyk__mk_random_base_address();
+    void *exec_mem = mmap(target_address, ex_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    #else
     void *exec_mem = mmap(NULL, ex_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    #endif // USE_TACTYK_ALLOCATOR
+
     memcpy(exec_mem, assembly->bin, assembly->length);
     mprotect(exec_mem, ex_size, PROT_READ | PROT_EXEC);
 
@@ -807,7 +810,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
 
     // I do not think it is worthwhile to adapt a dblock container to handle this specific case.
     //      (but a dblock table should work nicely for allowing the host application to use a script's branch targets)
-    tactyk_asmvm__op *command_map = calloc(program_size, sizeof(void*));
+    tactyk_asmvm__op *command_map = talloc(program_size, sizeof(void*));
     ctx->program->command_map = command_map;
 
     // copy offsets from the symbol table to the assembly precursor abstraction (which are directly referenced by the precursor program abstraction)
