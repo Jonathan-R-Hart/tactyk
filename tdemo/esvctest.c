@@ -16,6 +16,7 @@ char *squareit_src = {
     R"""(
         SQ:
             mul a a
+            tcall dump-ctx
             exit
     )"""
 };
@@ -75,8 +76,9 @@ char *esvctest_src = {
             tvmpush a b
             tcall dump-ctx
             tcall dump-stack
-            # assign a 5
-            # tvm-call
+            assign a 5
+            tvmjump
+            tcall dump-ctx
             lwreturn
     )"""
 };
@@ -88,5 +90,7 @@ struct tactyk_asmvm__Program* run_esvc_test(struct tactyk_emit__Context *emitctx
     struct tactyk_asmvm__Program *prg = tactyk_pl__build(plctx);
     tactyk_asmvm__add_program(ctx, prg);
     tactyk_asmvm__invoke(ctx, prg, "MAIN");
+    printf("-=-=-=-=-=- ... \n");
+    tactyk_debug__print_context(ctx);
     return prg;
 }

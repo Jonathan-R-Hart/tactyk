@@ -2203,9 +2203,42 @@ instruction tvmpush
         mov rTEMPD, [rTEMPD + rTEMPA]
         mov [rTEMPC + tvmstackentry.target_jump_target], rTEMPD
         
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        
         ; the only thing missing here is the return index (not avaialble until the actual jump).
         jmp $NEXT_INSTRUCTION
 
+instruction tvmjump
+  $KW dword
+  scramble rTEMPA $LD_CMDNEXT_IMMEDIATE $COMMAND_INDEX_NEXT
+  code
+    mov dword fs:[context.lwcall_floor], rLWCSI_32
+    mov dword fs:[context.microcontext_floor], rMCSI_32
+    
+    mov rTEMPC, fs:[context.stack]
+    mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
+    cmp rTEMPA, 1
+    errorneq STATUS_INVALID_TVMJUMP
+    mov qword [rTEMPC + tactyk_stack.stack_lock], 0
+    mov rTEMPA, [rTEMPC + tactyk_stack.stack_position]
+    
+    ; rTEMPC -> stack entry pointer
+    imul rTEMPA, tvmstackentry_size
+    add rTEMPC, tactyk_stack.stack
+    add rTEMPC, rTEMPA
+    
+    $LD_CMDNEXT_IMMEDIATE
+    mov [rTEMPC + tvmstackentry.source_return_index], rTEMPA
+    
+    mov rPROG, [rTEMPC + tvmstackentry.target_program]
+    mov rADDR4, rPROG
+    xor rTEMPA, rTEMPA
+    
+    ; possibly should do an mctxpush here, but that seems arbitrarilly restrictive.
+    jmp [rTEMPC + tvmstackentry.target_jump_target]
+    
 typespec vec-float-format
   $VECFMT sd
   select-operand
