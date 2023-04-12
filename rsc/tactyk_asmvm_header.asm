@@ -396,7 +396,8 @@
         ;movdqu xmm15, [rTEMPA + controlstate.runtime_registers + 128+128 ]
     %endmacro
 
-    %macro load_context 0
+    %macro load_context 1
+        wrfsbase %1
         mov rPROG, fs:[context.registers + regbank.prog]
         mov rLWCSI, fs:[context.registers + regbank.lwcsi]
         mov rMCSI, fs:[context.registers + regbank.mcsi]
@@ -603,8 +604,7 @@ run:
   mov rTEMPA, [rdi + context.controlstate]
   validate_context_pointer rdi
   store_runtimecontext
-  wrfsbase rdi
-  load_context
+  load_context rdi
   mov fs:[context.status], dword STATUS_RUN
   mov rTEMPA, fs:[context.instruction_index]
   ; exception - In this one specific case, the temp register ca not be cleared before exiting an instruction.

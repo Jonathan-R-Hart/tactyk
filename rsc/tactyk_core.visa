@@ -1288,7 +1288,6 @@ instruction tcall
     ;rE, rF are aligned
 
     rdfsbase r14
-    rdgsbase r15
     
     mov rax, fs:[context.controlstate]
     mov r12, [rax + controlstate.runtime_registers + 56]
@@ -1311,11 +1310,7 @@ instruction tcall
     
     pop rbp
     validate_context_pointer r14
-    
-    wrfsbase r14
-    wrgsbase r15
-    
-    load_context
+    load_context r14
     
     xor rTEMPA, rTEMPA
     xor rTEMPC, rTEMPC
@@ -1344,7 +1339,6 @@ instruction ccall
         ;rE, rF are already aligned
         
         rdfsbase r14
-        rdgsbase r15
         
         mov rTEMPA, fs:[context.controlstate]
         mov r12, [rTEMPA + controlstate.runtime_registers + 56]
@@ -1363,11 +1357,7 @@ instruction ccall
         
         pop rbp
         validate_context_pointer r14
-        
-        wrfsbase r14
-        wrgsbase r15
-        
-        load_context
+        load_context r14
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -1404,14 +1394,10 @@ instruction ccall
         call r10
         
         pop rbp
-        validate_context_pointer r14
-        
         mov rTEMPD, rTEMPA
-
-        wrfsbase r14
-        wrgsbase r15
         
-        load_context
+        validate_context_pointer r14
+        load_context r14
         
         mov $A, rTEMPD
         

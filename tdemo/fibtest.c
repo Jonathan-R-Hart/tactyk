@@ -34,10 +34,6 @@ char *fibtest_src = {
             add a b
             dec c
             if c > 0 FIBLOOP
-            ccall printuint
-            assign a 10
-            ccall printchar
-            assign f .==
             tcall dump-ctx
             exit
         DIAG:
