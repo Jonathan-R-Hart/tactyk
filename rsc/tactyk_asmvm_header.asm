@@ -593,9 +593,11 @@ run:
   inc rTEMPC
   cmp rTEMPC, [rdi + context.signature]
   je .pass
+  xor rTEMPC, rTEMPC
   mov rax, dword STATUS_UNSIGNED_CONTEXT
   ret
   .pass:
+  xor rTEMPC, rTEMPC
   store_runtimecontext
   wrfsbase rdi
   load_context
