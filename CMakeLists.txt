@@ -6,6 +6,7 @@ project(tactyk-p VERSION 0.6.0)
 
 add_library(tactyk
   libtactyk/tactyk.c
+  libtactyk/tactyk_alloc.c
   libtactyk/tactyk_asmvm.c
   libtactyk/tactyk_dblock.c
   libtactyk/tactyk_pl.c

@@ -18,6 +18,7 @@
 #include "tactyk_util.h"
 #include "tactyk_asmvm.h"
 #include "tactyk.h"
+#include "tactyk_alloc.h"
 
 #include "tactyk_assembler.h"
 #include "tactyk_dblock.h"
@@ -73,7 +74,7 @@ void tactyk_emit__error(struct tactyk_emit__Context *ctx, void *msg_ptr) {
 }
 
 struct tactyk_emit__Context* tactyk_emit__init() {
-    struct tactyk_emit__Context *ctx = talloc(1, sizeof(struct tactyk_emit__Context));
+    struct tactyk_emit__Context *ctx = tactyk_alloc__allocate(1, sizeof(struct tactyk_emit__Context));
 
     ctx->visa_file_prefix = "";
 
@@ -157,7 +158,7 @@ void tactyk_emit__dispose(struct tactyk_emit__Context *ctx) {
 
     tactyk_dblock__dispose(ctx->code_template);
 
-    tfree(ctx);
+    tactyk_alloc__free(ctx);
 }
 
 bool tactyk_emit__comprehend_int_value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data);
@@ -728,7 +729,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     }
 
     uint64_t program_size = ctx->script_commands->element_count;
-    uint64_t *program_map = talloc(program_size, sizeof(uint64_t));
+    uint64_t *program_map = tactyk_alloc__allocate(program_size, sizeof(uint64_t));
     for (uint64_t i = 0; i < program_size; i++) {
         program_map[i] = i;
     }
@@ -810,7 +811,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
 
     // I do not think it is worthwhile to adapt a dblock container to handle this specific case.
     //      (but a dblock table should work nicely for allowing the host application to use a script's branch targets)
-    tactyk_asmvm__op *command_map = talloc(program_size, sizeof(void*));
+    tactyk_asmvm__op *command_map = tactyk_alloc__allocate(program_size, sizeof(void*));
     ctx->program->command_map = command_map;
 
     // copy offsets from the symbol table to the assembly precursor abstraction (which are directly referenced by the precursor program abstraction)

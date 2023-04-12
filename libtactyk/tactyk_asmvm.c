@@ -10,23 +10,24 @@
 #include "tactyk.h"
 #include "tactyk_asmvm.h"
 #include "tactyk_dblock.h"
+#include "tactyk_alloc.h"
 
 struct tactyk_asmvm__VM* tactyk_asmvm__new_vm() {
-    struct tactyk_asmvm__VM *vm = talloc(1, sizeof(struct tactyk_asmvm__VM));
+    struct tactyk_asmvm__VM *vm = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__VM));
     vm->program_count = 0;
-    vm->program_list = talloc(TACTYK_ASMVM__PROGRAM_CAPACITY, sizeof(struct tactyk_asmvm__program_declaration));
+    vm->program_list = tactyk_alloc__allocate(TACTYK_ASMVM__PROGRAM_CAPACITY, sizeof(struct tactyk_asmvm__program_declaration));
     return vm;
 }
 
 struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM *vm) {
-    struct tactyk_asmvm__Context *ctx = talloc(1, sizeof(struct tactyk_asmvm__Context));
-    ctx->microcontext_stack = talloc(TACTYK_ASMVM__MCTX_STACK_SIZE*TACTYK_ASMVM__MCTX_ENTRY_SIZE, sizeof(uint64_t));
+    struct tactyk_asmvm__Context *ctx = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__Context));
+    ctx->microcontext_stack = tactyk_alloc__allocate(TACTYK_ASMVM__MCTX_STACK_SIZE*TACTYK_ASMVM__MCTX_ENTRY_SIZE, sizeof(uint64_t));
     ctx->microcontext_stack_offset = 0;
     ctx->lwcall_stack_floor = 0;
     ctx->mctx_stack_floor = 0;
-    ctx->lwcall_stack = talloc(TACTYK_ASMVM__LWCALL_STACK_SIZE, sizeof(uint32_t));
+    ctx->lwcall_stack = tactyk_alloc__allocate(TACTYK_ASMVM__LWCALL_STACK_SIZE, sizeof(uint32_t));
 
-    ctx->stack = talloc(1, sizeof(struct tactyk_asmvm__Stack));
+    ctx->stack = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__Stack));
     ctx->stack->stack_lock = 0;
     ctx->stack->stack_position = -1;
     // tactyk signature
@@ -53,7 +54,7 @@ void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tac
     dec->instruction_jumptable = program->command_map;
     uint64_t num_funcs = program->functions->element_count;
     dec->function_count = num_funcs;
-    tactyk_asmvm__op *fjumptable = talloc(num_funcs, sizeof(tactyk_asmvm__op));
+    tactyk_asmvm__op *fjumptable = tactyk_alloc__allocate(num_funcs, sizeof(tactyk_asmvm__op));
     for (uint64_t i = 0; i < num_funcs; i += 1) {
         struct tactyk_asmvm__identifier *id = tactyk_dblock__index(program->functions->store, i);
         #ifdef TACTYK_DEBUG

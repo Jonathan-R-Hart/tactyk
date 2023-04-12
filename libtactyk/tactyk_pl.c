@@ -12,6 +12,7 @@
 #include "tactyk_asmvm.h"
 #include "tactyk.h"
 #include "tactyk_pl.h"
+#include "tactyk_alloc.h"
 
 #include "tactyk_dblock.h"
 
@@ -44,8 +45,8 @@ void tactyk_pl__init() {
 
 struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx) {
     tactyk_emit__reset(emitctx);
-    struct tactyk_pl__Context *ctx = talloc(1, sizeof(struct tactyk_pl__Context));
-    ctx->program = talloc(1, sizeof(struct tactyk_asmvm__Program));
+    struct tactyk_pl__Context *ctx = tactyk_alloc__allocate(1, sizeof(struct tactyk_pl__Context));
+    ctx->program = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__Program));
     emitctx->program = ctx->program;
     ctx->emitctx = emitctx;
 
@@ -142,7 +143,7 @@ struct tactyk_asmvm__Program* tactyk_pl__build(struct tactyk_pl__Context *plctx)
     tactyk_emit__compile(plctx->emitctx);
     struct tactyk_asmvm__Program *program = plctx->program;
     tactyk_dblock__cull(0);
-    tfree(plctx);
+    tactyk_alloc__free(plctx);
     return program;
 }
 
@@ -307,7 +308,7 @@ bool tactyk_pl__mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock
     m_ll->type = TACTYK_ASMVM__MEMBLOCK_TYPE__ALLOC;
     m_hl->type = TACTYK_ASMVM__MEMBLOCK_TYPE__ALLOC;
 
-    m_hl->data = talloc(m_hl->num_entries, m_hl->definition->byte_stride);
+    m_hl->data = tactyk_alloc__allocate(m_hl->num_entries, m_hl->definition->byte_stride);
 
     m_ll->base_address = m_hl->data;
 

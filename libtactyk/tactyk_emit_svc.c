@@ -6,6 +6,7 @@
 #include "tactyk_emit.h"
 #include "tactyk_emit_svc.h"
 #include "tactyk_pl.h"
+#include "tactyk_alloc.h"
 
 struct tactyk_pl__Context *tactyk_emit_svc__plctx;
 struct tactyk_emit__Context *tactyk_emit_svc__emitctx;
@@ -122,7 +123,7 @@ void tactyk_emit_svc__mem_data(struct tactyk_asmvm__Context *asmvm_ctx) {
     }
 
     uint64_t len = refm_ll->array_bound + refm_ll->element_bound + 7;
-    uint8_t *data = talloc(1, len);
+    uint8_t *data = tactyk_alloc__allocate(1, len);
     memcpy(data, refm_ll->base_address, len);
 }
 
@@ -271,7 +272,7 @@ void tactyk_emit_svc__declare_memblock(struct tactyk_asmvm__Context *asmvm_ctx, 
     mem_hl->num_entries = 0;
     mem_hl->memblock_id = id;
     mem_hl->data = NULL;
-    mem_hl->definition = talloc(1, sizeof(struct tactyk_asmvm__struct));
+    mem_hl->definition = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__struct));
     mem_hl->definition->byte_stride = 0;
     mem_hl->definition->num_properties = 0;
 
@@ -295,7 +296,7 @@ void tactyk_emit_svc__define_memblock(struct tactyk_asmvm__Context *asmvm_ctx, s
     mem_hl->definition->byte_stride = element_size;
     mem_hl->definition->num_properties = 0;
 
-    uint8_t *data = talloc(element_count, element_size);
+    uint8_t *data = tactyk_alloc__allocate(element_count, element_size);
     mem_ll->base_address = data;
     mem_hl->data = data;
 }
