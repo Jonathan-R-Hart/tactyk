@@ -2106,9 +2106,13 @@ instruction lwcall
 instruction lwreturn
   code
     movzx rTEMPA, rLWCSI_16
+    cmp rLWCSI_16, fs:[context.lwcall_floor]
+    errorlt STATUS_STACK_UNDERFLOW
     shl rTEMPA, 2
     add rTEMPA, fs:[context.lwcall_stack_address]
     mov rTEMPA_32, [rTEMPA]
+    ;cmp rTEMPA, fs:[context.instruction_count]
+    ;errorge STATUS_ROGUE_BRANCH
     dec rLWCSI_16
     jmp [rPROG+rTEMPA*8]
 
@@ -2131,6 +2135,76 @@ instruction mctxpop
     wrgsbase rTEMPA
     xor rTEMPA, rTEMPA
     jmp $NEXT_INSTRUCTION
+
+instruction tvmpush
+  operand
+    type data const integer
+    $PROG_HANDLE $VALUE
+    scramble rTEMPA $LD_IMMEDIATE_PROG_HANDLE
+  operand
+    type data const integer
+    $FUNC_HANDLE $VALUE
+    scramble rTEMPA $LD_IMMEDIATE_FUNC_HANDLE
+  select-template
+    case DD
+      code
+        mov rTEMPC, fs:[context.stack]
+        mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
+        cmp rTEMPA, 0
+        errorneq STATUS_INVALID_TVMJUMP
+        mov qword [rTEMPC + tactyk_stack.stack_lock], 1
+        mov rTEMPA, [rTEMPC + tactyk_stack.stack_position]
+        inc rTEMPA
+        cmp rTEMPA, stacksize
+        errorge STATUS_INVALID_TVMJUMP_STATE
+        mov [rTEMPC + tactyk_stack.stack_position], rTEMPA
+
+        ; rTEMPC -> stack entry pointer
+        imul rTEMPA, tvmstackentry_size
+        add rTEMPC, tactyk_stack.stack
+        add rTEMPC, rTEMPA
+        
+        mov rTEMPA, fs:[context.floor]
+        mov [rTEMPC + tvmstackentry.source_program], rPROG
+        mov [rTEMPC + tvmstackentry.source_stack_floor], rTEMPA
+        
+        ; validate $PROG_HANDLE
+        ; rTEMPA -> program index
+        mov rTEMPA, $PROG_HANDLE
+        cmp rTEMPA, 0
+        errorlt STATUS_INVALID_TVMJUMP
+        mov rTEMPD, fs:[context.vm]
+        cmp rTEMPA, [rTEMPD + tactyk_vm.program_count]
+        errorge STATUS_INVALID_TVMJUMP
+        
+        ; rTEMPD -> program declaration
+        mov rTEMPD, [rTEMPD + tactyk_vm.program_list]
+        imul rTEMPA, program_dec_size
+        add rTEMPD, rTEMPA
+        
+        ; obtain target jump table.
+        mov rTEMPA, [rTEMPD + program_dec.instruction_jumptable]
+        mov [rTEMPC + tvmstackentry.target_program], rTEMPA
+        
+        ; validate $FUNC_HANDLE
+        ;mov fs:[ctx.extra], rTEMPD
+        mov rTEMPA, $FUNC_HANDLE
+        ;mov rTEMPD, fs:[ctx.extra]
+        cmp rTEMPA, 0
+        errorlt STATUS_INVALID_TVMJUMP
+        cmp rTEMPA, [rTEMPD + program_dec.function_count]
+        errorge STATUS_INVALID_TVMJUMP
+        
+        ; rTEMPD -> function array
+        mov rTEMPD, [rTEMPD + program_dec.function_jumptable]
+        
+        ; obtain actual jump target.
+        shl rTEMPA, 3
+        mov rTEMPD, [rTEMPD + rTEMPA]
+        mov [rTEMPC + tvmstackentry.target_jump_target], rTEMPD
+        
+        ; the only thing missing here is the return index (not avaialble until the actual jump).
+        jmp $NEXT_INSTRUCTION
 
 typespec vec-float-format
   $VECFMT sd
@@ -2366,6 +2440,7 @@ instruction vec-transfer
   code
     mov$VECFMT $A, $B
     jmp $NEXT_INSTRUCTION
+
 
 
 

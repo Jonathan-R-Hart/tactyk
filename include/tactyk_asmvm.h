@@ -141,10 +141,12 @@ struct tactyk_asmvm__memblock_highlevel {
 };
 
 struct tactyk_asmvm__vm_stack_entry {
-    void *source_excutable;
-    uint64_t source_return_target;
-    void *dest_executable;
-    uint64_t dest_jump_target;
+    void *source_command_map;
+    void *source_return_target;
+    uint32_t source_lwcallstack_floor;
+    uint32_t source_mctxstack_floor;
+    void *dest_command_map;
+    void *dest_jump_target;
 };
 
 struct tactyk_asmvm__Stack {
@@ -154,7 +156,6 @@ struct tactyk_asmvm__Stack {
 };
 
 struct tactyk_asmvm__program_declaration {
-    void *base_address;
     uint64_t instruction_count;
     tactyk_asmvm__op *instruction_jumptable;
     uint64_t function_count;
@@ -184,10 +185,11 @@ struct tactyk_asmvm__Context {
     void *lwcall_stack;
     void *microcontext_stack;
     uint64_t microcontext_stack_offset;
-    uint64_t microcontext_stack_size;
+    uint32_t lwcall_stack_floor;
+    uint32_t mctx_stack_floor;
 
     struct tactyk_asmvm__VM *vm;
-    struct tactyk_asmvm__Stack *ctx_stack;
+    struct tactyk_asmvm__Stack *stack;
     tactyk_asmvm__op *program;
     struct tactyk_asmvm__Program *hl_program_ref;      // a pointer to help high-level code access representative data structures.
 
@@ -196,8 +198,8 @@ struct tactyk_asmvm__Context {
     // execution state or error code
     uint64_t STATUS;
 
-    uint64_t stepper;
     uint64_t signature;
+    uint64_t extra;         // register spills
 
     struct tactyk_asmvm__register_bank reg;                     // tactyk context register content
     struct tactyk_asmvm__register_bank runtime_registers;       // native context register content

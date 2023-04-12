@@ -22,12 +22,13 @@ struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM 
     struct tactyk_asmvm__Context *ctx = talloc(1, sizeof(struct tactyk_asmvm__Context));
     ctx->microcontext_stack = talloc(TACTYK_ASMVM__MCTX_STACK_SIZE*TACTYK_ASMVM__MCTX_ENTRY_SIZE, sizeof(uint64_t));
     ctx->microcontext_stack_offset = 0;
-    ctx->microcontext_stack_size = TACTYK_ASMVM__MCTX_STACK_SIZE*TACTYK_ASMVM__MCTX_ENTRY_SIZE*sizeof(uint64_t);
+    ctx->lwcall_stack_floor = 0;
+    ctx->mctx_stack_floor = 0;
     ctx->lwcall_stack = talloc(TACTYK_ASMVM__LWCALL_STACK_SIZE, sizeof(uint32_t));
 
-    ctx->ctx_stack = talloc(1, sizeof(struct tactyk_asmvm__Stack));
-    ctx->ctx_stack->stack_lock = 0;
-    ctx->ctx_stack->stack_position = -1;
+    ctx->stack = talloc(1, sizeof(struct tactyk_asmvm__Stack));
+    ctx->stack->stack_lock = 0;
+    ctx->stack->stack_position = -1;
     // tactyk signature
     // This is a binary transform of the pointer to the context which must be placed within the context at predefined location.
     // TACTYK uses this to validate the context pointer.  Prior to running any program code.
@@ -48,7 +49,6 @@ void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tac
     #endif // TACTYK_DEBUG
     struct tactyk_asmvm__program_declaration *dec = &context->vm->program_list[context->vm->program_count];
     context->vm->program_count += 1;
-    dec->base_address = program->executable;
     dec->instruction_count = program->length;
     dec->instruction_jumptable = program->command_map;
     uint64_t num_funcs = program->functions->element_count;

@@ -26,8 +26,16 @@ char *esvctest_src = {
 
         text txt
             l SQUAREIT.
-
         MAIN:
+            lwcall THIS
+            exit
+        THIS:
+            lwcall THAT
+            lwreturn
+        THAT:
+            lwcall THE_OTHER_THING
+            lwreturn
+        THE_OTHER_THING:
             bind addr1 txt
 
             tcall dump-ctx
@@ -63,13 +71,13 @@ char *esvctest_src = {
             # These extra parameters take up valuable register space, so instead of using a single-line invocation, the call is set up by pushing the required references
             # onto a global (VM) stack, then setting up parameters into the function to call, then jumping to the function at the top of said stack.
             # unstash a1b1
-            # tvm-prepcall a b
+            tcall dump-stack
+            tvmpush a b
+            tcall dump-ctx
+            tcall dump-stack
             # assign a 5
             # tvm-call
-
-
-
-            exit
+            lwreturn
     )"""
 };
 

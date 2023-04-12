@@ -9,6 +9,7 @@
 void tactyk_debug__configure_api(struct tactyk_emit__Context *emitctx) {
     tactyk_emit__add_tactyk_apifunc(emitctx, "dump-ctx", tactyk_debug__print_context);
     tactyk_emit__add_tactyk_apifunc(emitctx, "dump-mbind", tactyk_debug__print_mbind);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "dump-stack", tactyk_debug__print_vmstack);
     tactyk_emit__add_tactyk_apifunc(emitctx, "break", tactyk_debug__break);
 }
 
@@ -66,9 +67,36 @@ void tactyk_debug__print_mbind(struct tactyk_asmvm__Context *ctx) {
     printf("| Array Bound    | %20d |\n", mbll->array_bound);
     printf("| Memblock Index | %20d |\n", mbll->memblock_index);
     printf("| Type Code      | %20d |\n", mbll->type);
-    printf("=== BOUND MEMORY ========================\n");
+    printf("=========================================\n");
 }
 
+
+void tactyk_debug__print_vmstack(struct tactyk_asmvm__Context *ctx) {
+    printf("===== VM STACK ============================================================================================\n");
+    char *lockstate;
+    if (ctx->stack->stack_lock) {
+        lockstate = "LOCKED";
+    }
+    else {
+        lockstate = "UNLOCKED";
+    }
+    printf("| state: %-8s |                                                                                       |\n", lockstate);
+    printf("|---------------------------------------------------------------------------------------------------------|\n");
+    printf("|   pos |    src-commands |   return-target |  lwc-floor | mctx-floor |   dest-commands |     jump-target |\n");
+    printf("|---------------------------------------------------------------------------------------------------------|\n");
+    for (int64_t pos = 0; pos <= ctx->stack->stack_position; pos += 1) {
+        struct tactyk_asmvm__vm_stack_entry *entry = &ctx->stack->entries[pos];
+        printf("| %5ju | %15p | %15p | %10u | %10u | %15p | %15p |\n", pos, entry->source_command_map, entry->source_return_target, entry->source_lwcallstack_floor, entry->source_mctxstack_floor, entry->dest_command_map, entry->dest_jump_target);
+    }
+    printf("===========================================================================================================\n");
+
+
+}
+
+void tactyk_debug__print_vmprograms(struct tactyk_asmvm__Context *ctx) {
+
+
+}
 void tactyk_debug__break(struct tactyk_asmvm__Context *ctx) {
     printf("EXECUTION PAUSED.  Press 'Enter' to proceed.  Enter 'q' to quit.\n");
 
