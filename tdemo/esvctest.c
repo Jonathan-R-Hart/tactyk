@@ -55,6 +55,8 @@ char *esvctest_src = {
             tcall emit-cmd-end
 
             tcall emit-build
+            unstash b1
+            tcall dump-ctx
 
             # planned cross-script call
             # tactyk programs which are not combined are only soft-linked through a virtual machine, so extra parameters are needed to set up function calls between scripts.
@@ -64,6 +66,8 @@ char *esvctest_src = {
             # tvm-prepcall a b
             # assign a 5
             # tvm-call
+
+
 
             exit
     )"""

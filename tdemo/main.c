@@ -96,7 +96,7 @@ int main() {
 
     //run_fib_test(emitctx, 10000000000, ctx);
     //struct tactyk_asmvm__Program *fibprg = run_fib_test(emitctx, 2000000, ctx);
-    struct tactyk_asmvm__Program *fibprg = run_fib_test(emitctx, 25, ctx);
+    //struct tactyk_asmvm__Program *fibprg = run_fib_test(emitctx, 25, ctx);
     //run_qsort_tests(emitctx, 10000000, 1, ctx);
     //struct tactyk_asmvm__Program *qsprg = run_qsort_tests(emitctx, 10, 1, ctx);
 

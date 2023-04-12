@@ -67,13 +67,13 @@ void tactyk_emit_svc__new(struct tactyk_asmvm__Context *asmvm_ctx) {
 
 void tactyk_emit_svc__build(struct tactyk_asmvm__Context *asmvm_ctx) {
     struct tactyk_asmvm__Program *program = tactyk_pl__build(tactyk_emit_svc__plctx);
-    // attach to asmvm_ctx, assign a handle to register a.
+    asmvm_ctx->reg.rA = asmvm_ctx->vm->program_count;
+    tactyk_asmvm__add_program(asmvm_ctx, program);
 }
 
 void tactyk_emit_svc__mem_external(struct tactyk_asmvm__Context *asmvm_ctx) {
     struct tactyk_asmvm__memblock_lowlevel *mem_ll = NULL;
     struct tactyk_asmvm__memblock_highlevel *mem_hl = NULL;
-
     tactyk_emit_svc__declare_memblock(asmvm_ctx, &mem_ll, &mem_hl);
 }
 
@@ -128,10 +128,12 @@ void tactyk_emit_svc__mem_data(struct tactyk_asmvm__Context *asmvm_ctx) {
 
 void tactyk_emit_svc__label(struct tactyk_asmvm__Context *asmvm_ctx) {
     struct tactyk_dblock__DBlock *lbl = tactyk_emit_svc__get_text(asmvm_ctx, 0);
+    asmvm_ctx->reg.rA = tactyk_emit_svc__emitctx->program->functions->element_count;
     tactyk_emit__add_script_label(tactyk_emit_svc__emitctx, lbl);
 }
 void tactyk_emit_svc__intlabel(struct tactyk_asmvm__Context *asmvm_ctx) {
     struct tactyk_dblock__DBlock *lbl = tactyk_dblock__from_uint(asmvm_ctx->reg.rA);
+    asmvm_ctx->reg.rA = tactyk_emit_svc__emitctx->program->functions->element_count;
     tactyk_emit__add_script_label(tactyk_emit_svc__emitctx, lbl);
 }
 
