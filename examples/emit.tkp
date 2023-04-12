@@ -1,0 +1,311 @@
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#   Copyright 2023, Jonathan Hart
+#   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
+#   either version 3 of the License, or (at your option) any later version.
+#   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE. See the GNU General Public License for more details.
+#   You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+use_vconstants
+
+struct global
+  8 width
+  8 height
+  8 padding
+
+struct sdl_state
+  8 mpos_x
+  8 mpos_y
+  8 key
+  1 closing
+  1 mousemoved
+  6 unused
+  8 padding
+
+mem global_vars global 1
+
+extmem video
+mem s_state sdl_state 1
+
+struct calc
+  1 program
+  1 add
+  1 subtract
+  1 multiply
+  1 divide
+  8 padding
+
+mem handles calc 1
+
+text header
+  TACTYK Example - Dynamic Compilation
+  This uses the emit-svc interface to dynamically compile some functions, then calls into those functions using
+  tactyk-vm calls.  This demonstrates the core functionality needed to support compilation of scripts written in
+  high-level languages -- with compilers which reside inside of the tactyk sandbox.
+
+text footer
+  Done.
+
+const newline 10
+const FRAME_WIDTH 640
+const FRAME_HEIGHT 480
+
+const ch_x 120
+const ch_exp 94
+const ch_sp 32
+const ch_a 97
+const ch_b 98
+const ch_c 99
+const ch_d 100
+const ch_plus 43
+const ch_minus 45
+const ch_eq 61
+
+MAIN:
+  bind addr2 handles
+  bind addr1 header
+  lwcall PRINTIT
+  lwcall MAKE_CALCULATOR
+  
+  assign a 3
+  assign b 5
+  assign c 2
+  assign d 1
+  assign e 3
+  stash a1
+  lwcall DESCRIBE_POLYNOMIAL
+  lwcall EVAL_POLYNOMIAL
+  
+  ccall printint
+  assign a newline
+  ccall printchar
+  ccall printchar
+
+  bind addr1 footer
+  lwcall PRINTIT
+  exit
+
+DESCRIBE_POLYNOMIAL:
+  stash a1
+
+  ccall printint
+  assign a ch_x
+  ccall printchar
+  assign a e
+  ccall printint
+  assign a ch_exp
+  ccall printchar
+  assign a 3
+  ccall printint
+
+  assign a ch_sp
+  ccall printchar
+  assign a ch_minus
+  ccall printchar
+  assign a ch_sp
+  ccall printchar
+
+  assign a b
+  ccall printint
+  assign a ch_x
+  ccall printchar
+  assign a e
+  ccall printint
+  assign a ch_exp
+  ccall printchar
+  assign a 2
+  ccall printint
+  
+  assign a ch_sp
+  ccall printchar
+  assign a ch_plus
+  ccall printchar
+  assign a ch_sp
+  ccall printchar
+
+  assign a c
+  ccall printint
+  assign a ch_x
+  ccall printchar
+  assign a e
+  ccall printint
+
+  assign a ch_sp
+  ccall printchar
+  assign a ch_plus
+  ccall printchar
+  assign a ch_sp
+  ccall printchar
+
+  assign a d
+  ccall printint
+  
+  assign a ch_sp
+  ccall printchar
+  assign a ch_eq
+  ccall printchar
+  assign a ch_sp
+  ccall printchar
+  
+  unstash a1
+  lwreturn
+
+EVAL_POLYNOMIAL:
+  assign f 0
+  stash a1b1c1d1
+  
+  # result = d
+  assign f d
+  
+  # x*c
+  load byte a addr2 calc.program
+  load byte b addr2 calc.multiply
+  tvmpush a b
+  assign a e
+  assign b c
+  tvmjump
+  assign c a
+  
+  # result += cx
+  load byte a addr2 calc.program
+  load byte b addr2 calc.add
+  tvmpush a b
+  assign a f
+  assign b c
+  tvmjump
+  assign f a
+  
+  # x**2, take over d
+  load byte a addr2 calc.program
+  load byte b addr2 calc.multiply
+  tvmpush a b
+  assign a e
+  assign b e
+  tvmjump
+  assign d a
+  
+  # b(x**2)
+  load byte a addr2 calc.program
+  load byte b addr2 calc.multiply
+  tvmpush a b
+  assign a d
+  unstash b1
+  tvmjump
+  assign c a
+  
+  # result -= b(x**2)
+  load byte a addr2 calc.program
+  load byte b addr2 calc.subtract
+  tvmpush a b
+  assign a f
+  assign b c
+  tvmjump
+  assign f a
+  
+  # x**3, take over d
+  load byte a addr2 calc.program
+  load byte b addr2 calc.multiply
+  tvmpush a b
+  assign a d
+  assign b e
+  tvmjump
+  assign d a
+  
+  # a(x**3)
+  load byte a addr2 calc.program
+  load byte b addr2 calc.multiply
+  tvmpush a b
+  unstash a1
+  assign b d
+  tvmjump
+  assign c a
+  
+  # result += a(x**3)
+  load byte a addr2 calc.program
+  load byte b addr2 calc.add
+  tvmpush a b
+  assign a f
+  assign b c
+  tvmjump
+  
+  # And best of all -- The result is already in the standard return register!  (no such standard is required)
+  lwreturn
+
+PRINTIT:
+  assign c 0
+  assign b addr1.element_bound
+  PRINTIT_LOOP:
+  load byte a addr1 c
+  ccall printchar
+  add c 1
+  if c < b PRINTIT_LOOP
+  assign a newline
+  ccall printchar
+  ccall printchar
+  lwreturn
+
+MAKE_CALCULATOR:
+  tcall emit-new
+  
+  assign a 0
+  tcall emit-intlabel
+  store byte addr2 calc.multiply a
+  assign a .mul
+  tcall emit-cmd
+  assign a .a
+  assign b .b
+  tcall emit-token-2
+  tcall emit-cmd-end
+  assign a .tvmreturn
+  tcall emit-cmd
+  tcall emit-cmd-end
+  
+  assign a 1
+  tcall emit-intlabel
+  store byte addr2 calc.subtract a
+  assign a .sub
+  tcall emit-cmd
+  assign a .a
+  assign b .b
+  tcall emit-token-2
+  tcall emit-cmd-end
+  assign a .tvmreturn
+  tcall emit-cmd
+  tcall emit-cmd-end
+  
+  assign a 2
+  tcall emit-intlabel
+  store byte addr2 calc.divide a
+  assign a .div
+  tcall emit-cmd
+  assign a .a
+  assign b .b
+  tcall emit-token-2
+  tcall emit-cmd-end
+  assign a .tvmreturn
+  tcall emit-cmd
+  tcall emit-cmd-end
+  
+  assign a 3
+  tcall emit-intlabel
+  store byte addr2 calc.add a
+  assign a .add
+  tcall emit-cmd
+  assign a .a
+  assign b .b
+  tcall emit-token-2
+  tcall emit-cmd-end
+  assign a .tvmreturn
+  tcall emit-cmd
+  tcall emit-cmd-end
+  
+  tcall emit-build  
+  store byte addr2 calc.program a
+  lwreturn
+  exit
+
+
+
+
+

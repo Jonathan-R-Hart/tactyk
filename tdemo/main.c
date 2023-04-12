@@ -144,6 +144,7 @@ int main(int argc, char *argv[], char *envp[]) {
     tactyk_debug__configure_api(emitctx);
     aux_configure(emitctx);
     aux_sdl__configure(emitctx);
+    tactyk_emit_svc__configure(emitctx);
 
     // intermediate storage for loaded data
     //  (tactyk uses the allocated data passed in as a backing data source during compilation, so it can't be freed

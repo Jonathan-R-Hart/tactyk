@@ -12,6 +12,7 @@ add_library(tactyk
   libtactyk/tactyk_util.c
   libtactyk/tactyk_assembler.c
   libtactyk/tactyk_emit.c
+  libtactyk/tactyk_emit_svc.c
   libtactyk/tactyk_visa.c
   libtactyk/tactyk_debug.c
 )
@@ -71,4 +72,7 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E create_symlink
           ${CMAKE_SOURCE_DIR}/examples/julia.tkp
           ${CMAKE_CURRENT_BINARY_DIR}/examples/julia.tkp
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_SOURCE_DIR}/examples/emit.tkp
+          ${CMAKE_CURRENT_BINARY_DIR}/examples/emit.tkp
 )
