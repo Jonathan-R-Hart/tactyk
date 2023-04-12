@@ -43,84 +43,82 @@
     %define rax_16 ax
     %define rax_32 eax
     %define rax_64 rax
-
+    
     %define rbx_8 bl
     %define rbx_16 bx
     %define rbx_32 ebx
     %define rbx_64 rbx
-
+    
     %define rcx_8 cl
     %define rcx_16 cx
     %define rcx_32 ecx
     %define rcx_64 rcx
-
+    
     %define rdx_8 dl
     %define rdx_16 dx
     %define rdx_32 edx
     %define rdx_64 rdx
-
+    
     %define rsp_8 spl
     %define rsp_16 sp
     %define rsp_32 esp
     %define rsp_64 rsp
-
+    
     %define rbp_8 sbl
     %define rbp_16 bp
     %define rbp_32 ebp
     %define rbp_64 rbp
-
+    
     %define rsi_8 sil
     %define rsi_16 si
     %define rsi_32 esi
     %define rsi_64 rsi
-
+    
     %define rdi_8 dil
     %define rdi_16 di
     %define rdi_32 edi
     %define rdi_64 rdi
-
+    
     %define r8_8 r8b
     %define r8_16 r8w
     %define r8_32 r8d
     %define r8_64 r8
-
+    
     %define r9_8 r9b
     %define r9_16 r9w
     %define r9_32 r9d
     %define r9_64 r9
-
+    
     %define r10_8 r10b
     %define r10_16 r10w
     %define r10_32 r10d
     %define r10_64 r10
-
+    
     %define r11_8 r11b
     %define r11_16 r11w
     %define r11_32 r11d
     %define r11_64 r11
-
+    
     %define r12_8 r12b
     %define r12_16 r12w
     %define r12_32 r12d
     %define r12_64 r12
-
+    
     %define r13_8 r13b
     %define r13_16 r13w
     %define r13_32 r13d
     %define r13_64 r13
-
+    
     %define r14_8 r14b
     %define r14_16 r14w
     %define r14_32 r14d
     %define r14_64 r14
-
+    
     %define r15_8 r15b
     %define r15_16 r15w
     %define r15_32 r15d
     %define r15_64 r15
-
-
-
+    
     %define rPROG   rdi
     %define rMCSI   rsp
     %define rLWCSI  rbp
@@ -137,20 +135,20 @@
     %define rD      r15
     %define rE      r8
     %define rF      r9
-
+    
     %define xTEMPA xmm14
     %define xTEMPB xmm15
-
+    
     %define rPROG_8 %[rPROG]_8
     %define rPROG_16 %[rPROG]_16
     %define rPROG_32 %[rPROG]_32
     %define rPROG_64 %[rPROG]_64
-
+    
     %define rLWCSI_8 %[rLWCSI]_8
     %define rLWCSI_16 %[rLWCSI]_16
     %define rLWCSI_32 %[rLWCSI]_32
     %define rLWCSI_64 %[rLWCSI]_64
-
+    
     %define rTEMPA_8 %[rTEMPA]_8
     %define rTEMPA_16 %[rTEMPA]_16
     %define rTEMPA_32 %[rTEMPA]_32
@@ -160,104 +158,111 @@
     %define rTEMPC_16 %[rTEMPC]_16
     %define rTEMPC_32 %[rTEMPC]_32
     %define rTEMPC_64 %[rTEMPC]_64
-
+    
     %define rTEMPD_8 %[rTEMPD]_8
     %define rTEMPD_16 %[rTEMPD]_16
     %define rTEMPD_32 %[rTEMPD]_32
     %define rTEMPD_64 %[rTEMPD]_64
-
+    
     %define rADDR1_8 %[rADDR1]_8
     %define rADDR1_16 %[rADDR1]_16
     %define rADDR1_32 %[rADDR1]_32
     %define rADDR1_64 %[rADDR1]_64
-
+    
     %define rADDR2_8 %[rADDR2]_8
     %define rADDR2_16 %[rADDR2]_16
     %define rADDR2_32 %[rADDR2]_32
     %define rADDR2_64 %[rADDR2]_64
-
+    
     %define rADDR3_8 %[rADDR3]_8
     %define rADDR3_16 %[rADDR3]_16
     %define rADDR3_32 %[rADDR3]_32
     %define rADDR3_64 %[rADDR3]_64
-
+    
     %define rADDR4_8 %[rADDR4]_8
     %define rADDR4_16 %[rADDR4]_16
     %define rADDR4_32 %[rADDR4]_32
     %define rADDR4_64 %[rADDR4]_64
-
+    
     %define rMCSI_8 %[rMCSI]_8
     %define rMCSI_16 %[rMCSI]_16
     %define rMCSI_32 %[rMCSI]_32
     %define rMCSI_64 %[rMCSI]_64
-
+    
     %define rA_8 %[rA]_8
     %define rA_16 %[rA]_16
     %define rA_32 %[rA]_32
     %define rA_64 %[rA]_64
-
+    
     %define rB_8 %[rB]_8
     %define rB_16 %[rB]_16
     %define rB_32 %[rB]_32
     %define rB_64 %[rB]_64
-
+    
     %define rC_8 %[rC]_8
     %define rC_16 %[rC]_16
     %define rC_32 %[rC]_32
     %define rC_64 %[rC]_64
-
+    
     %define rD_8 %[rD]_8
     %define rD_16 %[rD]_16
     %define rD_32 %[rD]_32
     %define rD_64 %[rD]_64
-
+    
     %define rE_8 %[rE]_8
     %define rE_16 %[rE]_16
     %define rE_32 %[rE]_32
     %define rE_64 %[rE]_64
-
+    
     %define rF_8 %[rF]_8
     %define rF_16 %[rF]_16
     %define rF_32 %[rF]_32
     %define rF_64 %[rF]_64
-
+    
     %macro dwords 1-*
         %rep %0
             .%[%1]: resd 1
             %rotate 1
         %endrep %1
     %endmacro
-
+    
     %macro qwords 1-*
         %rep %0
             .%[%1]: resq 1
             %rotate 1
         %endrep %1
     %endmacro
-
+    
     %macro owords 1-*
         %rep %0
             .%[%1]: reso 1
             %rotate 1
         %endrep %1
     %endmacro
-
-
+    
     struc regbank
-        qwords prog,mcsi,lwcsi,tempa,tempc,tempd,addr1,addr2,addr3,addr4,a,b,c,d,e,f
+        qwords prog,lwcsi,mcsi,tempa,tempc,tempd,addr1,addr2,addr3,addr4,a,b,c,d,e,f
         owords xa,xb,xc,xd, xe,xf,xg,xh, xi,xj,xk,xl, xm,xn,xo,xp
     endstruc
 
-
-    struc controlstate
-        .runtime_registers:     resq 48
-        .stack_position:        resq 1
-        .stack:                 resq 1024
-        .static_contexts:       resq 1024
-        .dcontext_position:     resq 1
-        .dynamic_contexts:      resq 1024
+    struc tvmstackentry
+      qwords source_program, source_return_index, source_stack_floor, target_program, target_jump_target
     endstruc
 
+    %define stacksize 1024
+    struc tactyk_stack
+        .stack_position:        resq 1
+        .stack_lock:            resq 1
+        .stack:                 resb stacksize * tvmstackentry_size
+    endstruc
+    
+    struc program_dec
+      qwords instruction_count, instruction_jumptable, function_count, function_jumptable
+    endstruc
+    
+    struc tactyk_vm
+      qwords program_count, program_list
+    endstruc
     
     struc microcontext
         qwords a1,b1,c1,d1,e1,f1
@@ -279,16 +284,16 @@
     %define microcontext_size_bits 9
     %define microcontext_stack_size 65536
     %define lwcall_stack_size 65536
-
+    
     struc context
-
+        
         ; 0
-
+        
         qwords maxip, subcontext
         qwords memblocks, memblocks_count
-
+        
         ; 32
-
+        
         qwords addr1
         dwords addr1_element_bound, addr1_array_bound, addr1_memblock_index, addr1_type
         qwords addr2
@@ -300,102 +305,105 @@
 
         ; 128
 
-        qwords lwcall_stack_address, microcontext_stack_address, microcontext_stack_offset, microcontext_stack_size
+        qwords lwcall_stack_address, microcontext_stack_address, microcontext_stack_offset
+        .floor: dwords lwcall_floor, microcontext_floor
         
-        qwords controlstate, program, hl_program_ref, instruction_index, status, stepper
+        qwords vm, stack, program, hl_program_ref, instruction_index, status, signature, extra
         
         .registers:  resq 48
+        .runtime_registers:  resq 48
         
         .diagnostic_out:resq 1024
     endstruc
-
+    
     %unmacro dwords 1-*
     %unmacro qwords 1-*
     %unmacro twords 1-*
-
+    
     %define STATUS_OFF 0
     %define STATUS_RUN 1
     %define STATUS_SLEEP 2
     %define STATUS_SUSPEND 3
     %define STATUS_HALT 4
-
+    
     %define STATUS_BREAK 16
-
+    
     %define STATUS_ROGUE_POINTER 101
     %define STATUS_ROGUE_BRANCH 102
     %define STATUS_STACK_OVERFLOW 103
     %define STATUS_STACK_UNDERFLOW 104
     %define STATUS_MEMORY_OVERFLOW 105      ; a generic overflow to be used in place of "stack" overflow when there is a conceptual mismatch
     %define STATUS_MEMORY_UNDERFLOW 106     ; a generic underflow to be used in place of "stack" underflow when there is a conceptual mismatch
-
+    %define STATUS_UNSIGNED_CONTEXT 107
+    %define STATUS_INVALID_TVMJUMP 108
+    %define STATUS_INVALID_TVMJUMP_STATE 109
+    
     ; runtime registers do not belong to tactyk, and so do not use internal tactyk names
     ; The only thing that matters here is that they get correctly stored and restored.
-    %macro store_runtimecontext 0
-        mov [rTEMPA + controlstate.runtime_registers + 0], rbx
-        mov [rTEMPA + controlstate.runtime_registers + 8], rbp
-        mov [rTEMPA + controlstate.runtime_registers + 16], rsp
-        mov [rTEMPA + controlstate.runtime_registers + 24], r12
-        mov [rTEMPA + controlstate.runtime_registers + 32], r13
-        mov [rTEMPA + controlstate.runtime_registers + 40], r14
-        mov [rTEMPA + controlstate.runtime_registers + 48], r15
+    %macro store_runtimecontext 1
+        mov [%1 + context.runtime_registers + 0], rbx
+        mov [%1 + context.runtime_registers + 8], rbp
+        mov [%1 + context.runtime_registers + 16], rsp
+        mov [%1 + context.runtime_registers + 24], r12
+        mov [%1 + context.runtime_registers + 32], r13
+        mov [%1 + context.runtime_registers + 40], r14
+        mov [%1 + context.runtime_registers + 48], r15
         rdfsbase r12
         rdgsbase r13
-        mov [rTEMPA + controlstate.runtime_registers + 56], r12
-        mov [rTEMPA + controlstate.runtime_registers + 64], r13
+        mov [%1 + context.runtime_registers + 56], r12
+        mov [%1 + context.runtime_registers + 64], r13
         
         ; supposedly not needed:
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+0   ], xmm0
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+8   ], xmm1
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+16  ], xmm2
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+32  ], xmm3
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+40  ], xmm4
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+48  ], xmm5
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+56  ], xmm6
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+64  ], xmm7
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+72  ], xmm8
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+80  ], xmm9
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+88  ], xmm10
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+96  ], xmm11
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+104 ], xmm12
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+112 ], xmm13
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+120 ], xmm14
-        ;movdqu [rTEMPA + controlstate.runtime_registers + 128+128 ], xmm15
+        ;movdqu [%1 + context.runtime_registers + 128+0   ], xmm0
+        ;movdqu [%1 + context.runtime_registers + 128+8   ], xmm1
+        ;movdqu [%1 + context.runtime_registers + 128+16  ], xmm2
+        ;movdqu [%1 + context.runtime_registers + 128+32  ], xmm3
+        ;movdqu [%1 + context.runtime_registers + 128+40  ], xmm4
+        ;movdqu [%1 + context.runtime_registers + 128+48  ], xmm5
+        ;movdqu [%1 + context.runtime_registers + 128+56  ], xmm6
+        ;movdqu [%1 + context.runtime_registers + 128+64  ], xmm7
+        ;movdqu [%1 + context.runtime_registers + 128+72  ], xmm8
+        ;movdqu [%1 + context.runtime_registers + 128+80  ], xmm9
+        ;movdqu [%1 + context.runtime_registers + 128+88  ], xmm10
+        ;movdqu [%1 + context.runtime_registers + 128+96  ], xmm11
+        ;movdqu [%1 + context.runtime_registers + 128+104 ], xmm12
+        ;movdqu [%1 + context.runtime_registers + 128+112 ], xmm13
+        ;movdqu [%1 + context.runtime_registers + 128+120 ], xmm14
+        ;movdqu [%1 + context.runtime_registers + 128+128 ], xmm15
     %endmacro
 
-    %macro load_runtimecontext 0
-        mov rTEMPA, fs:[context.controlstate]
-        mov r12, [rTEMPA + controlstate.runtime_registers + 56]
-        mov r13, [rTEMPA + controlstate.runtime_registers + 64]
+    %macro load_runtimecontext 1
+        mov r12, [%1 + context.runtime_registers + 56]
+        mov r13, [%1 + context.runtime_registers + 64]
         wrfsbase r12
         wrgsbase r13
-        mov rbx, [rTEMPA + controlstate.runtime_registers + 0]
-        mov rbp, [rTEMPA + controlstate.runtime_registers + 8]
-        mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
-        mov r12, [rTEMPA + controlstate.runtime_registers + 24]
-        mov r13, [rTEMPA + controlstate.runtime_registers + 32]
-        mov r14, [rTEMPA + controlstate.runtime_registers + 40]
-        mov r15, [rTEMPA + controlstate.runtime_registers + 48]
+        mov rbx, [%1 + context.runtime_registers + 0]
+        mov rbp, [%1 + context.runtime_registers + 8]
+        mov rsp, [%1 + context.runtime_registers + 16]
+        mov r12, [%1 + context.runtime_registers + 24]
+        mov r13, [%1 + context.runtime_registers + 32]
 
         ; supposedly not needed:
-        ;movdqu xmm0,  [rTEMPA + controlstate.runtime_registers + 128+0   ]
-        ;movdqu xmm1,  [rTEMPA + controlstate.runtime_registers + 128+8   ]
-        ;movdqu xmm2,  [rTEMPA + controlstate.runtime_registers + 128+16  ]
-        ;movdqu xmm3,  [rTEMPA + controlstate.runtime_registers + 128+32  ]
-        ;movdqu xmm4,  [rTEMPA + controlstate.runtime_registers + 128+40  ]
-        ;movdqu xmm5,  [rTEMPA + controlstate.runtime_registers + 128+48  ]
-        ;movdqu xmm6,  [rTEMPA + controlstate.runtime_registers + 128+56  ]
-        ;movdqu xmm7,  [rTEMPA + controlstate.runtime_registers + 128+64  ]
-        ;movdqu xmm8,  [rTEMPA + controlstate.runtime_registers + 128+72  ]
-        ;movdqu xmm9,  [rTEMPA + controlstate.runtime_registers + 128+80  ]
-        ;movdqu xmm10, [rTEMPA + controlstate.runtime_registers + 128+88  ]
-        ;movdqu xmm11, [rTEMPA + controlstate.runtime_registers + 128+96  ]
-        ;movdqu xmm12, [rTEMPA + controlstate.runtime_registers + 128+104 ]
-        ;movdqu xmm13, [rTEMPA + controlstate.runtime_registers + 128+112 ]
-        ;movdqu xmm14, [rTEMPA + controlstate.runtime_registers + 128+120 ]
-        ;movdqu xmm15, [rTEMPA + controlstate.runtime_registers + 128+128 ]
+        ;movdqu xmm0,  [%1 + context.runtime_registers + 128+0   ]
+        ;movdqu xmm1,  [%1 + context.runtime_registers + 128+8   ]
+        ;movdqu xmm2,  [%1 + context.runtime_registers + 128+16  ]
+        ;movdqu xmm3,  [%1 + context.runtime_registers + 128+32  ]
+        ;movdqu xmm4,  [%1 + context.runtime_registers + 128+40  ]
+        ;movdqu xmm5,  [%1 + context.runtime_registers + 128+48  ]
+        ;movdqu xmm6,  [%1 + context.runtime_registers + 128+56  ]
+        ;movdqu xmm7,  [%1 + context.runtime_registers + 128+64  ]
+        ;movdqu xmm8,  [%1 + context.runtime_registers + 128+72  ]
+        ;movdqu xmm9,  [%1 + context.runtime_registers + 128+80  ]
+        ;movdqu xmm10, [%1 + context.runtime_registers + 128+88  ]
+        ;movdqu xmm11, [%1 + context.runtime_registers + 128+96  ]
+        ;movdqu xmm12, [%1 + context.runtime_registers + 128+104 ]
+        ;movdqu xmm13, [%1 + context.runtime_registers + 128+112 ]
+        ;movdqu xmm14, [%1 + context.runtime_registers + 128+120 ]
+        ;movdqu xmm15, [%1 + context.runtime_registers + 128+128 ]
     %endmacro
 
-    %macro load_context 0
+    %macro load_context 1
+        wrfsbase %1
         mov rPROG, fs:[context.registers + regbank.prog]
         mov rLWCSI, fs:[context.registers + regbank.lwcsi]
         mov rMCSI, fs:[context.registers + regbank.mcsi]
@@ -432,6 +440,7 @@
     %endmacro
 
     %macro store_context 0
+        mov fs:[context.registers + regbank.prog], rPROG
         mov fs:[context.registers + regbank.lwcsi], rLWCSI
         mov fs:[context.registers + regbank.mcsi], rMCSI
         mov fs:[context.registers + regbank.addr1], rADDR1
@@ -513,16 +522,22 @@
     %macro tactyk_ret 0
         mov fs:[context.status], dword STATUS_HALT
         store_context
-        load_runtimecontext
         rdfsbase rax
+        load_runtimecontext rax
+        mov r14, [rax + context.runtime_registers + 40]
+        mov r15, [rax + context.runtime_registers + 48]
+        mov rax, STATUS_HALT
         ret
     %endmacro
 
     %macro error 1
         mov fs:[context.status], dword %1
         store_context
-        load_runtimecontext
         rdfsbase rax
+        load_runtimecontext rax
+        mov r14, [rax + context.runtime_registers + 40]
+        mov r15, [rax + context.runtime_registers + 48]
+        mov rax, %1
         ret
     %endmacro
 
@@ -583,11 +598,23 @@
     xor rTEMPD, rTEMPD
 %endmacro
 
+%macro validate_context_pointer 1
+  mov rTEMPC, '-TACTYK-'
+  xor rTEMPC, %1
+  add rTEMPC, '-CTX'
+  cmp rTEMPC, [%1 + context.signature]
+  je .pass
+  xor rTEMPC, rTEMPC
+  mov rax, dword STATUS_UNSIGNED_CONTEXT
+  ret
+  .pass:
+  xor rTEMPC, rTEMPC
+%endmacro
+
 run:
-  mov rTEMPA, [rdi + context.controlstate]
-  store_runtimecontext
-  wrfsbase rdi
-  load_context
+  validate_context_pointer rdi
+  store_runtimecontext rdi
+  load_context rdi
   mov fs:[context.status], dword STATUS_RUN
   mov rTEMPA, fs:[context.instruction_index]
   ; exception - In this one specific case, the temp register ca not be cleared before exiting an instruction.

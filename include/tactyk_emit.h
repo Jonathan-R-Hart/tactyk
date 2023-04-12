@@ -72,7 +72,6 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx);
 typedef char* (*tactyk_emit__tolabel)(char *out, char *val, int32_t max_length);
 typedef bool (*tactyk_emit__sub_func)(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data);
 typedef void (*tactyk_emit__error_handler)(char *message);
-typedef void (*tactyk_emit__random)(void *ptr, uint64_t nbytes);
 
 
 typedef void (tactyk_emit__tactyk_api_function)(struct tactyk_asmvm__Context *context);
@@ -93,7 +92,6 @@ struct tactyk_emit__Context {
     char *asm_header;
 
     tactyk_emit__tolabel sanitize_label;
-    tactyk_emit__random rand;
 
     struct tactyk_dblock__DBlock *operator_table;
 
@@ -113,6 +111,9 @@ struct tactyk_emit__Context {
     struct tactyk_dblock__DBlock *label_table;
     struct tactyk_dblock__DBlock *api_table;
     struct tactyk_dblock__DBlock *c_api_table;
+
+    struct tactyk_dblock__DBlock *visa_token_constants;
+    struct tactyk_dblock__DBlock **visa_token_invmap;
 
     struct tactyk_dblock__DBlock *code_template;
 
@@ -136,6 +137,9 @@ struct tactyk_emit__Context {
 
     bool namechars[256];
     uint64_t iptr;
+
+    uint64_t token_handle_count;
+    bool has_visa_constants;
 };
 
 struct tactyk_emit__Context* tactyk_emit__init();

@@ -77,6 +77,8 @@ cmake --build .
 
 ./tdemo examples/julia.tkp
 
+./tdemo examples/emit.tkp
+
 ./tdemo examples/fib.tkp
 
 ./tdemo examples/lazy_quine.tkp

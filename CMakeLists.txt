@@ -2,15 +2,17 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(tactyk-p C CXX)
-project(tactyk-p VERSION 0.5.1)
+project(tactyk-p VERSION 0.6.0)
 
 add_library(tactyk
+  libtactyk/tactyk.c
   libtactyk/tactyk_asmvm.c
   libtactyk/tactyk_dblock.c
   libtactyk/tactyk_pl.c
   libtactyk/tactyk_util.c
   libtactyk/tactyk_assembler.c
   libtactyk/tactyk_emit.c
+  libtactyk/tactyk_emit_svc.c
   libtactyk/tactyk_visa.c
   libtactyk/tactyk_debug.c
 )
@@ -34,6 +36,7 @@ target_include_directories(tactyk PRIVATE
 target_link_libraries( tdemo tactyk ${SDL2_LIBRARIES} )
 
 add_compile_definitions(
+    # USE_TACTYK_RANDOM_ALLOCATOR
     TACTYK_SHELL_INTERFACE
     TACTYK__VERSION="${CMAKE_PROJECT_VERSION}"
 )
@@ -69,4 +72,7 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E create_symlink
           ${CMAKE_SOURCE_DIR}/examples/julia.tkp
           ${CMAKE_CURRENT_BINARY_DIR}/examples/julia.tkp
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_SOURCE_DIR}/examples/emit.tkp
+          ${CMAKE_CURRENT_BINARY_DIR}/examples/emit.tkp
 )

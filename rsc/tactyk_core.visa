@@ -212,10 +212,6 @@ typespec comparator
       $VPREDCOMPLEMENT 4
   pick T
 
-# define RESET_TEMP
-#   code
-#     xor $TEMP, $TEMP
-
 # immediate scrambling config
 # This sets up the scrambling system whereby the script-provided immediate values are scrabled in executable memory and
 # unscrambled when accessed.
@@ -251,7 +247,11 @@ instruction exit
     xor rTEMPA, rTEMPA
     mov fs:[context.status], dword STATUS_HALT
     store_context
-    load_runtimecontext
+    rdfsbase rax
+    load_runtimecontext rax
+    mov r14, [rax + context.runtime_registers + 40]
+    mov r15, [rax + context.runtime_registers + 48]
+    mov rax, STATUS_HALT
     ret
 
 # Bind a memory block to an address register and update corresponding context entries
@@ -1259,13 +1259,6 @@ instruction dec
   $INSTRUCTION dec
   sub simple_unary_instruction
 
-instruction exit
-  code
-    mov fs:[context.status], dword STATUS_HALT
-    store_context
-    load_runtimecontext
-    ret
-
 instruction goto
   operand
     type branch
@@ -1290,18 +1283,18 @@ instruction tcall
     ;rE, rF are aligned
 
     rdfsbase r14
-    rdgsbase r15
     
-    mov rax, fs:[context.controlstate]
-    mov r12, [rax + controlstate.runtime_registers + 56]
-    mov r13, [rax + controlstate.runtime_registers + 64]
-    wrfsbase r12
-    wrgsbase r13
-    mov rbx, [rax + controlstate.runtime_registers + 0]
-    mov rbp, [rax + controlstate.runtime_registers + 8]
-    mov rsp, [rax + controlstate.runtime_registers + 16]
-    mov r12, [rax + controlstate.runtime_registers + 24]
-    mov r13, [rax + controlstate.runtime_registers + 32]
+    load_runtimecontext r14
+    ;mov rax, fs:[context.controlstate]
+    ;mov r12, [rax + controlstate.runtime_registers + 56]
+    ;mov r13, [rax + controlstate.runtime_registers + 64]
+    ;wrfsbase r12
+    ;wrgsbase r13
+    ;mov rbx, [rax + controlstate.runtime_registers + 0]
+    ;mov rbp, [rax + controlstate.runtime_registers + 8]
+    ;mov rsp, [rax + controlstate.runtime_registers + 16]
+    ;mov r12, [rax + controlstate.runtime_registers + 24]
+    ;mov r13, [rax + controlstate.runtime_registers + 32]
     
     xor rax, rax
     xor r10, r10
@@ -1310,12 +1303,10 @@ instruction tcall
     push rbp
     mov r10, $A
     call r10
-    ;pop rbp
     
-    wrfsbase r14
-    wrgsbase r15
-    
-    load_context
+    pop rbp
+    validate_context_pointer r14
+    load_context r14
     
     xor rTEMPA, rTEMPA
     xor rTEMPC, rTEMPC
@@ -1344,28 +1335,27 @@ instruction ccall
         ;rE, rF are already aligned
         
         rdfsbase r14
-        rdgsbase r15
+        load_runtimecontext r14
         
-        mov rTEMPA, fs:[context.controlstate]
-        mov r12, [rTEMPA + controlstate.runtime_registers + 56]
-        mov r13, [rTEMPA + controlstate.runtime_registers + 64]
-        wrfsbase r12
-        wrgsbase r13
-        mov rbx, [rTEMPA + controlstate.runtime_registers + 0]
-        mov rbp, [rTEMPA + controlstate.runtime_registers + 8]
-        mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
-        mov r12, [rTEMPA + controlstate.runtime_registers + 24]
-        mov r13, [rTEMPA + controlstate.runtime_registers + 32]
+        ;mov rTEMPA, fs:[context.controlstate]
+
+        ;mov r12, [r14 + controlstate.runtime_registers + 56]
+        ;mov r13, [r14 + controlstate.runtime_registers + 64]
+        ;wrfsbase r12
+        ;wrgsbase r13
+        ;mov rbx, [r14 + controlstate.runtime_registers + 0]
+        ;mov rbp, [r14 + controlstate.runtime_registers + 8]
+        ;mov rsp, [r14 + controlstate.runtime_registers + 16]
+        ;mov r12, [r14 + controlstate.runtime_registers + 24]
+        ;mov r13, [r14 + controlstate.runtime_registers + 32]
         
         push rbp
         mov r10, $A
         call r10
-        ;pop rbp
         
-        wrfsbase r14
-        wrgsbase r15
-        
-        load_context
+        pop rbp
+        validate_context_pointer r14
+        load_context r14
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -1384,30 +1374,28 @@ instruction ccall
         ;rE, rF are already aligned
         
         rdfsbase r14
-        rdgsbase r15
+        load_runtimecontext r14
         
-        mov rTEMPA, fs:[context.controlstate]
-        mov r12, [rTEMPA + controlstate.runtime_registers + 56]
-        mov r13, [rTEMPA + controlstate.runtime_registers + 64]
-        wrfsbase r12
-        wrgsbase r13
-        mov rbx, [rTEMPA + controlstate.runtime_registers + 0]
-        mov rbp, [rTEMPA + controlstate.runtime_registers + 8]
-        mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
-        mov r12, [rTEMPA + controlstate.runtime_registers + 24]
-        mov r13, [rTEMPA + controlstate.runtime_registers + 32]
+        ;mov rTEMPA, fs:[context.controlstate]
+        ;mov r12, [rTEMPA + controlstate.runtime_registers + 56]
+        ;mov r13, [rTEMPA + controlstate.runtime_registers + 64]
+        ;wrfsbase r12
+        ;wrgsbase r13
+        ;mov rbx, [rTEMPA + controlstate.runtime_registers + 0]
+        ;mov rbp, [rTEMPA + controlstate.runtime_registers + 8]
+        ;mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
+        ;mov r12, [rTEMPA + controlstate.runtime_registers + 24]
+        ;mov r13, [rTEMPA + controlstate.runtime_registers + 32]
         
         push rbp
         mov r10, $B
         call r10
-        ;pop rbp
-
-        mov rTEMPD, rTEMPA
-
-        wrfsbase r14
-        wrgsbase r15
         
-        load_context
+        pop rbp
+        mov rTEMPD, rTEMPA
+        
+        validate_context_pointer r14
+        load_context r14
         
         mov $A, rTEMPD
         
@@ -1785,9 +1773,9 @@ instruction stash
     contains x1n
       code
         movq gs:[microcontext.x1n], xN
-    contains x1o
-      code
-        movq gs:[microcontext.x1o], xO
+    #contains x1o
+    #  code
+    #    movq gs:[microcontext.x1o], xO
     #contains x1p
     #  code
     #    movq gs:[microcontext.x1p], xP
@@ -1834,9 +1822,9 @@ instruction stash
     contains x2n
       code
         movq gs:[microcontext.x2n], xN
-    contains x2o
-      code
-        movq gs:[microcontext.x2o], xO
+    #contains x2o
+    #  code
+    #    movq gs:[microcontext.x2o], xO
     #contains x2p
     #  code
     #    movq gs:[microcontext.x2p], xP
@@ -1883,9 +1871,9 @@ instruction stash
     contains xn
       code
         movdqu gs:[microcontext.xn], xN
-    contains xo
-      code
-        movdqu gs:[microcontext.xo], xO
+    #contains xo
+    #  code
+    #    movdqu gs:[microcontext.xo], xO
     #contains xp
     #  code
     #    movdqu gs:[microcontext.xp], xP
@@ -1991,9 +1979,9 @@ instruction unstash
     contains x1n
       code
         movq xN, gs:[microcontext.x1n]
-    contains x1o
-      code
-        movq xO, gs:[microcontext.x1o]
+    #contains x1o
+    #  code
+    #    movq xO, gs:[microcontext.x1o]
     #contains x1p
     #  code
     #    movq xP, gs:[microcontext.x1p]
@@ -2089,9 +2077,9 @@ instruction unstash
     contains xn
       code
         movdqu xN, gs:[microcontext.xn]
-    contains xo
-      code
-        movdqu xO, gs:[microcontext.xo]
+    #contains xo
+    #  code
+    #    movdqu xO, gs:[microcontext.xo]
     #contains xp
     #  code
     #    movdqu xP, gs:[microcontext.xp]
@@ -2118,9 +2106,13 @@ instruction lwcall
 instruction lwreturn
   code
     movzx rTEMPA, rLWCSI_16
+    cmp rLWCSI_16, fs:[context.lwcall_floor]
+    errorlt STATUS_STACK_UNDERFLOW
     shl rTEMPA, 2
     add rTEMPA, fs:[context.lwcall_stack_address]
     mov rTEMPA_32, [rTEMPA]
+    ;cmp rTEMPA, fs:[context.instruction_count]
+    ;errorge STATUS_ROGUE_BRANCH
     dec rLWCSI_16
     jmp [rPROG+rTEMPA*8]
 
@@ -2143,6 +2135,146 @@ instruction mctxpop
     wrgsbase rTEMPA
     xor rTEMPA, rTEMPA
     jmp $NEXT_INSTRUCTION
+
+instruction tvmpush
+  operand
+    type data const integer
+    $PROG_HANDLE $VALUE
+    scramble rTEMPA $LD_IMMEDIATE_PROG_HANDLE
+  operand
+    type data const integer
+    $FUNC_HANDLE $VALUE
+    scramble rTEMPA $LD_IMMEDIATE_FUNC_HANDLE
+  select-template
+    case DD
+      code
+        mov rTEMPC, fs:[context.stack]
+        mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
+        cmp rTEMPA, 0
+        errorneq STATUS_INVALID_TVMJUMP
+        mov qword [rTEMPC + tactyk_stack.stack_lock], 1
+        mov rTEMPA, [rTEMPC + tactyk_stack.stack_position]
+        inc rTEMPA
+        cmp rTEMPA, stacksize
+        errorge STATUS_INVALID_TVMJUMP_STATE
+        mov [rTEMPC + tactyk_stack.stack_position], rTEMPA
+
+        ; rTEMPC -> stack entry pointer
+        imul rTEMPA, tvmstackentry_size
+        add rTEMPC, tactyk_stack.stack
+        add rTEMPC, rTEMPA
+        
+        mov rTEMPA, fs:[context.floor]
+        mov [rTEMPC + tvmstackentry.source_program], rPROG
+        mov [rTEMPC + tvmstackentry.source_stack_floor], rTEMPA
+        
+        ; validate $PROG_HANDLE
+        ; rTEMPA -> program index
+        mov rTEMPA, $PROG_HANDLE
+        cmp rTEMPA, 0
+        errorlt STATUS_INVALID_TVMJUMP
+        mov rTEMPD, fs:[context.vm]
+        cmp rTEMPA, [rTEMPD + tactyk_vm.program_count]
+        errorge STATUS_INVALID_TVMJUMP
+        
+        ; rTEMPD -> program declaration
+        mov rTEMPD, [rTEMPD + tactyk_vm.program_list]
+        imul rTEMPA, program_dec_size
+        add rTEMPD, rTEMPA
+        
+        ; obtain target jump table.
+        mov rTEMPA, [rTEMPD + program_dec.instruction_jumptable]
+        mov [rTEMPC + tvmstackentry.target_program], rTEMPA
+        
+        ; validate $FUNC_HANDLE
+        ;mov fs:[ctx.extra], rTEMPD
+        mov rTEMPA, $FUNC_HANDLE
+        ;mov rTEMPD, fs:[ctx.extra]
+        cmp rTEMPA, 0
+        errorlt STATUS_INVALID_TVMJUMP
+        cmp rTEMPA, [rTEMPD + program_dec.function_count]
+        errorge STATUS_INVALID_TVMJUMP
+        
+        ; rTEMPD -> function array
+        mov rTEMPD, [rTEMPD + program_dec.function_jumptable]
+        
+        ; obtain actual jump target.
+        shl rTEMPA, 3
+        mov rTEMPD, [rTEMPD + rTEMPA]
+        mov [rTEMPC + tvmstackentry.target_jump_target], rTEMPD
+        
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        
+        ; the only thing missing here is the return index (not avaialble until the actual jump).
+        jmp $NEXT_INSTRUCTION
+
+instruction tvmjump
+  $KW dword
+  scramble rTEMPA $LD_CMDNEXT_IMMEDIATE $COMMAND_INDEX_NEXT
+  code
+    mov dword fs:[context.lwcall_floor], rLWCSI_32
+    mov dword fs:[context.microcontext_floor], rMCSI_32
+    
+    mov rTEMPC, fs:[context.stack]
+    mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
+    cmp rTEMPA, 1
+    errorneq STATUS_INVALID_TVMJUMP
+    mov qword [rTEMPC + tactyk_stack.stack_lock], 0
+    mov rTEMPA, [rTEMPC + tactyk_stack.stack_position]
+    
+    ; rTEMPC -> stack entry pointer
+    imul rTEMPA, tvmstackentry_size
+    add rTEMPC, tactyk_stack.stack
+    add rTEMPC, rTEMPA
+    
+    $LD_CMDNEXT_IMMEDIATE
+    mov [rTEMPC + tvmstackentry.source_return_index], rTEMPA
+    
+    mov rPROG, [rTEMPC + tvmstackentry.target_program]
+    xor rTEMPA, rTEMPA
+    
+    ; possibly should do an mctxpush here, but that seems arbitrarilly restrictive.
+    ; ALSO - if leaving a pointer to a tvm stack entry on a temp register is a problem, then tvmstackentry.target_jump_target 
+    ; should be converted to a jump table index and handled like the main entry point.
+    jmp [rTEMPC + tvmstackentry.target_jump_target]
+
+instruction tvmreturn
+  code
+    mov rTEMPC, fs:[context.stack]
+    mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
+    cmp rTEMPA, 0
+    errorneq STATUS_INVALID_TVMJUMP
+    mov rTEMPA, [rTEMPC + tactyk_stack.stack_position]
+    cmp rTEMPA, 0
+    errorlt STATUS_STACK_UNDERFLOW
+    mov rTEMPD, rTEMPA
+    dec rTEMPA
+    mov [rTEMPC + tactyk_stack.stack_position], rTEMPA
+    
+    ; rTEMPC -> stack entry pointer
+    imul rTEMPD, tvmstackentry_size
+    add rTEMPC, tactyk_stack.stack
+    add rTEMPC, rTEMPD
+    
+    ; restore the caller context
+    mov rTEMPD, [rTEMPC + tvmstackentry.source_stack_floor]
+    mov rPROG, [rTEMPC + tvmstackentry.source_program]
+    mov rTEMPA, [rTEMPC + tvmstackentry.source_return_index]
+    mov fs:[context.floor], rTEMPD
+    
+    ; zero out the stack entry (or delete this if too much paranoia)
+    mov qword [rTEMPC + tvmstackentry.source_program], 0
+    mov qword [rTEMPC + tvmstackentry.source_return_index], 0
+    mov qword [rTEMPC + tvmstackentry.source_stack_floor], 0
+    mov qword [rTEMPC + tvmstackentry.target_program], 0
+    mov qword [rTEMPC + tvmstackentry.target_jump_target], 0
+    
+    xor rTEMPC, rTEMPC
+    xor rTEMPD, rTEMPD
+    
+    jmp [rPROG + rTEMPA*8]
 
 typespec vec-float-format
   $VECFMT sd
@@ -2186,16 +2318,19 @@ typespec xmmx
       value xmm12
     case x13 xmm13 xn
       value xmm13
-    case x14 xmm14 xo
-      value xmm14
   pick X
+
+typespec vec-transform
+  select-operand
+    case itof
+      pick Itof
+    case float
+    case ftoi
+      pick Ftoi
 
 instruction vec-in
   opt-operand
-    select-operand
-      case itof
-        pick I
-      case float
+    type vec-transform
   operand
     type xmmx
     $DEST $VALUE
@@ -2234,20 +2369,20 @@ instruction vec-in
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
     
-    case IXIN IXCN
+    case ItofXIN ItofXCN
       code
         $LD_SOURCE_IMMEDIATE
         cvtsi2sd $DEST, rTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     # load an integer value from a data register, convert it to a float
-    case IXDN
+    case ItofXDN
       code
         CVTSI2SD $DEST, $SOURCE
         jmp $NEXT_INSTRUCTION
     
     # load floating point value(s) from memory
-    case IXAI IXAC
+    case ItofXAI ItofXAC
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
@@ -2260,12 +2395,9 @@ instruction vec-in
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
         
-
 instruction vec-out
   opt-operand
-    select-operand
-      case ftoi
-        pick I
+    type vec-transform
   operand
     type data address
     $DST $VALUE
@@ -2295,11 +2427,11 @@ instruction vec-out
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
-    case IDXN
+    case FtoiDXN
       code
         CVTTSD2SI $DST, $B
         jmp $NEXT_INSTRUCTION
-    case IAIX IACX
+    case FtoiAIX FtoiACX
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
@@ -2378,6 +2510,7 @@ instruction vec-transfer
   code
     mov$VECFMT $A, $B
     jmp $NEXT_INSTRUCTION
+
 
 
 

@@ -62,13 +62,13 @@ void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx) {
     sdlctx = calloc(1, sizeof(struct aux_sdl__Context));
     sdlctx->draw_area.x = 0;
     sdlctx->draw_area.y = 0;
-    int64_t mbpos = asmvm_ctx->regbank_A.rA-1;
+    int64_t mbpos = asmvm_ctx->reg.rA-1;
     if ( (mbpos < 0) || (mbpos > 3) ) {
         error("AUX-SDL -- Invalid active-memblock index", NULL);
         return;
     }
 
-    int64_t stpos = asmvm_ctx->regbank_A.rB-1;
+    int64_t stpos = asmvm_ctx->reg.rB-1;
     if ( (stpos < 0) || (stpos > 3) ) {
         error("AUX-SDL -- Invalid active-memblock index", NULL);
         return;
@@ -76,8 +76,8 @@ void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx) {
 
 
     //active_mblock->
-    sdlctx->draw_area.w = asmvm_ctx->regbank_A.rC;
-    sdlctx->draw_area.h = asmvm_ctx->regbank_A.rD;
+    sdlctx->draw_area.w = asmvm_ctx->reg.rC;
+    sdlctx->draw_area.h = asmvm_ctx->reg.rD;
 
     sdlctx->texw = tactyk_util__next_pow2(sdlctx->draw_area.w);
     sdlctx->texh = tactyk_util__next_pow2(sdlctx->draw_area.h);
@@ -109,10 +109,10 @@ void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx) {
     //mem_hl->data = fb;
     sdlctx->framebuffer = fb;
 
-    asmvm_ctx->regbank_A.rA = sdlctx->texw;
-    asmvm_ctx->regbank_A.rB = sdlctx->texh;
-    asmvm_ctx->regbank_A.rC = 0;
-    asmvm_ctx->regbank_A.rD = 0;
+    asmvm_ctx->reg.rA = sdlctx->texw;
+    asmvm_ctx->reg.rB = sdlctx->texh;
+    asmvm_ctx->reg.rC = 0;
+    asmvm_ctx->reg.rD = 0;
 
     struct tactyk_asmvm__memblock_lowlevel *mem_ll_st = &asmvm_ctx->active_memblocks[stpos];
     sdlstate = (struct aux_sdl__State*) mem_ll_st->base_address;

@@ -202,6 +202,7 @@ struct tactyk_asmvm__Program* run_qsort_tests(struct tactyk_emit__Context *emitc
     printf("init hash: %lu\n", init_hash);
     printf("\n");
 
+
     tactyk_asmvm__invoke(ctx, program, "DIAG");
     c1 = ctx->diagnostic_data[0];
 
@@ -294,6 +295,7 @@ int64_t compute_hash(int64_t *data, int64_t len) {
 // allocate and fill a block of memory with seeded random data.
 //  PRNG is xorshift64
 void randfill(int64_t *data, int64_t len, int64_t seed) {
+    printf(">>> %p\n", data);
     int64_t state = seed;
     for (int64_t i = 0; i < len; i++) {
         state += i;

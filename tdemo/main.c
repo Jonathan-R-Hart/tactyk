@@ -30,11 +30,13 @@
 #include "tactyk_visa.h"
 #include "tactyk_debug.h"
 #include "tactyk_dblock.h"
+#include "tactyk_emit_svc.h"
 
 #include "tactyk.h"
 #include "qstest.h"
 #include "fibtest.h"
 #include "ftest.h"
+#include "esvctest.h"
 
 #include "aux_testlib.h"
 #include "aux_sdl.h"
@@ -64,47 +66,6 @@
 //      of VM options that would need to be prepared (due to restricting buffer sizes to powers of two).
 //
 
-// simple and safe random number generator
-//          -- safe if safe means favoring a secure PRNG over something one has personally invented.
-//          -- not so safe if safe is also supposed to mean 'unable to overwrite arbtrary amounts of arbitrarilly positioned memory.'
-//          -- Some would say this is not a very portable approach, but the entire product line at issue got decertified for personal use years ago -- "free isn't freedom".
-FILE *dev_urand;
-void sys_rand(void *ptr, uint64_t nbytes) {
-    uint64_t x = fread(ptr, nbytes, 1, dev_urand);
-    x *= 2;
-}
-
-uint64_t tactyk__rand_uint64() {
-    uint64_t rand;
-    sys_rand(&rand, 8);
-    return rand;
-}
-// overridable error handler
-tactyk__error_handler error;
-tactyk__error_handler warn;
-static jmp_buf tactyk_err_jbuf;
-
-void tactyk__default_warning_handler(char *msg, void *data) {
-    if (data == NULL) {
-        printf("WARNING -- %s\n", msg);
-    }
-    else {
-        printf("WARNING -- %s: ", msg);
-        tactyk_dblock__println(data);
-    }
-}
-
-
-void tactyk__default_error_handler(char *msg, void *data) {
-    if (data == NULL) {
-        printf("ERROR -- %s\n", msg);
-    }
-    else {
-        printf("ERROR -- %s: ", msg);
-        tactyk_dblock__println(data);
-    }
-    longjmp(tactyk_err_jbuf, 1);
-}
 
 void testfunc(int64_t asdf) {
     printf("----------------------------------------------- test func %jd!\n", asdf);
@@ -113,27 +74,13 @@ void testfunc(int64_t asdf) {
 
 #if !(defined TACTYK_SHELL_INTERFACE) && !(defined ASDF_FDSA)
 int main() {
-    error = tactyk__default_error_handler;
-    warn = tactyk__default_warning_handler;
+    tactyk_init();
 
     printf("%s\n", TACTYK_SE__DESCRIPTION);
-
-    // standalone erorr handling is to exit()
-    // when invoked as library,t error handling should be to return NULL
-    //      (the host application will have to override the error handler to get messages out)
-    if (setjmp(tactyk_err_jbuf)) {
-        printf("Error out.\n");
-        exit(1);
-    }
-
-    tactyk_dblock__init();
-
-    dev_urand = fopen("/dev/urandom", "r");
 
     tactyk_visa__init("rsc/tactyk_core.visa");
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
     emitctx->visa_file_prefix = "rsc/";
-    emitctx->rand = sys_rand;       // haven't yet decided to add a default PRNG, but when I do, it does need to be secure.
 
     tactyk_visa__init_emit(emitctx);
     tactyk_pl__init();
@@ -143,48 +90,33 @@ int main() {
     tactyk_debug__configure_api(emitctx);
     aux_configure(emitctx);
     aux_sdl__configure(emitctx);
+    tactyk_emit_svc__configure(emitctx);
 
     //struct tactyk_asmvm__Program *floatprg = run_float_test(emitctx, ctx);
 
     //run_fib_test(emitctx, 10000000000, ctx);
     //struct tactyk_asmvm__Program *fibprg = run_fib_test(emitctx, 2000000, ctx);
-    struct tactyk_asmvm__Program *fibprg = run_fib_test(emitctx, 25, ctx);
+    //struct tactyk_asmvm__Program *fibprg = run_fib_test(emitctx, 25, ctx);
     //run_qsort_tests(emitctx, 10000000, 1, ctx);
-    struct tactyk_asmvm__Program *qsprg = run_qsort_tests(emitctx, 10, 1, ctx);
+    //struct tactyk_asmvm__Program *qsprg = run_qsort_tests(emitctx, 10, 1, ctx);
 
     //tactyk_asmvm__invoke(ctx, fibprg, "MAIN");
     //tactyk_asmvm__invoke(ctx, qsprg, "MAIN");
 
     //tactyk_visa_new__init("tactyk_core.visa");
 
-    // is closing /dev/urandom needed?  (or, for that matter, anything read-only [if the process is going to terminate immediately afterward])
-    // If so, then all calls to exit() should be replaced with something that exits properly.
-    // If not so, then I'd prefer to get out of the cargo cult and delete whatever is superfluous.
-    fclose(dev_urand);
+    struct tactyk_asmvm__Program *esvcprg = run_esvc_test(emitctx, ctx);
     return 0;
 }
 #endif // default [testing] interface
 
 #ifdef TACTYK_SHELL_INTERFACE
 int main(int argc, char *argv[], char *envp[]) {
-    error = tactyk__default_error_handler;
-    warn = tactyk__default_warning_handler;
+    tactyk_init();
 
     printf("%s\n", TACTYK_SE__DESCRIPTION);
 
-    // standalone erorr handling is to exit()
-    // when invoked as library,t error handling should be to return NULL
-    //      (the host application will have to override the error handler to get messages out)
-    if (setjmp(tactyk_err_jbuf)) {
-        printf("Error out.\n");
-        exit(1);
-    }
-    dev_urand = fopen("/dev/urandom", "r");
-
-    tactyk_dblock__init();
-
     char *visa_fname = "rsc/tactyk_core.visa";
-
 
     bool printctx = false;
 
@@ -204,7 +136,6 @@ int main(int argc, char *argv[], char *envp[]) {
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
                                         //tactyk_visa__init(fname);
     emitctx->visa_file_prefix = "rsc/";
-    emitctx->rand = sys_rand;       // haven't yet decided to add a default PRNG, but when I do, it does need to be secure.
     tactyk_visa__init_emit(emitctx);
     tactyk_pl__init();
     struct tactyk_asmvm__VM *vm = tactyk_asmvm__new_vm();
@@ -213,6 +144,7 @@ int main(int argc, char *argv[], char *envp[]) {
     tactyk_debug__configure_api(emitctx);
     aux_configure(emitctx);
     aux_sdl__configure(emitctx);
+    tactyk_emit_svc__configure(emitctx);
 
     // intermediate storage for loaded data
     //  (tactyk uses the allocated data passed in as a backing data source during compilation, so it can't be freed
@@ -241,6 +173,7 @@ int main(int argc, char *argv[], char *envp[]) {
     }
     if (module_count > 0) {
         struct tactyk_asmvm__Program *prg = tactyk_pl__build(plctx);
+        tactyk_asmvm__add_program(ctx, prg);
 
         for (int64_t i = 0; i < module_count; i += 1) {
             free(module_src[i]);

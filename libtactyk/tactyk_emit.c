@@ -73,12 +73,16 @@ void tactyk_emit__error(struct tactyk_emit__Context *ctx, void *msg_ptr) {
 }
 
 struct tactyk_emit__Context* tactyk_emit__init() {
-    struct tactyk_emit__Context *ctx = calloc(1, sizeof(struct tactyk_emit__Context));
+    struct tactyk_emit__Context *ctx = talloc(1, sizeof(struct tactyk_emit__Context));
 
     ctx->visa_file_prefix = "";
 
     ctx->api_table = tactyk_dblock__new_table(64);
     ctx->c_api_table = tactyk_dblock__new_table(64);
+    ctx->visa_token_constants = tactyk_dblock__new_table(512);
+    ctx->visa_token_invmap = NULL;
+    ctx->token_handle_count = 0;
+    ctx->has_visa_constants = false;
     ctx->operator_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
     ctx->typespec_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
     ctx->instruction_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
@@ -89,6 +93,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__set_persistence_code(ctx->global_vars, 1);
     tactyk_dblock__set_persistence_code(ctx->api_table, 1);
     tactyk_dblock__set_persistence_code(ctx->c_api_table, 1);
+    tactyk_dblock__set_persistence_code(ctx->visa_token_constants, 1);
     tactyk_dblock__set_persistence_code(ctx->operator_table, 1);
     tactyk_dblock__set_persistence_code(ctx->typespec_table, 1);
     tactyk_dblock__set_persistence_code(ctx->instruction_table, 1);
@@ -137,6 +142,7 @@ void tactyk_emit__reset(struct tactyk_emit__Context *emitctx) {
     emitctx->local_vars = tactyk_dblock__new_table(256);
     emitctx->script_commands = tactyk_dblock__new_container(8, sizeof(struct tactyk_emit__script_command));
     emitctx->code_template = tactyk_dblock__new(16);
+    emitctx->has_visa_constants = false;
 }
 
 // release all memory belonging to an emit context.
@@ -151,7 +157,7 @@ void tactyk_emit__dispose(struct tactyk_emit__Context *ctx) {
 
     tactyk_dblock__dispose(ctx->code_template);
 
-    free(ctx);
+    tfree(ctx);
 }
 
 bool tactyk_emit__comprehend_int_value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data);
@@ -229,6 +235,7 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     tactyk_dblock__append(cmd->asm_code, TACTYK_EMIT__COMMAND_PREFIX);
     tactyk_dblock__append(cmd->asm_code, cmd_idx);
     tactyk_dblock__append(cmd->asm_code, ":\n");
+    uint64_t code_len = cmd->asm_code->length;
 
     struct tactyk_dblock__DBlock *next_instruction_label = tactyk_dblock__from_c_string(TACTYK_EMIT__COMMAND_PREFIX);
     tactyk_dblock__append(next_instruction_label, cmd_idx_next);
@@ -236,7 +243,9 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
 
     bool result = tactyk_emit__ExecSubroutine(ctx, data);
     // clean up any temp dblocks (mostly dynamically text chunks)
-
+    if (code_len == cmd->asm_code->length) {
+        error("EMIT -- Code generation failed", cmd->pl_code);
+    }
     ctx->pl_operand_raw = NULL;
     ctx->pl_operand_resolved = NULL;
 
@@ -565,8 +574,7 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     }
     tactyk_dblock__dispose(sc_input);
 
-    uint64_t rand_val;
-    ctx->rand(&rand_val, 8);
+    uint64_t rand_val = tactyk__rand_uint64();
     uint64_t diff_val = (uint64_t)raw_val ^ rand_val;
     //bool is_qword = false;
 
@@ -662,7 +670,7 @@ void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tact
 
     struct tactyk_asmvm__identifier *id = tactyk_dblock__new_managedobject(ctx->program->functions, raw_label);
     id->value = ctx->script_commands->element_count;
-    tactyk_dblock__export_cstring(id->txt, MAX_IDENTIFIER_LENGTH, raw_label);
+    tactyk_dblock__export_cstring(id->txt, TACTYK__MAX_IDENTIFIER_LENGTH, raw_label);
     //strncpy(id->txt, tactyk_dblock__export_cstring(raw_label), MAX_IDENTIFIER_LENGTH);
 
     if (ctx->active_labels == NULL) {
@@ -676,7 +684,6 @@ void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tact
 }
 
 void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *token, struct tactyk_dblock__DBlock *line) {
-    //struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->subroutine_table, token);
     struct tactyk_dblock__DBlock *name = token;
     struct tactyk_emit__script_command *cmd = tactyk_dblock__new_object(ctx->script_commands);
     cmd->name = name;
@@ -692,6 +699,12 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     for (uint64_t i = 0; i < ctx->script_commands->element_count; i += 1) {
         struct tactyk_emit__script_command *cmd = tactyk_dblock__index(ctx->script_commands, i);
+        #ifdef TACTYK_DEBUG
+            printf("---------\n");
+            printf("CMD #%ju: ", i);
+            tactyk_dblock__println(cmd->tokens);
+            printf("\n");
+        #endif // TACTYK_DEBUG
         ctx->iptr = i;
         ctx->active_command = cmd;
         struct tactyk_dblock__DBlock *label = cmd->labels;
@@ -709,13 +722,13 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
             printf("COMMAND: ");
             tactyk_dblock__println(cmd->name);
             tactyk_dblock__println(cmd->asm_code);
-            printf("---\n");
+            printf("\n");
         }
         #endif // TACTYK_DEBUG
     }
 
     uint64_t program_size = ctx->script_commands->element_count;
-    uint64_t *program_map = calloc(program_size, sizeof(uint64_t));
+    uint64_t *program_map = talloc(program_size, sizeof(uint64_t));
     for (uint64_t i = 0; i < program_size; i++) {
         program_map[i] = i;
     }
@@ -737,8 +750,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
         uint64_t max = 0xffffffffffffffff / sz;
         max *= sz;
         do {
-            //getrandom(&j, 8,0);
-            ctx->rand(&j, 8);
+            j = tactyk__rand_uint64();
         } while (j > max);
         j %= sz;
         j = j + i;
@@ -783,8 +795,13 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     //ctx->program->jump_target_table = jt_table;
 
     uint64_t ex_size = tactyk_util__next_pow2(assembly->length);
-
+    #ifdef USE_TACTYK_ALLOCATOR
+    void *target_address = tactyk__mk_random_base_address();
+    void *exec_mem = mmap(target_address, ex_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    #else
     void *exec_mem = mmap(NULL, ex_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    #endif // USE_TACTYK_ALLOCATOR
+
     memcpy(exec_mem, assembly->bin, assembly->length);
     mprotect(exec_mem, ex_size, PROT_READ | PROT_EXEC);
 
@@ -793,7 +810,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
 
     // I do not think it is worthwhile to adapt a dblock container to handle this specific case.
     //      (but a dblock table should work nicely for allowing the host application to use a script's branch targets)
-    tactyk_asmvm__op *command_map = calloc(program_size, sizeof(void*));
+    tactyk_asmvm__op *command_map = talloc(program_size, sizeof(void*));
     ctx->program->command_map = command_map;
 
     // copy offsets from the symbol table to the assembly precursor abstraction (which are directly referenced by the precursor program abstraction)

@@ -25,6 +25,8 @@
 
 #include "tactyk_dblock.h"
 
+#define TACTYK__MAX_IDENTIFIER_LENGTH 255
+
 typedef struct tactyk_dblock__DBlock* t_string;
 typedef struct tactyk_dblock__DBlock* t_table;
 typedef struct tactyk_dblock__DBlock* t_buffer;
@@ -38,6 +40,11 @@ extern tactyk__error_handler error;
 extern tactyk__error_handler warn;
 
 uint64_t tactyk__rand_uint64();
+
+void tactyk_init();
+void* tactyk__mk_random_base_address();
+void* talloc(uint64_t num, uint64_t sz);
+void tfree(void* ptr);
 
 #endif  // TACTYK_H
 

@@ -1,3 +1,41 @@
+11-12 Apr 2023
+Add support for dynamic compilation.
+  This is intended to allow for the use of high-level languages in tactyk - with a toolchain which is to run entirely within the sandbox.
+
+Remove erroneous alias of "xo" to xmm14
+  (xmm14 is used as the main xmm temp register, so use of "xo" would result in data corruption
+Use a "typespec" to define xmm-transfer conversions
+
+Add an error for instruction handler failing to generate code.
+
+Add pointer validation for calling into tactyk and returning to tactyk.
+Pointer validation is accomplished by applying a transform to the pointer passed to tactyk, then verifying that the transformed pointer is 
+present in the context data structure.
+If the value is mismatched, the test fails, then the program reports an error and terminates.
+
+restructure tactyk context
+  Replace everything in the "control state" / Virtual Machine data structure with tactyk program declarations
+    The program declarations are to be used by tactyk programs to call into other tactyk programs
+  Cross-script stack added to context data structure.
+  Runtime register storage moved back to the context data structure
+
+Add a mechanism for attaching programs to the new virtual machine structure.
+
+Add an optional allocator which uses sys/mmap.h to request random pages within the "tactyk" subset of user address space.
+  This will be disabled by default (I only want it in place for now).
+  It may be enabled through conditional compilation with the "USE_TACTYK_ALLOCATOR" #define
+
+Add a pair of "stack floor" variables to prevent a program popping more than pushing when using the lwcall and mctx stacks.
+  These are maintained by the vm (during function calls).
+
+Add tactyk-vm calls
+  These calls transfer control from one loaded tactyk program into another.
+  Context is mostly shared between caller and callee
+    The program reference is adjusted 
+    Microcontext and lwcall stacks are restricted to prevent the callee from popping entries the the caller's stack entries)
+NOTE:  There is a lot of pointer chasing in tactyk-vm calls as-written, so it may be appropriate to add a limited variant which uses pre-fetched data
+       to speed things up a bit.  This might not be worthwhile as the critical path doesn't seem to be very long.
+
 10 Apr 2023
 Completed the Julia Fractal example.  It in real-time at 128 max iterations.
 

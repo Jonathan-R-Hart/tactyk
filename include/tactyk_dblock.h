@@ -15,6 +15,8 @@
 #include <stdbool.h>
 
 enum tactyk_dblock__Type {
+    tactyk_dblock__NONE,
+    tactyk_dblock__UNSPECIFIED,
     tactyk_dblock__ARRAY,
     tactyk_dblock__TABLE,
     tactyk_dblock__STRING,
@@ -44,6 +46,7 @@ struct tactyk_dblock__DBlock {
 void tactyk_dblock__init();
 void tactyk_dblock__testit();
 
+struct tactyk_dblock__DBlock* tactyk_dblock__data_copy(struct tactyk_dblock__DBlock *source);
 // copy the dblock and its data buffer, mark it as self-managed.
 struct tactyk_dblock__DBlock* tactyk_dblock__shallow_copy(struct tactyk_dblock__DBlock *src);
 // recursively copy the dblock and all subordinate dblocks
@@ -103,6 +106,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_c_string(char *data);
 struct tactyk_dblock__DBlock* tactyk_dblock__from_int(int64_t value);
 // convert an unsigned integer to a string, then create a dblock from that string
 struct tactyk_dblock__DBlock* tactyk_dblock__from_uint(uint64_t value);
+struct tactyk_dblock__DBlock* tactyk_dblock__from_float(double value);
 
 // create a dblock from a substring taken from another dblock.
 // The created dblock uses the source dblock as a backing buffer (externally managed)

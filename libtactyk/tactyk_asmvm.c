@@ -12,24 +12,56 @@
 #include "tactyk_dblock.h"
 
 struct tactyk_asmvm__VM* tactyk_asmvm__new_vm() {
-    struct tactyk_asmvm__VM *vm = calloc(1, sizeof(struct tactyk_asmvm__VM));
+    struct tactyk_asmvm__VM *vm = talloc(1, sizeof(struct tactyk_asmvm__VM));
+    vm->program_count = 0;
+    vm->program_list = talloc(TACTYK_ASMVM__PROGRAM_CAPACITY, sizeof(struct tactyk_asmvm__program_declaration));
     return vm;
 }
 
 struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM *vm) {
-    struct tactyk_asmvm__Context *ctx = calloc(1, sizeof(struct tactyk_asmvm__Context));
-    ctx->microcontext_stack = calloc(64*65536, sizeof(uint64_t));
+    struct tactyk_asmvm__Context *ctx = talloc(1, sizeof(struct tactyk_asmvm__Context));
+    ctx->microcontext_stack = talloc(TACTYK_ASMVM__MCTX_STACK_SIZE*TACTYK_ASMVM__MCTX_ENTRY_SIZE, sizeof(uint64_t));
     ctx->microcontext_stack_offset = 0;
-    ctx->microcontext_stack_size = 64*65536*sizeof(uint64_t);
-    ctx->lwcall_stack = calloc(65536, sizeof(uint32_t));
-    //ctx->mctxstack[0] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
-    //ctx->mctxstack[1] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
-    //ctx->mctxstack[2] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
-    //ctx->mctxstack[3] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
-    //ctx->active_mctxstack = ctx->mctxstack[0];
-    //uint64_t mctxstack[MICROCONTEXT_SIZE*MICROCONTEXT_SCALE];
+    ctx->lwcall_stack_floor = 0;
+    ctx->mctx_stack_floor = 0;
+    ctx->lwcall_stack = talloc(TACTYK_ASMVM__LWCALL_STACK_SIZE, sizeof(uint32_t));
+
+    ctx->stack = talloc(1, sizeof(struct tactyk_asmvm__Stack));
+    ctx->stack->stack_lock = 0;
+    ctx->stack->stack_position = -1;
+    // tactyk signature
+    // This is a binary transform of the pointer to the context which must be placed within the context at predefined location.
+    // TACTYK uses this to validate the context pointer.  Prior to running any program code.
+    uint64_t sig = *((uint64_t*)"-TACTYK-");
+    sig ^= (uint64_t)ctx;
+    sig += *((uint32_t*)"-CTX");
+    ctx->signature = sig;
+
     ctx->vm = vm;
     return ctx;
+}
+void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *program) {
+    if (context->vm->program_count >= TACTYK_ASMVM__PROGRAM_CAPACITY) {
+        error("ASMVM -- Too many loaded programs", NULL);
+    }
+    #ifdef TACTYK_DEBUG
+    printf("ADD PROGRAM\n");
+    #endif // TACTYK_DEBUG
+    struct tactyk_asmvm__program_declaration *dec = &context->vm->program_list[context->vm->program_count];
+    context->vm->program_count += 1;
+    dec->instruction_count = program->length;
+    dec->instruction_jumptable = program->command_map;
+    uint64_t num_funcs = program->functions->element_count;
+    dec->function_count = num_funcs;
+    tactyk_asmvm__op *fjumptable = talloc(num_funcs, sizeof(tactyk_asmvm__op));
+    for (uint64_t i = 0; i < num_funcs; i += 1) {
+        struct tactyk_asmvm__identifier *id = tactyk_dblock__index(program->functions->store, i);
+        #ifdef TACTYK_DEBUG
+        printf("func: '%s' index=%ju ptr=%p\n", id->txt, id->value, program->command_map[id->value]);
+        #endif // TACTYK_DEBUG
+        fjumptable[i] = program->command_map[id->value];
+    }
+    dec->function_jumptable = fjumptable;
 }
 
 /*
@@ -45,42 +77,33 @@ void tactyk_asmvm__set(struct tactyk_asmvm__Program *prog, void* data, char* var
 }
 */
 void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname) {
-
-    //ctx->bank_A.rPROG = prog->program;
-    //ctx->max_instruction_pointer = prog->length-1;
-    //printf("run @ %lu %lu\n", prog->run, (char)*((char*)prog->run));
-    //uint64_t result = prog->run(ctx);
-
-    //printf("result= %lu\n", result);
-
-    //printf("...  pfuncs:  %p\n", prog);
     struct tactyk_asmvm__identifier *identifier = tactyk_dblock__get(prog->functions, funcname);
-    //struct tactyk_asmvm__identifier *identifier = tactyk_table__get_strkey(prog->symbols.labeltbl, funcname);
     int64_t iptr = identifier->value;
-    //printf("ip=%jd ln=%jd\n mbptr = %p\n", iptr, prog->length, prog->memory_layout_ll);
     context->hl_program_ref = prog;
-    //iptr = 0;
     if (iptr < prog->length) {
         context->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) prog->memory_layout_ll->data;
         context->memblock_count = TACTYK_ASMVM__MEMBLOCK_CAPACITY;
         context->max_instruction_pointer = prog->length-1;
-        //context->bank_A.rPROG = prog->executable;
-        context->regbank_A.rPROG = prog->command_map;
-        //context->bank_A.rIMM = prog->immediates;
+        context->reg.rPROG = prog->command_map;
         context->instruction_index = iptr;
-        //context->program = prog->program;
-        //context->stash = NULL;
-        //context->bank_A.rMAXIP = prog->length-1;
-        prog->run(context);
-        //tactyk_asmvm__run(context);
+
+        uint64_t result = prog->run(context);
+        if (result < 100) {
+            result = context->STATUS;
+        }
+        if (result >= 100) {
+            char msg[256];
+            sprintf(msg, "TACTYK -- error #%ju", result);
+            error(msg, NULL);
+        }
     }
 }
 
 /*
 void tactyk_asmvm__dispose_VM(struct tactyk_asmvm__VM *vm) {
-    free(vm->contexts);
-    free(vm->programs);
-    free(vm);
+    tfree(vm->contexts);
+    tfree(vm->programs);
+    tfree(vm);
 }
 */
 
@@ -104,19 +127,19 @@ void tactyk_asmvm__update_dynamic_memblock(struct tactyk_asmvm__Context *asmvm_c
     *mem_ll = *m_ll;
     switch(active_index) {
         case 0: {
-            asmvm_context->regbank_A.rADDR1 = (uint64_t*) m_ll->base_address;
+            asmvm_context->reg.rADDR1 = (uint64_t*) m_ll->base_address;
             break;
         }
         case 1: {
-            asmvm_context->regbank_A.rADDR2 = (uint64_t*) m_ll->base_address;
+            asmvm_context->reg.rADDR2 = (uint64_t*) m_ll->base_address;
             break;
         }
         case 2: {
-            asmvm_context->regbank_A.rADDR3 = (uint64_t*) m_ll->base_address;
+            asmvm_context->reg.rADDR3 = (uint64_t*) m_ll->base_address;
             break;
         }
         case 3: {
-            asmvm_context->regbank_A.rADDR4 = (uint64_t*) m_ll->base_address;
+            asmvm_context->reg.rADDR4 = (uint64_t*) m_ll->base_address;
             break;
         }
         //if active_index is anything else (presumably -1), dont attempt to update an address register

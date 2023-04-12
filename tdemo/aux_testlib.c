@@ -60,7 +60,7 @@ FILE* aux_open_file__from_ctxref(struct tactyk_asmvm__Context *asmvm_ctx, char *
 
     // correct data fetch - respects script-specified offset
     //      (mblock.array_bound and mblock.element_bound are used for mandatory bounds checking, so this should be memort-safe)
-    memcpy(&fname[9], asmvm_ctx->regbank_A.rADDR1, len);
+    memcpy(&fname[9], asmvm_ctx->reg.rADDR1, len);
 
     // this should be replaced with a proper validation (the requested file must exists and must not be outside of the correct directory).
     for (uint64_t i = 0; i < (len-3); i += 1) {
