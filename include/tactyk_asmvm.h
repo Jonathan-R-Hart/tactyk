@@ -143,6 +143,35 @@ struct tactyk_asmvm__memblock_highlevel {
 #define MICROCONTEXT_SCALE 1024
 #define STASH_SCALE 32
 
+#define TACTYK_ASMVM__VM_STACK_SIZE 1024
+
+struct tactyk_asmvm__vm_stack_entry {
+    void *source_excutable;
+    uint64_t source_return_target;
+    void *dest_executable;
+    uint64_t dest_jump_target;
+};
+
+
+struct tactyk_asmvm__Stack {
+    int64_t stack_position;
+    uint64_t stack_lock;
+    struct tactyk_asmvm__vm_stack_entry entries[TACTYK_ASMVM__VM_STACK_SIZE];
+};
+
+struct tactyk_asmvm__program_declaration {
+    void *base_address;
+    uint64_t instruction_count;
+    uint64_t *instruction_jumptable;
+    uint64_t function_count;
+    uint64_t *function_jumptable;
+};
+
+struct tactyk_asmvm__VM {
+    uint64_t program_count;
+    struct tactyk_asmvm__program_declaration *program_list;
+};
+
 struct tactyk_asmvm__Program;
 // would prefer an explicit struct memory layout here, since this represents a low-level data structure
 struct tactyk_asmvm__Context {
@@ -164,6 +193,7 @@ struct tactyk_asmvm__Context {
     uint64_t microcontext_stack_size;
 
     struct tactyk_asmvm__VM *vm;
+    struct tactyk_asmvm__Stack *ctx_stack;
     tactyk_asmvm__op *program;
     struct tactyk_asmvm__Program *hl_program_ref;      // a pointer to help high-level code access representative data structures.
 
@@ -174,10 +204,9 @@ struct tactyk_asmvm__Context {
 
     uint64_t stepper;
     uint64_t signature;
-    uint64_t unused;
 
-    struct tactyk_asmvm__register_bank regbank_A;     // main register storage bank - for runtime <-> calls into VM
-    //struct tactyk_asmvm__register_bank regbank_B;     // secondary register storage bank - for VM <-> calls into other things
+    struct tactyk_asmvm__register_bank reg;                     // tactyk context register content
+    struct tactyk_asmvm__register_bank runtime_registers;       // native context register content
 
     uint64_t diagnostic_data[1024];
 };
@@ -211,17 +240,6 @@ struct tactyk_asmvm__Program {
     void* executable;
     tactyk_asmvm__runnable run;
     tactyk_asmvm__show_indicator debug_func;
-};
-
-// Internal Virtual Machine data structure.
-// This is used within tactyk for an internal stack and to offload the native/runtime registers
-struct tactyk_asmvm__VM {
-    struct tactyk_asmvm__register_bank runtime_registers;
-    uint64_t vm_stack_position;
-    uint64_t vm_stack[1024];
-    struct tactyk_asmvm__Context *static_contexts[1024];
-    uint64_t dcontext_position;
-    struct tactyk_asmvm__Context *dynamic_contexts[1024];
 };
 
 

@@ -247,7 +247,8 @@ instruction exit
     xor rTEMPA, rTEMPA
     mov fs:[context.status], dword STATUS_HALT
     store_context
-    load_runtimecontext
+    rdfsbase rax
+    load_runtimecontext rax
     mov rax, STATUS_HALT
     ret
 
@@ -1256,14 +1257,6 @@ instruction dec
   $INSTRUCTION dec
   sub simple_unary_instruction
 
-#instruction exit
-#  code
-#    mov fs:[context.status], dword STATUS_HALT
-#    store_context
-#    load_runtimecontext
-#    mov rax, STATUS_HALT
-#    ret
-
 instruction goto
   operand
     type branch
@@ -1289,16 +1282,17 @@ instruction tcall
 
     rdfsbase r14
     
-    mov rax, fs:[context.controlstate]
-    mov r12, [rax + controlstate.runtime_registers + 56]
-    mov r13, [rax + controlstate.runtime_registers + 64]
-    wrfsbase r12
-    wrgsbase r13
-    mov rbx, [rax + controlstate.runtime_registers + 0]
-    mov rbp, [rax + controlstate.runtime_registers + 8]
-    mov rsp, [rax + controlstate.runtime_registers + 16]
-    mov r12, [rax + controlstate.runtime_registers + 24]
-    mov r13, [rax + controlstate.runtime_registers + 32]
+    load_runtimecontext r14
+    ;mov rax, fs:[context.controlstate]
+    ;mov r12, [rax + controlstate.runtime_registers + 56]
+    ;mov r13, [rax + controlstate.runtime_registers + 64]
+    ;wrfsbase r12
+    ;wrgsbase r13
+    ;mov rbx, [rax + controlstate.runtime_registers + 0]
+    ;mov rbp, [rax + controlstate.runtime_registers + 8]
+    ;mov rsp, [rax + controlstate.runtime_registers + 16]
+    ;mov r12, [rax + controlstate.runtime_registers + 24]
+    ;mov r13, [rax + controlstate.runtime_registers + 32]
     
     xor rax, rax
     xor r10, r10
@@ -1339,17 +1333,19 @@ instruction ccall
         ;rE, rF are already aligned
         
         rdfsbase r14
+        load_runtimecontext r14
         
-        mov rTEMPA, fs:[context.controlstate]
-        mov r12, [rTEMPA + controlstate.runtime_registers + 56]
-        mov r13, [rTEMPA + controlstate.runtime_registers + 64]
-        wrfsbase r12
-        wrgsbase r13
-        mov rbx, [rTEMPA + controlstate.runtime_registers + 0]
-        mov rbp, [rTEMPA + controlstate.runtime_registers + 8]
-        mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
-        mov r12, [rTEMPA + controlstate.runtime_registers + 24]
-        mov r13, [rTEMPA + controlstate.runtime_registers + 32]
+        ;mov rTEMPA, fs:[context.controlstate]
+
+        ;mov r12, [r14 + controlstate.runtime_registers + 56]
+        ;mov r13, [r14 + controlstate.runtime_registers + 64]
+        ;wrfsbase r12
+        ;wrgsbase r13
+        ;mov rbx, [r14 + controlstate.runtime_registers + 0]
+        ;mov rbp, [r14 + controlstate.runtime_registers + 8]
+        ;mov rsp, [r14 + controlstate.runtime_registers + 16]
+        ;mov r12, [r14 + controlstate.runtime_registers + 24]
+        ;mov r13, [r14 + controlstate.runtime_registers + 32]
         
         push rbp
         mov r10, $A
@@ -1376,18 +1372,18 @@ instruction ccall
         ;rE, rF are already aligned
         
         rdfsbase r14
-        rdgsbase r15
+        load_runtimecontext r14
         
-        mov rTEMPA, fs:[context.controlstate]
-        mov r12, [rTEMPA + controlstate.runtime_registers + 56]
-        mov r13, [rTEMPA + controlstate.runtime_registers + 64]
-        wrfsbase r12
-        wrgsbase r13
-        mov rbx, [rTEMPA + controlstate.runtime_registers + 0]
-        mov rbp, [rTEMPA + controlstate.runtime_registers + 8]
-        mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
-        mov r12, [rTEMPA + controlstate.runtime_registers + 24]
-        mov r13, [rTEMPA + controlstate.runtime_registers + 32]
+        ;mov rTEMPA, fs:[context.controlstate]
+        ;mov r12, [rTEMPA + controlstate.runtime_registers + 56]
+        ;mov r13, [rTEMPA + controlstate.runtime_registers + 64]
+        ;wrfsbase r12
+        ;wrgsbase r13
+        ;mov rbx, [rTEMPA + controlstate.runtime_registers + 0]
+        ;mov rbp, [rTEMPA + controlstate.runtime_registers + 8]
+        ;mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
+        ;mov r12, [rTEMPA + controlstate.runtime_registers + 24]
+        ;mov r13, [rTEMPA + controlstate.runtime_registers + 32]
         
         push rbp
         mov r10, $B

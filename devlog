@@ -13,6 +13,11 @@ Pointer validation is accomplished by applying a transform to the pointer passed
 present in the context data structure.
 If the value is mismatched, the test fails, then the program reports an error and terminates.
 
+restructure tactyk context
+  Replace everything in the "control state" / Virtual Machine data structure with tactyk program declarations
+  Cross-script stack added to context data structure.
+  Runtime register storage moved back to the context data structure
+
 10 Apr 2023
 Completed the Julia Fractal example.  It in real-time at 128 max iterations.
 

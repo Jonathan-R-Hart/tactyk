@@ -142,6 +142,7 @@ void tactyk_emit__reset(struct tactyk_emit__Context *emitctx) {
     emitctx->local_vars = tactyk_dblock__new_table(256);
     emitctx->script_commands = tactyk_dblock__new_container(8, sizeof(struct tactyk_emit__script_command));
     emitctx->code_template = tactyk_dblock__new(16);
+    emitctx->has_visa_constants = false;
 }
 
 // release all memory belonging to an emit context.

@@ -84,7 +84,7 @@ struct tactyk_asmvm__Program* run_fib_test(struct tactyk_emit__Context *emitctx,
     tactyk_asmvm__invoke(ctx, prg, "DIAG");
     //
     c2 = ctx->diagnostic_data[0];
-    printf("fib-tactyk result: %lu\n", ctx->regbank_A.rA);
+    printf("fib-tactyk result: %lu\n", ctx->reg.rA);
     printf("fib-tactyk cycle count: %lu\n\n", c2-c1);
     return prg;
 }

@@ -13,6 +13,8 @@
 
 struct tactyk_asmvm__VM* tactyk_asmvm__new_vm() {
     struct tactyk_asmvm__VM *vm = calloc(1, sizeof(struct tactyk_asmvm__VM));
+    vm->program_count = 0;
+    vm->program_list = calloc(256, sizeof(struct tactyk_asmvm__program_declaration));
     return vm;
 }
 
@@ -23,6 +25,9 @@ struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM 
     ctx->microcontext_stack_size = 64*65536*sizeof(uint64_t);
     ctx->lwcall_stack = calloc(65536, sizeof(uint32_t));
 
+    ctx->ctx_stack = calloc(1, sizeof(struct tactyk_asmvm__Stack));
+    ctx->ctx_stack->stack_lock = 0;
+    ctx->ctx_stack->stack_position = -1;
     // tactyk signature
     // This is a binary transform of the pointer to the context which must be placed within the context at predefined location.
     // TACTYK uses this to validate the context pointer.  Prior to running any program code.
@@ -68,7 +73,7 @@ void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_a
         context->memblock_count = TACTYK_ASMVM__MEMBLOCK_CAPACITY;
         context->max_instruction_pointer = prog->length-1;
         //context->bank_A.rPROG = prog->executable;
-        context->regbank_A.rPROG = prog->command_map;
+        context->reg.rPROG = prog->command_map;
         //context->bank_A.rIMM = prog->immediates;
         context->instruction_index = iptr;
         //context->program = prog->program;
@@ -115,19 +120,19 @@ void tactyk_asmvm__update_dynamic_memblock(struct tactyk_asmvm__Context *asmvm_c
     *mem_ll = *m_ll;
     switch(active_index) {
         case 0: {
-            asmvm_context->regbank_A.rADDR1 = (uint64_t*) m_ll->base_address;
+            asmvm_context->reg.rADDR1 = (uint64_t*) m_ll->base_address;
             break;
         }
         case 1: {
-            asmvm_context->regbank_A.rADDR2 = (uint64_t*) m_ll->base_address;
+            asmvm_context->reg.rADDR2 = (uint64_t*) m_ll->base_address;
             break;
         }
         case 2: {
-            asmvm_context->regbank_A.rADDR3 = (uint64_t*) m_ll->base_address;
+            asmvm_context->reg.rADDR3 = (uint64_t*) m_ll->base_address;
             break;
         }
         case 3: {
-            asmvm_context->regbank_A.rADDR4 = (uint64_t*) m_ll->base_address;
+            asmvm_context->reg.rADDR4 = (uint64_t*) m_ll->base_address;
             break;
         }
         //if active_index is anything else (presumably -1), dont attempt to update an address register

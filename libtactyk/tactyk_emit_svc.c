@@ -131,13 +131,13 @@ void tactyk_emit_svc__label(struct tactyk_asmvm__Context *asmvm_ctx) {
     tactyk_emit__add_script_label(tactyk_emit_svc__emitctx, lbl);
 }
 void tactyk_emit_svc__intlabel(struct tactyk_asmvm__Context *asmvm_ctx) {
-    struct tactyk_dblock__DBlock *lbl = tactyk_dblock__from_uint(asmvm_ctx->regbank_A.rA);
+    struct tactyk_dblock__DBlock *lbl = tactyk_dblock__from_uint(asmvm_ctx->reg.rA);
     tactyk_emit__add_script_label(tactyk_emit_svc__emitctx, lbl);
 }
 
 void tactyk_emit_svc__cmd(struct tactyk_asmvm__Context *asmvm_ctx) {
     cmd = tactyk_dblock__new(0);
-    struct tactyk_dblock__DBlock *token = tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rA);
+    struct tactyk_dblock__DBlock *token = tactyk_emit_svc__get_token(asmvm_ctx->reg.rA);
     cmd->token = token;
     cmd_lasttoken = token;
 }
@@ -150,46 +150,46 @@ void tactyk_emit_svc__append_token(struct tactyk_dblock__DBlock *token) {
 }
 
 void tactyk_emit_svc__token1(struct tactyk_asmvm__Context *asmvm_ctx) {
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rA));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rA));
 }
 void tactyk_emit_svc__token2(struct tactyk_asmvm__Context *asmvm_ctx) {
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rA));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rB));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rA));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rB));
 }
 void tactyk_emit_svc__token3(struct tactyk_asmvm__Context *asmvm_ctx) {
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rA));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rB));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rC));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rA));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rB));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rC));
 }
 void tactyk_emit_svc__token4(struct tactyk_asmvm__Context *asmvm_ctx) {
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rA));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rB));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rC));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rD));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rA));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rB));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rC));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rD));
 }
 void tactyk_emit_svc__token5(struct tactyk_asmvm__Context *asmvm_ctx) {
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rA));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rB));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rC));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rD));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rE));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rA));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rB));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rC));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rD));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rE));
 }
 void tactyk_emit_svc__token6(struct tactyk_asmvm__Context *asmvm_ctx) {
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rA));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rB));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rC));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rD));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rE));
-    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->regbank_A.rF));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rA));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rB));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rC));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rD));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rE));
+    tactyk_emit_svc__append_token(tactyk_emit_svc__get_token(asmvm_ctx->reg.rF));
 }
 void tactyk_emit_svc__text(struct tactyk_asmvm__Context *asmvm_ctx) {
     tactyk_emit_svc__append_token(tactyk_emit_svc__get_text(asmvm_ctx, 0));
 }
 void tactyk_emit_svc__int(struct tactyk_asmvm__Context *asmvm_ctx) {
-    tactyk_emit_svc__append_token(tactyk_dblock__from_uint(asmvm_ctx->regbank_A.rA));
+    tactyk_emit_svc__append_token(tactyk_dblock__from_uint(asmvm_ctx->reg.rA));
 }
 void tactyk_emit_svc__float(struct tactyk_asmvm__Context *asmvm_ctx) {
-    tactyk_emit_svc__append_token(tactyk_dblock__from_float(asmvm_ctx->regbank_A.xa.f64[0]));
+    tactyk_emit_svc__append_token(tactyk_dblock__from_float(asmvm_ctx->reg.xa.f64[0]));
 }
 void tactyk_emit_svc__end_cmd(struct tactyk_asmvm__Context *asmvm_ctx) {
     tactyk_emit__add_script_command(tactyk_emit_svc__emitctx, cmd->token, cmd);
@@ -204,21 +204,21 @@ struct tactyk_dblock__DBlock* tactyk_emit_svc__get_text(struct tactyk_asmvm__Con
     uint64_t len = 0;
     switch(slot) {
         case 0: {
-            data = (uint8_t*) asmvm_ctx->regbank_A.rADDR1;
-            ofs = asmvm_ctx->regbank_A.rA;
-            len = asmvm_ctx->regbank_A.rB;
+            data = (uint8_t*) asmvm_ctx->reg.rADDR1;
+            ofs = asmvm_ctx->reg.rA;
+            len = asmvm_ctx->reg.rB;
             break;
         }
         case 1: {
-            data = (uint8_t*) asmvm_ctx->regbank_A.rADDR2;
-            ofs = asmvm_ctx->regbank_A.rC;
-            len = asmvm_ctx->regbank_A.rD;
+            data = (uint8_t*) asmvm_ctx->reg.rADDR2;
+            ofs = asmvm_ctx->reg.rC;
+            len = asmvm_ctx->reg.rD;
             break;
         }
         case 2: {
-            data = (uint8_t*) asmvm_ctx->regbank_A.rADDR3;
-            ofs = asmvm_ctx->regbank_A.rE;
-            len = asmvm_ctx->regbank_A.rF;
+            data = (uint8_t*) asmvm_ctx->reg.rADDR3;
+            ofs = asmvm_ctx->reg.rE;
+            len = asmvm_ctx->reg.rF;
             break;
         }
     }
@@ -279,8 +279,8 @@ void tactyk_emit_svc__declare_memblock(struct tactyk_asmvm__Context *asmvm_ctx, 
 
 void tactyk_emit_svc__define_memblock(struct tactyk_asmvm__Context *asmvm_ctx, struct tactyk_asmvm__memblock_lowlevel **m_ll, struct tactyk_asmvm__memblock_highlevel **m_hl) {
     struct tactyk_dblock__DBlock *mem_name = tactyk_emit_svc__get_text(asmvm_ctx, 0);
-    uint64_t element_count = asmvm_ctx->regbank_A.rC;
-    uint64_t element_size = asmvm_ctx->regbank_A.rD;
+    uint64_t element_count = asmvm_ctx->reg.rC;
+    uint64_t element_size = asmvm_ctx->reg.rD;
 
     tactyk_emit_svc__declare_memblock(asmvm_ctx, m_ll, m_hl);
 
