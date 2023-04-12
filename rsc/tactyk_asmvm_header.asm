@@ -586,18 +586,22 @@
     xor rTEMPD, rTEMPD
 %endmacro
 
-run:
-  mov rTEMPA, [rdi + context.controlstate]
+%macro validate_context_pointer 1
   mov rTEMPC, '-TACTYK-'
-  xor rTEMPC, rdi
+  xor rTEMPC, %1
   inc rTEMPC
-  cmp rTEMPC, [rdi + context.signature]
+  cmp rTEMPC, [%1 + context.signature]
   je .pass
   xor rTEMPC, rTEMPC
   mov rax, dword STATUS_UNSIGNED_CONTEXT
   ret
   .pass:
   xor rTEMPC, rTEMPC
+%endmacro
+
+run:
+  mov rTEMPA, [rdi + context.controlstate]
+  validate_context_pointer rdi
   store_runtimecontext
   wrfsbase rdi
   load_context

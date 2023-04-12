@@ -1308,7 +1308,9 @@ instruction tcall
     push rbp
     mov r10, $A
     call r10
-    ;pop rbp
+    
+    pop rbp
+    validate_context_pointer r14
     
     wrfsbase r14
     wrgsbase r15
@@ -1358,7 +1360,9 @@ instruction ccall
         push rbp
         mov r10, $A
         call r10
-        ;pop rbp
+        
+        pop rbp
+        validate_context_pointer r14
         
         wrfsbase r14
         wrgsbase r15
@@ -1398,8 +1402,10 @@ instruction ccall
         push rbp
         mov r10, $B
         call r10
-        ;pop rbp
-
+        
+        pop rbp
+        validate_context_pointer r14
+        
         mov rTEMPD, rTEMPA
 
         wrfsbase r14
