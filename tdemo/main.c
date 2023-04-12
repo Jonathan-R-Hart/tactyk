@@ -246,6 +246,7 @@ int main(int argc, char *argv[], char *envp[]) {
     }
     if (module_count > 0) {
         struct tactyk_asmvm__Program *prg = tactyk_pl__build(plctx);
+        tactyk_asmvm__add_program(ctx, prg);
 
         for (int64_t i = 0; i < module_count; i += 1) {
             free(module_src[i]);

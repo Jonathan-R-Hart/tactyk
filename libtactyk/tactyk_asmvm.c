@@ -39,6 +39,27 @@ struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM 
     ctx->vm = vm;
     return ctx;
 }
+void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *program) {
+    if (context->vm->program_count >= TACTYK_ASMVM__PROGRAM_CAPACITY) {
+        error("ASMVM -- Too many loaded programs", NULL);
+    }
+    // printf("ADD PROGRAM\n");
+    struct tactyk_asmvm__program_declaration *dec = &context->vm->program_list[context->vm->program_count];
+    context->vm->program_count += 1;
+    dec->base_address = program->executable;
+    dec->instruction_count = program->length;
+    dec->instruction_jumptable = program->command_map;
+    uint64_t num_funcs = program->functions->element_count;
+    dec->function_count = num_funcs;
+    tactyk_asmvm__op *fjumptable = calloc(num_funcs, sizeof(tactyk_asmvm__op));
+    for (uint64_t i = 0; i < num_funcs; i += 1) {
+        struct tactyk_asmvm__identifier *id = tactyk_dblock__index(program->functions->store, i);
+        //printf("func: '%s' index=%ju ptr=%p\n", id->txt, id->value, program->command_map[id->value]);
+        fjumptable[i] = program->command_map[id->value];
+    }
+    dec->function_jumptable = fjumptable;
+
+}
 
 /*
 uint64_t tactyk_asmvm__get(struct tactyk_asmvm__Program *prog, void* data, char* varname) {

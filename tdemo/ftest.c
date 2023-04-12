@@ -70,6 +70,7 @@ struct tactyk_asmvm__Program* run_float_test(struct tactyk_emit__Context *emitct
     struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
     tactyk_pl__load(plctx, floattest_src);
     struct tactyk_asmvm__Program *prg = tactyk_pl__build(plctx);
+    tactyk_asmvm__add_program(ctx, prg);
 
     struct tactyk_asmvm__memblock_highlevel *mblk = tactyk_dblock__get(prg->memory_layout_hl, "fdat");
 

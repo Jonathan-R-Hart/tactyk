@@ -156,9 +156,9 @@ struct tactyk_asmvm__Stack {
 struct tactyk_asmvm__program_declaration {
     void *base_address;
     uint64_t instruction_count;
-    uint64_t *instruction_jumptable;
+    tactyk_asmvm__op *instruction_jumptable;
     uint64_t function_count;
-    uint64_t *function_jumptable;
+    tactyk_asmvm__op *function_jumptable;
 };
 
 struct tactyk_asmvm__VM {
@@ -250,6 +250,7 @@ struct tactyk_asmvm__VM* tactyk_asmvm__new_vm();
 //void tactyk_asmvm__dispose_VM(struct tactyk_asmvm__VM *vm);
 
 struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM *vm);
+void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *program);
 
 uint64_t tactyk_asmvm__get(struct tactyk_asmvm__Program *tactyk_pl__prog, void* data, char* varname);
 void tactyk_asmvm__set(struct tactyk_asmvm__Program *tactyk_pl__prog, void* data, char* varname, uint64_t value);

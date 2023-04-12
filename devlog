@@ -15,8 +15,11 @@ If the value is mismatched, the test fails, then the program reports an error an
 
 restructure tactyk context
   Replace everything in the "control state" / Virtual Machine data structure with tactyk program declarations
+    The program declarations are to be used by tactyk programs to call into other tactyk programs
   Cross-script stack added to context data structure.
   Runtime register storage moved back to the context data structure
+
+Add a mechanism for attaching programs to the new virtual machine structure.
 
 10 Apr 2023
 Completed the Julia Fractal example.  It in real-time at 128 max iterations.
