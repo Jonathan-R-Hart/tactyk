@@ -2233,7 +2233,6 @@ instruction tvmjump
     mov [rTEMPC + tvmstackentry.source_return_index], rTEMPA
     
     mov rPROG, [rTEMPC + tvmstackentry.target_program]
-    mov rADDR4, rPROG
     xor rTEMPA, rTEMPA
     
     ; possibly should do an mctxpush here, but that seems arbitrarilly restrictive.
