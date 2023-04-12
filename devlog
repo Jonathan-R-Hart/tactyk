@@ -1,13 +1,5 @@
-12 Apr 2023
-Add an optional allocator which uses sys/mmap.h to request random pages within the "tactyk" subset of user address space.
-  This will be disabled by default (I only want it in place for now).
-  It may be enabled through conditional compilation with the "USE_TACTYK_ALLOCATOR" #define
-
-Add a pair of "stack floor" variables to prevent a program popping more than pushing when using the lwcall and mctx stacks.
-  These are maintained by the vm (during function calls).
-
-11 Apr 2023
-Begin work on compilation support.
+11-12 Apr 2023
+Add support for dynamic compilation.
   This is intended to allow for the use of high-level languages in tactyk - with a toolchain which is to run entirely within the sandbox.
 
 Remove erroneous alias of "xo" to xmm14
@@ -28,6 +20,21 @@ restructure tactyk context
   Runtime register storage moved back to the context data structure
 
 Add a mechanism for attaching programs to the new virtual machine structure.
+
+Add an optional allocator which uses sys/mmap.h to request random pages within the "tactyk" subset of user address space.
+  This will be disabled by default (I only want it in place for now).
+  It may be enabled through conditional compilation with the "USE_TACTYK_ALLOCATOR" #define
+
+Add a pair of "stack floor" variables to prevent a program popping more than pushing when using the lwcall and mctx stacks.
+  These are maintained by the vm (during function calls).
+
+Add tactyk-vm calls
+  These calls transfer control from one loaded tactyk program into another.
+  Context is mostly shared between caller and callee
+    The program reference is adjusted 
+    Microcontext and lwcall stacks are restricted to prevent the callee from popping entries the the caller's stack entries)
+NOTE:  There is a lot of pointer chasing in tactyk-vm calls as-written, so it may be appropriate to add a limited variant which uses pre-fetched data
+       to speed things up a bit.  This might not be worthwhile as the critical path doesn't seem to be very long.
 
 10 Apr 2023
 Completed the Julia Fractal example.  It in real-time at 128 max iterations.

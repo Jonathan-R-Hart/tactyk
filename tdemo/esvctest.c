@@ -9,17 +9,22 @@
 #include "tactyk_emit.h"
 
 /*
-    floating point math in-dev tests.
+    Emit-svc interface + tactyk-vm call test.
+
+    This program uses the emit-svc interface to generate and compile another program, then performs a tactyk-vm call into the dynamically compiled
+    program to perform a calculation, then regains control.
+
+    At the end, these should be the data register contents:
+        rA:  25
+        rB:  0
+        rC:  0
+        rD:  12345
+        rE:  0
+        rF:  0
+
+    The emit-svc interface is intended to be used to allow compilation of scripts written in high-level language(s) entirely within the tactyk sandbox.
 */
 
-char *squareit_src = {
-    R"""(
-        SQ:
-            mul a a
-            tcall dump-ctx
-            exit
-    )"""
-};
 
 char *esvctest_src = {
     R"""(
@@ -28,15 +33,6 @@ char *esvctest_src = {
         text txt
             l SQUAREIT.
         MAIN:
-            lwcall THIS
-            exit
-        THIS:
-            lwcall THAT
-            lwreturn
-        THAT:
-            lwcall THE_OTHER_THING
-            lwreturn
-        THE_OTHER_THING:
             bind addr1 txt
 
             tcall dump-ctx
@@ -59,7 +55,7 @@ char *esvctest_src = {
             tcall emit-token-2
             tcall emit-cmd-end
 
-            assign a .exit
+            assign a .tvmreturn
             tcall emit-cmd
             tcall emit-cmd-end
 
@@ -78,10 +74,19 @@ char *esvctest_src = {
             tcall dump-stack
             assign a 5
             tvmjump
+            assign d 12345
             tcall dump-ctx
-            lwreturn
+            tcall dump-stack
+            exit
     )"""
 };
+
+// The program exported through the emit-svc interface, then called into:
+/*
+    SQUAREIT:
+        mul a a
+        tvmreturn
+*/
 
 struct tactyk_asmvm__Program* run_esvc_test(struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__Context *ctx) {
 
@@ -90,7 +95,5 @@ struct tactyk_asmvm__Program* run_esvc_test(struct tactyk_emit__Context *emitctx
     struct tactyk_asmvm__Program *prg = tactyk_pl__build(plctx);
     tactyk_asmvm__add_program(ctx, prg);
     tactyk_asmvm__invoke(ctx, prg, "MAIN");
-    printf("-=-=-=-=-=- ... \n");
-    tactyk_debug__print_context(ctx);
     return prg;
 }

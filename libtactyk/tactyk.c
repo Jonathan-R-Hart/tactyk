@@ -90,7 +90,7 @@ void tactyk_init() {
 
     #ifdef USE_TACTYK_ALLOCATOR
     tactyk_m_count = 0;
-    uint64_t t_addr = tactyk__mk_random_base_address();
+    void* t_addr = tactyk__mk_random_base_address();
     tactyk_m_tbl = (struct tactyk_m_entry*) mmap(t_addr, sizeof(struct tactyk_m_entry) * TACTYK_M_CAPACITY, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
     #endif // USE_TACTYK_ALLOCATOR
 }
@@ -101,7 +101,7 @@ void* talloc(uint64_t num, uint64_t sz) {
         error("TACTYK-talloc -- integer overflow detected", NULL);
     }
     uint64_t m_size = num*sz;
-    uint64_t t_addr = tactyk__mk_random_base_address();
+    void* t_addr = tactyk__mk_random_base_address();
     void *ptr = mmap(t_addr, m_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
     uint64_t pivot = (((uint64_t)ptr)>>16) & (TACTYK_M_CAPACITY-1);
 

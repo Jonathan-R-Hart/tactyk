@@ -42,6 +42,7 @@ extern tactyk__error_handler warn;
 uint64_t tactyk__rand_uint64();
 
 void tactyk_init();
+void* tactyk__mk_random_base_address();
 void* talloc(uint64_t num, uint64_t sz);
 void tfree(void* ptr);
 

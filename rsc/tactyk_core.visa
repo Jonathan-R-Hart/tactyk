@@ -2236,8 +2236,46 @@ instruction tvmjump
     xor rTEMPA, rTEMPA
     
     ; possibly should do an mctxpush here, but that seems arbitrarilly restrictive.
+    ; ALSO - if leaving a pointer to a tvm stack entry on a temp register is a problem, then tvmstackentry.target_jump_target 
+    ; should be converted to a jump table index and handled like the main entry point.
     jmp [rTEMPC + tvmstackentry.target_jump_target]
+
+instruction tvmreturn
+  code
+    mov rTEMPC, fs:[context.stack]
+    mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
+    cmp rTEMPA, 0
+    errorneq STATUS_INVALID_TVMJUMP
+    mov rTEMPA, [rTEMPC + tactyk_stack.stack_position]
+    cmp rTEMPA, 0
+    errorlt STATUS_STACK_UNDERFLOW
+    mov rTEMPD, rTEMPA
+    dec rTEMPA
+    mov [rTEMPC + tactyk_stack.stack_position], rTEMPA
     
+    ; rTEMPC -> stack entry pointer
+    imul rTEMPD, tvmstackentry_size
+    add rTEMPC, tactyk_stack.stack
+    add rTEMPC, rTEMPD
+    
+    ; restore the caller context
+    mov rTEMPD, [rTEMPC + tvmstackentry.source_stack_floor]
+    mov rPROG, [rTEMPC + tvmstackentry.source_program]
+    mov rTEMPA, [rTEMPC + tvmstackentry.source_return_index]
+    mov fs:[context.floor], rTEMPD
+    
+    ; zero out the stack entry (or delete this if too much paranoia)
+    mov qword [rTEMPC + tvmstackentry.source_program], 0
+    mov qword [rTEMPC + tvmstackentry.source_return_index], 0
+    mov qword [rTEMPC + tvmstackentry.source_stack_floor], 0
+    mov qword [rTEMPC + tvmstackentry.target_program], 0
+    mov qword [rTEMPC + tvmstackentry.target_jump_target], 0
+    
+    xor rTEMPC, rTEMPC
+    xor rTEMPD, rTEMPD
+    
+    jmp [rPROG + rTEMPA*8]
+
 typespec vec-float-format
   $VECFMT sd
   select-operand

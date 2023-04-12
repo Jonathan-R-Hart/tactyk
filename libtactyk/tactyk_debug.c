@@ -72,7 +72,7 @@ void tactyk_debug__print_mbind(struct tactyk_asmvm__Context *ctx) {
 
 
 void tactyk_debug__print_vmstack(struct tactyk_asmvm__Context *ctx) {
-    printf("===== VM STACK ============================================================================================\n");
+    printf("===== TACTYK VM STACK =====================================================================================\n");
     char *lockstate;
     if (ctx->stack->stack_lock) {
         lockstate = "LOCKED";
@@ -89,8 +89,6 @@ void tactyk_debug__print_vmstack(struct tactyk_asmvm__Context *ctx) {
         printf("| %5ju | %15p | %15p | %10u | %10u | %15p | %15p |\n", pos, entry->source_command_map, entry->source_return_target, entry->source_lwcallstack_floor, entry->source_mctxstack_floor, entry->dest_command_map, entry->dest_jump_target);
     }
     printf("===========================================================================================================\n");
-
-
 }
 
 void tactyk_debug__print_vmprograms(struct tactyk_asmvm__Context *ctx) {
