@@ -13,14 +13,31 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-
 #include <stdio.h>
-//  for debug invocation
-
 #include <stdlib.h>
-//  calloc, free
+
+#include "tactyk.h"
 
 #include "tactyk_dblock.h"
+
+#define TACTYK_ASMVM__MEMBLOCK_CAPACITY 256
+#define TACTYK_ASMVM__VM_STACK_SIZE 1024
+#define TACTYK_ASMVM__PROGRAM_CAPACITY 256
+#define TACTYK_ASMVM__MCTX_STACK_SIZE 65536
+#define TACTYK_ASMVM__MCTX_ENTRY_SIZE 64
+#define TACTYK_ASMVM__LWCALL_STACK_SIZE 65536
+#define TACTYK_ASMVM__PROGRAM_CAPACITY 256
+
+
+// memblock type hints
+// These are only the automatically assigned "type" specifications, which TACTYK-PL uses to indicate how a memblockw as specified
+// These are not to be construed as absolute rules
+// If you need a custom type declaration for a memblock, pick a unique integer, assign it to the memblock type fields, and use it
+//  as you see fit.
+#define TACTYK_ASMVM__MEMBLOCK_TYPE__UNKNOWN 0
+#define TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC 1
+#define TACTYK_ASMVM__MEMBLOCK_TYPE__ALLOC 2
+#define TACTYK_ASMVM__MEMBLOCK_TYPE__EXTERNAL 3
 
 struct tactyk_asmvm__Context;
 typedef uint64_t (*tactyk_asmvm__runnable)(struct tactyk_asmvm__Context *ctx);
@@ -33,13 +50,6 @@ typedef void (*tactyk_asmvm__show_indicator)(uint64_t iptr, char *msg);
 //
 typedef void (*tactyk_asmvm__op)();
 
-#define TACTYK_ASMVM_STATUS_BREAK 16
-
-#define MAX_APIFUNCS 1024
-#define MAX_LABELS 65536
-#define MAX_STRUCTS 65536
-#define MAX_IDENTIFIER_LENGTH 255
-#define TACTYK_ASMVM__MEMBLOCK_CAPACITY 256
 
 extern const int32_t STATIC_MEMORY_HEADER_LENGTH;
 extern const int32_t STATIC_MEMORY_LENGTH;
@@ -108,15 +118,6 @@ struct tactyk_asmvm__c_function_spec {
     uint64_t floatret_count;
 };
 
-// memblock type hints
-// These are only the automatically assigned "type" specifications, which TACTYK-PL uses to indicate how a memblockw as specified
-// These are not to be construed as absolute rules
-// If you need a custom type declaration for a memblock, pick a unique integer, assign it to the memblock type fields, and use it
-//  as you see fit.
-#define TACTYK_ASMVM__MEMBLOCK_TYPE__UNKNOWN 0
-#define TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC 1
-#define TACTYK_ASMVM__MEMBLOCK_TYPE__ALLOC 2
-#define TACTYK_ASMVM__MEMBLOCK_TYPE__EXTERNAL 3
 
 // memory layout specification used within the virtual machine
 //      (basically just a pointer to the allocated memory, boundaries, and a pair of extra properties for implementing queues)
@@ -139,19 +140,12 @@ struct tactyk_asmvm__memblock_highlevel {
     uint8_t *data;              // binary data.
 };
 
-#define MICROCONTEXT_SIZE 32
-#define MICROCONTEXT_SCALE 1024
-#define STASH_SCALE 32
-
-#define TACTYK_ASMVM__VM_STACK_SIZE 1024
-
 struct tactyk_asmvm__vm_stack_entry {
     void *source_excutable;
     uint64_t source_return_target;
     void *dest_executable;
     uint64_t dest_jump_target;
 };
-
 
 struct tactyk_asmvm__Stack {
     int64_t stack_position;
@@ -173,12 +167,12 @@ struct tactyk_asmvm__VM {
 };
 
 struct tactyk_asmvm__Program;
+
 // would prefer an explicit struct memory layout here, since this represents a low-level data structure
 struct tactyk_asmvm__Context {
 
     uint64_t max_instruction_pointer;
     struct tactyk_asmvm__Context *subcontext;
-
 
     // program memory
     //  (or whatever memory the host/runtime assigns to programs)
@@ -199,7 +193,7 @@ struct tactyk_asmvm__Context {
 
     uint64_t instruction_index;     //tactyk function to call into.
 
-    // erorr codes go here when tactyk-vm sees what it dont like.
+    // execution state or error code
     uint64_t STATUS;
 
     uint64_t stepper;
@@ -214,14 +208,14 @@ void tactyk_asmvm__print_context(struct tactyk_asmvm__Context *context);
 void tactyk_asmvm__print_diagnostic_data(struct tactyk_asmvm__Context *context, int64_t amount);
 
 struct tactyk_asmvm__property {
-    char name[MAX_IDENTIFIER_LENGTH];
+    char name[TACTYK__MAX_IDENTIFIER_LENGTH];
     int8_t dtype;
     uint64_t byte_offset;
     uint64_t byte_width;
 };
 
 struct tactyk_asmvm__struct {
-    char name[MAX_IDENTIFIER_LENGTH];
+    char name[TACTYK__MAX_IDENTIFIER_LENGTH];
     uint64_t byte_stride;
     uint64_t num_properties;
     struct tactyk_asmvm__property *properties;
@@ -246,7 +240,7 @@ struct tactyk_asmvm__Program {
 
 // just a name to bind to an instruction pointer.
 struct tactyk_asmvm__identifier {
-    char txt[MAX_IDENTIFIER_LENGTH+1];
+    char txt[TACTYK__MAX_IDENTIFIER_LENGTH+1];
     int64_t value;
     char *class;
 };

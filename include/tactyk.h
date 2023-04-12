@@ -25,6 +25,8 @@
 
 #include "tactyk_dblock.h"
 
+#define TACTYK__MAX_IDENTIFIER_LENGTH 255
+
 typedef struct tactyk_dblock__DBlock* t_string;
 typedef struct tactyk_dblock__DBlock* t_table;
 typedef struct tactyk_dblock__DBlock* t_buffer;

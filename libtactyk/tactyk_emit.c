@@ -671,7 +671,7 @@ void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tact
 
     struct tactyk_asmvm__identifier *id = tactyk_dblock__new_managedobject(ctx->program->functions, raw_label);
     id->value = ctx->script_commands->element_count;
-    tactyk_dblock__export_cstring(id->txt, MAX_IDENTIFIER_LENGTH, raw_label);
+    tactyk_dblock__export_cstring(id->txt, TACTYK__MAX_IDENTIFIER_LENGTH, raw_label);
     //strncpy(id->txt, tactyk_dblock__export_cstring(raw_label), MAX_IDENTIFIER_LENGTH);
 
     if (ctx->active_labels == NULL) {

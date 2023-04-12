@@ -14,16 +14,16 @@
 struct tactyk_asmvm__VM* tactyk_asmvm__new_vm() {
     struct tactyk_asmvm__VM *vm = calloc(1, sizeof(struct tactyk_asmvm__VM));
     vm->program_count = 0;
-    vm->program_list = calloc(256, sizeof(struct tactyk_asmvm__program_declaration));
+    vm->program_list = calloc(TACTYK_ASMVM__PROGRAM_CAPACITY, sizeof(struct tactyk_asmvm__program_declaration));
     return vm;
 }
 
 struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM *vm) {
     struct tactyk_asmvm__Context *ctx = calloc(1, sizeof(struct tactyk_asmvm__Context));
-    ctx->microcontext_stack = calloc(64*65536, sizeof(uint64_t));
+    ctx->microcontext_stack = calloc(TACTYK_ASMVM__MCTX_STACK_SIZE*TACTYK_ASMVM__MCTX_ENTRY_SIZE, sizeof(uint64_t));
     ctx->microcontext_stack_offset = 0;
-    ctx->microcontext_stack_size = 64*65536*sizeof(uint64_t);
-    ctx->lwcall_stack = calloc(65536, sizeof(uint32_t));
+    ctx->microcontext_stack_size = TACTYK_ASMVM__MCTX_STACK_SIZE*TACTYK_ASMVM__MCTX_ENTRY_SIZE*sizeof(uint64_t);
+    ctx->lwcall_stack = calloc(TACTYK_ASMVM__LWCALL_STACK_SIZE, sizeof(uint32_t));
 
     ctx->ctx_stack = calloc(1, sizeof(struct tactyk_asmvm__Stack));
     ctx->ctx_stack->stack_lock = 0;

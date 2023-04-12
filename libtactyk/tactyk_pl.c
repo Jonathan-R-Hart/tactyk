@@ -39,7 +39,7 @@ void tactyk_pl__init() {
     default_mem_layout.properties = calloc(1, sizeof(struct tactyk_asmvm__property));
     default_mem_layout.properties->byte_offset = 0;
     default_mem_layout.properties->byte_width = 8;
-    strncpy(default_mem_layout.properties->name, "item", MAX_IDENTIFIER_LENGTH);
+    strncpy(default_mem_layout.properties->name, "item", TACTYK__MAX_IDENTIFIER_LENGTH);
 }
 
 struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx) {
@@ -540,7 +540,7 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
 
     struct tactyk_asmvm__struct *st = (struct tactyk_asmvm__struct*) tactyk_dblock__new_managedobject(ctx->struct_table, st_name);
 
-    tactyk_dblock__export_cstring(st->name, MAX_IDENTIFIER_LENGTH, st_name);
+    tactyk_dblock__export_cstring(st->name, TACTYK__MAX_IDENTIFIER_LENGTH, st_name);
     st->num_properties = tactyk_dblock__count_children(dblock);
 
     st->properties = calloc(st->num_properties, sizeof(struct tactyk_asmvm__property));
@@ -586,7 +586,7 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
         struct tactyk_asmvm__property *prop = &st->properties[property_index];
         property_index += 1;
 
-        tactyk_dblock__export_cstring(prop->name, MAX_IDENTIFIER_LENGTH, p_name);
+        tactyk_dblock__export_cstring(prop->name, TACTYK__MAX_IDENTIFIER_LENGTH, p_name);
         //char *prop_name = tactyk_dblock__export_cstring(p_name);
 
         //prop->name = prop_name;
