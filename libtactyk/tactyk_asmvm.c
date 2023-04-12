@@ -22,6 +22,15 @@ struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM 
     ctx->microcontext_stack_offset = 0;
     ctx->microcontext_stack_size = 64*65536*sizeof(uint64_t);
     ctx->lwcall_stack = calloc(65536, sizeof(uint32_t));
+
+    // tactyk signature
+    // This is a binary transform of the pointer to the context which must be placed within the context at predefined location.
+    // TACTYK uses this to validate the context pointer.  Prior to running any program code.
+    uint64_t sig = *((uint64_t*)"-TACTYK-");
+    sig ^= (uint64_t)ctx;
+    sig += 1;
+
+    ctx->signature = sig;
     //ctx->mctxstack[0] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
     //ctx->mctxstack[1] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
     //ctx->mctxstack[2] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
@@ -71,7 +80,15 @@ void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_a
         //context->program = prog->program;
         //context->stash = NULL;
         //context->bank_A.rMAXIP = prog->length-1;
-        prog->run(context);
+        uint64_t result = prog->run(context);
+        if (result < 100) {
+            result = context->STATUS;
+        }
+        if (result >= 100) {
+            char msg[256];
+            sprintf(msg, "TACTYK -- error #%ju", result);
+            error(msg, NULL);
+        }
         //tactyk_asmvm__run(context);
     }
 }

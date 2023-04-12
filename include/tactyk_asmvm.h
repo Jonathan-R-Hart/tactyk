@@ -173,6 +173,8 @@ struct tactyk_asmvm__Context {
     uint64_t STATUS;
 
     uint64_t stepper;
+    uint64_t signature;
+    uint64_t unused;
 
     struct tactyk_asmvm__register_bank regbank_A;     // main register storage bank - for runtime <-> calls into VM
     //struct tactyk_asmvm__register_bank regbank_B;     // secondary register storage bank - for VM <-> calls into other things

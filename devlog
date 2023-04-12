@@ -8,6 +8,11 @@ Use a "typespec" to define xmm-transfer conversions
 
 Add an error for instruction handler failing to generate code.
 
+Add pointer validation to the tactyk entry point.
+Pointer validation is accomplished by applying a transform to the pointer passed to tactyk, then verifying that the transformed pointer is 
+present in the context data structure.
+If the value is mismatched, the test fails, then the program reports an error and terminates.
+
 10 Apr 2023
 Completed the Julia Fractal example.  It in real-time at 128 max iterations.
 

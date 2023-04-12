@@ -302,7 +302,7 @@
 
         qwords lwcall_stack_address, microcontext_stack_address, microcontext_stack_offset, microcontext_stack_size
         
-        qwords controlstate, program, hl_program_ref, instruction_index, status, stepper
+        qwords controlstate, program, hl_program_ref, instruction_index, status, stepper, signature, unused
         
         .registers:  resq 48
         
@@ -327,6 +327,7 @@
     %define STATUS_STACK_UNDERFLOW 104
     %define STATUS_MEMORY_OVERFLOW 105      ; a generic overflow to be used in place of "stack" overflow when there is a conceptual mismatch
     %define STATUS_MEMORY_UNDERFLOW 106     ; a generic underflow to be used in place of "stack" underflow when there is a conceptual mismatch
+    %define STATUS_UNSIGNED_CONTEXT 107
 
     ; runtime registers do not belong to tactyk, and so do not use internal tactyk names
     ; The only thing that matters here is that they get correctly stored and restored.
@@ -515,6 +516,7 @@
         store_context
         load_runtimecontext
         rdfsbase rax
+        mov rax, STATUS_HALT
         ret
     %endmacro
 
@@ -523,6 +525,7 @@
         store_context
         load_runtimecontext
         rdfsbase rax
+        mov rax, %1
         ret
     %endmacro
 
@@ -585,6 +588,14 @@
 
 run:
   mov rTEMPA, [rdi + context.controlstate]
+  mov rTEMPC, '-TACTYK-'
+  xor rTEMPC, rdi
+  inc rTEMPC
+  cmp rTEMPC, [rdi + context.signature]
+  je .pass
+  mov rax, dword STATUS_UNSIGNED_CONTEXT
+  ret
+  .pass:
   store_runtimecontext
   wrfsbase rdi
   load_context

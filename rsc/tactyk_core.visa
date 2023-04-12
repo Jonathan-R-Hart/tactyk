@@ -248,6 +248,7 @@ instruction exit
     mov fs:[context.status], dword STATUS_HALT
     store_context
     load_runtimecontext
+    mov rax, STATUS_HALT
     ret
 
 # Bind a memory block to an address register and update corresponding context entries
@@ -1255,12 +1256,13 @@ instruction dec
   $INSTRUCTION dec
   sub simple_unary_instruction
 
-instruction exit
-  code
-    mov fs:[context.status], dword STATUS_HALT
-    store_context
-    load_runtimecontext
-    ret
+#instruction exit
+#  code
+#    mov fs:[context.status], dword STATUS_HALT
+#    store_context
+#    load_runtimecontext
+#    mov rax, STATUS_HALT
+#    ret
 
 instruction goto
   operand
