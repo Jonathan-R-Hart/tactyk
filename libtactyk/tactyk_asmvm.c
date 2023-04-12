@@ -28,15 +28,9 @@ struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM 
     // TACTYK uses this to validate the context pointer.  Prior to running any program code.
     uint64_t sig = *((uint64_t*)"-TACTYK-");
     sig ^= (uint64_t)ctx;
-    sig += 1;
-
+    sig += *((uint32_t*)"-CTX");
     ctx->signature = sig;
-    //ctx->mctxstack[0] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
-    //ctx->mctxstack[1] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
-    //ctx->mctxstack[2] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
-    //ctx->mctxstack[3] = calloc(MICROCONTEXT_SIZE*MICROCONTEXT_SCALE, 8);
-    //ctx->active_mctxstack = ctx->mctxstack[0];
-    //uint64_t mctxstack[MICROCONTEXT_SIZE*MICROCONTEXT_SCALE];
+
     ctx->vm = vm;
     return ctx;
 }

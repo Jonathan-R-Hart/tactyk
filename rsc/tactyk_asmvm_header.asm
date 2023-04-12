@@ -590,7 +590,7 @@
 %macro validate_context_pointer 1
   mov rTEMPC, '-TACTYK-'
   xor rTEMPC, %1
-  inc rTEMPC
+  add rTEMPC, '-CTX'
   cmp rTEMPC, [%1 + context.signature]
   je .pass
   xor rTEMPC, rTEMPC
