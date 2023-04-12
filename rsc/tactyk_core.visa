@@ -988,7 +988,6 @@ typespec address-offset
 
 
 instruction assign
-  $INSTRUCTION mov
   operand 
     type data xmmx address-offset
     $A $VALUE
