@@ -37,7 +37,7 @@ target_include_directories(tactyk PRIVATE
 target_link_libraries( tdemo tactyk ${SDL2_LIBRARIES} )
 
 add_compile_definitions(
-    # USE_TACTYK_RANDOM_ALLOCATOR
+    # USE_TACTYK_ALLOCATOR
     TACTYK_SHELL_INTERFACE
     TACTYK__VERSION="${CMAKE_PROJECT_VERSION}"
 )
