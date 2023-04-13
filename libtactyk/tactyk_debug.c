@@ -16,22 +16,22 @@ void tactyk_debug__configure_api(struct tactyk_emit__Context *emitctx) {
 // should probably add a mechanism for determing what format(s) to use for showing data/xmmx register contents.
 void tactyk_debug__print_context(struct tactyk_asmvm__Context *ctx) {
     printf("===== TACTYK CONTEXT ===================================================================================\n");
-    printf("| CTX-seg  (fs:) | %20p | xA (xmm0)      | %-20f | %-20f |\n", ctx, ctx->reg.xa.f64[1], ctx->reg.xa.f64[0]);
-    printf("| MCTX-seg (gs:) | %20p | xB (xmm1)      | %-20f | %-20f |\n", ctx->microcontext_stack, ctx->reg.xb.f64[1], ctx->reg.xb.f64[0]);
-    printf("| rTEMPA   (rax) |                  --- | xC (xmm2)      | %-20f | %-20f |\n", ctx->reg.xc.f64[1], ctx->reg.xc.f64[0]);
-    printf("| rTEMPC   (rcx) |                  --- | xD (xmm3)      | %-20f | %-20f |\n", ctx->reg.xd.f64[1], ctx->reg.xd.f64[0]);
-    printf("| rTEMPD   (rdx) |                  --- | xE (xmm4)      | %-20f | %-20f |\n", ctx->reg.xe.f64[1], ctx->reg.xe.f64[0]);
-    printf("| rLWCSI   (rbp) | %20jd | xF (xmm5)      | %-20f | %-20f |\n", ctx->reg.rLWCSI, ctx->reg.xf.f64[1], ctx->reg.xf.f64[0]);
-    printf("| rMSCI    (rsp) | %20jd | xG (xmm6)      | %-20f | %-20f |\n", ctx->reg.rMCSI, ctx->reg.xg.f64[1], ctx->reg.xg.f64[0]);
-    printf("| rPROG    (r12) | %20p | xH (xmm7)      | %-20f | %-20f |\n", ctx->reg.rPROG, ctx->reg.xh.f64[1], ctx->reg.xh.f64[0]);
-    printf("| rADDR1   (r14) | %20p | xI (xmm8)      | %-20f | %-20f |\n", ctx->reg.rADDR1, ctx->reg.xi.f64[1], ctx->reg.xi.f64[0]);
-    printf("| rADDR2   (r15) | %20p | xJ (xmm9)      | %-20f | %-20f |\n", ctx->reg.rADDR2, ctx->reg.xj.f64[1], ctx->reg.xj.f64[0]);
-    printf("| rADDR3   (rbx) | %20p | xK (xmm10)     | %-20f | %-20f |\n", ctx->reg.rADDR3, ctx->reg.xk.f64[1], ctx->reg.xk.f64[0]);
-    printf("| rADDR4   (r10) | %20p | xL (xmm11)     | %-20f | %-20f |\n", ctx->reg.rADDR4, ctx->reg.xl.f64[1], ctx->reg.xl.f64[0]);
-    printf("| rA       (rdi) | %20jd | xM (xmm12)     | %-20f | %-20f |\n", ctx->reg.rA, ctx->reg.xm.f64[1], ctx->reg.xm.f64[0]);
-    printf("| rB       (rsi) | %20jd | xN (xmm13)     | %-20f | %-20f |\n", ctx->reg.rB, ctx->reg.xn.f64[1], ctx->reg.xn.f64[0]);
-    printf("| rC       (r11) | %20jd | xTEMPA (xmm14) | %-20f | %-20f |\n", ctx->reg.rC, ctx->reg.xTEMPA.f64[1], ctx->reg.xTEMPA.f64[0]);
-    printf("| rD       (r13) | %20jd | xTEMPB (xmm15) | %-20f | %-20f |\n", ctx->reg.rD, ctx->reg.xTEMPB.f64[1], ctx->reg.xTEMPB.f64[0]);
+    printf("| CTX-seg  (fs:) | %20p | xA (xmm0)      | %-20.14g | %-20.14g |\n", ctx, ctx->reg.xa.f64[1], ctx->reg.xa.f64[0]);
+    printf("| MCTX-seg (gs:) | %20p | xB (xmm1)      | %-20.14g | %-20.14g |\n", ctx->microcontext_stack, ctx->reg.xb.f64[1], ctx->reg.xb.f64[0]);
+    printf("| rTEMPA   (rax) |                  --- | xC (xmm2)      | %-20.14g | %-20.14g |\n", ctx->reg.xc.f64[1], ctx->reg.xc.f64[0]);
+    printf("| rTEMPC   (rcx) |                  --- | xD (xmm3)      | %-20.14g | %-20.14g |\n", ctx->reg.xd.f64[1], ctx->reg.xd.f64[0]);
+    printf("| rTEMPD   (rdx) |                  --- | xE (xmm4)      | %-20.14g | %-20.14g |\n", ctx->reg.xe.f64[1], ctx->reg.xe.f64[0]);
+    printf("| rLWCSI   (rbp) | %20jd | xF (xmm5)      | %-20.14g | %-20.14g |\n", ctx->reg.rLWCSI, ctx->reg.xf.f64[1], ctx->reg.xf.f64[0]);
+    printf("| rMSCI    (rsp) | %20jd | xG (xmm6)      | %-20.14g | %-20.14g |\n", ctx->reg.rMCSI, ctx->reg.xg.f64[1], ctx->reg.xg.f64[0]);
+    printf("| rPROG    (r12) | %20p | xH (xmm7)      | %-20.14g | %-20.14g |\n", ctx->reg.rPROG, ctx->reg.xh.f64[1], ctx->reg.xh.f64[0]);
+    printf("| rADDR1   (r14) | %20p | xI (xmm8)      | %-20.14g | %-20.14g |\n", ctx->reg.rADDR1, ctx->reg.xi.f64[1], ctx->reg.xi.f64[0]);
+    printf("| rADDR2   (r15) | %20p | xJ (xmm9)      | %-20.14g | %-20.14g |\n", ctx->reg.rADDR2, ctx->reg.xj.f64[1], ctx->reg.xj.f64[0]);
+    printf("| rADDR3   (rbx) | %20p | xK (xmm10)     | %-20.14g | %-20.14g |\n", ctx->reg.rADDR3, ctx->reg.xk.f64[1], ctx->reg.xk.f64[0]);
+    printf("| rADDR4   (r10) | %20p | xL (xmm11)     | %-20.14g | %-20.14g |\n", ctx->reg.rADDR4, ctx->reg.xl.f64[1], ctx->reg.xl.f64[0]);
+    printf("| rA       (rdi) | %20jd | xM (xmm12)     | %-20.14g | %-20.14g |\n", ctx->reg.rA, ctx->reg.xm.f64[1], ctx->reg.xm.f64[0]);
+    printf("| rB       (rsi) | %20jd | xN (xmm13)     | %-20.14g | %-20.14g |\n", ctx->reg.rB, ctx->reg.xn.f64[1], ctx->reg.xn.f64[0]);
+    printf("| rC       (r11) | %20jd | xTEMPA (xmm14) | %-20.14g | %-20.14g |\n", ctx->reg.rC, ctx->reg.xTEMPA.f64[1], ctx->reg.xTEMPA.f64[0]);
+    printf("| rD       (r13) | %20jd | xTEMPB (xmm15) | %-20.14g | %-20.14g |\n", ctx->reg.rD, ctx->reg.xTEMPB.f64[1], ctx->reg.xTEMPB.f64[0]);
     printf("| rE       (r8)  | %20jd | ---            |                  --- |                  --- |\n", ctx->reg.rE);
     printf("| rF       (r8)  | %20jd | ---            |                  --- |                  --- |\n", ctx->reg.rF);
     printf("========================================================================================================\n");

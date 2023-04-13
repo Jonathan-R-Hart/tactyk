@@ -105,6 +105,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__put(ctx->operator_table, "select-operand", tactyk_emit__SelectOp);
     tactyk_dblock__put(ctx->operator_table, "select-template", tactyk_emit__SelectTemplate);
     tactyk_dblock__put(ctx->operator_table, "select-kw", tactyk_emit__SelectKeyword);
+    tactyk_dblock__put(ctx->operator_table, "select-kw2", tactyk_emit__SelectKeyword2);
     tactyk_dblock__put(ctx->operator_table, "flags", tactyk_emit__Flags);
 
     tactyk_dblock__put(ctx->operator_table, "case", tactyk_emit__Case);
@@ -121,6 +122,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     tactyk_dblock__put(ctx->operator_table, "int-operand", tactyk_emit__IntOperand);
     tactyk_dblock__put(ctx->operator_table, "float-operand", tactyk_emit__FloatOperand);
+    tactyk_dblock__put(ctx->operator_table, "string-operand", tactyk_emit__StringOperand);
 
     tactyk_dblock__put(ctx->operator_table, "sub", tactyk_emit__DoSub);
     tactyk_dblock__put(ctx->operator_table, "label", tactyk_emit__CheckedLabel);
@@ -161,7 +163,7 @@ void tactyk_emit__dispose(struct tactyk_emit__Context *ctx) {
     tactyk_alloc__free(ctx);
 }
 
-bool tactyk_emit__comprehend_int_value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data);
+bool tactyk_emit__comprehend_int_value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data, char *kwname);
 
 struct tactyk_dblock__DBlock* tactyk_emit__fetch_var(struct tactyk_emit__Context *ctx, void *destination, struct tactyk_dblock__DBlock *raw) {
     struct tactyk_dblock__DBlock *varvalue = tactyk_dblock__interpolate(raw, '$', ctx->namechars, ctx->local_vars, ctx->global_vars);
@@ -338,6 +340,58 @@ bool tactyk_emit__FloatOperand(struct tactyk_emit__Context *ctx, struct tactyk_d
     }
 }
 
+bool tactyk_emit__StringOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    char buf[16];
+    memset(buf, 0, 16);
+    struct tactyk_dblock__DBlock *sb = ctx->pl_operand_raw;
+    int64_t len = sb->length;
+    if (len > 0) {
+        uint8_t *data = (uint8_t*) sb->data;
+        switch(data[0]) {
+            case '\'': {
+                break;
+            }
+            case '`': {
+                sb = ctx->pl_operand_resolved;
+                len = sb->length;
+                data = (uint8_t*) sb->data;
+                break;
+            }
+            case '"': {
+                if (data[len-1] == '"') {
+                    len -= 1;
+                }
+                break;
+            }
+            default: {
+                // in theory, I'd like to return whatever random string is in the dblock, but that interferes with multi-purpose operators
+                //      (and can hide errors)
+                return false;
+            }
+        }
+        len -= 1;   // starting from position 1
+        if (len > 0) {
+            if (len > 16) {
+                len = 16;
+            }
+            memcpy(buf, &data[1], len);
+        }
+    }
+    uint64_t v_lower = *((uint64_t*)&buf[0]);
+    uint64_t v_upper = *((uint64_t*)&buf[8]);
+    struct tactyk_dblock__DBlock *si = tactyk_dblock__from_uint(v_lower);
+    tactyk_dblock__put(ctx->local_vars, "$VALUE", si);
+    tactyk_dblock__put(ctx->local_vars, "$VALUE_UPPER", tactyk_dblock__from_uint(v_upper));
+    if (len > 8) {
+        tactyk_dblock__put(ctx->local_vars, "$KW", tactyk_dblock__from_c_string("qword"));
+    }
+    else {
+        tactyk_emit__comprehend_int_value(ctx, si, "$KW");
+    }
+
+    return true;
+}
+
 int64_t tactyk_dblock__table_find(struct tactyk_dblock__DBlock *table, struct tactyk_dblock__DBlock *key);
 
 bool tactyk_emit__Symbol(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
@@ -352,7 +406,7 @@ bool tactyk_emit__Symbol(struct tactyk_emit__Context *ctx, struct tactyk_dblock_
             return false;
         }
         tactyk_dblock__put(ctx->local_vars, "$VALUE", entry);
-        tactyk_emit__comprehend_int_value(ctx, entry);
+        tactyk_emit__comprehend_int_value(ctx, entry, "$KW");
     }
     return true;
 }
@@ -419,6 +473,14 @@ bool tactyk_emit__SelectKeyword(struct tactyk_emit__Context *ctx, struct tactyk_
     ctx->select_token = tactyk_dblock__get(ctx->local_vars, "$KW");
     return tactyk_emit__ExecSelector(ctx, data);
 }
+
+// the scrambler's word-size template selection competes with other word-size template selectors,
+//  so to resolve it, the scrambler and the subroutine it configures use the cleverly named alternative: "$KW2"
+//      (at this point the selectors should probably just use a parameter to specify which the selection argument should be obtained from)
+bool tactyk_emit__SelectKeyword2(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    ctx->select_token = tactyk_dblock__get(ctx->local_vars, "$KW2");
+    return tactyk_emit__ExecSelector(ctx, data);
+}
 bool tactyk_emit__Contains(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     struct tactyk_dblock__DBlock *case_token = data->token->next;
     while (case_token != NULL) {
@@ -463,6 +525,15 @@ bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock
     else {
         ctx->pl_operand_resolved = tactyk_dblock__from_c_string("[[ NULL ]]");
     }
+
+    // Prevent temp vars from leaking.  In most cases, it doesn't matter, as a successfully applied typespec overwrite what is generally expected.
+    // But, the overwrite is not guaranteed, and this is a somewhat more centralized place to handle it.
+    // Except in special cases, usage of these variables outside of an operand subroutine is improper
+    //  (the only such special case at present is using the scrambler to encode instruction indices)
+    tactyk_dblock__delete(ctx->local_vars, "$KW");
+    tactyk_dblock__delete(ctx->local_vars, "$VALUE");
+    tactyk_dblock__delete(ctx->local_vars, "$VALUE_UPPER");
+
     if (!tactyk_emit__ExecSubroutine(ctx, data)) {
         return false;
     }
@@ -486,12 +557,12 @@ bool tactyk_emit__OptionalOperand(struct tactyk_emit__Context *ctx, struct tacty
 }
 
 // Called by functions which write to $VALUE to ensure $KW is updated with an appropriate keyword (for integer handling that differ based on word size).
-bool tactyk_emit__comprehend_int_value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+bool tactyk_emit__comprehend_int_value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data, char *kwname) {
     int64_t ival = 0;
     uint64_t uival = 0;
 
     if (data == NULL) {
-        tactyk_dblock__delete(ctx->local_vars, "$KW");
+        tactyk_dblock__delete(ctx->local_vars, kwname);
         return false;
     }
 
@@ -499,21 +570,21 @@ bool tactyk_emit__comprehend_int_value(struct tactyk_emit__Context *ctx, struct 
         uival = (uint64_t)ival;
     }
     else if (!tactyk_dblock__try_parseuint(&uival, data)) {
-        tactyk_dblock__delete(ctx->local_vars, "$KW");
+        tactyk_dblock__delete(ctx->local_vars, kwname);
         return false;
     }
 
     if (uival <= 0xff) {
-        tactyk_dblock__put(ctx->local_vars, "$KW", tactyk_dblock__from_c_string("byte"));
+        tactyk_dblock__put(ctx->local_vars, kwname, tactyk_dblock__from_c_string("byte"));
     }
     else if (uival <= 0xffff) {
-        tactyk_dblock__put(ctx->local_vars, "$KW", tactyk_dblock__from_c_string("word"));
+        tactyk_dblock__put(ctx->local_vars, kwname, tactyk_dblock__from_c_string("word"));
     }
     else if (uival <= 0xffffffff) {
-        tactyk_dblock__put(ctx->local_vars, "$KW", tactyk_dblock__from_c_string("dword"));
+        tactyk_dblock__put(ctx->local_vars, kwname, tactyk_dblock__from_c_string("dword"));
     }
     else {
-        tactyk_dblock__put(ctx->local_vars, "$KW", tactyk_dblock__from_c_string("qword"));
+        tactyk_dblock__put(ctx->local_vars, kwname, tactyk_dblock__from_c_string("qword"));
     }
 
     return true;
@@ -533,7 +604,7 @@ bool tactyk_emit__NullArg(struct tactyk_emit__Context *ctx, struct tactyk_dblock
 
 bool tactyk_emit__Value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     tactyk_emit__fetch_var(ctx, "$VALUE", data->token->next);
-    tactyk_emit__comprehend_int_value(ctx, data->token->next);
+    tactyk_emit__comprehend_int_value(ctx, data->token->next, "$KW");
     return true;
 }
 
@@ -550,17 +621,18 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
         struct tactyk_dblock__DBlock *sc_input_resolved = tactyk_emit__fetch_var(ctx, NULL, sc_input);
         tactyk_dblock__dispose(sc_input);
         sc_input = sc_input_resolved;
+        tactyk_emit__comprehend_int_value(ctx, sc_input_resolved, "$KW2");
     }
     else {
         sc_input = tactyk_emit__fetch_var(ctx, NULL, token);
         struct tactyk_dblock__DBlock *sc_input_resolved = tactyk_emit__fetch_var(ctx, NULL, sc_input);
         sc_input = sc_input_resolved;
-        tactyk_emit__comprehend_int_value(ctx, sc_input_resolved);
+    //printf("SCRAMBLE:  ");
+    //tactyk_dblock__println(sc_input_resolved);
+        tactyk_emit__comprehend_int_value(ctx, sc_input_resolved, "$KW2");
     }
     int64_t raw_val;
 
-    //printf("SCRAMBLE:  ");
-    //tactyk_dblock__println(sc_input);
 
     // if no integer input, cancel and output a dummy value as "de-scrambling" code.
     //      This looseness is a hack to allow operands to resolve to non-integer tokens without having to make the type specification subroutines
@@ -569,7 +641,7 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     //      If assembly template erroneously references it (or if the wrong values are used for makign the selection), then the dummy value
     //      becomes an obvious and obnoxious assembly-language comment.
     if (!tactyk_dblock__try_parseint(&raw_val, sc_input)) {
-        struct tactyk_dblock__DBlock *error_indicator = tactyk_dblock__from_c_string(";--------  ERROR:  Invalid scramble parameter! ");
+        struct tactyk_dblock__DBlock *error_indicator = tactyk_dblock__from_c_string("; ---- OMITTED DE-SCRAMBLE OP (no value) ---- ;");
         tactyk_dblock__put(ctx->local_vars, sc_code_name, error_indicator);
         return true;
     }

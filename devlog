@@ -36,6 +36,17 @@ Add tactyk-vm calls
 NOTE:  There is a lot of pointer chasing in tactyk-vm calls as-written, so it may be appropriate to add a limited variant which uses pre-fetched data
        to speed things up a bit.  This might not be worthwhile as the critical path doesn't seem to be very long.
 
+Added a "string" type specification
+  strings are a sequence of up to 8 or 16 bytes which may be concatenated, converted into an integer, and loaded onto a register.
+  String formats supported:
+    'string   - single apostrophe followed by any text
+    "string"  - text surrounded by quote marks
+    `$VAR`    - perform string interpolation on the contained text and use the result
+  The "assign" instruction now accepts strings.
+    If assigning to a regular register, a maximum of 8 chars may be used.
+    If assigning to an xmm register, chars 0-7 will be loaded onto the lower portion of the register, and chars 8-15 will be loaded onto the upper portion
+  Space chars (' ') are not supported and will terminate the string (due to a decision to use a simple and strict syntax).
+
 10 Apr 2023
 Completed the Julia Fractal example.  It in real-time at 128 max iterations.
 
