@@ -1,6 +1,9 @@
 13 Apr 2023
 Fix and enable the garbage collector
 
+Begin work on an automated testing system.
+  Manual testing is getting a bit tedious...
+
 11-12 Apr 2023
 Add support for dynamic compilation.
   This is intended to allow for the use of high-level languages in tactyk - with a toolchain which is to run entirely within the sandbox.
