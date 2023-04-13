@@ -34,6 +34,8 @@ void tactyk_pl__init() {
     tactyk_dblock__put(tkpl_funcs, "set", tactyk_pl__set);
     tactyk_dblock__put(tkpl_funcs, "use_vconstants", tactyk_pl__ld_visa_constants);
 
+    tactyk_dblock__set_persistence_code(tkpl_funcs, 100);
+
     default_mem_layout.byte_stride = 8;
     strcpy(default_mem_layout.name, "default-layout");
     default_mem_layout.num_properties = 1;
@@ -63,11 +65,11 @@ struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx) 
     }
 
     // the struct table gets to survive garbage collection!  barely ... (the only real purpose of it is reflection)
-    tactyk_dblock__set_persistence_code(ctx->struct_table, 2);
-    //tactyk_dblock__set_persistence_code(ctx.getters, 2);
-    //tactyk_dblock__set_persistence_code(ctx.setters, 2);
-    tactyk_dblock__set_persistence_code(ctx->memspec_lowlevel_buffer, 2);
-    tactyk_dblock__set_persistence_code(ctx->memspec_highlevel_table, 2);
+    tactyk_dblock__set_persistence_code(ctx->struct_table, 10);
+    //tactyk_dblock__set_persistence_code(ctx->getters, 10);
+    //tactyk_dblock__set_persistence_code(ctx->setters, 10);
+    tactyk_dblock__set_persistence_code(ctx->memspec_lowlevel_buffer, 10);
+    tactyk_dblock__set_persistence_code(ctx->memspec_highlevel_table, 10);
 
     ctx->program->memory_layout_hl = ctx->memspec_highlevel_table;
     ctx->program->memory_layout_ll = ctx->memspec_lowlevel_buffer;
@@ -362,18 +364,24 @@ bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
             tactyk_dblock__append_char(tbuf, '\n');
         }
     }
-    tactyk_dblock__fix(tbuf);
+    uint64_t len = tbuf->length;
+    for (uint64_t i = 0; i < 8; i++) {
+        tactyk_dblock__append_char(tbuf, 0);
+    }
+    uint8_t *data = tactyk_dblock__release(tbuf);
+    tactyk_dblock__dispose(tbuf);
 
     mem_hl->memblock = mem_ll;
     mem_hl->num_entries = 1;
     mem_hl->memblock_id = id;
-    mem_hl->data = tbuf->data;
+    mem_hl->data = data;
 
     mem_ll->array_bound = 1;
-    mem_ll->element_bound = tbuf->length+8;
+    mem_ll->element_bound = len;
     mem_ll->memblock_index = id;
     mem_ll->type = 0;
-    mem_ll->base_address = tbuf->data;
+    mem_ll->base_address = data;
+
 
     struct tactyk_dblock__DBlock *memid = tactyk_dblock__from_int(id);
     tactyk_dblock__put(ectx->memblock_table, name, memid);
@@ -384,7 +392,7 @@ bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
         tactyk_dblock__export_cstring(struct_raw_name, 1024, name);
         snprintf(struct_sz_name, 1040, "%s_size", struct_raw_name);
 
-        struct tactyk_dblock__DBlock *struct_sz_const = tactyk_dblock__from_int(tbuf->length+8);
+        struct tactyk_dblock__DBlock *struct_sz_const = tactyk_dblock__from_int(len);
         tactyk_dblock__put(ectx->const_table, struct_sz_name, struct_sz_const);
     }
 

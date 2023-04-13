@@ -91,7 +91,7 @@ int main() {
     aux_configure(emitctx);
     aux_sdl__configure(emitctx);
     tactyk_emit_svc__configure(emitctx);
-
+    //tactyk_dblock__persist_all(50);
     //struct tactyk_asmvm__Program *floatprg = run_float_test(emitctx, ctx);
 
     //run_fib_test(emitctx, 10000000000, ctx);
@@ -102,8 +102,6 @@ int main() {
 
     //tactyk_asmvm__invoke(ctx, fibprg, "MAIN");
     //tactyk_asmvm__invoke(ctx, qsprg, "MAIN");
-
-    //tactyk_visa_new__init("tactyk_core.visa");
 
     struct tactyk_asmvm__Program *esvcprg = run_esvc_test(emitctx, ctx);
     return 0;
@@ -178,7 +176,6 @@ int main(int argc, char *argv[], char *envp[]) {
         for (int64_t i = 0; i < module_count; i += 1) {
             free(module_src[i]);
         }
-
         tactyk_asmvm__invoke(ctx, prg, "MAIN");
     }
     free(module_src);

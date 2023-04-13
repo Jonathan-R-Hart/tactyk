@@ -96,7 +96,7 @@ void tactyk_visa__init(char *fname) {
     tactyk_dblock__trim(tactyk_visa_spec);
     tactyk_dblock__tokenize(tactyk_visa_spec, ' ', true);
 
-    tactyk_dblock__set_persistence_code(tactyk_visa_spec, 1);
+    tactyk_dblock__set_persistence_code(tactyk_visa_spec, 100);
 }
 
 void tactyk_visa__init_emit(struct tactyk_emit__Context *ctx) {
@@ -174,6 +174,7 @@ bool tactyk_visa__mk_typespec(struct tactyk_emit__Context *ctx, struct tactyk_db
 
     extract_tokens:
     struct tactyk_dblock__DBlock *specifier = tlist->child;
+
     while (specifier != NULL) {
         uint64_t index = ctx->token_handle_count;
         ctx->token_handle_count += 1;

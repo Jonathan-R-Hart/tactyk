@@ -81,13 +81,13 @@ void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_a
     struct tactyk_asmvm__identifier *identifier = tactyk_dblock__get(prog->functions, funcname);
     int64_t iptr = identifier->value;
     context->hl_program_ref = prog;
+
     if (iptr < prog->length) {
         context->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) prog->memory_layout_ll->data;
         context->memblock_count = TACTYK_ASMVM__MEMBLOCK_CAPACITY;
         context->max_instruction_pointer = prog->length-1;
         context->reg.rPROG = prog->command_map;
         context->instruction_index = iptr;
-
         uint64_t result = prog->run(context);
         if (result < 100) {
             result = context->STATUS;

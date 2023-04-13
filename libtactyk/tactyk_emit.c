@@ -91,14 +91,14 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     ctx->global_vars = tactyk_dblock__new_table(256);
 
-    tactyk_dblock__set_persistence_code(ctx->global_vars, 1);
-    tactyk_dblock__set_persistence_code(ctx->api_table, 1);
-    tactyk_dblock__set_persistence_code(ctx->c_api_table, 1);
-    tactyk_dblock__set_persistence_code(ctx->visa_token_constants, 1);
-    tactyk_dblock__set_persistence_code(ctx->operator_table, 1);
-    tactyk_dblock__set_persistence_code(ctx->typespec_table, 1);
-    tactyk_dblock__set_persistence_code(ctx->instruction_table, 1);
-    tactyk_dblock__set_persistence_code(ctx->subroutine_table, 1);
+    tactyk_dblock__set_persistence_code(ctx->global_vars, 100);
+    tactyk_dblock__set_persistence_code(ctx->api_table, 100);
+    tactyk_dblock__set_persistence_code(ctx->c_api_table, 100);
+    tactyk_dblock__set_persistence_code(ctx->visa_token_constants, 100);
+    tactyk_dblock__set_persistence_code(ctx->operator_table, 100);
+    tactyk_dblock__set_persistence_code(ctx->typespec_table, 100);
+    tactyk_dblock__set_persistence_code(ctx->instruction_table, 100);
+    tactyk_dblock__set_persistence_code(ctx->subroutine_table, 100);
 
     tactyk_dblock__put(ctx->operator_table, "symbol", tactyk_emit__Symbol);
 
@@ -273,6 +273,7 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
     ctx->memblock_table = tactyk_dblock__new_table(64);
 
     ctx->program->functions = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_asmvm__identifier));
+    tactyk_dblock__set_persistence_code(ctx->program->functions, 10);
 
     tactyk_dblock__put(ctx->symbol_tables, "label", ctx->label_table);
     tactyk_dblock__put(ctx->symbol_tables, "const", ctx->const_table);
