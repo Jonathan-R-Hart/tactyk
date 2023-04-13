@@ -38,7 +38,7 @@ Linux/Unix on amd64 (x86-64) architecture
   More broadly, there also is no generally accessible local context (implicit data structure which can be addressed through unchecked array access).  "local" data
   is stored either in statically allocated slots with rigid accessors or in managed memory blocks (the memory blocks also must be bound to rigid accessors).
 
-- Heap Address Space Layout Randomization
+- Address Space Layout Randomization
   TACTYK includes an optional memory allocator which calls mmap for most dynamic memory allocation and requests pages with randomly generated 48-bit base addresses.
   I do not know if it is an appropriate way to allocate memory (it does cause rapid allocatation and de-allocation of many memory pages udner the current design), 
   so this is disabled by default (add #define USE_TACTYK_ALLOCATOR to enable it).
