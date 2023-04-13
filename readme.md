@@ -38,10 +38,15 @@ Linux/Unix on amd64 (x86-64) architecture
   More broadly, there also is no generally accessible local context (implicit data structure which can be addressed through unchecked array access).  "local" data
   is stored either in statically allocated slots with rigid accessors or in managed memory blocks (the memory blocks also must be bound to rigid accessors).
 
+- Heap Address Space Layout Randomization
+  TACTYK includes an optional memory allocator which calls mmap for most dynamic memory allocation and requests pages with randomly generated 48-bit base addresses.
+  I do not know if it is an appropriate way to allocate memory (it does cause rapid allocatation and de-allocation of many memory pages udner the current design), 
+  so this is disabled by default (add #define USE_TACTYK_ALLOCATOR to enable it).
+
 ## Auditability Focus
-TACTYK is intended to be auditable under a very strict standard:  A competent individual or a small team should be able to conduct the audit (or verify the results of a professional audit).  The amount of code in the project is to be kept low.  Dependencies are to be kept to a minimum.  When there is a choice between a complex and 
+TACTYK is intended to be auditable under an alternative standard:  A competent individual or a small team should be able to conduct the audit (or verify the results of a professional audit).  The amount of code in the project is to be kept low.  Dependencies are to be kept to a minimum.  When there is a choice between a complex and 
 broadly capable function and a simple and narrowly defined function, the simple function should win out (unless there is an actual need for the additional features from
-the complex one).  
+the complex one).
 
 
 ## Dependencies:
