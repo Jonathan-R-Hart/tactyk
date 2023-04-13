@@ -7,10 +7,14 @@
 //  You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+#include <sys/mman.h>
+
 #include "tactyk.h"
 #include "tactyk_asmvm.h"
 #include "tactyk_dblock.h"
 #include "tactyk_alloc.h"
+
+
 
 struct tactyk_asmvm__VM* tactyk_asmvm__new_vm() {
     struct tactyk_asmvm__VM *vm = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__VM));
@@ -54,7 +58,11 @@ void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tac
     dec->instruction_jumptable = program->command_map;
     uint64_t num_funcs = program->functions->element_count;
     dec->function_count = num_funcs;
-    tactyk_asmvm__op *fjumptable = tactyk_alloc__allocate(num_funcs, sizeof(tactyk_asmvm__op));
+
+    void* target_address = tactyk__mk_random_base_address();
+    uint64_t fjt_size = num_funcs * sizeof(void*);
+    tactyk_asmvm__op * fjumptable = mmap(target_address, fjt_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    //tactyk_asmvm__op *fjumptable = tactyk_alloc__allocate(num_funcs, sizeof(tactyk_asmvm__op));
     for (uint64_t i = 0; i < num_funcs; i += 1) {
         struct tactyk_asmvm__identifier *id = tactyk_dblock__index(program->functions->store, i);
         #ifdef TACTYK_DEBUG
@@ -62,6 +70,7 @@ void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tac
         #endif // TACTYK_DEBUG
         fjumptable[i] = program->command_map[id->value];
     }
+    mprotect(fjumptable, fjt_size, PROT_READ );
     dec->function_jumptable = fjumptable;
 }
 
@@ -86,7 +95,7 @@ void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_a
         context->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) prog->memory_layout_ll->data;
         context->memblock_count = TACTYK_ASMVM__MEMBLOCK_CAPACITY;
         context->max_instruction_pointer = prog->length-1;
-        context->reg.rPROG = prog->command_map;
+        context->program_map = prog->command_map;
         context->instruction_index = iptr;
         uint64_t result = prog->run(context);
         if (result < 100) {

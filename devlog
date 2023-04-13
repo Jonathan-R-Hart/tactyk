@@ -2,7 +2,11 @@
 Fix and enable the garbage collector
 
 Begin work on an automated testing system.
-  Manual testing is getting a bit tedious...
+
+Reworked the way tactyk uses jump tables:
+  The "rPROG" register (rdi) is renamed to rMAPPER and is primarilly used for completing jumps which involve jump tables, and secondarilly as a 4th temp register.
+  Use read-only access for jump table memory
+  The pointer to the active program's jump table now belongs to the context data structure (due to rMAPPER being made volatile)
 
 11-12 Apr 2023
 Add support for dynamic compilation.

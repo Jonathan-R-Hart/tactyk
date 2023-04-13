@@ -23,7 +23,7 @@ void tactyk_debug__print_context(struct tactyk_asmvm__Context *ctx) {
     printf("| rTEMPD   (rdx) |                  --- | xE (xmm4)      | %-20.14g | %-20.14g |\n", ctx->reg.xe.f64[1], ctx->reg.xe.f64[0]);
     printf("| rLWCSI   (rbp) | %20jd | xF (xmm5)      | %-20.14g | %-20.14g |\n", ctx->reg.rLWCSI, ctx->reg.xf.f64[1], ctx->reg.xf.f64[0]);
     printf("| rMSCI    (rsp) | %20jd | xG (xmm6)      | %-20.14g | %-20.14g |\n", ctx->reg.rMCSI, ctx->reg.xg.f64[1], ctx->reg.xg.f64[0]);
-    printf("| rPROG    (r12) | %20p | xH (xmm7)      | %-20.14g | %-20.14g |\n", ctx->reg.rPROG, ctx->reg.xh.f64[1], ctx->reg.xh.f64[0]);
+    printf("| rTEMPS   (r12) | %20jd | xH (xmm7)      | %-20.14g | %-20.14g |\n", ctx->reg.rTEMPS, ctx->reg.xh.f64[1], ctx->reg.xh.f64[0]);
     printf("| rADDR1   (r14) | %20p | xI (xmm8)      | %-20.14g | %-20.14g |\n", ctx->reg.rADDR1, ctx->reg.xi.f64[1], ctx->reg.xi.f64[0]);
     printf("| rADDR2   (r15) | %20p | xJ (xmm9)      | %-20.14g | %-20.14g |\n", ctx->reg.rADDR2, ctx->reg.xj.f64[1], ctx->reg.xj.f64[0]);
     printf("| rADDR3   (rbx) | %20p | xK (xmm10)     | %-20.14g | %-20.14g |\n", ctx->reg.rADDR3, ctx->reg.xk.f64[1], ctx->reg.xk.f64[0]);
@@ -33,7 +33,7 @@ void tactyk_debug__print_context(struct tactyk_asmvm__Context *ctx) {
     printf("| rC       (r11) | %20jd | xTEMPA (xmm14) | %-20.14g | %-20.14g |\n", ctx->reg.rC, ctx->reg.xTEMPA.f64[1], ctx->reg.xTEMPA.f64[0]);
     printf("| rD       (r13) | %20jd | xTEMPB (xmm15) | %-20.14g | %-20.14g |\n", ctx->reg.rD, ctx->reg.xTEMPB.f64[1], ctx->reg.xTEMPB.f64[0]);
     printf("| rE       (r8)  | %20jd | ---            |                  --- |                  --- |\n", ctx->reg.rE);
-    printf("| rF       (r8)  | %20jd | ---            |                  --- |                  --- |\n", ctx->reg.rF);
+    printf("| rF       (r9)  | %20jd | ---            |                  --- |                  --- |\n", ctx->reg.rF);
     printf("========================================================================================================\n");
 }
 
@@ -72,7 +72,7 @@ void tactyk_debug__print_mbind(struct tactyk_asmvm__Context *ctx) {
 
 
 void tactyk_debug__print_vmstack(struct tactyk_asmvm__Context *ctx) {
-    printf("===== TACTYK VM STACK =====================================================================================\n");
+    printf("===== TACTYK VM STACK =======================================================================================================\n");
     char *lockstate;
     if (ctx->stack->stack_lock) {
         lockstate = "LOCKED";
@@ -80,15 +80,15 @@ void tactyk_debug__print_vmstack(struct tactyk_asmvm__Context *ctx) {
     else {
         lockstate = "UNLOCKED";
     }
-    printf("| state: %-8s |                                                                                       |\n", lockstate);
-    printf("|---------------------------------------------------------------------------------------------------------|\n");
-    printf("|   pos |    src-commands |   return-target |  lwc-floor | mctx-floor |   dest-commands |     jump-target |\n");
-    printf("|---------------------------------------------------------------------------------------------------------|\n");
+    printf("| state: %-8s |                                                                                                         |\n", lockstate);
+    printf("|---------------------------------------------------------------------------------------------------------------------------|\n");
+    printf("|   pos |    src-commands |   return-target |  lwc-floor | mctx-floor |   dest-commands |  dest-functions |     jump-target |\n");
+    printf("|---------------------------------------------------------------------------------------------------------------------------|\n");
     for (int64_t pos = 0; pos <= ctx->stack->stack_position; pos += 1) {
         struct tactyk_asmvm__vm_stack_entry *entry = &ctx->stack->entries[pos];
-        printf("| %5ju | %15p | %15p | %10u | %10u | %15p | %15p |\n", pos, entry->source_command_map, entry->source_return_target, entry->source_lwcallstack_floor, entry->source_mctxstack_floor, entry->dest_command_map, entry->dest_jump_target);
+        printf("| %5ju | %15p | %15ju | %10u | %10u | %15p | %15p | %15ju |\n", pos, entry->source_command_map, entry->source_return_index, entry->source_lwcallstack_floor, entry->source_mctxstack_floor, entry->dest_command_map, entry->dest_function_map, entry->dest_jump_index);
     }
-    printf("===========================================================================================================\n");
+    printf("=============================================================================================================================\n");
 }
 
 void tactyk_debug__print_vmprograms(struct tactyk_asmvm__Context *ctx) {

@@ -119,7 +119,7 @@
     %define r15_32 r15d
     %define r15_64 r15
     
-    %define rPROG   rdi
+    %define rMAPPER rdi
     %define rMCSI   rsp
     %define rLWCSI  rbp
     %define rTEMPA  rax
@@ -139,10 +139,10 @@
     %define xTEMPA xmm14
     %define xTEMPB xmm15
     
-    %define rPROG_8 %[rPROG]_8
-    %define rPROG_16 %[rPROG]_16
-    %define rPROG_32 %[rPROG]_32
-    %define rPROG_64 %[rPROG]_64
+    %define rMAPPER_8 %[rMAPPER]_8
+    %define rMAPPER_16 %[rMAPPER]_16
+    %define rMAPPER_32 %[rMAPPER]_32
+    %define rMAPPER_64 %[rMAPPER]_64
     
     %define rLWCSI_8 %[rLWCSI]_8
     %define rLWCSI_16 %[rLWCSI]_16
@@ -246,7 +246,7 @@
     endstruc
 
     struc tvmstackentry
-      qwords source_program, source_return_index, source_stack_floor, target_program, target_jump_target
+      qwords source_program, source_return_index, source_stack_floor, target_program, target_function_jumptable, target_jump_index
     endstruc
 
     %define stacksize 1024
@@ -308,7 +308,7 @@
         qwords lwcall_stack_address, microcontext_stack_address, microcontext_stack_offset
         .floor: dwords lwcall_floor, microcontext_floor
         
-        qwords vm, stack, program, hl_program_ref, instruction_index, status, signature, extra
+        qwords vm, stack, program_map, hl_program_ref, instruction_index, status, signature, extra
         
         .registers:  resq 48
         .runtime_registers:  resq 48
@@ -404,7 +404,6 @@
 
     %macro load_context 1
         wrfsbase %1
-        mov rPROG, fs:[context.registers + regbank.prog]
         mov rLWCSI, fs:[context.registers + regbank.lwcsi]
         mov rMCSI, fs:[context.registers + regbank.mcsi]
         mov rADDR1, fs:[context.registers + regbank.addr1]
@@ -440,7 +439,6 @@
     %endmacro
 
     %macro store_context 0
-        mov fs:[context.registers + regbank.prog], rPROG
         mov fs:[context.registers + regbank.lwcsi], rLWCSI
         mov fs:[context.registers + regbank.mcsi], rMCSI
         mov fs:[context.registers + regbank.addr1], rADDR1
@@ -616,7 +614,10 @@ run:
   store_runtimecontext rdi
   load_context rdi
   mov fs:[context.status], dword STATUS_RUN
-  mov rTEMPA, fs:[context.instruction_index]
-  ; exception - In this one specific case, the temp register ca not be cleared before exiting an instruction.
-  jmp [rPROG+rTEMPA*8]
+  mov rMAPPER, fs:[context.instruction_index]
+  shl rMAPPER, 3
+  add rMAPPER, fs:[context.program_map]
+  jmp [rMAPPER]
+
+
 

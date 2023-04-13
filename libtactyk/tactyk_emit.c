@@ -884,7 +884,10 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
 
     // I do not think it is worthwhile to adapt a dblock container to handle this specific case.
     //      (but a dblock table should work nicely for allowing the host application to use a script's branch targets)
-    tactyk_asmvm__op *command_map = tactyk_alloc__allocate(program_size, sizeof(void*));
+    //tactyk_asmvm__op *command_map = tactyk_alloc__allocate(program_size, sizeof(void*));
+    target_address = tactyk__mk_random_base_address();
+    uint64_t exmap_size = program_size * sizeof(void*);
+    tactyk_asmvm__op * command_map = mmap(target_address, exmap_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
     ctx->program->command_map = command_map;
 
     // copy offsets from the symbol table to the assembly precursor abstraction (which are directly referenced by the precursor program abstraction)
@@ -913,5 +916,6 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
             }
         }
     }
+    mprotect(command_map, exmap_size, PROT_READ );
 }
 

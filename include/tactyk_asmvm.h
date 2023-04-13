@@ -66,7 +66,7 @@ union tactyk_asmvm__reg128 {
 };
 
 struct tactyk_asmvm__register_bank {
-    tactyk_asmvm__op *rPROG;
+    uint64_t rTEMPS;
     uint64_t rLWCSI;
     uint64_t rMCSI;
     uint64_t rTEMPA;
@@ -142,11 +142,12 @@ struct tactyk_asmvm__memblock_highlevel {
 
 struct tactyk_asmvm__vm_stack_entry {
     void *source_command_map;
-    void *source_return_target;
+    uint64_t source_return_index;
     uint32_t source_lwcallstack_floor;
     uint32_t source_mctxstack_floor;
     void *dest_command_map;
-    void *dest_jump_target;
+    void *dest_function_map;
+    uint64_t dest_jump_index;
 };
 
 struct tactyk_asmvm__Stack {
@@ -190,7 +191,7 @@ struct tactyk_asmvm__Context {
 
     struct tactyk_asmvm__VM *vm;
     struct tactyk_asmvm__Stack *stack;
-    tactyk_asmvm__op *program;
+    tactyk_asmvm__op *program_map;
     struct tactyk_asmvm__Program *hl_program_ref;      // a pointer to help high-level code access representative data structures.
 
     uint64_t instruction_index;     //tactyk function to call into.
