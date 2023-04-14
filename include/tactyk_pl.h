@@ -31,6 +31,7 @@
 void tactyk_pl__init();
 struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx);
 void tactyk_pl__load(struct tactyk_pl__Context *plctx, char *code);
+void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblock__DBlock *dbcode);
 struct tactyk_asmvm__Program* tactyk_pl__build(struct tactyk_pl__Context *plctx);
 
 struct text_definition {

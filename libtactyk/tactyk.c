@@ -38,7 +38,6 @@ void tactyk__default_warning_handler(char *msg, void *data) {
     }
 }
 
-
 void tactyk__default_error_handler(char *msg, void *data) {
     if (data == NULL) {
         printf("ERROR -- %s\n", msg);

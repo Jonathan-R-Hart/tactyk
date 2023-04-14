@@ -79,7 +79,6 @@ struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx) 
 }
 
 void tactyk_pl__load(struct tactyk_pl__Context *plctx, char *code) {
-    struct tactyk_emit__Context *emitctx = plctx->emitctx;
     struct tactyk_dblock__DBlock *dbcode = tactyk_dblock__from_safe_c_string(code);
 
     tactyk_dblock__fix(dbcode);
@@ -88,12 +87,16 @@ void tactyk_pl__load(struct tactyk_pl__Context *plctx, char *code) {
     tactyk_dblock__stratify(dbcode, ' ');
     tactyk_dblock__trim(dbcode);
     tactyk_dblock__tokenize(dbcode, ' ', true);
+
+    tactyk_pl__load_dblock(plctx, dbcode);
+}
+
+void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblock__DBlock *dbcode) {
+    struct tactyk_emit__Context *emitctx = plctx->emitctx;
     struct tactyk_dblock__DBlock *dbstack[256];
     int64_t dbstack_index = 0;
     dbstack[0] = dbcode;
-
     bool escape_block = false;
-
     while (dbcode != NULL) {
         handle_dbcode: {
             tactyk_pl__func func = tactyk_dblock__get(tkpl_funcs, dbcode->token);

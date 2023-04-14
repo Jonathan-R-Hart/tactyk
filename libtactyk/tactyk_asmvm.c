@@ -46,6 +46,7 @@ struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM 
     return ctx;
 }
 void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *program) {
+;
     if (context->vm->program_count >= TACTYK_ASMVM__PROGRAM_CAPACITY) {
         error("ASMVM -- Too many loaded programs", NULL);
     }

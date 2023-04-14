@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "tactyk.h"
 #include "tactyk_emit.h"
@@ -32,6 +33,8 @@ PROGRAM
     add xa a
     add xb xa
     exit
+
+BUILD
 
 STATE
   rA 1
@@ -85,13 +88,15 @@ struct tactyk_test_entry {
 typedef uint64_t (*tactyk_emit__test_func)(struct tactyk_dblock__DBlock *data);
 
 struct tactyk_test__Context {
-    struct tactyk_pl__Context *pl;
-    struct tactyk_asmvm__Context *vm;
+    struct tactyk_pl__Context *plctx;
+    struct tactyk_asmvm__Context *vmctx;
+    struct tactyk_asmvm__Program *program;
 };
 
-struct tactyk_test__Context *ctx;
+struct tactyk_test__Context *tctx;
 
 uint64_t tactyk_test__next();
+void tactyk_test__exit(uint64_t test_result);
 
 uint64_t tactyk_test__CONTEXT(struct tactyk_dblock__DBlock *token);
 uint64_t tactyk_test__PROGRAM(struct tactyk_dblock__DBlock *spec);
@@ -107,6 +112,7 @@ uint64_t tactyk_test__REF(struct tactyk_dblock__DBlock *spec);
 struct tactyk_dblock__DBlock *base_tests;
 
 struct tactyk_emit__Context *emitctx;
+struct tactyk_asmvm__VM *vm;
 struct tactyk_dblock__DBlock *contexts;
 struct tactyk_dblock__DBlock *test_functions;
 
@@ -124,13 +130,15 @@ int main(int argc, char *argv[], char *envp[]) {
 
     tactyk_visa__init_emit(emitctx);
     tactyk_pl__init();
-    struct tactyk_asmvm__VM *vm = tactyk_asmvm__new_vm();
-    struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
+    vm = tactyk_asmvm__new_vm();
 
     tactyk_debug__configure_api(emitctx);
     tactyk_emit_svc__configure(emitctx);
 
     contexts = tactyk_dblock__new_managedobject_table(64, sizeof(struct tactyk_test__Context));
+    DEFAULT_NAME = tactyk_dblock__from_safe_c_string("DEFAULT");
+    tctx = tactyk_dblock__new_managedobject(contexts, DEFAULT_NAME);
+
     test_functions = tactyk_dblock__new_table(64);
 
     tactyk_dblock__put(test_functions, "CONTEXT", tactyk_test__CONTEXT);
@@ -145,11 +153,9 @@ int main(int argc, char *argv[], char *envp[]) {
     tactyk_dblock__put(test_functions, "REF", tactyk_test__REF);
 
     base_tests = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_test_entry));
-    DEFAULT_NAME = tactyk_dblock__from_safe_c_string("DEFAULT");
-    ctx = tactyk_dblock__new_managedobject(contexts, DEFAULT_NAME);
 
     //struct tactyk_dblock__DBlock *test_src = tactyk_dblock__from_bytes(NULL, fbytes, 0, (uint64_t)len, true);
-    struct tactyk_dblock__DBlock *test_src = tactyk_dblock__from_safe_c_string(test1);\
+    struct tactyk_dblock__DBlock *test_src = tactyk_dblock__from_safe_c_string(test1);
     tactyk_dblock__fix(test_src);
     tactyk_dblock__tokenize(test_src, '\n', false);
     test_spec = tactyk_dblock__remove_blanks(test_src, ' ', '#');
@@ -158,10 +164,16 @@ int main(int argc, char *argv[], char *envp[]) {
     tactyk_dblock__tokenize(test_spec, ' ', true);
     tactyk_dblock__set_persistence_code(test_spec, 100);
 
+
+    tactyk_dblock__set_persistence_code(test_src, 1000);
+    tactyk_dblock__set_persistence_code(test_spec, 1000);
+    tactyk_dblock__set_persistence_code(base_tests, 1000);
+    tactyk_dblock__set_persistence_code(test_functions, 1000);
+    tactyk_dblock__set_persistence_code(contexts, 1000);
+
     uint64_t test_result = TEST_RESULT__PASS;
 
     printf("\n");
-
     while (true) {
         uint64_t tresult = tactyk_test__next();
         switch(tresult) {
@@ -174,7 +186,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 break;
             }
             case TEST_RESULT__EXIT: {
-                tactyk_test__exit(TEST_RESULT__PASS);
+                tactyk_test__exit(test_result);
                 break;
             }
             // impossible condition
@@ -187,6 +199,10 @@ int main(int argc, char *argv[], char *envp[]) {
 
     printf("done.\n");
     return 0;
+}
+
+void tactyk_test__report(char *msg) {
+    puts(msg);
 }
 
 void tactyk_test__exit(uint64_t test_result) {
@@ -240,15 +256,41 @@ uint64_t tactyk_test__next() {
 
 
 uint64_t tactyk_test__PROGRAM(struct tactyk_dblock__DBlock *spec) {
-    printf("PROGRAM: ");
-    tactyk_dblock__println(spec->token->next);
-    printf("\n");
+    printf("PROGRAM: \n");
+    //tactyk_dblock__print_structure_simple(spec->child);
+
+    if (tctx->plctx == NULL) {
+        tctx->plctx = tactyk_pl__new(emitctx);
+    }
+    tactyk_pl__load_dblock(tctx->plctx, spec->child);
+    printf("PROGRAM-EXIT\n");
     return TEST_RESULT__PASS;
 }
 uint64_t tactyk_test__BUILD(struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *name = spec->token->next;
+
+    // load or instantiate a named context if a name is provided.
+    if (name != NULL) {
+        printf("new-tctx\n");
+        tctx = tactyk_dblock__get(contexts, name);
+        if (tctx == NULL) {
+            tctx = tactyk_dblock__new_managedobject(contexts, name);
+        }
+    }
+
     printf("BUILD: ");
     tactyk_dblock__println(spec->token->next);
-    printf("\n");
+    if (tctx->plctx == NULL) {
+        tactyk_test__report("No loaded code");
+        return TEST_RESULT__FAIL;
+    }
+
+    struct tactyk_asmvm__Program *prg = tactyk_pl__build(tctx->plctx);
+    tctx->program = prg;
+    tctx->vmctx = tactyk_asmvm__new_context(vm);
+    tactyk_asmvm__add_program(tctx->vmctx, tctx->program);
+
+    printf("BUILD-exit.\n");
     return TEST_RESULT__PASS;
 
 }
