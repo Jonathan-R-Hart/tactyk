@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <assert.h>
 
 #include "tactyk.h"
 #include "tactyk_emit.h"
@@ -64,26 +65,38 @@ TEST
 #define TEST_CLASS_F64 6
 #define TEST_CLASS_ADDRESS 7
 
+#define OBJECT_REGISTERFILE 0
 #define OBJECT_CTX 1
-#define OBJECT_STASH 2
-#define OBJECT_VM 3
+#define OBJECT_CTX_STACK_DECLARATION 2
+#define OBJECT_CTX_STACK_ITEMS 3
+#define OBJECT_STASH 4
+#define OBJECT_VM 5
+#define OBJECT_VM_PROGRAM_DECLARATION 6
 
-// representation of an individual value test
+struct tactyk_test_entry;
+union tactyk_test__value;
+
+typedef bool (tactyk_test__STATE_ITEM) (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value);
+typedef bool (tactyk_test__TEST_ITEM) (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *expected_value);
+
+// abstract test handler
 struct tactyk_test_entry {
-    uint64_t test_class;        // what logic to apply
-    uint64_t object;            // which object to inspect
-    uint64_t element_offset;    // offset within the offset to read
-    uint64_t array_offset;      // If the object is located in an array, which object within the array
-                                //  (the selector chosen with the 'object' field will understand what sort of array it is)
-    union {                     // expected value (the tester chosen with the 'test_class' will use the appropriate entry)
-        uint8_t i8;
-        uint8_t i16;
-        uint8_t i32;
-        uint8_t i64;
-        float f32;
-        double f64;
-    } expected;
+    tactyk_test__STATE_ITEM *state_adjuster;        // State adjustment function to invoke for STATE operation
+    tactyk_test__TEST_ITEM *test_applicator;        // Test function to use for TEST operation
+    uint64_t element_offset;    // object member to access
+    uint64_t array_offset;      // If the object is located in an array, which object within the array to access
 };
+
+union tactyk_test__value {
+    uint8_t i8;
+    uint8_t i16;
+    uint8_t i32;
+    uint8_t i64;
+    float f32;
+    double f64;
+};
+
+
 
 typedef uint64_t (*tactyk_emit__test_func)(struct tactyk_dblock__DBlock *data);
 
@@ -109,6 +122,11 @@ uint64_t tactyk_test__STATE(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__DATA(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__REF(struct tactyk_dblock__DBlock *spec);
 
+bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value);
+bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value);
+void tactyk_test__mk_data_register_tests(char *name, uint64_t ofs);
+void tactyk_test__mk_xmm_register_tests(char *name, uint64_t ofs);
+
 struct tactyk_dblock__DBlock *base_tests;
 
 struct tactyk_emit__Context *emitctx;
@@ -119,6 +137,7 @@ struct tactyk_dblock__DBlock *test_functions;
 struct tactyk_dblock__DBlock *DEFAULT_NAME;
 
 struct tactyk_dblock__DBlock *test_spec;
+
 
 int main(int argc, char *argv[], char *envp[]) {
     tactyk_init();
@@ -153,6 +172,32 @@ int main(int argc, char *argv[], char *envp[]) {
     tactyk_dblock__put(test_functions, "REF", tactyk_test__REF);
 
     base_tests = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_test_entry));
+    tactyk_test__mk_data_register_test("rA", 0);
+    tactyk_test__mk_data_register_test("rB", 1);
+    tactyk_test__mk_data_register_test("rC", 2);
+    tactyk_test__mk_data_register_test("rD", 3);
+    tactyk_test__mk_data_register_test("rE", 4);
+    tactyk_test__mk_data_register_test("rF", 5);
+    tactyk_test__mk_xmm_register_test("xA", 0);
+    tactyk_test__mk_xmm_register_test("xB", 1);
+    tactyk_test__mk_xmm_register_test("xC", 2);
+    tactyk_test__mk_xmm_register_test("xD", 3);
+    tactyk_test__mk_xmm_register_test("xE", 4);
+    tactyk_test__mk_xmm_register_test("xF", 5);
+    tactyk_test__mk_xmm_register_test("xG", 6);
+    tactyk_test__mk_xmm_register_test("xH", 7);
+    tactyk_test__mk_xmm_register_test("xI", 8);
+    tactyk_test__mk_xmm_register_test("xJ", 9);
+    tactyk_test__mk_xmm_register_test("xK", 10);
+    tactyk_test__mk_xmm_register_test("xL", 11);
+    tactyk_test__mk_xmm_register_test("xM", 12);
+    tactyk_test__mk_xmm_register_test("xN", 13);
+    tactyk_test__mk_xmm_register_test("xTEMPA", 14);
+    tactyk_test__mk_xmm_register_test("xTEMPB", 15);
+    struct tactyk_test_entry *entry = tactyk_dblock__new_managedobject(base_tests, "rA");
+    entry->state_adjuster = tactyk_test__SET_DATA_REGISTER;
+    entry->element_offset = 0;
+
 
     //struct tactyk_dblock__DBlock *test_src = tactyk_dblock__from_bytes(NULL, fbytes, 0, (uint64_t)len, true);
     struct tactyk_dblock__DBlock *test_src = tactyk_dblock__from_safe_c_string(test1);
@@ -295,9 +340,22 @@ uint64_t tactyk_test__BUILD(struct tactyk_dblock__DBlock *spec) {
 
 }
 uint64_t tactyk_test__EXEC(struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *func_name = spec->token->next;
     printf("EXEC: ");
-    tactyk_dblock__println(spec->token->next);
-    printf("\n");
+    tactyk_dblock__println(func_name);
+    if ( (tctx->vmctx == NULL) || (tctx->program == NULL) ) {
+        tactyk_test__report("Program not built");
+        return TEST_RESULT__TEST_ERROR;
+    }
+    if (func_name == NULL) {
+        tactyk_asmvm__invoke(tctx->vmctx, tctx->program, "MAIN");
+    }
+    else {
+        char buf[64];
+        tactyk_dblock__export_cstring(buf, 64, func_name);
+        tactyk_asmvm__invoke(tctx->vmctx, tctx->program, buf);
+    }
+    printf("EXEC-done.\n");
     return TEST_RESULT__PASS;
 }
 uint64_t tactyk_test__RECV_CCALL(struct tactyk_dblock__DBlock *spec) {
@@ -315,12 +373,49 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
     printf("TEST: ");
     tactyk_dblock__println(spec->token->next);
     printf("\n");
+    if ( tctx->vmctx == NULL) {
+        tactyk_test__report("No asmvm context");
+        return TEST_RESULT__TEST_ERROR;
+    }
+    tactyk_debug__print_context(tctx->vmctx);
     return TEST_RESULT__PASS;
 }
 uint64_t tactyk_test__STATE(struct tactyk_dblock__DBlock *spec) {
     printf("STATE: ");
     tactyk_dblock__println(spec->token->next);
     printf("\n");
+    if ( tctx->vmctx == NULL) {
+        tactyk_test__report("No asmvm context");
+        return TEST_RESULT__TEST_ERROR;
+    }
+    struct tactyk_dblock__DBlock *td = spec->child;
+    while (td != NULL) {
+        struct tactyk_dblock__DBlock *item_name = td->token;
+        assert(item_name != NULL);
+        struct tactyk_dblock__DBlock *item_value = td->token->next;
+        if (item_value == NULL) {
+            tactyk_test__report("Unspecified item value");
+            return TEST_RESULT__TEST_ERROR;
+        }
+
+        struct tactyk_test_entry *test = tactyk_dblock__get(base_tests, item_name);
+
+        if (test == NULL) {
+            char buf[256];
+            sprintf(buf, "No handler for test item: ");
+            tactyk_dblock__export_cstring(&buf[strlen(buf)], 256-strlen(buf), item_name );
+            tactyk_test__report(buf);
+            return TEST_RESULT__TEST_ERROR;
+        }
+
+        if (!test->state_adjuster(test, item_value)) {
+            printf("err.\n");
+            return TEST_RESULT__TEST_ERROR;
+        }
+
+        td = td->next;
+    }
+    printf("STATE-done.\n");
     return TEST_RESULT__PASS;
 }
 uint64_t tactyk_test__DATA(struct tactyk_dblock__DBlock *spec) {
@@ -351,4 +446,131 @@ uint64_t tactyk_test__CONTEXT(struct tactyk_dblock__DBlock *spec) {
     }
     return TEST_RESULT__PASS;
     */
+}
+
+bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value) {
+    int64_t ival = 0;
+    if (!tactyk_dblock__try_parseint(&ival, value)) {
+        tactyk_test__report("Test value parameter is not an integer");
+        return false;
+    }
+    switch(entry->element_offset) {
+        case 0: {
+            tctx->vmctx->reg.rA = (uint64_t) ival;
+            break;
+        }
+        case 1: {
+            tctx->vmctx->reg.rB = (uint64_t) ival;
+            break;
+        }
+        case 2: {
+            tctx->vmctx->reg.rC = (uint64_t) ival;
+            break;
+        }
+        case 3: {
+            tctx->vmctx->reg.rD = (uint64_t) ival;
+            break;
+        }
+        case 4: {
+            tctx->vmctx->reg.rE = (uint64_t) ival;
+            break;
+        }
+        case 5: {
+            tctx->vmctx->reg.rF = (uint64_t) ival;
+            break;
+        }
+        default: {
+            tactyk_test__report("Test element-offset is invalid");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value) {
+    double fval = 0;
+    if (!tactyk_dblock__try_parsedouble(&fval, value)) {
+        tactyk_test__report("Test parameter is not a floating point number");
+        return false;
+    }
+    switch(entry->element_offset) {
+        case 0: {
+            tctx->vmctx->reg.xa.f64[0] = fval;
+            break;
+        }
+        case 1: {
+            tctx->vmctx->reg.xb.f64[0] = fval;
+            break;
+        }
+        case 2: {
+            tctx->vmctx->reg.xc.f64[0] = fval;
+            break;
+        }
+        case 3: {
+            tctx->vmctx->reg.xd.f64[0] = fval;
+            break;
+        }
+        case 4: {
+            tctx->vmctx->reg.xe.f64[0] = fval;
+            break;
+        }
+        case 5: {
+            tctx->vmctx->reg.xf.f64[0] = fval;
+            break;
+        }
+        case 6: {
+            tctx->vmctx->reg.xg.f64[0] = fval;
+            break;
+        }
+        case 7: {
+            tctx->vmctx->reg.xh.f64[0] = fval;
+            break;
+        }
+        case 8: {
+            tctx->vmctx->reg.xi.f64[0] = fval;
+            break;
+        }
+        case 9: {
+            tctx->vmctx->reg.xj.f64[0] = fval;
+            break;
+        }
+        case 10: {
+            tctx->vmctx->reg.xk.f64[0] = fval;
+            break;
+        }
+        case 11: {
+            tctx->vmctx->reg.xl.f64[0] = fval;
+            break;
+        }
+        case 12: {
+            tctx->vmctx->reg.xm.f64[0] = fval;
+            break;
+        }
+        case 13: {
+            tctx->vmctx->reg.xn.f64[0] = fval;
+            break;
+        }
+        case 14: {
+            tctx->vmctx->reg.xTEMPA.f64[0] = fval;
+            break;
+        }
+        case 15: {
+            tctx->vmctx->reg.xTEMPB.f64[0] = fval;
+            break;
+        }
+    }
+    return true;
+}
+
+void tactyk_test__mk_data_register_test(char *name, uint64_t ofs) {
+    struct tactyk_test_entry *entry = tactyk_dblock__new_managedobject(base_tests, name);
+    entry->state_adjuster = tactyk_test__SET_DATA_REGISTER;
+    entry->test_applicator = NULL;
+    entry->element_offset = ofs;
+}
+void tactyk_test__mk_xmm_register_test(char *name, uint64_t ofs) {
+    struct tactyk_test_entry *entry = tactyk_dblock__new_managedobject(base_tests, name);
+    entry->state_adjuster = tactyk_test__SET_XMM_REGISTER_FLOAT;
+    entry->test_applicator = NULL;
+    entry->element_offset = ofs;
 }
