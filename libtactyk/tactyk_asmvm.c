@@ -59,8 +59,11 @@ void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tac
     dec->instruction_jumptable = program->command_map;
     uint64_t num_funcs = program->functions->element_count;
     dec->function_count = num_funcs;
-
+    #ifdef USE_TACTYK_ALLOCATOR
     void* target_address = tactyk__mk_random_base_address();
+    #else
+    void* target_address = NULL;
+    #endif // USE_TACTYK_ALLOCATOR
     uint64_t fjt_size = num_funcs * sizeof(void*);
     tactyk_asmvm__op * fjumptable = mmap(target_address, fjt_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
     //tactyk_asmvm__op *fjumptable = tactyk_alloc__allocate(num_funcs, sizeof(tactyk_asmvm__op));

@@ -870,8 +870,8 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
 
     uint64_t ex_size = tactyk_util__next_pow2(assembly->length);
     #ifdef USE_TACTYK_ALLOCATOR
-    void *target_address = tactyk__mk_random_base_address();
-    void *exec_mem = mmap(target_address, ex_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    void *exec_target_address = tactyk__mk_random_base_address();
+    void *exec_mem = mmap(exec_target_address, ex_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
     #else
     void *exec_mem = mmap(NULL, ex_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
     #endif // USE_TACTYK_ALLOCATOR
@@ -882,12 +882,14 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     ctx->program->executable = exec_mem;
     ctx->program->length = program_size;
 
-    // I do not think it is worthwhile to adapt a dblock container to handle this specific case.
-    //      (but a dblock table should work nicely for allowing the host application to use a script's branch targets)
-    //tactyk_asmvm__op *command_map = tactyk_alloc__allocate(program_size, sizeof(void*));
-    target_address = tactyk__mk_random_base_address();
-    uint64_t exmap_size = program_size * sizeof(void*);
-    tactyk_asmvm__op * command_map = mmap(target_address, exmap_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    #ifdef USE_TACTYK_ALLOCATOR
+    void* exec_map_target_address = tactyk__mk_random_base_address();
+    #else
+    void* exec_map_target_address = NULL;
+    #endif // USE_TACTYK_ALLOCATOR
+
+    uint64_t command_map_size = program_size * sizeof(void*);
+    tactyk_asmvm__op * command_map = mmap(exec_map_target_address, command_map_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
     ctx->program->command_map = command_map;
 
     // copy offsets from the symbol table to the assembly precursor abstraction (which are directly referenced by the precursor program abstraction)
@@ -916,6 +918,6 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
             }
         }
     }
-    mprotect(command_map, exmap_size, PROT_READ );
+    mprotect(command_map, command_map_size, PROT_READ );
 }
 
