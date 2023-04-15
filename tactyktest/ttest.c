@@ -66,8 +66,9 @@ TEST
 #define TACTYK_TESTSTATE__FAIL 2
 #define TACTYK_TESTSTATE__TEST_ERROR 3
 #define TACTYK_TESTSTATE__RUNNING 4
-#define TACTYK_TESTSTATE__INITILAIZING 5
-#define TACTYK_TESTSTATE__INACTIVE 6
+#define TACTYK_TESTSTATE__PREPARING 5
+#define TACTYK_TESTSTATE__INITIALIZING 6
+#define TACTYK_TESTSTATE__INACTIVE 7
 
 #define TEST_CLASS_I8 1
 #define TEST_CLASS_I16 2
@@ -134,6 +135,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__STATE(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__DATA(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__REF(struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__ERROR(struct tactyk_dblock__DBlock *spec);
 
 bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value);
 bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value);
@@ -153,6 +155,8 @@ struct tactyk_dblock__DBlock *DEFAULT_NAME;
 
 double DEFAULT_PRECISION = DBL_EPSILON * 256.0;
 
+struct tactyk_dblock__DBlock **active_test_spec;
+
 #ifdef TACTYK_DEBUG
 static bool debugmode = true;
 #else
@@ -169,6 +173,8 @@ struct tactyk_test__Status {
     uint64_t max_age;
     uint64_t test_result;
     char fname[TACTYK_TEST__FNAME_BUFSIZE];
+    char error[TACTYK_TEST__REPORT_BUFSIZE];
+    char warning[TACTYK_TEST__REPORT_BUFSIZE];
     char report[TACTYK_TEST__REPORT_BUFSIZE];
     //uint64_t test_src_size;
     //char test_data[TACTYK_TEST__SRC_BUFSIZE];
@@ -189,10 +195,10 @@ char **testfilenames;
 uint64_t max_active_jobs = 1;
 
 int main(int argc, char *argv[], char *envp[]) {
+    printf("%s\n", TACTYK_TEST__DESCRIPTION);
     tests_completed = 0;
     tests_started = 0;
     testfilenames = calloc(argc, sizeof(void*));
-    printf("%d files.\n", argc);
     for (uint64_t i = 1; i < argc; i += 1) {
         char *arg = argv[i];
         if (strncmp(arg, "--jobs=", 7) == 0) {
@@ -311,6 +317,7 @@ int main(int argc, char *argv[], char *envp[]) {
                     tactyk_test__reset_state(tstate);
                     break;
                 }
+                case TACTYK_TESTSTATE__INITIALIZING:
                 case TACTYK_TESTSTATE__RUNNING: {
                     if (tstate->age >= tstate->max_age) {
                         errored += 1;
@@ -369,7 +376,7 @@ void tactyk_test__prepare(struct tactyk_test__Status *tstate) {
     tstate->max_age = 1000;
     tstate->pid = 0;
     tstate->age = 0;
-    tstate->test_result = TACTYK_TESTSTATE__INITILAIZING;
+    tstate->test_result = TACTYK_TESTSTATE__PREPARING;
     tstate->testid = tests_started;
     tests_started += 1;
 }
@@ -381,15 +388,87 @@ void tactyk_test__reset_state(struct tactyk_test__Status *tstate) {
 }
 
 void tactyk_test__await_start(struct tactyk_test__Status *tstate) {
-    while (tstate->test_result == TACTYK_TESTSTATE__INITILAIZING) {
+    while (tstate->test_result == TACTYK_TESTSTATE__PREPARING) {
         usleep(50000);
     }
 }
-void tactyk_test__run(uint64_t shmid) {
 
-    // dummy test.
+//static jmp_buf tactyk_test_err_jbuf;
+
+struct tactyk_dblock__DBlock *ERROR_TOKEN;
+struct tactyk_dblock__DBlock *WARNING_TOKEN;
+struct tactyk_test__Status *test_state;
+
+void tactyk_test__warning_handler(char *msg, void *data) {
+    memset(test_state->warning, 0, TACTYK_TEST__REPORT_BUFSIZE);
+    strncpy(test_state->warning, msg, TACTYK_TEST__REPORT_BUFSIZE);
+    int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-1;
+
+    if ((space_remaining > 0) && (data != NULL)) {
+        tactyk_dblock__export_cstring(&test_state->warning[strlen(msg)], space_remaining, data);
+    }
+
+//    struct tactyk_dblock__DBlock *test_spec = *active_test_spec;
+//    if ((test_spec != NULL) && (test_spec->next != NULL)) {
+//        struct tactyk_dblock__DBlock *token = test_spec = test_spec->next->token;
+//        if (tactyk_dblock__equals(token, WARNING_TOKEN)) {
+//            *active_test_spec = test_spec->next;
+//        }
+//    }
+}
+
+void tactyk_test__error_handler(char *msg, void *data) {
+
+    memset(test_state->error, 0, TACTYK_TEST__REPORT_BUFSIZE);
+    strncpy(test_state->error, msg, TACTYK_TEST__REPORT_BUFSIZE);
+    int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-1;
+
+    if ((space_remaining > 0) && (data != NULL)) {
+        tactyk_dblock__export_cstring(&test_state->error[strlen(msg)], space_remaining, data);
+    }
+
+    //longjmp(tactyk_test_err_jbuf, 1);
+    struct tactyk_dblock__DBlock *test_spec = *active_test_spec;
+    if (test_spec == NULL) {
+        assert(test_state->test_result == TACTYK_TESTSTATE__INITIALIZING);
+        sprintf(test_state->report, "Unexpected error during test initialization.");
+        tactyk_test__exit(TACTYK_TESTSTATE__TEST_ERROR);
+    }
+    else {
+        test_spec = test_spec->next;
+    }
+
+    if (test_spec != NULL) {
+        if (tactyk_dblock__equals(test_spec->token, ERROR_TOKEN)) {
+            if (test_spec->token->next == NULL) {
+                // if an expected error is received and the error specifier is the final command, the test passes.
+                // TODO:  Error codes (because I dont want to resort to string comparisons to verify the correctness of the error)
+                tactyk_test__exit(TACTYK_TESTSTATE__PASS);
+            }
+            else {
+                // if an expected error is received but there are additional commands, it's a test error.
+                sprintf(test_state->report, "test truncated by error (unreachable code in test)");
+                tactyk_test__exit(TACTYK_TESTSTATE__TEST_ERROR);
+            }
+        }
+        else {
+            // unexpected errors are a test failure.
+            tactyk_test__exit(TACTYK_TESTSTATE__FAIL);
+        }
+    }
+    else {
+        // failure at the end of the test
+        //  (only expected to occur if a test ends with an EXEC command it triggers an error)
+        tactyk_test__exit(TACTYK_TESTSTATE__FAIL);
+    }
+}
+
+void tactyk_test__run(uint64_t shmid) {
     struct tactyk_test__Status *tstate = shmat(shmid, NULL, 0);
-    printf("RUN DUMMY TEST:  %s\n", tstate->fname);
+    //shmdt(tstate);
+    test_state = tstate;
+    tstate->test_result = TACTYK_TESTSTATE__INITIALIZING;
+
     FILE *f = fopen(tstate->fname, "r");
     fseek(f, 0, SEEK_END);
     int64_t len = ftell(f);
@@ -397,23 +476,27 @@ void tactyk_test__run(uint64_t shmid) {
     fseek(f,0, SEEK_SET);
     fread(src, len, 1, f);
     fclose(f);
-    usleep(500000);
-    printf("TEST THIS:\n");
-    printf("  %s\n", src);
 
-    tstate->test_result = TACTYK_TESTSTATE__RUNNING;
-    usleep(4000000);
-    printf("SUPPOSEDLY TESTED\n");
-    tstate->test_result = TACTYK_TESTSTATE__PASS;
-    shmdt(tstate);
-    _exit(0);
+    active_test_spec = calloc(1, sizeof(void*));
+    *active_test_spec = NULL;
 
     tactyk_init();
-    if (debugmode == true) {
-        printf("%s\n", TACTYK_TEST__DESCRIPTION);
-    }
-    tactyk_visa__init("rsc/tactyk_core.visa");
 
+    //tstate->test_result = TACTYK_TESTSTATE__PASS;
+    //_exit(0);
+    error = tactyk_test__error_handler;
+    warn = tactyk_test__warning_handler;
+
+    ERROR_TOKEN = tactyk_dblock__from_c_string("ERROR");
+    WARNING_TOKEN = tactyk_dblock__from_c_string("WARNING");
+
+    //if (setjmp(tactyk_err_jbuf)) {
+    //    _exit(0);
+    //}
+
+    // should make configuration mutable - some tests will need to load alternative virtual ISA specifications that include special instructions which test
+    //      the integrity of the sandbox.
+    tactyk_visa__init("rsc/tactyk_core.visa");
     emitctx = tactyk_emit__init();
     emitctx->visa_file_prefix = "rsc/";
 
@@ -481,13 +564,16 @@ void tactyk_test__run(uint64_t shmid) {
     tactyk_dblock__set_persistence_code(test_functions, 1000);
     tactyk_dblock__set_persistence_code(contexts, 1000);
 
+    *active_test_spec = test_spec;
+    tstate->test_result = TACTYK_TESTSTATE__RUNNING;
+
     uint64_t test_result = tactyk_test__exec_test_commands(test_spec);
     tactyk_test__exit(test_result);
-    return;
 }
 
 uint64_t tactyk_test__exec_test_commands(struct tactyk_dblock__DBlock *test_spec) {
     while (test_spec != NULL) {
+        *active_test_spec = test_spec;
         uint64_t tresult = tactyk_test__next(test_spec);
         switch(tresult) {
             case TACTYK_TESTSTATE__PASS: {
@@ -513,32 +599,24 @@ uint64_t tactyk_test__exec_test_commands(struct tactyk_dblock__DBlock *test_spec
 }
 
 void tactyk_test__report(char *msg) {
-    puts(msg);
+    memset(test_state->report, 0, TACTYK_TEST__REPORT_BUFSIZE);
+    snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE-1, msg);
 }
 
 void tactyk_test__exit(uint64_t test_result) {
-    if (debugmode == true) {
-        tactyk_debug__print_context(tctx->vmctx);
+    printf("TEST RESULT:  %ju\n", test_result);
+    if (test_state->report[0] != 0) {
+        printf("REPORT MESSAGE:  '%s'\n", test_state->report);
     }
-    switch(test_result) {
-        case TACTYK_TESTSTATE__PASS: {
-            printf("pass\n");
-            exit(0);
-            break;
-        }
-        case TACTYK_TESTSTATE__FAIL: {
-            printf("fail\n");
-            exit(1);
-            break;
-        }
-        case TACTYK_TESTSTATE__TEST_ERROR:
-        case TACTYK_TESTSTATE__EXIT:
-        default:{
-            printf("test error\n");
-            exit(2);
-            break;
-        }
+    if (test_state->warning[0] != 0) {
+        printf("ERROR MESSAGE:  '%s'\n", test_state->error);
     }
+    if (test_state->warning[0] != 0) {
+        printf("WARNING MESSAGE:  '%s'\n", test_state->warning);
+    }
+    test_state->test_result = test_result;
+    shmdt(test_state);
+    _exit(0);
 }
 
 // perform the next action.
@@ -575,7 +653,6 @@ uint64_t tactyk_test__BUILD(struct tactyk_dblock__DBlock *spec) {
 
     // load or instantiate a named context if a name is provided.
     if (name != NULL) {
-        printf("new-tctx\n");
         struct tactyk_test__Context *ntctx = tactyk_dblock__get(contexts, name);
         if (ntctx == NULL) {
             ntctx = tactyk_dblock__new_managedobject(contexts, name);
@@ -712,6 +789,13 @@ uint64_t tactyk_test__REF(struct tactyk_dblock__DBlock *spec) {
 uint64_t tactyk_test__CONTEXT(struct tactyk_dblock__DBlock *spec) {
     return TACTYK_TESTSTATE__PASS;
 }
+
+// If an "ERROR" command is executed, it means the system has not recognized an expected error condition, so this should always fail.
+//  (If the system does generate an error, that gets captured by the testing framework error handler and recognized by looking ahead)
+uint64_t tactyk_test__ERROR(struct tactyk_dblock__DBlock *spec) {
+    return TACTYK_TESTSTATE__FAIL;
+}
+
 
 bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value) {
     int64_t ival = 0;
