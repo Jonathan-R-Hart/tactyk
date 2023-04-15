@@ -1,0 +1,22 @@
+CONTEXT prg1
+PROGRAM
+  MAIN:
+    assign a 1
+    assign b 84
+    assign c 6
+    assign d -4
+    assign e -123
+    assign f 1234567890
+    exit
+
+BUILD
+
+EXEC MAIN
+
+TEST
+  rA 1
+  rB 84
+  rC 6
+  rD -4
+  rE -123
+  rF 1234567890

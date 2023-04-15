@@ -233,7 +233,7 @@ int main(int argc, char *argv[], char *envp[]) {
     tstate_list = calloc(max_active_jobs, sizeof(void*));
     for (uint64_t i = 0; i < max_active_jobs; i += 1) {
         struct tactyk_test__Status *ts = mmap(NULL, sizeof(struct tactyk_test__Status), PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
-        sprintf(ts->report, "It's not broke yet.");
+        sprintf(ts->report, "");
         ts->test_result = TACTYK_TESTSTATE__INACTIVE;
         tstate_list[i] = ts;
     }
@@ -590,7 +590,7 @@ uint64_t tactyk_test__exec_test_commands(struct tactyk_dblock__DBlock *test_spec
 
 void tactyk_test__report(char *msg) {
     memset(test_state->report, 0, TACTYK_TEST__REPORT_BUFSIZE);
-    snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE-1, msg);
+    snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE-1, "%s", msg);
 }
 
 void tactyk_test__exit(uint64_t test_result) {

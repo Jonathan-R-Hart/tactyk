@@ -24,17 +24,25 @@ add_executable(tdemo
   tdemo/aux_sdl.c
 )
 
+add_executable(ttest
+  tactyktest/ttest.c
+)
+
 find_package(SDL2 REQUIRED)
 
-target_include_directories(tdemo PRIVATE 
+target_include_directories(tdemo PRIVATE
   ${CMAKE_SOURCE_DIR}/include
   ${SDL2_INCLUDE_DIRS}
 )
-target_include_directories(tactyk PRIVATE 
+target_include_directories(tactyk PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+target_include_directories(ttest PRIVATE
   ${CMAKE_SOURCE_DIR}/include
 )
 
 target_link_libraries( tdemo tactyk ${SDL2_LIBRARIES} )
+target_link_libraries( ttest tactyk )
 
 add_compile_definitions(
     # USE_TACTYK_ALLOCATOR
