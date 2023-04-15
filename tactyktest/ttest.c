@@ -74,7 +74,7 @@ struct tactyk_test__Program {
     struct tactyk_asmvm__Program *program;
 };
 
-struct tactyk_test__Program *tprg;
+struct tactyk_asmvm__Program *tprg;
 struct tactyk_asmvm__Context *vmctx;
 
 // a binary copy of vmctx to be used to scan for unexpected state transitions.
@@ -460,7 +460,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_debug__configure_api(emitctx);
     tactyk_emit_svc__configure(emitctx);
 
-    programs = tactyk_dblock__new_managedobject_table(64, sizeof(struct tactyk_test__Program));
+    programs = tactyk_dblock__new_table(64);
     DEFAULT_NAME = tactyk_dblock__from_safe_c_string("DEFAULT");
     precision = DEFAULT_PRECISION;
     test_functions = tactyk_dblock__new_table(64);
@@ -597,20 +597,11 @@ uint64_t tactyk_test__PROGRAM(struct tactyk_dblock__DBlock *spec) {
     if (name == NULL) {
         name = DEFAULT_NAME;
     }
-    tprg = tactyk_dblock__get(programs, name);
-    if (tprg == NULL) {
-        tprg = tactyk_dblock__new_managedobject(programs, name);
-        tprg->name = name;
-        tprg->plctx = tactyk_pl__new(emitctx);
-    }
-    if (tprg->program != NULL) {
-        tprg->plctx = tactyk_pl__new(emitctx);
-    }
-
-    tactyk_pl__load_dblock(tprg->plctx, spec->child);
-    tprg->program = tactyk_pl__build(tprg->plctx);
-    memcpy(shadow_vmctx, vmctx, sizeof(struct tactyk_asmvm__Context));
-    tactyk_asmvm__add_program(vmctx, tprg->program);
+    struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
+    tactyk_pl__load_dblock(plctx, spec->child);
+    tprg = tactyk_pl__build(plctx);
+    tactyk_asmvm__add_program(vmctx, tprg);
+    tactyk_dblock__put(programs, name, tprg);
     return TACTYK_TESTSTATE__PASS;
 }
 
@@ -628,19 +619,19 @@ uint64_t tactyk_test__EXEC(struct tactyk_dblock__DBlock *spec) {
             return TACTYK_TESTSTATE__TEST_ERROR;
         }
     }
-    if ( (vmctx == NULL) || (tprg->program == NULL) ) {
+    if ( (vmctx == NULL) || (tprg == NULL) ) {
         tactyk_test__report("Program not built");
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
     if (func_name == NULL) {
-        tactyk_asmvm__prepare_invoke(shadow_vmctx, tprg->program, "MAIN");
-        tactyk_asmvm__invoke(vmctx, tprg->program, "MAIN");
+        tactyk_asmvm__prepare_invoke(shadow_vmctx, tprg, "MAIN");
+        tactyk_asmvm__invoke(vmctx, tprg, "MAIN");
     }
     else {
         char buf[64];
         tactyk_dblock__export_cstring(buf, 64, func_name);
 
-        if (!tactyk_asmvm__prepare_invoke(shadow_vmctx, tprg->program, buf)) {
+        if (!tactyk_asmvm__prepare_invoke(shadow_vmctx, tprg, buf)) {
             char bufpn[64];
             tactyk_dblock__export_cstring(bufpn, 64, program_name);
             char buffn[64];
@@ -648,7 +639,7 @@ uint64_t tactyk_test__EXEC(struct tactyk_dblock__DBlock *spec) {
             snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "EXEC -- Can not call invalid function '%s.%s'", bufpn, buffn);
             return TACTYK_TESTSTATE__TEST_ERROR;
         }
-        tactyk_asmvm__invoke(vmctx, tprg->program, buf);
+        tactyk_asmvm__invoke(vmctx, tprg, buf);
     }
 
     // By default, expect the program to exit normally (by placing the 'STATUS_HALT' code in the shadow context)
