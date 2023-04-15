@@ -42,6 +42,10 @@ Linux/Unix on amd64 (x86-64) architecture
   TACTYK includes an optional memory allocator which calls mmap for most dynamic memory allocation and requests pages with randomly generated 48-bit base addresses.
   I do not know if it is an appropriate way to allocate memory (it does cause rapid allocatation and de-allocation of many memory pages udner the current design), 
   so this is disabled by default (add #define USE_TACTYK_ALLOCATOR to enable it).
+  Addendum:  I've thought this through a bit more.  The largest problem with the TACTYK approach seems to be simply that it results in a very large number of system 
+  calls.  This case would probably better be handled by a Kernel function which performs batched memory allocation and randomization (and presumbly an alternative
+  allocator which uses a kernel-provided address space layout for servicing application memory allocations instead of a conventional heap).
+  A quick Internet search for "batched memory allocation" did not yield a meaningful result, so this one might have to start with a proposal.
 
 ## Auditability Focus
 TACTYK is intended to be auditable under an alternative standard:  A competent individual or a small team should be able to conduct the audit (or verify the results of a professional audit).  The amount of code in the project is to be kept low.  Dependencies are to be kept to a minimum.  When there is a choice between a complex and 
