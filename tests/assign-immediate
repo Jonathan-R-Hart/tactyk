@@ -1,22 +1,50 @@
-CONTEXT prg1
-PROGRAM
-  MAIN:
-    assign a 1
-    assign b 84
-    assign c 6
-    assign d -4
-    assign e -123
-    assign f 1234567890
+PROGRAM prg1
+  BYTES:
+    assign a 2
+    assign b 3
+    assign c 5
+    assign d 7
+    assign e 11
+    assign f 13
     exit
 
-BUILD
+PROGRAM prg2
+  WORDS:
+    assign a 257
+    assign b 12345
+    assign c 54321
+    assign d 2000
+    assign e 500
+    assign f 65535
+    exit
 
-EXEC MAIN
+EXEC prg1 BYTES
 
 TEST
-  rA 1
-  rB 84
-  rC 6
-  rD -4
-  rE -123
-  rF 1234567890
+  rA 2
+  rB 3
+  rC 5
+  rD 7
+  rE 11
+  rF 13
+
+EXEC prg2 WORDS
+
+TEST
+  rA 257
+  rB 12345
+  rC 54321
+  rD 2000
+  rE 500
+  rF 65535
+
+
+
+
+
+
+
+
+
+
+

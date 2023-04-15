@@ -92,6 +92,9 @@ void tactyk_asmvm__set(struct tactyk_asmvm__Program *prog, void* data, char* var
 */
 bool tactyk_asmvm__prepare_invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname) {
     struct tactyk_asmvm__identifier *identifier = tactyk_dblock__get(prog->functions, funcname);
+    if (identifier == NULL) {
+        return false;
+    }
     int64_t iptr = identifier->value;
 
     context->hl_program_ref = prog;
