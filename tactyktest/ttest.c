@@ -7,8 +7,7 @@
 
 #include <unistd.h>
 #include <sys/wait.h>
-#include <sys/shm.h>
-#include <sys/stat.h>
+#include <sys/mman.h>
 
 #include "tactyk.h"
 #include "tactyk_emit.h"
@@ -166,7 +165,6 @@ static bool debugmode = false;
 #define TACTYK_TEST__FNAME_BUFSIZE (1<<10)
 #define TACTYK_TEST__REPORT_BUFSIZE (1<<10)
 struct tactyk_test__Status {
-    int64_t shmid;
     uint64_t pid;
     uint64_t testid;
     uint64_t age;
@@ -181,7 +179,7 @@ struct tactyk_test__Status {
 };
 
 void tactyk_test__prepare(struct tactyk_test__Status *tstate);
-void tactyk_test__run(uint64_t shmid);
+void tactyk_test__run(struct tactyk_test__Status *tstate);
 void tactyk_test__reset_state(struct tactyk_test__Status *tstate);
 void tactyk_test__await_start(struct tactyk_test__Status *tstate);
 
@@ -234,10 +232,7 @@ int main(int argc, char *argv[], char *envp[]) {
     //  This is to be used to get test results from child processes.
     tstate_list = calloc(max_active_jobs, sizeof(void*));
     for (uint64_t i = 0; i < max_active_jobs; i += 1) {
-        int64_t shmid = shmget( IPC_PRIVATE, sizeof(struct tactyk_test__Status), IPC_CREAT|IPC_EXCL|S_IRUSR|S_IWUSR );
-        struct tactyk_test__Status *ts = (struct tactyk_test__Status*) shmat(shmid, 0, 0);
-        //shmctl(shmid, IPC_RMID, 0);
-        ts->shmid = shmid;
+        struct tactyk_test__Status *ts = mmap(NULL, sizeof(struct tactyk_test__Status), PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
         sprintf(ts->report, "It's not broke yet.");
         ts->test_result = TACTYK_TESTSTATE__INACTIVE;
         tstate_list[i] = ts;
@@ -257,7 +252,6 @@ int main(int argc, char *argv[], char *envp[]) {
                         // read file
                         tactyk_test__prepare(tstate);
                         int64_t pid = fork();
-                        uint64_t shmid = tstate->shmid;
                         switch(pid) {
                             case -1: {
                                 printf("ERROR:  fork() failed.  Is %ju processes perhaps too much?\n", max_active_jobs);
@@ -266,7 +260,7 @@ int main(int argc, char *argv[], char *envp[]) {
                             }
                             case 0: {
                                 // [ child process ]
-                                tactyk_test__run(shmid);
+                                tactyk_test__run(tstate);
                                 break;
                             }
                             default: {
@@ -358,9 +352,7 @@ int main(int argc, char *argv[], char *envp[]) {
     // release shared memory.
     for (uint64_t i = 0; i < max_active_jobs; i += 1) {
         struct tactyk_test__Status *ts = tstate_list[i];
-        uint64_t shmid = ts->shmid;
-        shmdt(ts);
-        shmctl(shmid, IPC_RMID, 0);
+        munmap(ts, sizeof(struct tactyk_test__Status));
     }
     free(tstate_list);
     return 0;
@@ -463,9 +455,7 @@ void tactyk_test__error_handler(char *msg, void *data) {
     }
 }
 
-void tactyk_test__run(uint64_t shmid) {
-    struct tactyk_test__Status *tstate = shmat(shmid, NULL, 0);
-    //shmdt(tstate);
+void tactyk_test__run(struct tactyk_test__Status *tstate) {
     test_state = tstate;
     tstate->test_result = TACTYK_TESTSTATE__INITIALIZING;
 
@@ -615,7 +605,6 @@ void tactyk_test__exit(uint64_t test_result) {
         printf("WARNING MESSAGE:  '%s'\n", test_state->warning);
     }
     test_state->test_result = test_result;
-    shmdt(test_state);
     _exit(0);
 }
 
