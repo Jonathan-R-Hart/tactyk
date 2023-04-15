@@ -46,34 +46,13 @@ add_compile_options( -m64 -fPIC )
 
 add_custom_command(
   TARGET tactyk PRE_BUILD
-  COMMAND ${CMAKE_COMMAND} -E make_directory
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_SOURCE_DIR}/tests
+          ${CMAKE_CURRENT_BINARY_DIR}/tests
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_SOURCE_DIR}/rsc
           ${CMAKE_CURRENT_BINARY_DIR}/rsc
-  COMMAND ${CMAKE_COMMAND} -E make_directory
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_SOURCE_DIR}/examples
           ${CMAKE_CURRENT_BINARY_DIR}/examples
-
-  COMMAND ${CMAKE_COMMAND} -E create_symlink
-          ${CMAKE_SOURCE_DIR}/rsc/tactyk_asmvm_header.asm
-          ${CMAKE_CURRENT_BINARY_DIR}/rsc/tactyk_asmvm_header.asm
-  COMMAND ${CMAKE_COMMAND} -E create_symlink
-          ${CMAKE_SOURCE_DIR}/rsc/tactyk_core.visa
-          ${CMAKE_CURRENT_BINARY_DIR}/rsc/tactyk_core.visa
-  
-  COMMAND ${CMAKE_COMMAND} -E create_symlink
-          ${CMAKE_SOURCE_DIR}/examples/fib.tkp
-          ${CMAKE_CURRENT_BINARY_DIR}/examples/fib.tkp
-  COMMAND ${CMAKE_COMMAND} -E create_symlink
-          ${CMAKE_SOURCE_DIR}/examples/lazy_quine.tkp
-          ${CMAKE_CURRENT_BINARY_DIR}/examples/lazy_quine.tkp
-  COMMAND ${CMAKE_COMMAND} -E create_symlink
-          ${CMAKE_SOURCE_DIR}/examples/hello_sdl.tkp
-          ${CMAKE_CURRENT_BINARY_DIR}/examples/hello_sdl.tkp
-  COMMAND ${CMAKE_COMMAND} -E create_symlink
-          ${CMAKE_SOURCE_DIR}/examples/recursive.tkp
-          ${CMAKE_CURRENT_BINARY_DIR}/examples/recursive.tkp
-  COMMAND ${CMAKE_COMMAND} -E create_symlink
-          ${CMAKE_SOURCE_DIR}/examples/julia.tkp
-          ${CMAKE_CURRENT_BINARY_DIR}/examples/julia.tkp
-  COMMAND ${CMAKE_COMMAND} -E create_symlink
-          ${CMAKE_SOURCE_DIR}/examples/emit.tkp
-          ${CMAKE_CURRENT_BINARY_DIR}/examples/emit.tkp
 )
