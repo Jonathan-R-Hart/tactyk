@@ -90,17 +90,22 @@ void tactyk_asmvm__set(struct tactyk_asmvm__Program *prog, void* data, char* var
     ((uint64_t*)data)[index] = value;
 }
 */
-void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname) {
+bool tactyk_asmvm__prepare_invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname) {
     struct tactyk_asmvm__identifier *identifier = tactyk_dblock__get(prog->functions, funcname);
     int64_t iptr = identifier->value;
-    context->hl_program_ref = prog;
 
-    if (iptr < prog->length) {
-        context->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) prog->memory_layout_ll->data;
-        context->memblock_count = TACTYK_ASMVM__MEMBLOCK_CAPACITY;
-        context->max_instruction_pointer = prog->length-1;
-        context->program_map = prog->command_map;
-        context->instruction_index = iptr;
+    context->hl_program_ref = prog;
+    context->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) prog->memory_layout_ll->data;
+    context->memblock_count = TACTYK_ASMVM__MEMBLOCK_CAPACITY;
+    context->max_instruction_pointer = prog->length-1;
+    context->program_map = prog->command_map;
+    context->instruction_index = iptr;
+
+    return (iptr < prog->length);
+}
+
+void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname) {
+    if (tactyk_asmvm__prepare_invoke(context, prog, funcname)) {
         uint64_t result = prog->run(context);
         if (result < 100) {
             result = context->STATUS;

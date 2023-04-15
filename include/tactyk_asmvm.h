@@ -181,14 +181,17 @@ struct tactyk_asmvm__Context {
     struct tactyk_asmvm__memblock_lowlevel *memblocks;
     uint64_t memblock_count;
 
+    // dword #4
     struct tactyk_asmvm__memblock_lowlevel active_memblocks[4];
 
+    // dword #16
     void *lwcall_stack;
     void *microcontext_stack;
     uint64_t microcontext_stack_offset;
     uint32_t lwcall_stack_floor;
     uint32_t mctx_stack_floor;
 
+    // dword #20
     struct tactyk_asmvm__VM *vm;
     struct tactyk_asmvm__Stack *stack;
     tactyk_asmvm__op *program_map;
@@ -202,6 +205,7 @@ struct tactyk_asmvm__Context {
     uint64_t signature;
     uint64_t extra;         // register spills
 
+    // dword #28
     struct tactyk_asmvm__register_bank reg;                     // tactyk context register content
     struct tactyk_asmvm__register_bank runtime_registers;       // native context register content
 
@@ -257,6 +261,8 @@ void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tac
 
 uint64_t tactyk_asmvm__get(struct tactyk_asmvm__Program *tactyk_pl__prog, void* data, char* varname);
 void tactyk_asmvm__set(struct tactyk_asmvm__Program *tactyk_pl__prog, void* data, char* varname, uint64_t value);
+
+bool tactyk_asmvm__prepare_invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname);
 void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *tactyk_pl__prog, char* funcname);
 
 typedef void (*tactyk_asmvm__debug_callback)(struct tactyk_asmvm__Context *ctx);
