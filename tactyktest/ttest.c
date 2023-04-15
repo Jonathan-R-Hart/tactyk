@@ -631,6 +631,7 @@ uint64_t tactyk_test__EXEC(struct tactyk_dblock__DBlock *spec) {
         char buf[64];
         tactyk_dblock__export_cstring(buf, 64, func_name);
 
+        memcpy(shadow_vmctx, vmctx, sizeof(struct tactyk_asmvm__Context));
         if (!tactyk_asmvm__prepare_invoke(shadow_vmctx, tprg, buf)) {
             char bufpn[64];
             tactyk_dblock__export_cstring(bufpn, 64, program_name);
