@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <float.h>
 #include <math.h>
+#include <time.h>
 
 #include <unistd.h>
 #include <sys/wait.h>
@@ -127,8 +128,8 @@ struct tactyk_dblock__DBlock **active_test_spec;
 struct tactyk_test__Status {
     uint64_t pid;
     uint64_t testid;
-    uint64_t age;
-    uint64_t max_age;
+    time_t start_time;
+    double max_age;
     uint64_t test_result;
     char fname[TACTYK_TEST__FNAME_BUFSIZE];
     char error[TACTYK_TEST__REPORT_BUFSIZE];
@@ -203,6 +204,8 @@ int main(int argc, char *argv[], char *envp[]) {
     uint64_t errored = 0;
 
     while (tests_completed < test_count) {
+        time_t now = time(NULL);
+        //printf("tdiff = %f\n", sec);
         for (uint64_t i = 0; i < max_active_jobs; i++) {
             struct tactyk_test__Status *tstate = tstate_list[i];
             switch(tstate->test_result) {
@@ -239,7 +242,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 case TACTYK_TESTSTATE__TEST_ERROR: {
                     errored += 1;
                     tests_completed += 1;
-                    printf("TACTYK TEST ERROR -- '%s':\n", tstate->fname);
+                    printf("ERROR: '%s':\n", tstate->fname);
                     puts(tstate->report);
                     tactyk_test__reset_state(tstate);
                     printf("\n");
@@ -248,7 +251,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 case TACTYK_TESTSTATE__EXIT: {
                     errored += 1;
                     tests_completed += 1;
-                    printf("TACTYK TEST ERROR -- '%s':\n", tstate->fname);
+                    printf("ERROR: '%s':\n", tstate->fname);
                     printf("Test returned invalid test result 'TEST_RESULT__EXIT'\n");
                     printf("TACTYK is **supposed** to return TEST_RESULT__PASS or TEST_RESULT__FAIL or TEST_RESULT__ERROR\n");
                     printf("Excellent work, TACTYK!\n");
@@ -273,22 +276,35 @@ int main(int argc, char *argv[], char *envp[]) {
                 }
                 case TACTYK_TESTSTATE__INITIALIZING:
                 case TACTYK_TESTSTATE__RUNNING: {
-                    if (tstate->age >= tstate->max_age) {
-                        errored += 1;
+                    int status = 0;
+                    pid_t pid = waitpid(tstate->pid, &status, WNOHANG);
+                    if (WIFSIGNALED(status)) {
+                        int sig = WTERMSIG(status);
+                        failed += 1;
                         tests_completed += 1;
-                        printf("TACTYK TEST ERROR -- '%s':\n", tstate->fname);
-                        printf("Test appears to have hung.\n");
-                        kill(tstate->pid, 1);
-                        int status;
-                        waitpid(-1, &status, 0);
+                        printf("FAIL: '%s'\n", tstate->fname);
+                        printf("Test process termination detected:  %s\n", strsignal(sig));
                         tactyk_test__reset_state(tstate);
+                    }
+                    else {
+                        double age = difftime(now, tstate->start_time);
+                        if (age >= tstate->max_age) {
+                            failed += 1;
+                            tests_completed += 1;
+                            printf("FAIL: '%s'\n", tstate->fname);
+                            printf("Test process did not complete within %f seconds.\n", tstate->max_age);
+                            kill(tstate->pid, 1);
+                            int status;
+                            waitpid(-1, &status, 0);
+                            tactyk_test__reset_state(tstate);
+                        }
                     }
                     break;
                 }
                 default: {
                     errored += 1;
                     tests_completed += 1;
-                    printf("TACTYK TEST ERROR -- '%s':\n", tstate->fname);
+                    printf("ERROR: '%s':\n", tstate->fname);
                     printf("Test returned unrecognized test result '%ju'\n", tstate->test_result);
                     printf("TACTYK is **supposed** to output a TEST_RESULT__PASS or TEST_RESULT__FAIL or TEST_RESULT__ERROR\n");
                     printf("Excellent work, TACTYK!\n");
@@ -325,9 +341,9 @@ void tactyk_test__prepare(struct tactyk_test__Status *tstate) {
     strncpy(tstate->fname, testfilenames[tests_started], TACTYK_TEST__FNAME_BUFSIZE-1);
     //printf("fptr:  %p\n", testfiles);
     //strncpy(tstate->fname, finf->fname, sizeof(finf->fname));
-    tstate->max_age = 1000;
+    tstate->start_time = time(NULL);
+    tstate->max_age = 4.0;
     tstate->pid = 0;
-    tstate->age = 0;
     tstate->test_result = TACTYK_TESTSTATE__PREPARING;
     tstate->testid = tests_started;
     tests_started += 1;
