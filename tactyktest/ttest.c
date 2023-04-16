@@ -125,12 +125,17 @@ struct tactyk_dblock__DBlock **active_test_spec;
 
 #define TACTYK_TEST__FNAME_BUFSIZE (1<<10)
 #define TACTYK_TEST__REPORT_BUFSIZE (1<<10)
+#define TACTYK_TEST__DUMP_BUFSIZE (1<<14)
 struct tactyk_test__Status {
     uint64_t pid;
     uint64_t testid;
     time_t start_time;
     double max_age;
     uint64_t test_result;
+    char dump_context_expectation[TACTYK_TEST__DUMP_BUFSIZE];
+    char dump_stack_expectation[TACTYK_TEST__DUMP_BUFSIZE];
+    char dump_context_observed[TACTYK_TEST__DUMP_BUFSIZE];
+    char dump_stack_observed[TACTYK_TEST__DUMP_BUFSIZE];
     char fname[TACTYK_TEST__FNAME_BUFSIZE];
     char error[TACTYK_TEST__REPORT_BUFSIZE];
     char warning[TACTYK_TEST__REPORT_BUFSIZE];
@@ -572,7 +577,28 @@ void tactyk_test__report(char *msg) {
 }
 
 void tactyk_test__exit(uint64_t test_result) {
-    //printf("TEST RESULT:  %ju\n", test_result);
+    printf("TEST RESULT:  %ju\n", test_result);
+
+    FILE *stream = fmemopen(test_state->dump_context_observed, TACTYK_TEST__DUMP_BUFSIZE, "w");
+    tactyk_debug__write_context(vmctx, stream);
+    fflush(stream);
+    fclose(stream);
+
+    stream = fmemopen(test_state->dump_context_expectation, TACTYK_TEST__DUMP_BUFSIZE, "w");
+    tactyk_debug__write_context(shadow_vmctx, stream);
+    fflush(stream);
+    fclose(stream);
+
+    stream = fmemopen(test_state->dump_stack_observed, TACTYK_TEST__DUMP_BUFSIZE, "w");
+    tactyk_debug__write_vmstack(vmctx, stream);
+    fflush(stream);
+    fclose(stream);
+
+    stream = fmemopen(test_state->dump_stack_expectation, TACTYK_TEST__DUMP_BUFSIZE, "w");
+    tactyk_debug__write_vmstack(shadow_vmctx, stream);
+    fflush(stream);
+    fclose(stream);
+
     if (test_state->report[0] != 0) {
         printf("REPORT MESSAGE:  '%s'\n", test_state->report);
     }
@@ -717,18 +743,18 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
 
     uint8_t *real_bytes = (uint8_t*) vmctx;
     uint8_t *shadow_bytes = (uint8_t*) shadow_vmctx;
-    uint64_t *real_dwords = (uint64_t*) vmctx;
-    uint64_t *shadow_dwords = (uint64_t*) shadow_vmctx;
+    uint64_t *real_qwords = (uint64_t*) vmctx;
+    uint64_t *shadow_qwords = (uint64_t*) shadow_vmctx;
 
     // scan the context structure, but leave out runtime registers and diagnostic data.
     //      diagnostic data is not part of testing (It's intended to aid with debugging)
     //      Runtime registers is whatever C leaves on the registers when calling into TACTYK.
     //          This would better be handled through a runtime environment correctness test to be performed within callbacks and/or after returning from tactyk.
-    for (uint64_t ofs = 0; ofs < offsetof(struct tactyk_asmvm__Context, runtime_registers); ofs += 1) {
+    for (int64_t ofs = 0; ofs < offsetof(struct tactyk_asmvm__Context, runtime_registers); ofs += 1) {
 
         // if a deviation is found, the test fails.
         if (real_bytes[ofs] != shadow_bytes[ofs]) {
-            uint64_t dwpos = ofs / 8;
+            int64_t qwpos = ofs / 8;
 
             // Check offset-ranges to identify which section of the context data structure the deviation was found in.
 
@@ -736,31 +762,28 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
             if (ofs < offsetof(struct tactyk_asmvm__Context, reg)) {
                 snprintf(
                     test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "Context-state deviation at offset %ju (dword #%ju), expected=%jd observed=%jd",
-                    ofs, dwpos, shadow_dwords[dwpos], real_dwords[dwpos]
+                    "Context-state deviation at offset %jd (qword #%jd), expected=%jd observed=%jd",
+                    ofs, qwpos, shadow_qwords[qwpos], real_qwords[qwpos]
                 );
             }
             else {
-                ofs -= offsetof(struct tactyk_asmvm__Context, reg);
-                dwpos = ofs / 8;
-
+                int64_t rel_ofs = ofs - offsetof(struct tactyk_asmvm__Context, reg);
                 // main register file (standard x86 registers)
                 if (ofs < offsetof(struct tactyk_asmvm__register_bank, xa)) {
                     snprintf(
                         test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                        "Register-file deviation at offset %ju (dword #%ju), expected=%jd observed=%jd",
-                        ofs, dwpos, shadow_dwords[dwpos], real_dwords[dwpos]
+                        "Register-file deviation at offset %jd (qword #%jd), expected=%jd observed=%jd",
+                        rel_ofs, rel_ofs/8, shadow_qwords[qwpos], real_qwords[qwpos]
                     );
                 }
 
                 // xmm register file
                 else {
-                    ofs -= offsetof(struct tactyk_asmvm__Context, reg);
-                    dwpos = ofs / 8;
+                    int64_t rel_ofs = ofs - offsetof(struct tactyk_asmvm__Context, reg) - offsetof(struct tactyk_asmvm__register_bank, xa);
                     snprintf(
                         test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                        "XMM Register-file deviation at offset %ju (dword #%ju), expected=%f observed=%f",
-                        ofs, dwpos, *((double*)&shadow_dwords[dwpos]), *((double*)&real_dwords[dwpos])
+                        "XMM Register-file deviation at offset %jd (qword #%jd), expected=%f observed=%f",
+                        rel_ofs, rel_ofs/8, *((double*)&shadow_qwords[qwpos]), *((double*)&real_qwords[qwpos])
                     );
                 }
             }
