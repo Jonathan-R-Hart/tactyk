@@ -1,5 +1,10 @@
 # Immedaite assignment test
 PROGRAM
+  const cnst_byte 101
+  const cnst_word 2000
+  const cnst_dword 789000000
+  const cnst_qword 9223372036854775808
+  
   ZERO:
     assign a 0
     assign b 0
@@ -14,7 +19,7 @@ PROGRAM
     assign b 33
     assign c 40
     assign d 60
-    assign e 101
+    assign e cnst_byte
     assign f 255
     exit
   
@@ -22,7 +27,7 @@ PROGRAM
     assign a 256
     assign b 12345
     assign c 54321
-    assign d 2000
+    assign d cnst_word
     assign e 500
     assign f 65535
     exit
@@ -32,7 +37,7 @@ PROGRAM
     assign b 65536
     assign c 99999999
     assign d 123456
-    assign e 789000000
+    assign e cnst_dword
     assign f 4294967295
     exit
   
@@ -42,7 +47,7 @@ PROGRAM
     assign c 9223372036854775808
     assign d 4294967296
     assign e -1
-    assign f 9223372036854775808
+    assign f cnst_qword
     # assign xa 0.0001
     exit
 
