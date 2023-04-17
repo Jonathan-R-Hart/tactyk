@@ -1,0 +1,62 @@
+# TEST:  Bind memory blocks
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  bind-data (AD) bind-memblock (AM) bind-integer (AI)
+
+PROGRAM
+  struct mdef
+    1 va
+    1 vb
+    8 vc
+    8 vd
+    4 ve
+    2 vf
+    8 vg
+  
+  text txt
+    qzaxswcdervfbtgyhnmju,kio.lp/;
+  
+  mem mm mdef 100
+  
+  extmem em
+  
+  MAIN:
+    bind addr1 mm
+    bind addr3 txt
+    bind addr4 em
+    exit
+
+STATE-MEM-ALLOC em 10
+  byte 213
+  byte 12
+  qword 543211234599999
+  qword 999995432112345
+  dword 100000000
+  word 1000
+  qword -100
+
+EXEC MAIN
+
+TEST
+  addr1 mm +0
+  addr1.base mm
+  addr1.array_bound 3168
+  addr1.element_bound 25
+  addr3 tx +0
+  addr3.base txt
+  addr3.array_bound 1
+  addr3.element_bound 30
+  addr4 em +0
+  addr1.base mm
+  addr1.array_bound 288
+  addr1.element_bound 25
+  
+  mem tx *
+  mem mm *
+
+
+
+
+
+
+
