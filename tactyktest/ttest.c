@@ -133,6 +133,7 @@ struct tactyk_test__Status {
     time_t start_time;
     double max_age;
     uint64_t test_result;
+    bool ran;
     char dump_context_expectation[TACTYK_TEST__DUMP_BUFSIZE];
     char dump_stack_expectation[TACTYK_TEST__DUMP_BUFSIZE];
     char dump_context_observed[TACTYK_TEST__DUMP_BUFSIZE];
@@ -339,12 +340,13 @@ int main(int argc, char *argv[], char *envp[]) {
                     if (tstate->warning[0] != 0) {
                         fprintf(tout, "WARNING: %s\n", tstate->report);
                     }
-                    fprintf(tout, "EXPECTED CONTEXT STATE:\n%s\n", tstate->dump_context_expectation);
-                    fprintf(tout, "OBSERVED CONTEXT STATE:\n%s\n", tstate->dump_context_observed);
+                    if (tstate->dump_context_expectation[0] != 0) {
+                        fprintf(tout, "EXPECTED CONTEXT STATE:\n%s\n", tstate->dump_context_expectation);
+                        fprintf(tout, "OBSERVED CONTEXT STATE:\n%s\n", tstate->dump_context_observed);
 
-                    fprintf(tout, "EXPECTED STACK:\n%s\n", tstate->dump_stack_expectation);
-                    fprintf(tout, "OBSERVED STACK:\n%s\n", tstate->dump_stack_observed);
-
+                        fprintf(tout, "EXPECTED STACK:\n%s\n", tstate->dump_stack_expectation);
+                        fprintf(tout, "OBSERVED STACK:\n%s\n", tstate->dump_stack_observed);
+                    }
                     fprintf(tout, "\n");
 
                     printf("X");
@@ -450,13 +452,14 @@ int main(int argc, char *argv[], char *envp[]) {
     }
 }
 void tactyk_test__prepare(struct tactyk_test__Status *tstate) {
-    memset(tstate->fname, 0, TACTYK_TEST__FNAME_BUFSIZE);
+    memset(tstate, 0, sizeof(struct tactyk_test__Status));
     strncpy(tstate->fname, testfilenames[tests_started], TACTYK_TEST__FNAME_BUFSIZE-1);
     tstate->start_time = time(NULL);
     tstate->max_age = 4.0;
     tstate->pid = 0;
     tstate->test_result = TACTYK_TESTSTATE__PREPARING;
     tstate->testid = tests_started;
+    tstate->ran = false;
     tests_started += 1;
 }
 
@@ -594,8 +597,8 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
 
     tactyk_dblock__put(test_functions, "PROGRAM", tactyk_test__PROGRAM);
     tactyk_dblock__put(test_functions, "EXEC", tactyk_test__EXEC);
-    tactyk_dblock__put(test_functions, "RECV_CCALL", tactyk_test__RECV_CCALL);
-    tactyk_dblock__put(test_functions, "RECV_TCALL", tactyk_test__RECV_TCALL);
+    tactyk_dblock__put(test_functions, "RECV-CCALL", tactyk_test__RECV_CCALL);
+    tactyk_dblock__put(test_functions, "RECV-TCALL", tactyk_test__RECV_TCALL);
     tactyk_dblock__put(test_functions, "TEST", tactyk_test__TEST);
     tactyk_dblock__put(test_functions, "STATE", tactyk_test__STATE);
     tactyk_dblock__put(test_functions, "DATA", tactyk_test__DATA);
@@ -683,26 +686,27 @@ void tactyk_test__report(char *msg) {
 }
 
 void tactyk_test__exit(uint64_t test_result) {
+    if (test_state->ran == true) {
+        FILE *stream = fmemopen(test_state->dump_context_observed, TACTYK_TEST__DUMP_BUFSIZE, "w");
+        tactyk_debug__write_context(vmctx, stream);
+        fflush(stream);
+        fclose(stream);
 
-    FILE *stream = fmemopen(test_state->dump_context_observed, TACTYK_TEST__DUMP_BUFSIZE, "w");
-    tactyk_debug__write_context(vmctx, stream);
-    fflush(stream);
-    fclose(stream);
+        stream = fmemopen(test_state->dump_context_expectation, TACTYK_TEST__DUMP_BUFSIZE, "w");
+        tactyk_debug__write_context(shadow_vmctx, stream);
+        fflush(stream);
+        fclose(stream);
 
-    stream = fmemopen(test_state->dump_context_expectation, TACTYK_TEST__DUMP_BUFSIZE, "w");
-    tactyk_debug__write_context(shadow_vmctx, stream);
-    fflush(stream);
-    fclose(stream);
+        stream = fmemopen(test_state->dump_stack_observed, TACTYK_TEST__DUMP_BUFSIZE, "w");
+        tactyk_debug__write_vmstack(vmctx, stream);
+        fflush(stream);
+        fclose(stream);
 
-    stream = fmemopen(test_state->dump_stack_observed, TACTYK_TEST__DUMP_BUFSIZE, "w");
-    tactyk_debug__write_vmstack(vmctx, stream);
-    fflush(stream);
-    fclose(stream);
-
-    stream = fmemopen(test_state->dump_stack_expectation, TACTYK_TEST__DUMP_BUFSIZE, "w");
-    tactyk_debug__write_vmstack(shadow_vmctx, stream);
-    fflush(stream);
-    fclose(stream);
+        stream = fmemopen(test_state->dump_stack_expectation, TACTYK_TEST__DUMP_BUFSIZE, "w");
+        tactyk_debug__write_vmstack(shadow_vmctx, stream);
+        fflush(stream);
+        fclose(stream);
+    }
 
     test_state->test_result = test_result;
     _exit(0);
@@ -717,8 +721,10 @@ uint64_t tactyk_test__next(struct tactyk_dblock__DBlock *test_spec) {
     if (token != NULL) {
         tactyk_emit__test_func tfunc = tactyk_dblock__get(test_functions, test_spec->token);
         if (tfunc == NULL) {
-            error("Undefined test function", test_spec);
-            return TACTYK_TESTSTATE__FAIL;
+            char buf[64];
+            tactyk_dblock__export_cstring(buf, 64, token);
+            sprintf(test_state->report, "Undefined test function: %s\n", buf);
+            return TACTYK_TESTSTATE__TEST_ERROR;
         }
         else {
             tresult = tfunc(test_spec);
@@ -783,7 +789,7 @@ uint64_t tactyk_test__EXEC(struct tactyk_dblock__DBlock *spec) {
 
     // By default, expect the program to exit normally (by placing the 'STATUS_HALT' code in the shadow context)
     shadow_vmctx->STATUS = 4;
-
+    test_state->ran = true;
     return TACTYK_TESTSTATE__PASS;
 }
 uint64_t tactyk_test__RECV_CCALL(struct tactyk_dblock__DBlock *spec) {
