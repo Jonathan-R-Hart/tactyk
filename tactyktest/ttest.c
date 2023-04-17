@@ -52,6 +52,7 @@ typedef uint64_t (tactyk_test__VALUE_TESTER) (struct tactyk_test_entry *entry, s
 
 // abstract test handler
 struct tactyk_test_entry {
+    char *name;
     tactyk_test__VALUE_ADJUSTER *adjust;        // Setter to use during STATE opreation
     tactyk_test__VALUE_TESTER *test;            // Test function to use for TEST operation
     uint64_t element_offset;    // object member to access
@@ -946,7 +947,7 @@ bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tac
     shadow_vmctx->STATUS = (uint64_t) ival;
     return true;
 }
-uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *expected_value) {
+uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *expected_value) {
     int64_t ival = 0;
     if (!tactyk_dblock__try_parseint(&ival, expected_value)) {
         tactyk_test__report("Test value parameter is not an integer");
@@ -957,6 +958,7 @@ uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *entry, struc
         return TACTYK_TESTSTATE__PASS;
     }
     else {
+        sprintf(test_state->report, "context status deviation, expected:%ju observed:%ju", vmctx->STATUS, (uint64_t)ival);
         return TACTYK_TESTSTATE__FAIL;
     }
 }
@@ -1005,41 +1007,42 @@ bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tac
     }
 }
 
-uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *expected_value) {
+uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *expected_value) {
     int64_t ival = 0;
     if (!tactyk_dblock__try_parseint(&ival, expected_value)) {
         tactyk_test__report("Test value parameter is not an integer");
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
-    bool pass = false;
-    switch(entry->element_offset) {
+    uint64_t uival = (uint64_t)ival;
+    uint64_t stval = 0;
+    switch(valtest_spec->element_offset) {
         case 0: {
-            pass = vmctx->reg.rA == (uint64_t) ival;
+            stval = vmctx->reg.rA;
             shadow_vmctx->reg.rA = vmctx->reg.rA;
             break;
         }
         case 1: {
-            pass = vmctx->reg.rB == (uint64_t) ival;
+            stval = vmctx->reg.rB;
             shadow_vmctx->reg.rB = vmctx->reg.rB;
             break;
         }
         case 2: {
-            pass = vmctx->reg.rC == (uint64_t) ival;
+            stval = vmctx->reg.rC;
             shadow_vmctx->reg.rC = vmctx->reg.rC;
             break;
         }
         case 3: {
-            pass = vmctx->reg.rD == (uint64_t) ival;
+            stval = vmctx->reg.rD;
             shadow_vmctx->reg.rD = vmctx->reg.rD;
             break;
         }
         case 4: {
-            pass = vmctx->reg.rE == (uint64_t) ival;
+            stval = vmctx->reg.rE;
             shadow_vmctx->reg.rE = vmctx->reg.rE;
             break;
         }
         case 5: {
-            pass = vmctx->reg.rF == (uint64_t) ival;
+            stval = vmctx->reg.rF;
             shadow_vmctx->reg.rF = vmctx->reg.rF;
             break;
         }
@@ -1048,10 +1051,12 @@ uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *entry, struct
             return TACTYK_TESTSTATE__TEST_ERROR;
         }
     }
-    if (pass) {
+
+    if (stval == uival) {
         return TACTYK_TESTSTATE__PASS;
     }
     else {
+        sprintf(test_state->report, "deviation on register %s, expected:%ju observed:%ju", valtest_spec->name, stval, uival);
         return TACTYK_TESTSTATE__FAIL;
     }
 }
@@ -1151,14 +1156,14 @@ bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struc
     return TACTYK_TESTSTATE__PASS;
 }
 
-uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *expected_value) {
+uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *expected_value) {
     double fval = 0;
     if (!tactyk_dblock__try_parsedouble(&fval, expected_value)) {
         tactyk_test__report("Test parameter is not a floating point number");
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
     double stval = 0;
-    switch(entry->element_offset) {
+    switch(valtest_spec->element_offset) {
         case 0: {
             stval = vmctx->reg.xa.f64[0];
             shadow_vmctx->reg.xa.f64[0] = vmctx->reg.xa.f64[0];
@@ -1249,12 +1254,14 @@ uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, 
         return TACTYK_TESTSTATE__PASS;
     }
     else {
+        sprintf(test_state->report, "deviation on register %s, expected:%f observed:%f", valtest_spec->name, fval, stval);
         return TACTYK_TESTSTATE__FAIL;
     }
 }
 
 void tactyk_test__mk_var_test(char *name, tactyk_test__VALUE_ADJUSTER setter, tactyk_test__VALUE_TESTER *tester) {
     struct tactyk_test_entry *entry = tactyk_dblock__new_managedobject(base_tests, name);
+    entry->name = name;
     entry->adjust = setter;
     entry->test = tester;
     entry->element_offset = 0;
@@ -1263,6 +1270,7 @@ void tactyk_test__mk_var_test(char *name, tactyk_test__VALUE_ADJUSTER setter, ta
 
 void tactyk_test__mk_data_register_test(char *name, uint64_t ofs) {
     struct tactyk_test_entry *entry = tactyk_dblock__new_managedobject(base_tests, name);
+    entry->name = name;
     entry->adjust = tactyk_test__SET_DATA_REGISTER;
     entry->test = tactyk_test__TEST_DATA_REGISTER;
     entry->element_offset = ofs;
@@ -1270,6 +1278,7 @@ void tactyk_test__mk_data_register_test(char *name, uint64_t ofs) {
 }
 void tactyk_test__mk_xmm_register_test(char *name, uint64_t ofs) {
     struct tactyk_test_entry *entry = tactyk_dblock__new_managedobject(base_tests, name);
+    entry->name = name;
     entry->adjust = tactyk_test__SET_XMM_REGISTER_FLOAT;
     entry->test = tactyk_test__TEST_XMM_REGISTER_FLOAT;
     entry->element_offset = ofs;
