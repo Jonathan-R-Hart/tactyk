@@ -1,4 +1,11 @@
-# Immedaite assignment test
+# TEST:  Assign value of immediate operand to data register
+#
+# This tests basic assignment operations, immediate operand scrambling (all classes), and resolution of defined constants
+#
+# Virtual-ISA: tactyk_core
+# Templates:  assign data-const (DC), assign-data-integer (DI)
+# 
+
 PROGRAM
   const cnst_byte 101
   const cnst_word 2000
