@@ -279,12 +279,9 @@ instruction bind
     scramble rTEMPA $LD_SRC_IMMEDIATE
   select-template
 
-    # matches memory-block symbol
     case AD
       code
         mov rTEMPA, $SRC
-        
-        # checks omitted because memory block symbols are validated by tactyk
         
         cmp $SRC, 0
         errorlt STATUS_ROGUE_POINTER
@@ -308,7 +305,6 @@ instruction bind
         xor rTEMPD, rTEMPD
         jmp $NEXT_INSTRUCTION
     
-    # matchs data register or integer immediate
     case AM AI
       code
         $LD_SRC_IMMEDIATE
@@ -317,6 +313,9 @@ instruction bind
         errorlt STATUS_ROGUE_POINTER
         cmp rTEMPA, fs:[context.memblocks_count]
         errorge STATUS_ROGUE_POINTER
+        
+        lfence
+        
         imul rTEMPA, 24
         add rTEMPA, fs:[context.memblocks]
         mov $ADDRESS_REGISTER, [rTEMPA]
@@ -331,6 +330,30 @@ instruction bind
         xor rTEMPC, rTEMPC
         xor rTEMPD, rTEMPD
         jmp $NEXT_INSTRUCTION
+    
+    # Memblock index bounds check is handled by the compiler, so this version probably would be valid.
+    # However there also does not seem much point in having this variant, as memory block binding is not expected to be a frequent
+    # operation outside of degenerate cases.  (If many objects need to be accessed, a large memory block holding an object pool should
+    # be used)
+    #
+    # case AM 
+    #  code
+    #    $LD_SRC_IMMEDIATE
+    #
+    #    imul rTEMPA, 24
+    #    add rTEMPA, fs:[context.memblocks]
+    #    mov $ADDRESS_REGISTER, [rTEMPA]
+    #    mov fs:[$CTX_ADDR], $ADDRESS_REGISTER
+    #    
+    #    mov rTEMPC, [rTEMPA+8]
+    #    mov rTEMPD, [rTEMPA+16]
+    #    mov fs:[$CTX_ADDR+8], rTEMPC
+    #    mov fs:[$CTX_ADDR+16], rTEMPD
+    #    
+    #    xor rTEMPA, rTEMPA
+    #    xor rTEMPC, rTEMPC
+    #    xor rTEMPD, rTEMPD
+    #    jmp $NEXT_INSTRUCTION
 
 # Read a word from a memory block and write it to a register
 # NOTICE:  This instruction will need to be reviewed for spectre/meltdown mitigations 
