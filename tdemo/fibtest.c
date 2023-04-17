@@ -34,6 +34,7 @@ char *fibtest_src = {
             add a b
             dec c
             if c > 0 FIBLOOP
+            assign d "tactyk"
             tcall dump-ctx
             exit
         DIAG:

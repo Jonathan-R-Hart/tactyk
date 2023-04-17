@@ -995,7 +995,7 @@ instruction assign
     type data xmmx address-offset
     $A $VALUE
   operand
-    type data xmmx const fconst address-offset context-property integer float
+    type data xmmx const fconst address-offset context-property integer float string
     $B $VALUE
     scramble rTEMPA $LD_B_IMMEDIATE
     scramble rTEMPC $LD_B_HIGHBITS_IMMEDIATE $VALUE_UPPER
