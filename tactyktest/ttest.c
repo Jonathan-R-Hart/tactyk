@@ -159,7 +159,7 @@ char **testfilenames;
 uint64_t max_active_jobs = 1;
 
 int main(int argc, char *argv[], char *envp[]) {
-    printf("%s\n", TACTYK_TEST__DESCRIPTION);
+    printf("%s\n\n", TACTYK_TEST__DESCRIPTION);
     tests_completed = 0;
     tests_started = 0;
     testfilenames = calloc(argc, sizeof(void*));
@@ -194,6 +194,14 @@ int main(int argc, char *argv[], char *envp[]) {
     if (max_active_jobs <= 0) {
         max_active_jobs = 1;
     }
+
+    FILE *tout = fopen("ttest.log", "w");
+    fprintf(tout, "TACTYK-TEST RESULTS\n");
+    time_t test_starttime = time(NULL);
+    fprintf(tout, "%ju job(s)\n", max_active_jobs);
+    fprintf(tout, "%s", asctime(localtime(&test_starttime)));
+    fprintf(tout, "-------------------------\n\n");
+
     // prepare one block of shared memory for each slot.
     //  This is to be used to get test results from child processes.
     tstate_list = calloc(max_active_jobs, sizeof(void*));
@@ -223,6 +231,7 @@ int main(int argc, char *argv[], char *envp[]) {
                         switch(pid) {
                             case -1: {
                                 printf("ERROR:  fork() failed.  Is %ju processes perhaps too much?\n", max_active_jobs);
+                                fprintf(tout, "ERROR:  fork() failed.  Is %ju processes perhaps too much?\n", max_active_jobs);
                                 exit(1);
                                 break;
                             }
@@ -247,35 +256,99 @@ int main(int argc, char *argv[], char *envp[]) {
                 case TACTYK_TESTSTATE__TEST_ERROR: {
                     errored += 1;
                     tests_completed += 1;
-                    printf("ERROR: '%s':\n", tstate->fname);
-                    puts(tstate->report);
+
+                    fprintf(tout, "TEST ERROR\n");
+                    fprintf(tout, "TEST: %s\n", tstate->fname);
+                    if (tstate->report[0] != 0) {
+                        fprintf(tout, "REPORT: %s\n", tstate->report);
+                    }
+                    if (tstate->error[0] != 0) {
+                        fprintf(tout, "ERROR: %s\n", tstate->report);
+                    }
+                    if (tstate->warning[0] != 0) {
+                        fprintf(tout, "WARNING: %s\n", tstate->report);
+                    }
+                    fprintf(tout, "\n");
+
+                    printf("\\");
+                    fflush(stdout);
+
                     tactyk_test__reset_state(tstate);
-                    printf("\n");
                     break;
                 }
                 case TACTYK_TESTSTATE__EXIT: {
                     errored += 1;
                     tests_completed += 1;
-                    printf("ERROR: '%s':\n", tstate->fname);
-                    printf("Test returned invalid test result 'TEST_RESULT__EXIT'\n");
-                    printf("TACTYK is **supposed** to return TEST_RESULT__PASS or TEST_RESULT__FAIL or TEST_RESULT__ERROR\n");
-                    printf("Excellent work, TACTYK!\n");
-                    puts(tstate->report);
-                    printf("\n");
+
+                    fprintf(tout, "%s\n", tstate->fname);
+                    fprintf(tout, "TEST-FRAMEWORK ERROR:  Invalid test result returned (TACTYK_TESTSTATE__EXIT)\n");
+                    if (tstate->report[0] != 0) {
+                        fprintf(tout, "REPORT: %s\n", tstate->report);
+                    }
+                    if (tstate->error[0] != 0) {
+                        fprintf(tout, "ERROR: %s\n", tstate->report);
+                    }
+                    if (tstate->warning[0] != 0) {
+                        fprintf(tout, "WARNING: %s\n", tstate->report);
+                    }
+                    fprintf(tout, "\n");
+
+                    printf("/");
+                    fflush(stdout);
+
                     tactyk_test__reset_state(tstate);
                     break;
                 }
                 case TACTYK_TESTSTATE__PASS: {
                     passed += 1;
                     tests_completed += 1;
-                    printf("PASS:  '%s'\n", tstate->fname);
+
+                    if ( (tstate->report[0] != 0) | (tstate->error[0] != 0) | (tstate->warning[0] != 0) ) {
+                        fprintf(tout, "PASS WITH RESERVATIONS\n");
+                        fprintf(tout, "TEST: %s\n", tstate->fname);
+                        if (tstate->report[0] != 0) {
+                            fprintf(tout, "REPORT: %s\n", tstate->report);
+                        }
+                        if (tstate->error[0] != 0) {
+                            fprintf(tout, "ERROR: %s\n", tstate->report);
+                        }
+                        if (tstate->warning[0] != 0) {
+                            fprintf(tout, "WARNING: %s\n", tstate->report);
+                        }
+                    }
+                    printf(".");
+                    fflush(stdout);
+                    //printf("PASS:  '%s'\n", tstate->fname);
                     tactyk_test__reset_state(tstate);
                     break;
                 }
                 case TACTYK_TESTSTATE__FAIL: {
                     failed += 1;
                     tests_completed += 1;
-                    printf("FAIL:  '%s'\n", tstate->fname);
+
+                    fprintf(tout, "FAILURE\n");
+                    fprintf(tout, "TEST: %s\n", tstate->fname);
+
+                    if (tstate->report[0] != 0) {
+                        fprintf(tout, "REPORT: %s\n", tstate->report);
+                    }
+                    if (tstate->error[0] != 0) {
+                        fprintf(tout, "ERROR: %s\n", tstate->report);
+                    }
+                    if (tstate->warning[0] != 0) {
+                        fprintf(tout, "WARNING: %s\n", tstate->report);
+                    }
+                    fprintf(tout, "EXPECTED CONTEXT STATE:\n%s\n", tstate->dump_context_expectation);
+                    fprintf(tout, "OBSERVED CONTEXT STATE:\n%s\n", tstate->dump_context_observed);
+
+                    fprintf(tout, "EXPECTED STACK:\n%s\n", tstate->dump_stack_expectation);
+                    fprintf(tout, "OBSERVED STACK:\n%s\n", tstate->dump_stack_observed);
+
+                    fprintf(tout, "\n");
+
+                    printf("X");
+                    fflush(stdout);
+                    //printf("FAIL:  '%s'\n", tstate->fname);
                     tactyk_test__reset_state(tstate);
                     break;
                 }
@@ -287,8 +360,14 @@ int main(int argc, char *argv[], char *envp[]) {
                         int sig = WTERMSIG(status);
                         failed += 1;
                         tests_completed += 1;
-                        printf("FAIL: '%s'\n", tstate->fname);
-                        printf("Test process termination detected:  %s\n", strsignal(sig));
+                        fprintf(tout, "FAILURE\n");
+                        fprintf(tout, "TEST: %s\n", tstate->fname);
+                        fprintf(tout, "TERMINATED BY SIGNAL:  %s\n", strsignal(sig));
+                        fprintf(tout, "\n");
+
+                        printf("X");
+                        fflush(stdout);
+
                         tactyk_test__reset_state(tstate);
                     }
                     else {
@@ -296,8 +375,15 @@ int main(int argc, char *argv[], char *envp[]) {
                         if (age >= tstate->max_age) {
                             failed += 1;
                             tests_completed += 1;
-                            printf("FAIL: '%s'\n", tstate->fname);
-                            printf("Test process did not complete within %f seconds.\n", tstate->max_age);
+
+                            fprintf(tout, "FAILURE\n");
+                            fprintf(tout, "TEST: %s\n", tstate->fname);
+                            fprintf(tout, "TEST PROCESSES HUNG (run time exceeded %f seconds)\n", tstate->max_age);
+                            fprintf(tout, "\n");
+
+                            printf("X");
+                            fflush(stdout);
+
                             kill(tstate->pid, 1);
                             int status;
                             waitpid(-1, &status, 0);
@@ -309,12 +395,15 @@ int main(int argc, char *argv[], char *envp[]) {
                 default: {
                     errored += 1;
                     tests_completed += 1;
-                    printf("ERROR: '%s':\n", tstate->fname);
-                    printf("Test returned unrecognized test result '%ju'\n", tstate->test_result);
-                    printf("TACTYK is **supposed** to output a TEST_RESULT__PASS or TEST_RESULT__FAIL or TEST_RESULT__ERROR\n");
-                    printf("Excellent work, TACTYK!\n");
-                    puts(tstate->report);
-                    printf("\n");
+
+                    fprintf(tout, "TEST ERROR\n");
+                    fprintf(tout, "TEST: %s\n", tstate->fname);
+                    fprintf(tout, "REPORT:  Invalid test result returned (%ju)\n", tstate->test_result);
+                    fprintf(tout, "\n");
+
+                    printf("/");
+                    fflush(stdout);
+
                     tactyk_test__reset_state(tstate);
                     break;
                 }
@@ -324,11 +413,24 @@ int main(int argc, char *argv[], char *envp[]) {
         usleep(100000);
     }
 
-    printf("TEST RESULTS: \n");
+
+    time_t test_endtime = time(NULL);
+    double test_age = difftime(test_endtime, test_starttime);
+
+    fprintf(tout, "-------------------------\n");
+    fprintf(tout, "TEST RESULTS: \n");
+    fprintf(tout, "Total tests: %ju\n", test_count);
+    fprintf(tout, "passed: %ju\n", passed);
+    fprintf(tout, "failed: %ju\n", failed);
+    fprintf(tout, "test errors: %ju\n", errored);
+    fprintf(tout, "total run time:  %f seconds\n", test_age);
+
+    printf("\n\nTEST RESULTS: \n");
     printf("Total tests: %ju\n", test_count);
     printf("passed: %ju\n", passed);
     printf("failed: %ju\n", failed);
     printf("test errors: %ju\n", errored);
+    printf("total run time:  %f seconds\n", test_age);
 
     // release shared memory.
     for (uint64_t i = 0; i < max_active_jobs; i += 1) {
@@ -336,16 +438,19 @@ int main(int argc, char *argv[], char *envp[]) {
         munmap(ts, sizeof(struct tactyk_test__Status));
     }
     free(tstate_list);
-    return 0;
+    if (passed == test_count) {
+        return 0;
+    }
+    else if (errored == 0) {
+        return 1;
+    }
+    else {
+        return 2;
+    }
 }
 void tactyk_test__prepare(struct tactyk_test__Status *tstate) {
-    //printf("prepare...\n");
-    //printf("tstarted: %ju\n", tests_started);
-    //printf("numtests: %ju\n", test_count);
     memset(tstate->fname, 0, TACTYK_TEST__FNAME_BUFSIZE);
     strncpy(tstate->fname, testfilenames[tests_started], TACTYK_TEST__FNAME_BUFSIZE-1);
-    //printf("fptr:  %p\n", testfiles);
-    //strncpy(tstate->fname, finf->fname, sizeof(finf->fname));
     tstate->start_time = time(NULL);
     tstate->max_age = 4.0;
     tstate->pid = 0;
@@ -577,7 +682,6 @@ void tactyk_test__report(char *msg) {
 }
 
 void tactyk_test__exit(uint64_t test_result) {
-    printf("TEST RESULT:  %ju\n", test_result);
 
     FILE *stream = fmemopen(test_state->dump_context_observed, TACTYK_TEST__DUMP_BUFSIZE, "w");
     tactyk_debug__write_context(vmctx, stream);
@@ -599,15 +703,6 @@ void tactyk_test__exit(uint64_t test_result) {
     fflush(stream);
     fclose(stream);
 
-    if (test_state->report[0] != 0) {
-        printf("REPORT MESSAGE:  '%s'\n", test_state->report);
-    }
-    if (test_state->warning[0] != 0) {
-        printf("ERROR MESSAGE:  '%s'\n", test_state->error);
-    }
-    if (test_state->warning[0] != 0) {
-        printf("WARNING MESSAGE:  '%s'\n", test_state->warning);
-    }
     test_state->test_result = test_result;
     _exit(0);
 }
@@ -854,17 +949,14 @@ bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tac
 uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *expected_value) {
     int64_t ival = 0;
     if (!tactyk_dblock__try_parseint(&ival, expected_value)) {
-    printf("test-status:  error\n");
         tactyk_test__report("Test value parameter is not an integer");
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
     shadow_vmctx->STATUS = vmctx->STATUS;
     if (vmctx->STATUS == (uint64_t) ival) {
-    printf("test-status:  pass\n");
         return TACTYK_TESTSTATE__PASS;
     }
     else {
-    printf("test-status:  fail\n");
         return TACTYK_TESTSTATE__FAIL;
     }
 }

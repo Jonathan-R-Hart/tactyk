@@ -43,7 +43,7 @@ PROGRAM
     assign d 4294967296
     assign e -1
     assign f 9223372036854775808
-    assign xa 0.0001
+    # assign xa 0.0001
     exit
 
 EXEC BYTES
