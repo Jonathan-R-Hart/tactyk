@@ -14,6 +14,8 @@ element_bound properties now are an alias for stride/element-size
   Bounds checks are now handled in ASM by offsetting element_bound as to fit the word size
   (bytes can now be written and up to the high edge of an element, while still preventing large words from spilling)
 
+Added a function which invokes tactyk and returns false if it ends in an invalid state instead of throwing an exception.
+
 13-17 Apr 2023
 Added an automated testing system
   This was primarilly motivated by the ever-increasing tediousness of manual testing.

@@ -117,6 +117,8 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
 void tactyk_test__mk_data_register_test(char *name, uint64_t ofs);
 void tactyk_test__mk_xmm_register_test(char *name, uint64_t ofs);
 
+void tactyk_test__report(char *msg);
+
 struct tactyk_dblock__DBlock *base_tests;
 
 struct tactyk_emit__Context *emitctx;
@@ -507,7 +509,6 @@ void tactyk_test__warning_handler(char *msg, void *data) {
 }
 
 void tactyk_test__error_handler(char *msg, void *data) {
-
     memset(test_state->error, 0, TACTYK_TEST__REPORT_BUFSIZE);
     strncpy(test_state->error, msg, TACTYK_TEST__REPORT_BUFSIZE);
     int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-1;
@@ -528,26 +529,14 @@ void tactyk_test__error_handler(char *msg, void *data) {
     }
 
     if (test_spec != NULL) {
-        if (tactyk_dblock__equals(test_spec->token, ERROR_TOKEN)) {
-            if (test_spec->token->next == NULL) {
-                // if an expected error is received and the error specifier is the final command, the test passes.
-                // TODO:  Error codes (because I dont want to resort to string comparisons to verify the correctness of the error)
-                tactyk_test__exit(TACTYK_TESTSTATE__PASS);
-            }
-            else {
-                // if an expected error is received but there are additional commands, it's a test error.
-                sprintf(test_state->report, "test truncated by error (unreachable code in test)");
-                tactyk_test__exit(TACTYK_TESTSTATE__TEST_ERROR);
-            }
-        }
-        else {
-            // unexpected errors are a test failure.
-            tactyk_test__exit(TACTYK_TESTSTATE__FAIL);
-        }
+        // unexpected errors are a test failure.
+        tactyk_test__report("Unexpected error");
+        tactyk_test__exit(TACTYK_TESTSTATE__FAIL);
     }
     else {
         // failure at the end of the test
         //  (only expected to occur if a test ends with an EXEC command it triggers an error)
+        tactyk_test__report("Unexpected error at end of test");
         tactyk_test__exit(TACTYK_TESTSTATE__FAIL);
     }
 }
@@ -829,7 +818,7 @@ uint64_t tactyk_test__EXEC(struct tactyk_dblock__DBlock *spec) {
     }
     if (func_name == NULL) {
         tactyk_asmvm__prepare_invoke(shadow_vmctx, tprg, "MAIN");
-        tactyk_asmvm__invoke(vmctx, tprg, "MAIN");
+        tactyk_asmvm__call(vmctx, tprg, "MAIN");
     }
     else {
         char buf[64];
@@ -844,10 +833,10 @@ uint64_t tactyk_test__EXEC(struct tactyk_dblock__DBlock *spec) {
             snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "EXEC -- Can not call invalid function '%s.%s'", bufpn, buffn);
             return TACTYK_TESTSTATE__TEST_ERROR;
         }
-        tactyk_asmvm__invoke(vmctx, tprg, buf);
+        tactyk_asmvm__call(vmctx, tprg, buf);
     }
-
     // By default, expect the program to exit normally (by placing the 'STATUS_HALT' code in the shadow context)
+
     shadow_vmctx->STATUS = 4;
     test_state->ran = true;
     return TACTYK_TESTSTATE__PASS;

@@ -8,6 +8,7 @@
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #include <sys/mman.h>
+#include <stdint.h>
 
 #include "tactyk.h"
 #include "tactyk_asmvm.h"
@@ -107,6 +108,20 @@ bool tactyk_asmvm__prepare_invoke(struct tactyk_asmvm__Context *context, struct 
     return (iptr < prog->length);
 }
 
+bool tactyk_asmvm__call(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname) {
+    if (tactyk_asmvm__prepare_invoke(context, prog, funcname)) {
+        uint64_t result = prog->run(context);
+        if (result < 100) {
+            result = context->STATUS;
+        }
+
+        // indicate if the machine is in a valid state
+        return (result == 2) || (result == 3) || (result == 4);
+    }
+    else {
+        return false;
+    }
+}
 void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname) {
     if (tactyk_asmvm__prepare_invoke(context, prog, funcname)) {
         uint64_t result = prog->run(context);
