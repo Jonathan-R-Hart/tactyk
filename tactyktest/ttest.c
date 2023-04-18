@@ -1634,7 +1634,7 @@ uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *valtest_spec,
         return TACTYK_TESTSTATE__PASS;
     }
     else {
-        sprintf(test_state->report, "deviation on register %s, expected:%ju observed:%ju", valtest_spec->name, stval, uival);
+        sprintf(test_state->report, "deviation on register %s, expected:%ju observed:%ju", valtest_spec->name, uival, stval);
         return TACTYK_TESTSTATE__FAIL;
     }
 }

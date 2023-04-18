@@ -143,11 +143,11 @@ typespec context-property
     case addr1.element_bound
       value context.addr1_element_bound
       $KW dword
-    case addr1.left
-      value context.addr1_left
+    case addr1.index
+      value context.addr1_memblock_index
       $KW dword
-    case addr1.right
-      value context.addr1_right
+    case addr1.type
+      value context.addr1_type
       $KW dword
     case addr2.array_bound
       value context.addr2_array_bound
@@ -155,11 +155,11 @@ typespec context-property
     case addr2.element_bound
       value context.addr2_element_bound
       $KW dword
-    case addr2.left
-      value context.addr2_left
+    case addr2.index
+      value context.addr2_memblock_index
       $KW dword
-    case addr2.right
-      value context.addr2_right
+    case addr2.type
+      value context.addr2_type
       $KW dword
     case addr3.array_bound
       value context.addr3_array_bound
@@ -167,11 +167,11 @@ typespec context-property
     case addr3.element_bound
       value context.addr3_element_bound
       $KW dword
-    case addr3.left
-      value context.addr3_left
+    case addr3.index
+      value context.addr3_memblock_index
       $KW dword
-    case addr3.right
-      value context.addr3_right
+    case addr3.type
+      value context.addr3_type
       $KW dword
     case addr4.array_bound
       value context.addr4_array_bound
@@ -179,11 +179,11 @@ typespec context-property
     case addr4.element_bound
       value context.addr4_element_bound
       $KW dword
-    case addr4.left
-      value context.addr4_left
+    case addr4.index
+      value context.addr4_memblock_index
       $KW dword
-    case addr4.right
-      value context.addr4_right
+    case addr4.type
+      value context.addr4_type
       $KW dword
   pick Ctx
 
