@@ -272,7 +272,6 @@ void tactyk_pl__define_mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock_
             layout = &default_mem_layout;
         }
     }
-
     // almost retained the old scheme for maintaining a contiguous list of structs
     //      (then rememebered that dblock-container covers that case as well)
 
@@ -402,139 +401,90 @@ bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
     return true;
 }
 
-//void tactyk_pl__data(struct tactyk_emit__Context *emitctx, struct tactyk_pl__thing *__tokens) {
 bool tactyk_pl__data(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
-    //struct tactyk_emit__Context *ectx = ctx->emitctx;
-    //struct tactyk_asmvm__memblock_lowlevel *m_ll;
-    //struct tactyk_asmvm__memblock_highlevel *m_hl;
+    struct tactyk_emit__Context *ectx = ctx->emitctx;
 
-    //m_ll->type = TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC;
-    //m_hl->type = TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC;
-    error("PL -- data directive not implemented.", NULL);
+    struct tactyk_asmvm__memblock_lowlevel *m_ll;
+    struct tactyk_asmvm__memblock_highlevel *m_hl;
+
+    tactyk_pl__define_mem(ctx, dblock, &m_ll, &m_hl);
+
+
+    m_ll->type = TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC;
+    m_hl->type = TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC;
+
+    struct tactyk_asmvm__struct *layout = m_hl->definition;
+
+    uint64_t lpos = 0;
+    uint64_t dpos = 0;
+    uint64_t elem = 0;
+    struct tactyk_dblock__DBlock *line = dblock->child;
+    uint64_t max_elements = layout->num_properties * m_hl->num_entries;
+
+
+    uint8_t *data = tactyk_alloc__allocate(m_hl->num_entries, layout->byte_stride);
+
+    m_hl->data = data;
+    m_ll->base_address = data;
+
+
+    while (line != NULL) {
+        struct tactyk_dblock__DBlock *token = line->token;
+        while (token != NULL) {
+            struct tactyk_asmvm__property *prop = &layout->properties[lpos];
+
+            int64_t i64val = 0;
+            double f64val = 0;
+            bool is_int_valid = tactyk_dblock__try_parseint(&i64val, token);
+            bool is_float_valid = tactyk_dblock__try_parsedouble(&f64val, token);
+
+            if (is_int_valid) {
+                uint64_t nbytes = prop->byte_width;
+                if (nbytes > 8) {
+                    nbytes = 8;
+                }
+                memcpy(&data[dpos], &i64val, nbytes);
+                //for (int64_t i = 0; i < nbytes; i++) {
+                //    uint64_t d = dpos;
+                //    data[d] = (uint8_t)ui64val;
+                //    uival >>= 8;
+                //    d += 1;
+                //}
+            }
+            else if (is_float_valid) {
+                if (prop->byte_width <= 3) {
+                    char errbuf[1024];
+                    snprintf(errbuf, 1024, "PL -- The mysterious %ju-byte floating point format is not available.", prop->byte_width);
+                    error(errbuf, NULL);
+                }
+                else if (prop->byte_width <= 7) {
+                    float f32val = (float)f64val;
+                    memcpy(&data[dpos], &f32val, 4);
+                }
+                else {
+                    memcpy(&data[dpos], &f64val, 8);
+                }
+            }
+
+            dpos += prop->byte_width;
+            lpos = (lpos + 1) % layout->num_properties;
+            elem += 1;
+            token = token->next;
+
+            if (elem >= max_elements) {
+                if ( (token != NULL) || (line->next != NULL) ) {
+                    char errbuf[1024];
+                    char buf[64];
+                    tactyk_dblock__export_cstring(buf, 64, dblock->token->next);
+                    snprintf(errbuf, 1024, "PL -- data block '%s' truncated:  can not fit all data into declared memblock.", buf);
+                    warn(errbuf, NULL);
+                }
+                return true;
+            }
+        }
+        line = line->next;
+    }
     return true;
-    /*
-    struct tactyk_pl__thing *tok = &__tokens[0];
-
-    if (tok->text[0] == 0) {
-        fprintf(stderr, "ERROR:  name required for data block!\n");
-        exit(1);
-    }
-
-    char *name = tactyk_textbuf__store(tkpl_sttext, tok->text);
-
-    int64_t id = tactyk_pl__symdat->num_memblocks++;
-
-    struct tactyk_asmvm__memblock *mb = &tactyk_pl__symdat->memlist[id];
-    tactyk_table__add_strkey(tactyk_pl__symdat->memtbl, name, mb);
-
-    tok = &__tokens[1];
-    tactyk_pl__tokenize_block_simple(tok);
-
-    int64_t num_items = MAX_BLOCK_TOKENS;
-    for (int64_t i = 0; i < MAX_BLOCK_TOKENS; i++) {
-        char *entry = tok->block_tokens[i];
-        if ((entry == NULL) || (entry[0] == 0)) {
-            num_items = i;
-            break;
-        }
-    }
-
-    // if a struct matching the data-block's name is defined, fetch it
-    struct tactyk_asmvm__struct *def =  tactyk_table__get_strkey(tactyk_pl__symdat->structtbl, name);
-
-    // if no such struct is defined, invent one.  Default structure is a flat array of 8-byte words large enough to fit the entire data block.
-    if (def == NULL) {
-        def = &tactyk_pl__symdat->structlist[tactyk_pl__symdat->num_structs++];
-        tactyk_table__add_strkey(tactyk_pl__symdat->structtbl, name, def);
-
-        def->num_properties = num_items;
-
-        def->name = name;
-        struct tactyk_asmvm__property *props = talloc(def->num_properties, sizeof(struct tactyk_asmvm__property));
-        def->properties = props;
-
-        // define generic properties (for now).
-        for (int64_t i = 0; i < def->num_properties; i++) {
-            //props[i].dtype = TXDTYPE_INT;
-            props[i].byte_width = 8;
-            props[i].byte_offset = i*8;
-            props[i].name = "";
-            //mb->data[i]
-        }
-        def->byte_stride = def->num_properties * 8;
-        mb->num_entries = 1;
-    }
-    else {
-        // calculate the width in "structs" of the contents of the data block.
-        mb->num_entries = (num_items+(def->num_properties)-1)/def->num_properties+1;
-
-        // if an empty data block, force a single entry.
-        if (mb->num_entries == 0) {
-            mb->num_entries = 1;
-        }
-    }
-
-    // allocate the block
-    mb->data = talloc(mb->num_entries, def->byte_stride);
-    mb->definition = def;
-    mb->memblock_id = next_memblock_id++;
-
-
-    // parse tokens from the simply-tokenized block and copy them into the newly allocated memory.
-    for (int64_t i = 0; i < MAX_BLOCK_TOKENS; i++) {
-        char *item = tok->block_tokens[i];
-
-        // if a terminal token, end.
-        if ((item == NULL)  || (item[0] == 0)) {
-            break;
-        }
-        // skip struct entries which are only for designating layout/spacing.
-        //      This is represented in the input as '.'
-        //      This is not presently represented part of the struct definition
-        //      (would like it to be, but adding a symbol to denote which struct entries should be disregarded when parsing data blocks would make struct syntax complex for little gain)
-        if ((item[0] == '.') && (item[1] == 0)) {
-            continue;
-        }
-        // use information from the struct to determine where to put the item.
-        int64_t entry_id = i/def->num_properties;
-        int64_t prop_index = i%def->num_properties;
-        struct tactyk_asmvm__property *prop = &def->properties[prop_index];
-        int64_t nbytes = prop->byte_width;
-        if (nbytes <= 0) {
-            continue;
-        }
-        if (nbytes > 8) {
-            nbytes = 8;
-        }
-
-        // reduce to parsed item and offset.
-        int64_t ofs = prop->byte_offset;
-        int64_t value = atoll(item);
-
-        // write to memory.
-        memcpy(
-            &mb->data[(entry_id*def->byte_stride) + ofs],   // entry position + property offset
-            (int8_t*)&value,                                // bytes of parsed value
-            nbytes                                          // property width
-        );
-    }
-
-    // Attach the to the program memory layout.
-    struct tactyk_asmvm__memblock_spec *mspec = &tactyk_pl__prog->memory_layout[mb->memblock_id];
-    mb->spec = mspec;
-    mspec->base_address = mb->data;
-    mspec->array_bound = 1;
-    mspec->element_bound = def->byte_stride-7;
-
-
-    // lastly, add an identifier for the data to the program symbol table.
-    struct tactyk_asmvm__identifier *identifier = &tactyk_pl__symdat->memblock_idlist[tactyk_pl__symdat->num_identifiers++];
-    strncpy(identifier->txt, name, MAX_IDENTIFIER_LENGTH);
-    identifier->value = id;
-    char _token[TACTYK_PL__RAW_TEXT_MAX_LENGTH];
-    snprintf(_token, TACTYK_PL__RAW_TEXT_MAX_LENGTH-1, "%s", name );
-    tactyk_table__add_strkey(tactyk_pl__symdat->memblock_idtbl, tactyk_textbuf__store(tkpl_sttext, _token), identifier);
-    */
 }
 
 //void resolve_instruction_struct(struct unprocessed_command *ucmd) {

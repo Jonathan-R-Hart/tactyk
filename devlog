@@ -3,6 +3,10 @@ Add memory and memory binding to the testing system
   It gets a bit complex because memory bindings don't always have a convenient origin.
 Test coverage for the bind instruction
 
+Implement tactyk_pl data directive
+  This generates and initializes a memblock with binary data
+  The format of the binary data is provided by a struct (use the "struct" directive and reference it by name)
+
 13-17 Apr 2023
 Added an automated testing system
   This was primarilly motivated by the ever-increasing tediousness of manual testing.
