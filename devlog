@@ -2,6 +2,7 @@
 Add memory and memory binding to the testing system
   It gets a bit complex because memory bindings don't always have a convenient origin.
 Test coverage for the bind instruction
+Test coverage for load isntruction (data register only)
 
 Implement tactyk_pl data directive
   This defines and initializes a memblock containing formatted binary data
