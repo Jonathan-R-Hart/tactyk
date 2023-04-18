@@ -26,7 +26,7 @@ PROGRAM
     bind addr4 em
     exit
 
-STATE-MEM-ALLOC em 10
+ALLOC em
   byte 213
   byte 12
   qword 543211234599999
@@ -38,20 +38,10 @@ STATE-MEM-ALLOC em 10
 EXEC MAIN
 
 TEST
-  addr1 mm +0
-  addr1.base mm
-  addr1.array_bound 3168
-  addr1.element_bound 25
-  addr3 tx +0
-  addr3.base txt
-  addr3.array_bound 1
-  addr3.element_bound 30
-  addr4 em +0
-  addr1.base mm
-  addr1.array_bound 288
-  addr1.element_bound 25
-  
-  mem tx *
+  addr1 mm +0 3169 25
+  addr3 txt +0 1 30
+  addr4 em +0 1 25
+  mem txt *
   mem mm *
 
 

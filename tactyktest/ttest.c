@@ -47,8 +47,8 @@
 struct tactyk_test_entry;
 union tactyk_test__value;
 
-typedef bool (tactyk_test__VALUE_ADJUSTER) (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value);
-typedef uint64_t (tactyk_test__VALUE_TESTER) (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *expected_value);
+typedef bool (tactyk_test__VALUE_ADJUSTER) (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+typedef uint64_t (tactyk_test__VALUE_TESTER) (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 
 // abstract test handler
 struct tactyk_test_entry {
@@ -83,6 +83,7 @@ struct tactyk_asmvm__Context *vmctx;
 // This is to be updated by the tactyk_test any time tactyk_test checks or alters a property from the real vmctx.
 // Unexpected state transitions are to be captured by scanning vmctx and shadow_vmctx for any deviations.
 struct tactyk_asmvm__Context *shadow_vmctx;
+struct tactyk_asmvm__memblock_lowlevel *shadow_memblocks;
 double precision;
 
 
@@ -96,18 +97,23 @@ uint64_t tactyk_test__RECV_CCALL(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__RECV_TCALL(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__STATE(struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__ALLOC(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__DATA(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__REF(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__ERROR(struct tactyk_dblock__DBlock *spec);
 
-bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value);
-uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value);
+bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 
 void tactyk_test__mk_var_test(char *name, tactyk_test__VALUE_ADJUSTER setter, tactyk_test__VALUE_TESTER *tester);
-bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value);
-bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value);
-uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *expected_value);
-uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *expected_value);
+bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+bool tactyk_test__SET_ADDR (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+bool tactyk_test__SET_MEM (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 void tactyk_test__mk_data_register_test(char *name, uint64_t ofs);
 void tactyk_test__mk_xmm_register_test(char *name, uint64_t ofs);
 
@@ -116,6 +122,7 @@ struct tactyk_dblock__DBlock *base_tests;
 struct tactyk_emit__Context *emitctx;
 struct tactyk_asmvm__VM *vm;
 struct tactyk_dblock__DBlock *programs;
+struct tactyk_dblock__DBlock *shadow_memblock_sets;
 struct tactyk_dblock__DBlock *test_functions;
 
 struct tactyk_dblock__DBlock *DEFAULT_NAME;
@@ -552,7 +559,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     FILE *f = fopen(tstate->fname, "r");
     fseek(f, 0, SEEK_END);
     int64_t len = ftell(f);
-    char *src = calloc(len, sizeof(char));
+    char *src = calloc(len+1, sizeof(char));
     fseek(f,0, SEEK_SET);
     fread(src, len, 1, f);
     fclose(f);
@@ -591,6 +598,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_emit_svc__configure(emitctx);
 
     programs = tactyk_dblock__new_table(64);
+    shadow_memblock_sets = tactyk_dblock__new_table(64);
     DEFAULT_NAME = tactyk_dblock__from_safe_c_string("DEFAULT");
     precision = DEFAULT_PRECISION;
     test_functions = tactyk_dblock__new_table(64);
@@ -601,11 +609,44 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_dblock__put(test_functions, "RECV-TCALL", tactyk_test__RECV_TCALL);
     tactyk_dblock__put(test_functions, "TEST", tactyk_test__TEST);
     tactyk_dblock__put(test_functions, "STATE", tactyk_test__STATE);
+    tactyk_dblock__put(test_functions, "ALLOC", tactyk_test__ALLOC);
     tactyk_dblock__put(test_functions, "DATA", tactyk_test__DATA);
     tactyk_dblock__put(test_functions, "REF", tactyk_test__REF);
 
     base_tests = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_test_entry));
     tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
+
+    struct tactyk_test_entry *addr1_test = tactyk_dblock__new_managedobject(base_tests, "addr1");
+    addr1_test->name = "addr1";
+    addr1_test->adjust = tactyk_test__SET_ADDR;
+    addr1_test->test = tactyk_test__TEST_ADDR;
+    addr1_test->element_offset = 1;
+    addr1_test->array_offset = 0;
+    struct tactyk_test_entry *addr2_test = tactyk_dblock__new_managedobject(base_tests, "addr2");
+    addr2_test->name = "addr2";
+    addr2_test->adjust = tactyk_test__SET_ADDR;
+    addr2_test->test = tactyk_test__TEST_ADDR;
+    addr2_test->element_offset = 2;
+    addr2_test->array_offset = 0;
+    struct tactyk_test_entry *addr3_test = tactyk_dblock__new_managedobject(base_tests, "addr3");
+    addr3_test->name = "addr3";
+    addr3_test->adjust = tactyk_test__SET_ADDR;
+    addr3_test->test = tactyk_test__TEST_ADDR;
+    addr3_test->element_offset = 3;
+    addr3_test->array_offset = 0;
+    struct tactyk_test_entry *addr4_test = tactyk_dblock__new_managedobject(base_tests, "addr4");
+    addr4_test->name = "addr4";
+    addr4_test->adjust = tactyk_test__SET_ADDR;
+    addr4_test->test = tactyk_test__TEST_ADDR;
+    addr4_test->element_offset = 4;
+    addr4_test->array_offset = 0;
+
+    struct tactyk_test_entry *mem_test = tactyk_dblock__new_managedobject(base_tests, "mem");
+    mem_test->name = "mem";
+    mem_test->adjust = tactyk_test__SET_MEM;
+    mem_test->test = tactyk_test__TEST_MEM;
+    mem_test->element_offset = 0;
+    mem_test->array_offset = 0;
 
     tactyk_test__mk_data_register_test("rA", 0);
     tactyk_test__mk_data_register_test("rB", 1);
@@ -645,6 +686,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_dblock__set_persistence_code(base_tests, 1000);
     tactyk_dblock__set_persistence_code(test_functions, 1000);
     tactyk_dblock__set_persistence_code(programs, 1000);
+    tactyk_dblock__set_persistence_code(shadow_memblock_sets, 1000);
 
     *active_test_spec = test_spec;
     tstate->test_result = TACTYK_TESTSTATE__RUNNING;
@@ -745,7 +787,24 @@ uint64_t tactyk_test__PROGRAM(struct tactyk_dblock__DBlock *spec) {
     tactyk_pl__load_dblock(plctx, spec->child);
     tprg = tactyk_pl__build(plctx);
     tactyk_asmvm__add_program(vmctx, tprg);
+
+    vmctx->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) tprg->memory_layout_ll->data;
+    shadow_memblocks = (struct tactyk_asmvm__memblock_lowlevel*) calloc(TACTYK_ASMVM__MEMBLOCK_CAPACITY, sizeof(struct tactyk_asmvm__memblock_lowlevel));
+    memcpy(shadow_memblocks, vmctx->memblocks, TACTYK_ASMVM__MEMBLOCK_CAPACITY * sizeof(struct tactyk_asmvm__memblock_lowlevel));
+    for (uint64_t i = 0; i < TACTYK_ASMVM__MEMBLOCK_CAPACITY; i += 1) {
+        struct tactyk_asmvm__memblock_lowlevel *mll = &vmctx->memblocks[i];
+        struct tactyk_asmvm__memblock_lowlevel *shadow_mll = &shadow_memblocks[i];
+
+        if (mll->base_address != NULL) {
+            uint64_t sz = mll->array_bound + mll->element_bound + 6;
+            uint8_t *shadow_bytes = calloc(1, sz);
+            shadow_mll->base_address = memcpy(shadow_bytes, mll->base_address, sz);
+        }
+    }
+    tactyk_dblock__put(shadow_memblock_sets, name, shadow_memblocks);
+
     tactyk_dblock__put(programs, name, tprg);
+
     return TACTYK_TESTSTATE__PASS;
 }
 
@@ -756,6 +815,7 @@ uint64_t tactyk_test__EXEC(struct tactyk_dblock__DBlock *spec) {
         program_name = func_name;
         func_name = func_name->next;
         tprg = tactyk_dblock__get(programs, program_name);
+        shadow_memblocks = tactyk_dblock__get(shadow_memblock_sets, program_name);
         if (tprg == NULL) {
             char buf[64];
             tactyk_dblock__export_cstring(buf, 64, program_name);
@@ -832,7 +892,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
             return TACTYK_TESTSTATE__TEST_ERROR;
         }
 
-        uint64_t tresult = test->test(test, item_value);
+        uint64_t tresult = test->test(test, td);
         if (tresult != TACTYK_TESTSTATE__PASS) {
             return tresult;
         }
@@ -893,6 +953,52 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
         }
     }
 
+    for (uint64_t i = 0; i < TACTYK_ASMVM__MEMBLOCK_CAPACITY; i++) {
+        struct tactyk_asmvm__memblock_lowlevel *mbll = &vmctx->memblocks[i];
+        struct tactyk_asmvm__memblock_lowlevel *shadow_mbll = &shadow_memblocks[i];
+        //printf("p1=%p p2=%p\n", mbll, shadow_mbll);
+        if (mbll->array_bound != shadow_mbll->array_bound) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "memblock %ju: array_bound deviation, expected=%u observed=%u",
+                i, shadow_mbll->array_bound, mbll->array_bound
+            );
+        }
+        if (mbll->element_bound != shadow_mbll->element_bound) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "memblock %ju: element_bound deviation, expected=%u observed=%u",
+                i, shadow_mbll->element_bound, mbll->element_bound
+            );
+        }
+        if (mbll->memblock_index != shadow_mbll->memblock_index) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "memblock %ju: memblock_index deviation, expected=%u observed=%u",
+                i, shadow_mbll->memblock_index, mbll->memblock_index
+            );
+        }
+        if (mbll->type != shadow_mbll->type) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "memblock %ju: type deviation, expected=%u observed=%u",
+                i, shadow_mbll->type, mbll->type
+            );
+        }
+        uint64_t len = mbll->array_bound + mbll->element_bound + 6;
+        if (mbll->base_address != NULL) {
+            for (uint64_t j = 0; j < len; j += 1) {
+                if (mbll->base_address[j] != shadow_mbll->base_address[j]) {
+                    snprintf(
+                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                        "Memblock %ju data deviation at offset %ju, expected=%u observed=%u",
+                        i, j, shadow_mbll->base_address[j], mbll->base_address[j]
+                    );
+                }
+            }
+        }
+    }
+
     return TACTYK_TESTSTATE__PASS;
 }
 uint64_t tactyk_test__STATE(struct tactyk_dblock__DBlock *spec) {
@@ -920,7 +1026,7 @@ uint64_t tactyk_test__STATE(struct tactyk_dblock__DBlock *spec) {
             return TACTYK_TESTSTATE__TEST_ERROR;
         }
 
-        if (!test->adjust(test, item_value)) {
+        if (!test->adjust(test, td)) {
             return TACTYK_TESTSTATE__TEST_ERROR;
         }
 
@@ -943,7 +1049,8 @@ uint64_t tactyk_test__ERROR(struct tactyk_dblock__DBlock *spec) {
     return TACTYK_TESTSTATE__FAIL;
 }
 
-bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value) {
+bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *value = spec->token->next;
     int64_t ival = 0;
     if (!tactyk_dblock__try_parseint(&ival, value)) {
         tactyk_test__report("Test value parameter is not an integer");
@@ -953,7 +1060,8 @@ bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tac
     shadow_vmctx->STATUS = (uint64_t) ival;
     return true;
 }
-uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *expected_value) {
+uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *expected_value = spec->token->next;
     int64_t ival = 0;
     if (!tactyk_dblock__try_parseint(&ival, expected_value)) {
         tactyk_test__report("Test value parameter is not an integer");
@@ -969,7 +1077,469 @@ uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec
     }
 }
 
-bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value) {
+uint64_t read_spec__binary_data(struct tactyk_dblock__DBlock **out, struct tactyk_dblock__DBlock *spec) {
+
+    struct tactyk_dblock__DBlock *data_array = tactyk_dblock__new(0);
+    *out = data_array;
+
+    struct tactyk_dblock__DBlock *token = NULL;
+
+    while (spec != NULL) {
+        token = spec->token;
+        if (tactyk_dblock__equals_c_string(token, "byte")) {
+            token = token->next;
+            while (token != NULL) {
+                int64_t val = 0;
+                if (!tactyk_dblock__try_parseint(&val, token)) {
+                    goto parse_fail;
+                }
+                tactyk_dblock__append_byte(data_array, (uint8_t)val);
+                token = token->next;
+            }
+        }
+        else if (tactyk_dblock__equals_c_string(token, "word")) {
+            token = token->next;
+            while (token != NULL) {
+                int64_t val = 0;
+                if (!tactyk_dblock__try_parseint(&val, token)) {
+                    goto parse_fail;
+                }
+                tactyk_dblock__append_word(data_array, (uint16_t)val);
+                token = token->next;
+            }
+        }
+        else if (tactyk_dblock__equals_c_string(token, "dword")) {
+            token = token->next;
+            while (token != NULL) {
+                int64_t val = 0;
+                if (!tactyk_dblock__try_parseint(&val, token)) {
+                    goto parse_fail;
+                }
+                tactyk_dblock__append_dword(data_array, (uint32_t)val);
+                token = token->next;
+            }
+        }
+        else if (tactyk_dblock__equals_c_string(token, "qword")) {
+            token = token->next;
+            while (token != NULL) {
+                int64_t val = 0;
+                if (!tactyk_dblock__try_parseint(&val, token)) {
+                    goto parse_fail;
+                }
+                tactyk_dblock__append_qword(data_array, (uint64_t)val);
+                token = token->next;
+            }
+        }
+        else {
+            while (token != NULL) {
+                int64_t val = 0;
+                if (!tactyk_dblock__try_parseint(&val, token)) {
+                    goto parse_fail;
+                }
+                tactyk_dblock__append_qword(data_array, (uint64_t)val);
+                token = token->next;
+            }
+        }
+        spec = spec->next;
+    }
+    return TACTYK_TESTSTATE__PASS;
+
+    parse_fail: {
+        char buf[64];
+        tactyk_dblock__export_cstring(buf, 64, token);
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "'%s' is not an integer", buf);
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+}
+
+uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *name = spec->token->next;
+
+
+    // if the name is the name of a loaded program, then a "foreign" memblock is specified, so use the "foreign" program's memblock table.
+    //  Also:  I should probably generate a test errror for programs which share the same name as a memblock.
+    struct tactyk_asmvm__Program *src_program = tactyk_dblock__get(programs, name);
+    struct tactyk_asmvm__memblock_lowlevel *shadow_mbs = NULL;
+    if (src_program == NULL) {
+        src_program = tprg;
+        shadow_mbs = shadow_memblocks;
+    }
+    else {
+        shadow_mbs = tactyk_dblock__get(shadow_memblock_sets, name);
+        name = name->next;
+    }
+
+    struct tactyk_asmvm__memblock_highlevel *mbhl = tactyk_dblock__get(src_program->memory_layout_hl, name);
+    struct tactyk_asmvm__memblock_lowlevel *mbll = tactyk_dblock__index(src_program->memory_layout_ll, mbhl->memblock_id);
+    struct tactyk_asmvm__memblock_lowlevel *shadow_mbll = &shadow_mbs[mbhl->memblock_id];
+
+    uint64_t len = mbll->array_bound + mbll->element_bound + 6;
+    uint64_t slen = shadow_mbll->array_bound + shadow_mbll->element_bound + 6;
+    if (len != slen) {
+        snprintf(
+            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+            "memblock unexpectedly replaced or resized -- expected length:%ju, observed length:%ju",
+            len, slen
+        );
+        return TACTYK_TESTSTATE__FAIL;
+    }
+
+    struct tactyk_dblock__DBlock *iindex = name->next;
+    if (iindex != NULL) {
+        if (tactyk_dblock__equals_c_string(iindex, "*")) {
+            // arbitrarilly accept the entire memblock
+            for (uint64_t i = 0; i < len; i += 1) {
+                shadow_mbll->base_address[i] = mbll->base_address[i];
+            }
+        }
+        else {
+            uint64_t idx = 0;
+            if (!tactyk_dblock__try_parseuint(&idx, iindex)) {
+                char buf[64];
+                tactyk_dblock__export_cstring(buf, 64, iindex);
+                snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "'%s' is not an integer", buf);
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
+            struct tactyk_dblock__DBlock *item_type = name->next;
+            struct tactyk_dblock__DBlock *expected_value = item_type->next;
+            if (expected_value == NULL) {
+                expected_value = item_type;
+                item_type = NULL;
+            }
+
+            int64_t ival = 0;
+            if (!tactyk_dblock__try_parseint(&ival, expected_value)) {
+                char buf[64];
+                tactyk_dblock__export_cstring(buf, 64, expected_value);
+                snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "'%s' is not an integer", buf);
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
+            if ( (item_type == NULL) || tactyk_dblock__equals_c_string(item_type, "byte") ) {
+                if (mbll->base_address[idx] != (uint8_t)ival) {
+                    char buf[64];
+                    tactyk_dblock__export_cstring(buf, 64, name);
+                    snprintf(
+                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                        "deviation in memblock '%s' at offset %ju - expected value:%u, observed value:%u",
+                        buf, idx, (uint8_t)ival, mbll->base_address[idx]
+                    );
+                    return TACTYK_TESTSTATE__FAIL;
+                }
+                shadow_mbll->base_address[idx] = (uint8_t)ival;
+            }
+            else if ( tactyk_dblock__equals_c_string(item_type, "word") ) {
+                if (*((uint16_t*) &mbll->base_address[idx]) != (uint16_t)ival) {
+                    char buf[64];
+                    tactyk_dblock__export_cstring(buf, 64, name);
+                    snprintf(
+                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                        "deviation in memblock '%s' at offset %ju - expected value:%u, observed value:%u",
+                        buf, idx, (uint16_t)ival, *((uint16_t*) &mbll->base_address[idx])
+                    );
+                    return TACTYK_TESTSTATE__FAIL;
+                }
+               *((uint16_t*) &shadow_mbll->base_address[idx]) = (uint16_t)ival;
+            }
+
+            else if ( tactyk_dblock__equals_c_string(item_type, "dword") ) {
+                if (*((uint32_t*) &mbll->base_address[idx]) != (uint32_t)ival) {
+                    char buf[64];
+                    tactyk_dblock__export_cstring(buf, 64, name);
+                    snprintf(
+                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                        "deviation in memblock '%s' at offset %ju - expected value:%u, observed value:%u",
+                        buf, idx, (uint32_t)ival, *((uint32_t*) &mbll->base_address[idx])
+                    );
+                    return TACTYK_TESTSTATE__FAIL;
+                }
+               *((uint32_t*) &shadow_mbll->base_address[idx]) = (uint32_t)ival;
+            }
+            else if ( tactyk_dblock__equals_c_string(item_type, "word") ) {
+                if (*((uint64_t*) &mbll->base_address[idx]) != (uint64_t)ival) {
+                    char buf[64];
+                    tactyk_dblock__export_cstring(buf, 64, name);
+                    snprintf(
+                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                        "deviation in memblock '%s' at offset %ju - expected value:%ju, observed value:%ju",
+                        buf, idx, (uint64_t)ival, *((uint64_t*) &mbll->base_address[idx])
+                    );
+                    return TACTYK_TESTSTATE__FAIL;
+                }
+               *((uint64_t*) &shadow_mbll->base_address[idx]) = (uint64_t)ival;
+            }
+            else {
+                char buf[64];
+                tactyk_dblock__export_cstring(buf, 64, item_type);
+                snprintf(
+                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                    "Unrecognized data type: %s",
+                    buf
+                );
+
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
+
+        }
+    }
+
+
+    struct tactyk_dblock__DBlock *mspec = spec->child;
+    if (mspec != NULL) {
+        // actually test the entire memblock
+    }
+
+    return TACTYK_TESTSTATE__PASS;
+}
+
+bool tactyk_test__SET_MEM(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *value = spec->token->next;
+    return true;
+}
+
+uint64_t tactyk_test__ALLOC(struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *name = spec->token->next;
+    struct tactyk_dblock__DBlock *data;
+
+    if (read_spec__binary_data(&data, spec->child) == TACTYK_TESTSTATE__TEST_ERROR) {
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+
+    struct tactyk_asmvm__memblock_highlevel *mhl = tactyk_dblock__get(tprg->memory_layout_hl, name);
+    uint64_t idx = mhl->memblock_id;
+    struct tactyk_asmvm__memblock_lowlevel *mll = &vmctx->memblocks[idx];
+
+    uint64_t len = data->length;
+    uint8_t *bytes = tactyk_dblock__release(data);
+    uint8_t *shadow_bytes = calloc(1, len);
+    memcpy(shadow_bytes, bytes, len);
+
+    mhl->data = bytes;
+    mll->base_address = bytes;
+    mll->array_bound = 1;
+    mll->element_bound = len-7;
+
+    struct tactyk_asmvm__memblock_lowlevel *shadow_mll = &shadow_memblocks[idx];
+    shadow_mll->base_address = shadow_bytes;
+    shadow_mll->array_bound = 1;
+    shadow_mll->element_bound = len-7;
+    //mll = mhl->memblock;
+
+    return TACTYK_TESTSTATE__PASS;
+}
+
+
+bool tactyk_test__SET_ADDR (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *value = spec->token->next;
+
+    if (tactyk_dblock__count_peers(value) < 2) {
+        tactyk_test__report("Not enough arguments to specify a memory binding.");
+        return false;
+    }
+
+    struct tactyk_dblock__DBlock *name = value;
+    struct tactyk_dblock__DBlock *reg_ofs = value->next;
+
+    struct tactyk_asmvm__memblock_highlevel *mbhl = tactyk_dblock__get(vmctx->hl_program_ref->memory_layout_hl, name);
+    struct tactyk_asmvm__memblock_lowlevel *mbll = &vmctx->memblocks[mbhl->memblock_id];
+    struct tactyk_asmvm__memblock_lowlevel *shadow_mbll = &shadow_memblocks[mbhl->memblock_id];
+
+    struct tactyk_asmvm__memblock_lowlevel *target = NULL;
+    struct tactyk_asmvm__memblock_lowlevel *shadow_target = NULL;
+
+    int64_t ofs = 0;
+    uint64_t abound = mbll->array_bound;
+    uint64_t ebound = mbll->element_bound;
+    if (!tactyk_dblock__try_parseint(&ofs, reg_ofs)) {
+        char buf[64];
+        tactyk_dblock__export_cstring(buf, 64, reg_ofs);
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "address-offset '%s' is not an integer.", buf);
+        return false;
+    }
+    switch(entry->element_offset) {
+        case 1: {
+            vmctx->reg.rADDR1 = (uint64_t*) &mbll->base_address[ofs];
+            shadow_vmctx->reg.rADDR1 = (uint64_t*) &shadow_mbll->base_address[ofs];
+            break;
+        }
+        case 2: {
+            vmctx->reg.rADDR2 = (uint64_t*) &mbll->base_address[ofs];
+            shadow_vmctx->reg.rADDR2 = (uint64_t*) &shadow_mbll->base_address[ofs];
+            break;
+        }
+        case 3: {
+            vmctx->reg.rADDR3 = (uint64_t*) &mbll->base_address[ofs];
+            shadow_vmctx->reg.rADDR3 = (uint64_t*) &shadow_mbll->base_address[ofs];
+            break;
+        }
+        case 4: {
+            vmctx->reg.rADDR4 = (uint64_t*) &mbll->base_address[ofs];
+            shadow_vmctx->reg.rADDR4 = (uint64_t*) &shadow_mbll->base_address[ofs];
+            break;
+        }
+    }
+
+    target = &vmctx->memblocks[entry->element_offset];
+    target->base_address = mbll->base_address;
+    target->array_bound = abound;
+    target->element_bound = ebound;
+
+    shadow_target = &shadow_memblocks[entry->element_offset];
+    shadow_target->base_address = shadow_mbll->base_address;
+    shadow_target->array_bound = abound;
+    shadow_target->element_bound = ebound;
+
+    return true;
+}
+
+uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *expected_value = spec->token->next;
+
+    uint64_t num_tokens = tactyk_dblock__count_peers(expected_value);
+    if (num_tokens < 2) {
+        tactyk_test__report("Not enough arguments to specify a memory binding.");
+        return false;
+    }
+    struct tactyk_dblock__DBlock *name = expected_value;
+    struct tactyk_dblock__DBlock *reg_ofs = expected_value->next;
+
+    // if the name is the name of a loaded program, then a "foreign" memblock is specified, so use the "foreign" program's memblock table.
+    //  Also:  I should probably generate a test errror for programs which share the same name as a memblock.
+    struct tactyk_asmvm__Program *src_program = tactyk_dblock__get(programs, name);
+    struct tactyk_asmvm__memblock_lowlevel *shadow_mbs = NULL;
+    if (src_program == NULL) {
+        src_program = tprg;
+        shadow_mbs = shadow_memblocks;
+    }
+    else {
+        shadow_mbs = tactyk_dblock__get(shadow_memblock_sets, name);
+        reg_ofs = reg_ofs->next;
+        name = name->next;
+    }
+
+    struct tactyk_asmvm__memblock_highlevel *mbhl = tactyk_dblock__get(src_program->memory_layout_hl, name);
+    struct tactyk_asmvm__memblock_lowlevel *mbll = tactyk_dblock__index(src_program->memory_layout_ll, mbhl->memblock_id);
+    struct tactyk_asmvm__memblock_lowlevel *shadow_mbll = &shadow_mbs[mbhl->memblock_id];
+
+    struct tactyk_asmvm__memblock_lowlevel *target = &vmctx->active_memblocks[entry->element_offset-1];
+    struct tactyk_asmvm__memblock_lowlevel *shadow_target = &shadow_vmctx->active_memblocks[entry->element_offset-1];
+    int64_t expected_ofs = 0;
+    uint64_t expected_abound = 0;
+    uint64_t expected_ebound = 0;
+
+    if (!tactyk_dblock__try_parseint(&expected_ofs, reg_ofs)) {
+        char buf[64];
+        tactyk_dblock__export_cstring(buf, 64, reg_ofs);
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "address-offset '%s' is not an integer.", buf);
+        return false;
+    }
+    if (num_tokens >= 4) {
+        struct tactyk_dblock__DBlock *array_bound = reg_ofs->next;
+        struct tactyk_dblock__DBlock *element_bound = reg_ofs->next->next;
+        if (!tactyk_dblock__try_parseuint(&expected_abound, array_bound)) {
+            char buf[64];
+            tactyk_dblock__export_cstring(buf, 64, array_bound);
+            snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "array-bound '%s' is not an integer.", buf);
+            return false;
+        }
+        if (!tactyk_dblock__try_parseuint(&expected_ebound, element_bound)) {
+            char buf[64];
+            tactyk_dblock__export_cstring(buf, 64, element_bound);
+            snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "element-bound '%s' is not an integer.", buf);
+            return false;
+        }
+    }
+    else {
+        expected_abound = mbll->array_bound;
+        expected_ebound = mbll->element_bound;
+    }
+
+    if ( target->memblock_index != mbll->memblock_index ) {
+        snprintf(
+            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+            "memory binding deviation -- expected memblock id=%u observed memblock id=%u",
+            mbll->memblock_index, target->memblock_index
+        );
+        return TACTYK_TESTSTATE__FAIL;
+    }
+    if ( target->base_address != mbll->base_address ) {
+        snprintf(
+            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+            "memory binding deviation -- expected memblock ptr=%p observed memblock ptr=%p",
+            mbll->base_address, target->base_address
+        );
+        return TACTYK_TESTSTATE__FAIL;
+    }
+    if ( target->array_bound != expected_abound ) {
+        snprintf(
+            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+            "memory binding deviation -- expected memblock array-bound=%ju observed memblock array-bound=%u",
+            expected_abound, target->array_bound
+        );
+        return TACTYK_TESTSTATE__FAIL;
+    }
+    if ( target->element_bound != expected_ebound ) {
+        snprintf(
+            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+            "memory binding deviation -- expected memblock element-bound=%ju observed memblock element-bound=%u",
+            expected_ebound, target->element_bound
+        );
+        return TACTYK_TESTSTATE__FAIL;
+    }
+    if ( target->type != mbll->type ) {
+        snprintf(
+            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+            "memory binding deviation -- expected memblock type=%u observed memblock type=%u",
+            mbll->type, target->type
+        );
+        return TACTYK_TESTSTATE__FAIL;
+    }
+
+    int64_t observed_ofs = 0;
+
+    switch(entry->element_offset) {
+        case 1: {
+            observed_ofs = vmctx->reg.rADDR1 - (uint64_t*)target->base_address;
+            shadow_vmctx->reg.rADDR1 = (uint64_t*) &target->base_address[expected_ofs];
+            break;
+        }
+        case 2: {
+            observed_ofs = vmctx->reg.rADDR2 - (uint64_t*)target->base_address;
+            shadow_vmctx->reg.rADDR2 = (uint64_t*) &target->base_address[expected_ofs];
+            break;
+        }
+        case 3: {
+            observed_ofs = vmctx->reg.rADDR3 - (uint64_t*)target->base_address;
+            shadow_vmctx->reg.rADDR3 = (uint64_t*) &target->base_address[expected_ofs];
+            break;
+        }
+        case 4: {
+            observed_ofs = vmctx->reg.rADDR4 - (uint64_t*)target->base_address;
+            shadow_vmctx->reg.rADDR4 = (uint64_t*) &target->base_address[expected_ofs];
+            break;
+        }
+    }
+
+    shadow_target->base_address = target->base_address;
+    shadow_target->array_bound = expected_abound;
+    shadow_target->element_bound = expected_ebound;
+    shadow_target->memblock_index = target->memblock_index;
+    shadow_target->type = target->type;
+
+    if (observed_ofs != expected_ofs) {
+        snprintf(
+            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+            "memory binding deviation -- expected memblock offset=%jd observed memblock offset=%jd",
+            expected_ofs, observed_ofs
+        );
+        return TACTYK_TESTSTATE__FAIL;
+    }
+
+    return TACTYK_TESTSTATE__PASS;
+}
+
+bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *value = spec->token->next;
+
     int64_t ival = 0;
     if (!tactyk_dblock__try_parseint(&ival, value)) {
         tactyk_test__report("Test value parameter is not an integer");
@@ -1013,7 +1583,9 @@ bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tac
     }
 }
 
-uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *expected_value) {
+uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *expected_value = spec->token->next;
+
     int64_t ival = 0;
     if (!tactyk_dblock__try_parseint(&ival, expected_value)) {
         tactyk_test__report("Test value parameter is not an integer");
@@ -1067,7 +1639,9 @@ uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *valtest_spec,
     }
 }
 
-bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *value) {
+bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *value = spec->token->next;
+
     double fval = 0;
     if (!tactyk_dblock__try_parsedouble(&fval, value)) {
         tactyk_test__report("Test parameter is not a floating point number");
@@ -1162,7 +1736,9 @@ bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struc
     return TACTYK_TESTSTATE__PASS;
 }
 
-uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *expected_value) {
+uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *expected_value = spec->token->next;
+
     double fval = 0;
     if (!tactyk_dblock__try_parsedouble(&fval, expected_value)) {
         tactyk_test__report("Test parameter is not a floating point number");

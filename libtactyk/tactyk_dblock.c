@@ -481,6 +481,36 @@ void tactyk_dblock__append_char(struct tactyk_dblock__DBlock *dblock, uint8_t ch
     dblock->length = tlen;
     tactyk_dblock__update_hash(dblock);
 }
+void tactyk_dblock__append_byte(struct tactyk_dblock__DBlock *dblock, uint8_t val) {
+    tactyk_dblock__append_char(dblock, val);
+}
+void tactyk_dblock__append_word(struct tactyk_dblock__DBlock *dblock, uint16_t val) {
+    assert(dblock->fixed == false);
+    int64_t tlen = dblock->length + 2;
+    tactyk_dblock__expand(dblock, tlen);
+    *(uint16_t*)(dblock->data+dblock->length) = val;
+    dblock->length += 1;
+    dblock->length = tlen;
+    tactyk_dblock__update_hash(dblock);
+}
+void tactyk_dblock__append_dword(struct tactyk_dblock__DBlock *dblock, uint32_t val) {
+    assert(dblock->fixed == false);
+    int64_t tlen = dblock->length + 4;
+    tactyk_dblock__expand(dblock, tlen);
+    *(uint32_t*)(dblock->data+dblock->length) = val;
+    dblock->length += 1;
+    dblock->length = tlen;
+    tactyk_dblock__update_hash(dblock);
+}
+void tactyk_dblock__append_qword(struct tactyk_dblock__DBlock *dblock, uint64_t val) {
+    assert(dblock->fixed == false);
+    int64_t tlen = dblock->length + 8;
+    tactyk_dblock__expand(dblock, tlen);
+    *(uint64_t*)(dblock->data+dblock->length) = val;
+    dblock->length += 1;
+    dblock->length = tlen;
+    tactyk_dblock__update_hash(dblock);
+}
 
 void tactyk_dblock__append_substring(struct tactyk_dblock__DBlock *dblock_a, struct tactyk_dblock__DBlock *dblock_b, uint64_t start, uint64_t amount) {
     assert(dblock_a->fixed == false);
@@ -509,6 +539,9 @@ bool tactyk_dblock__try_parseint(int64_t *out, struct tactyk_dblock__DBlock *dbl
     char *str = (char*)dblock->data;
     if (str[0] == '-') {
         sign = -1;
+        i += 1;
+    }
+    else if (str[0] == '+') {
         i += 1;
     }
     for (; i < (int64_t)dblock->length; i++) {
@@ -567,6 +600,9 @@ void tactyk_dblock__expand(struct tactyk_dblock__DBlock *dblock, uint64_t min_le
     }
     else {
         dblock->self_managed = true;
+    }
+    if (dblock->capacity == 0) {
+        dblock->capacity = min_length;
     }
     while (dblock->capacity < min_length) {
         dblock->capacity *= 2;
@@ -934,6 +970,10 @@ bool tactyk_dblock__equals(struct tactyk_dblock__DBlock *dblock_a, struct tactyk
     }
     //printf("accept\n");
     return true;
+}
+
+bool tactyk_dblock__equals_c_string(struct tactyk_dblock__DBlock *dblock_a, char *b) {
+    return (strncmp(dblock_a->data, b, dblock_a->length) == 0);
 }
 
 bool tactyk_dblock__contains(struct tactyk_dblock__DBlock *dblock_a, struct tactyk_dblock__DBlock *dblock_b) {
