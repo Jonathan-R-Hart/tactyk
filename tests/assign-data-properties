@@ -1,0 +1,122 @@
+# TEST:  Extraction of context properties
+#
+# This tests the special variant of the assign instruction which fetches useful properties from the context opaque data structure.  
+# For the time being, only specification data for bound memblocks are available (memblock-bounds, memblock-id, and memblock-type).
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  assign data-context-property (DCtx)
+
+PROGRAM
+
+  struct s1
+    8 va
+    8 vb
+    8 vc
+    8 vd
+    8 padding
+  struct s2
+    4 va
+    4 vb
+    4 vc
+    4 vd
+    8 padding
+  struct s3
+    2 va
+    2 vb
+    2 vc
+    2 vd
+    8 padding
+  struct s4
+    1 va
+    1 vb
+    1 vc
+    1 vd
+    8 padding
+
+  mem s1 s1 1
+  mem s2 s2 10
+  mem s3 s3 100
+  mem s4 s4 1000
+    
+  INIT:
+    bind addr1 s1
+    bind addr2 s2
+    bind addr3 s3
+    bind addr4 s4
+    exit
+  
+  CHK_A1:
+    assign a addr1.array_bound
+    assign b addr1.element_bound
+    assign c addr1.index
+    assign d addr1.type
+    exit
+  
+  CHK_A2:
+    assign a addr2.array_bound
+    assign b addr2.element_bound
+    assign c addr2.index
+    assign d addr2.type
+    exit
+
+  CHK_A3:
+    assign a addr3.array_bound
+    assign b addr3.element_bound
+    assign c addr3.index
+    assign d addr3.type
+    exit
+
+  CHK_A4:
+    assign a addr4.array_bound
+    assign b addr4.element_bound
+    assign c addr4.index
+    assign d addr4.type
+    exit
+
+EXEC INIT
+
+TEST
+  addr1 s1 0
+  addr2 s2 0
+  addr3 s3 0
+  addr4 s4 0
+
+EXEC CHK_A1
+
+TEST
+  rA 1
+  rB 33
+  rC 0
+  rD 2
+
+EXEC CHK_A2
+
+TEST
+  rA 217
+  rB 17
+  rC 1
+  rD 2
+
+EXEC CHK_A3
+
+TEST
+  rA 1585
+  rB 9
+  rC 2
+  rD 2
+
+EXEC CHK_A4
+
+TEST
+  rA 11989
+  rB 5
+  rC 3
+  rD 2
+
+
+
+
+
+
+
+
