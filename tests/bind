@@ -38,9 +38,9 @@ ALLOC em
 EXEC MAIN
 
 TEST
-  addr1 mm +0 3169 25
+  addr1 mm +0 3169 32
   addr3 txt +0 1 30
-  addr4 em +0 1 25
+  addr4 em +0 1 32
   mem txt *
   mem mm *
 

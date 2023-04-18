@@ -796,7 +796,7 @@ uint64_t tactyk_test__PROGRAM(struct tactyk_dblock__DBlock *spec) {
         struct tactyk_asmvm__memblock_lowlevel *shadow_mll = &shadow_memblocks[i];
 
         if (mll->base_address != NULL) {
-            uint64_t sz = mll->array_bound + mll->element_bound + 6;
+            uint64_t sz = mll->array_bound + mll->element_bound -1;
             uint8_t *shadow_bytes = calloc(1, sz);
             shadow_mll->base_address = memcpy(shadow_bytes, mll->base_address, sz);
         }
@@ -985,7 +985,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
                 i, shadow_mbll->type, mbll->type
             );
         }
-        uint64_t len = mbll->array_bound + mbll->element_bound + 6;
+        uint64_t len = mbll->array_bound + mbll->element_bound -1;
         if (mbll->base_address != NULL) {
             for (uint64_t j = 0; j < len; j += 1) {
                 if (mbll->base_address[j] != shadow_mbll->base_address[j]) {
@@ -1173,8 +1173,8 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
     struct tactyk_asmvm__memblock_lowlevel *mbll = tactyk_dblock__index(src_program->memory_layout_ll, mbhl->memblock_id);
     struct tactyk_asmvm__memblock_lowlevel *shadow_mbll = &shadow_mbs[mbhl->memblock_id];
 
-    uint64_t len = mbll->array_bound + mbll->element_bound + 6;
-    uint64_t slen = shadow_mbll->array_bound + shadow_mbll->element_bound + 6;
+    uint64_t len = mbll->array_bound + mbll->element_bound -1;
+    uint64_t slen = shadow_mbll->array_bound + shadow_mbll->element_bound -1;
     if (len != slen) {
         snprintf(
             test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
@@ -1316,12 +1316,12 @@ uint64_t tactyk_test__ALLOC(struct tactyk_dblock__DBlock *spec) {
     mhl->data = bytes;
     mll->base_address = bytes;
     mll->array_bound = 1;
-    mll->element_bound = len-7;
+    mll->element_bound = len;
 
     struct tactyk_asmvm__memblock_lowlevel *shadow_mll = &shadow_memblocks[idx];
     shadow_mll->base_address = shadow_bytes;
     shadow_mll->array_bound = 1;
-    shadow_mll->element_bound = len-7;
+    shadow_mll->element_bound = len;
     //mll = mhl->memblock;
 
     return TACTYK_TESTSTATE__PASS;

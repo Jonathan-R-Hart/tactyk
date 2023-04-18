@@ -85,7 +85,7 @@ EXEC CHK_A1
 
 TEST
   rA 1
-  rB 33
+  rB 40
   rC 0
   rD 2
 
@@ -93,7 +93,7 @@ EXEC CHK_A2
 
 TEST
   rA 217
-  rB 17
+  rB 24
   rC 1
   rD 2
 
@@ -101,7 +101,7 @@ EXEC CHK_A3
 
 TEST
   rA 1585
-  rB 9
+  rB 16
   rC 2
   rD 2
 
@@ -109,7 +109,7 @@ EXEC CHK_A4
 
 TEST
   rA 11989
-  rB 5
+  rB 12
   rC 3
   rD 2
 

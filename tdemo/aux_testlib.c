@@ -96,7 +96,7 @@ void aux__read_file(struct tactyk_asmvm__Context *asmvm_ctx) {
 
     m_ll->base_address = f_data;
     m_ll->array_bound = 1;
-    m_ll->element_bound = len-7;
+    m_ll->element_bound = len;
 }
 void aux__write_file(struct tactyk_asmvm__Context *asmvm_ctx) {
 
