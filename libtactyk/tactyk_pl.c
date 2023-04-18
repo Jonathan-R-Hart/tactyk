@@ -27,6 +27,7 @@ void tactyk_pl__init() {
     tactyk_dblock__put(tkpl_funcs, "struct", tactyk_pl__struct);
     tactyk_dblock__put(tkpl_funcs, "extmem", tactyk_pl__extmem);
     tactyk_dblock__put(tkpl_funcs, "data", tactyk_pl__data);
+    tactyk_dblock__put(tkpl_funcs, "flat", tactyk_pl__flatdata);
     tactyk_dblock__put(tkpl_funcs, "text", tactyk_pl__text);
     tactyk_dblock__put(tkpl_funcs, "const", tactyk_pl__const);
     tactyk_dblock__put(tkpl_funcs, "var", tactyk_pl__var);
@@ -401,6 +402,156 @@ bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
     return true;
 }
 
+bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
+    struct tactyk_emit__Context *ectx = ctx->emitctx;
+
+    struct tactyk_dblock__DBlock *name = dblock->token->next;
+    struct tactyk_dblock__DBlock *type = dblock->token->next->next;
+
+    uint64_t nbytes = 0;
+    bool isfloat = false;
+    if (type == NULL) {
+        nbytes = 1;
+    }
+    else if (!tactyk_dblock__try_parseuint(&nbytes, type)) {
+        if (tactyk_dblock__equals_c_string(type, "byte")) {
+            nbytes = 1;
+        }
+        else if (tactyk_dblock__equals_c_string(type, "word")) {
+            nbytes = 2;
+        }
+        else if (tactyk_dblock__equals_c_string(type, "dword")) {
+            nbytes = 4;
+        }
+        else if (tactyk_dblock__equals_c_string(type, "qword")) {
+            nbytes = 8;
+        }
+        else if (tactyk_dblock__equals_c_string(type, "float32")) {
+            isfloat = true;
+            nbytes = 4;
+        }
+        else if (tactyk_dblock__equals_c_string(type, "float64")) {
+            isfloat = true;
+            nbytes = 8;
+        }
+        else {
+            nbytes = 1;
+        }
+    }
+
+    uint64_t item_count = 0;
+    struct tactyk_dblock__DBlock *line = dblock->child;
+    while (line != NULL) {
+        item_count += tactyk_dblock__count_tokens(line);
+        line = line->next;
+    }
+
+    uint8_t *data = tactyk_alloc__allocate(item_count, nbytes);
+
+    uint64_t wbytes = nbytes;
+    if (wbytes > 8) {
+        wbytes = 8;
+    }
+
+    if (isfloat) {
+        if (nbytes <= 3) {
+            char errbuf[1024];
+            snprintf(errbuf, 1024, "PL -- The mysterious %ju-byte floating point format is not available.", nbytes);
+            error(errbuf, NULL);
+        }
+        else if (nbytes <= 7) {
+            uint64_t pos = 0;
+            line = dblock->child;
+            while (line != NULL) {
+                struct tactyk_dblock__DBlock *token = line->token;
+                while (token != NULL) {
+                    double f64val = 0;
+                    if (tactyk_dblock__try_parsedouble(&f64val, token)) {
+                        double f32val = (float)f64val;
+                        memcpy(&data[pos], &f32val, 4);
+                    }
+                    else {
+                        warn("PL -- Not an floating point number", token);
+                    }
+
+                    pos += nbytes;
+                    token = token->next;
+                }
+                line = line->next;
+            }
+        }
+        else {
+            uint64_t pos = 0;
+            line = dblock->child;
+            while (line != NULL) {
+                struct tactyk_dblock__DBlock *token = line->token;
+                while (token != NULL) {
+                    double f64val = 0;
+                    if (tactyk_dblock__try_parsedouble(&f64val, token)) {
+                        memcpy(&data[pos], &f64val, 4);
+                    }
+                    else {
+                        warn("PL -- Not an floating point number", token);
+                    }
+
+                    pos += nbytes;
+                    token = token->next;
+                }
+                line = line->next;
+            }
+        }
+    }
+    else {
+        uint64_t pos = 0;
+        line = dblock->child;
+        while (line != NULL) {
+            struct tactyk_dblock__DBlock *token = line->token;
+            while (token != NULL) {
+                int64_t ival = 0;
+                if (tactyk_dblock__try_parseint(&ival, token)) {
+                    memcpy(&data[pos], &ival, wbytes);
+                }
+                else {
+                    warn("PL -- Not an integer", token);
+                }
+
+                pos += nbytes;
+                token = token->next;
+            }
+            line = line->next;
+        }
+    }
+
+    struct tactyk_asmvm__struct *layout = calloc(1, sizeof(struct tactyk_asmvm__struct));
+    layout->byte_stride = item_count * nbytes;
+    layout->num_properties = 1;
+    layout->properties = calloc(1, sizeof(struct tactyk_asmvm__property));
+    layout->properties->byte_offset = 0;
+    layout->properties->byte_width = item_count * nbytes;
+
+    int64_t id = ctx->memspec_highlevel_table->element_count;
+    struct tactyk_asmvm__memblock_lowlevel *mem_ll = (struct tactyk_asmvm__memblock_lowlevel*) tactyk_dblock__new_object(ctx->memspec_lowlevel_buffer);
+    struct tactyk_asmvm__memblock_highlevel *mem_hl = (struct tactyk_asmvm__memblock_highlevel*) tactyk_dblock__new_managedobject(ctx->memspec_highlevel_table, name);
+
+    mem_hl->memblock = mem_ll;
+    mem_hl->num_entries = 1;
+    mem_hl->memblock_id = id;
+    mem_hl->data = data;
+    mem_hl->type = TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC;
+    mem_hl->definition = layout;
+
+    mem_ll->array_bound = 1;
+    mem_ll->element_bound = layout->byte_stride;
+    mem_ll->memblock_index = id;
+    mem_ll->type = TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC;
+    mem_ll->base_address = data;
+
+    struct tactyk_dblock__DBlock *memid = tactyk_dblock__from_int(id);
+    tactyk_dblock__put(ectx->memblock_table, name, memid);
+
+    return true;
+}
+
 bool tactyk_pl__data(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
     struct tactyk_emit__Context *ectx = ctx->emitctx;
 
@@ -420,7 +571,6 @@ bool tactyk_pl__data(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
     uint64_t elem = 0;
     struct tactyk_dblock__DBlock *line = dblock->child;
     uint64_t max_elements = layout->num_properties * m_hl->num_entries;
-
 
     uint8_t *data = tactyk_alloc__allocate(m_hl->num_entries, layout->byte_stride);
 

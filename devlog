@@ -4,8 +4,10 @@ Add memory and memory binding to the testing system
 Test coverage for the bind instruction
 
 Implement tactyk_pl data directive
-  This generates and initializes a memblock with binary data
+  This defines and initializes a memblock containing formatted binary data
   The format of the binary data is provided by a struct (use the "struct" directive and reference it by name)
+Add tactyk_pl flat-data directive
+  This defines and initializes a single-element memblock consisting of a flat list of values of one data type.
 
 element_bound properties now are an alias for stride/element-size
   Bounds checks are now handled in ASM by offsetting element_bound as to fit the word size

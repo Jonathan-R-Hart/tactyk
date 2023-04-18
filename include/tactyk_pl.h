@@ -60,6 +60,7 @@ bool tactyk_pl__set(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock
 bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__extmem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
+bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__data(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__const(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
