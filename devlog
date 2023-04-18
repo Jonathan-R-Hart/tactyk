@@ -7,6 +7,10 @@ Implement tactyk_pl data directive
   This generates and initializes a memblock with binary data
   The format of the binary data is provided by a struct (use the "struct" directive and reference it by name)
 
+element_bound properties now are an alias for stride/element-size
+  Bounds checks are now handled in ASM by offsetting element_bound as to fit the word size
+  (bytes can now be written and up to the high edge of an element, while still preventing large words from spilling)
+
 13-17 Apr 2023
 Added an automated testing system
   This was primarilly motivated by the ever-increasing tediousness of manual testing.
