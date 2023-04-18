@@ -1,7 +1,40 @@
+17-18 Apr 2023
+Add memory and memory binding to the testing system
+  It gets a bit complex because memory bindings don't always have a convenient origin.
+Test coverage for the bind instruction
+
+13-17 Apr 2023
+Added an automated testing system
+  This was primarilly motivated by the ever-increasing tediousness of manual testing.
+  The test program is focused on covering virtual ISA operations.  Another system may be needed for covering supporting components (libtactyk).
+  The test program accepts a list of files through command-line input
+  Each input file is regarded as one test (though it may test any number of things)
+  The test program spawns one process per test (limited by the "--jobs" argument)
+  Each child process sets up a complete tactyk context and runs a test script
+  The test script is a series of commands (in the same format as virtual ISA configuration and tactyk_pl).
+  The commands are high-level controls -- generally compile a program, manipulate tactyk context state, call a tactyk function, and compare expected results with observed results.
+  The test process maintains both a real tactyk context and a "shadow" context.  The shadow context is a duplicate of the real one and is used to track unexpected state transitions
+    with byte for byte comparison.
+  The test gives one of three results:  Pass, Fail, or Test-Error.
+    Pass indicates that the following have occured:
+      All test functions ran without error
+      All test functions that report pass/fail/error reported a pass.
+      The tactyk program and all supporting functions operated without error.
+      All test checks passed
+      The tactyk context state did not perform any unexpected state transitions (all changes accounted for).
+    Fail indicates one the follwoing conditions:
+      Any test function reported a "fail" result.
+      The test process was terminated for exceeding the maximum specified run time (defualt is 4 seconds).
+      The test process was terminated by a signal (usually segmentation fault).
+        NOTE:  Process termination is presumed to be a problem in tactyk, but it also can be a problem in the test program.
+    "Test Error" indicates that the test program identified an error in the test script.
+  The test program halts on the first error or failure.
+  Additionally, the test program logs errors and text condition failures
+
+Test coverage for handling of integer immediate operands
+
 13 Apr 2023
 Fix and enable the garbage collector
-
-Begin work on an automated testing system.
 
 Reworked the way tactyk uses jump tables:
   The "rPROG" register (rdi) is renamed to rMAPPER and is primarilly used for completing jumps which involve jump tables, and secondarilly as a 4th temp register.
