@@ -841,9 +841,9 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     char fname_object[64];
     char fname_symbols[64];
 
-    sprintf(fname_assembly_code, "tactyk_program__XXXXXX.asm");
-    sprintf(fname_object, "tactyk_object__XXXXXX.obj");
-    sprintf(fname_symbols, "tactyk_symbols__XXXXXX.map");
+    sprintf(fname_assembly_code, "/tmp/tactyk_program__XXXXXX.asm");
+    sprintf(fname_object, "/tmp/tactyk_object__XXXXXX.obj");
+    sprintf(fname_symbols, "/tmp/tactyk_symbols__XXXXXX.map");
 
     int result_asm = mkstemps(fname_assembly_code, 4);
     int result_obj = mkstemps(fname_object, 4);
