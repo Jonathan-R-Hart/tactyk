@@ -493,27 +493,21 @@ struct tactyk_test__Status *test_state;
 void tactyk_test__warning_handler(char *msg, void *data) {
     memset(test_state->warning, 0, TACTYK_TEST__REPORT_BUFSIZE);
     strncpy(test_state->warning, msg, TACTYK_TEST__REPORT_BUFSIZE);
-    int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-1;
+    int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-3;
 
     if ((space_remaining > 0) && (data != NULL)) {
-        tactyk_dblock__export_cstring(&test_state->warning[strlen(msg)], space_remaining, data);
+        test_state->warning[strlen(msg)+0] = ':';
+        test_state->warning[strlen(msg)+1] = ' ';
+        tactyk_dblock__export_cstring(&test_state->warning[strlen(msg)+2], space_remaining, data);
     }
-
-//    struct tactyk_dblock__DBlock *test_spec = *active_test_spec;
-//    if ((test_spec != NULL) && (test_spec->next != NULL)) {
-//        struct tactyk_dblock__DBlock *token = test_spec = test_spec->next->token;
-//        if (tactyk_dblock__equals(token, WARNING_TOKEN)) {
-//            *active_test_spec = test_spec->next;
-//        }
-//    }
 }
 
 void tactyk_test__error_handler(char *msg, void *data) {
     memset(test_state->error, 0, TACTYK_TEST__REPORT_BUFSIZE);
     strncpy(test_state->error, msg, TACTYK_TEST__REPORT_BUFSIZE);
-    int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-1;
+    int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-3;
 
-    if ((space_remaining > 2) && (data != NULL)) {
+    if ((space_remaining > 0) && (data != NULL)) {
         test_state->error[strlen(msg)+0] = ':';
         test_state->error[strlen(msg)+1] = ' ';
         tactyk_dblock__export_cstring(&test_state->error[strlen(msg)+2], space_remaining, data);
