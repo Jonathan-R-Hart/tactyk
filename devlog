@@ -19,6 +19,10 @@ Append a string terminator to all files read into a buffer.
 
 Fix memblock offset derviation in testing system
 
+Add two methods for handling integer division by zero:
+  Exit tactyk with a status code.
+  Jump if the denominator is zero.
+
 17-18 Apr 2023
 Add memory and memory binding to the testing system
   It gets a bit complex because memory bindings don't always have a convenient origin.

@@ -1075,9 +1075,14 @@ instruction div
     type data xmmx const fconst integer float
     $B $VALUE
     scramble rTEMPC $LD_B_IMMEDIATE
+  operand
+    type branch none
+    $DIVZ_TARGET $VALUE
   select-template
-    case DD
+    case DDN
       code
+        cmp $B, 0
+        erroreq STATUS_DIVISION_BY_ZERO
         mov rTEMPA, $A
         cqo
         idiv $B
@@ -1085,9 +1090,11 @@ instruction div
         xor rTEMPA, rTEMPA
         xor rTEMPD, rTEMPD
         jmp $NEXT_INSTRUCTION
-    case DI DC
+    case DIN DCN
       code
         $LD_B_IMMEDIATE
+        cmp rTEMPC, 0
+        erroreq STATUS_DIVISION_BY_ZERO
         mov rTEMPA, $A
         cqo
         idiv rTEMPC
@@ -1096,7 +1103,31 @@ instruction div
         xor rTEMPC, rTEMPC
         xor rTEMPD, rTEMPD
         jmp $NEXT_INSTRUCTION
-    case DX
+    case DDL
+      code
+        cmp $B, 0
+        je $DIVZ_TARGET
+        mov rTEMPA, $A
+        cqo
+        idiv $B
+        mov $A, rTEMPA
+        xor rTEMPA, rTEMPA
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    case DIL DCL
+      code
+        $LD_B_IMMEDIATE
+        cmp rTEMPC, 0
+        je $DIVZ_TARGET
+        mov rTEMPA, $A
+        cqo
+        idiv rTEMPC
+        mov $A, rTEMPA
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    case DXN
       code
         $LD_B_IMMEDIATE
         cvtsi2sd xTEMPA, $A
@@ -1107,7 +1138,7 @@ instruction div
         pxor xTEMPB, xTEMPB
         pxor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
-    case DF DCf
+    case DFN DCfN
       code
         $LD_B_IMMEDIATE
         movq xTEMPB, rTEMPC
@@ -1119,17 +1150,17 @@ instruction div
         pxor xTEMPB, xTEMPB
         pxor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
-    case XX
+    case XXN
       code
         divsd $A, $B
         jmp $NEXT_INSTRUCTION
-    case XD
+    case XDN
       code
         cvtsi2sd xTEMPA, $B
         divsd $A, xTEMPA
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
-    case XI XC
+    case XIN XCN
       code
         $LD_B_IMMEDIATE
         cvtsi2sd xTEMPA, rTEMPC
@@ -1137,7 +1168,7 @@ instruction div
         xor rTEMPA, rTEMPA
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
-    case XCf XF
+    case XCfN XFN
       code
         $LD_B_IMMEDIATE
         movq xTEMPA, rTEMPA

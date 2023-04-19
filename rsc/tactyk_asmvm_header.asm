@@ -338,6 +338,7 @@
     %define STATUS_UNSIGNED_CONTEXT 107
     %define STATUS_INVALID_TVMJUMP 108
     %define STATUS_INVALID_TVMJUMP_STATE 109
+    %define STATUS_DIVISION_BY_ZERO 110
     
     ; runtime registers do not belong to tactyk, and so do not use internal tactyk names
     ; The only thing that matters here is that they get correctly stored and restored.

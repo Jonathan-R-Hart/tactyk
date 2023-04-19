@@ -1,7 +1,15 @@
 # TEST:  division
 # 
+# This tests divisions opreations, exit with status code on divide by zero, and jump on divide by zero
+#
 # Virtual-ISA: tactyk_core
-# Templates:  div data-data (DD), div data-integer (AI) div data-const (AC)
+# Templates:  
+#   div data-data     (DDN)
+#   div data-integer  (AIN)
+#   div data-const    (ACN)
+#   div data-data-branch    (DDL)
+#   div data-integer-branch (AIL)
+#   div data-const-branch   (ACL)
 
 PROGRAM
   const C10 10
@@ -10,6 +18,7 @@ PROGRAM
   const CN40 -40
   const C50 50
   const CN60 -60
+  const C0 0
 
   DO_INTS:
     assign a 999999999999999999
@@ -62,6 +71,31 @@ PROGRAM
     div e e
     div f f
     exit
+  
+  ZERO_int:
+    div a 0
+    exit
+  ZERO_const:
+    div a C0
+    exit
+  ZERO_reg:
+    assign b 0
+    div a b
+    exit
+  
+  ZERO_ESCAPE:
+    add c 1000
+    exit
+
+  ZERO_ESCAPED_int:
+    div a 0 ZERO_ESCAPE
+    exit
+  ZERO_ESCAPED_const:
+    div a C0 ZERO_ESCAPE
+    exit
+  ZERO_ESCAPED_reg:
+    div a b ZERO_ESCAPE
+    exit
 
 EXEC DO_INTS
 
@@ -96,6 +130,27 @@ TEST
   rE 1
   rF 1
 
+EXEC ZERO_int
+TEST
+  status 110
+EXEC ZERO_const
 
+TEST
+  status 110
 
+EXEC ZERO_reg
+TEST
+  status 110
+  rB 0
 
+EXEC ZERO_ESCAPED_int
+TEST
+  rC 1001
+
+EXEC ZERO_ESCAPED_const
+TEST
+  rC 2001
+
+EXEC ZERO_ESCAPED_reg
+TEST
+  rC 3001

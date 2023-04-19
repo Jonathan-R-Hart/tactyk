@@ -716,7 +716,7 @@ bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
 bool tactyk_emit__CheckedLabel(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     struct tactyk_dblock__DBlock *lbl = tactyk_dblock__get(ctx->label_table, ctx->pl_operand_resolved);
     tactyk_dblock__put(ctx->local_vars, "$VALUE", lbl);
-    return true;
+    return lbl != NULL;
 }
 
 void tactyk_emit__sanitize_identifier(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *out, struct tactyk_dblock__DBlock* id) {
