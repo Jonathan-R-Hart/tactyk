@@ -590,36 +590,6 @@ instruction store
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
-    case QADI QADC
-      code
-        $LD_SRC_IMMEDIATE
-        mov rTEMPD_32, fs:[$CTX_ELEMENT_BOUND]
-        sub rTEMPD_32, 7
-        cmp $OFFSET, rTEMPD
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPA
-        xor rTEMPA, rTEMPA
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
-    case QAII QAIC QACI QACC
-      code
-        $LD_OFFSET_IMMEDIATE
-        $LD_SRC_IMMEDIATE
-        mov rTEMPD_32, fs:[$CTX_ELEMENT_BOUND]
-        sub rTEMPD_32, 7
-        cmp rTEMPC, rTEMPD
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPA
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
     
     case DADD
       code
@@ -646,36 +616,6 @@ instruction store
         mov dword [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_32
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
-    case DADI DADC
-      code
-        $LD_SRC_IMMEDIATE
-        mov rTEMPD_32, fs:[$CTX_ELEMENT_BOUND]
-        sub rTEMPD_32, 3
-        cmp $OFFSET, rTEMPD
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPA
-        xor rTEMPA, rTEMPA
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
-    case DAII DAIC DACI DACC
-      code
-        $LD_OFFSET_IMMEDIATE
-        $LD_SRC_IMMEDIATE
-        mov rTEMPD_32, fs:[$CTX_ELEMENT_BOUND]
-        sub rTEMPD_32, 3
-        cmp rTEMPC, rTEMPD
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPA
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
         jmp $NEXT_INSTRUCTION
     
     case WADD
@@ -704,37 +644,7 @@ instruction store
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
-    case WADI WADC
-      code
-        $LD_SRC_IMMEDIATE
-        mov rTEMPD_32, fs:[$CTX_ELEMENT_BOUND]
-        dec rTEMPD_32
-        cmp $OFFSET, rTEMPD
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPA
-        xor rTEMPA, rTEMPA
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
-    case WAII WAIC WACI WACC
-      code
-        $LD_OFFSET_IMMEDIATE
-        $LD_SRC_IMMEDIATE
-        mov rTEMPD_32, fs:[$CTX_ELEMENT_BOUND]
-        dec rTEMPD_32
-        cmp rTEMPC, rTEMPD
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPA
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
-        
+    
     case BADD
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
@@ -759,35 +669,7 @@ instruction store
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
-    case BADI BADC
-      code
-        $LD_SRC_IMMEDIATE
-        mov rTEMPD_32, fs:[$CTX_ELEMENT_BOUND]
-        cmp $OFFSET, rTEMPD
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPA
-        xor rTEMPA, rTEMPA
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
-    case BAII BAIC BACI BACC
-      code
-        $LD_OFFSET_IMMEDIATE
-        $LD_SRC_IMMEDIATE
-        mov rTEMPD_32, fs:[$CTX_ELEMENT_BOUND]
-        cmp rTEMPC, rTEMPD
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov [$ADDRESS_REGISTER+$OFFSET], rTEMPA
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
-
+    
     case XADX
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
