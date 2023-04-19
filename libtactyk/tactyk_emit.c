@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <setjmp.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include <sys/mman.h>
 
@@ -840,12 +841,25 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     #define ASM_OBJECT_FILENAME "/tmp/tactyk_output.o"
     #define ASM_SYMBOLS_FILENAME "/tmp/tactyk_symbols.map"
 
+    char fname_assembly_code[64];
+    char fname_object[64];
+    char fname_symbols[64];
+
+    sprintf(fname_assembly_code, "tactyk_program__XXXXXX.asm");
+    sprintf(fname_object, "tactyk_object__XXXXXX.obj");
+    sprintf(fname_symbols, "tactyk_symbols__XXXXXX.map");
+
+    int result_asm = mkstemps(fname_assembly_code, 4);
+    int result_obj = mkstemps(fname_object, 4);
+    int result_sym = mkstemps(fname_symbols, 4);
+
+    //mkstemp
 
     //FILE *asm_file = fopen
 
-    FILE *asm_file =  fopen( ASM_PROGRAM_FILENAME, "w" );
+    FILE *asm_file =  fopen( fname_assembly_code, "w" );
     fprintf(asm_file, "BITS 64\n");
-    fprintf(asm_file, "[map symbols %s]\n", ASM_SYMBOLS_FILENAME);
+    fprintf(asm_file, "[map symbols %s]\n", fname_symbols);
     fprintf(asm_file, "%s\n", ctx->asm_header);
 
     for (uint64_t i = 0; i < program_size; i++) {
@@ -860,7 +874,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     }
     fclose(asm_file);
 
-    struct tactyk_assembly *assembly = tactyk_assemble(ASM_PROGRAM_FILENAME, ASM_OBJECT_FILENAME, ASM_SYMBOLS_FILENAME);
+    struct tactyk_assembly *assembly = tactyk_assemble(fname_assembly_code, fname_object, fname_symbols);
 
     assembly->name = "Tactyk (should) Affix Captions To Your Kitten: Mix - o - Bits, The Very Technical";
     //printf("assembled %ju bytes, name=%s\n", assembly->length, assembly->name);
