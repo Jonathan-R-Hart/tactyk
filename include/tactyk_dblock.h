@@ -189,6 +189,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new_allocated_container(uint64_t ca
 void* tactyk_dblock__new_object(struct tactyk_dblock__DBlock *container);
 // return a pointer to a specific container entry
 void* tactyk_dblock__index(struct tactyk_dblock__DBlock *container, uint64_t index);
+void* tactyk_dblock__index_allocated(struct tactyk_dblock__DBlock *container, uint64_t index);
 
 // Use string interpolation to transform a template into a product.
 // "var_indicator" is a sigil char that indicates the presence of an identifier

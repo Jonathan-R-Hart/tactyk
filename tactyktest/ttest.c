@@ -1401,9 +1401,21 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
         name = name->next;
     }
 
-    struct tactyk_asmvm__memblock_highlevel *mbhl = tactyk_dblock__get(src_program->memory_layout_hl, name);
-    struct tactyk_asmvm__memblock_lowlevel *mbll = tactyk_dblock__index(src_program->memory_layout_ll, mbhl->memblock_id);
-    struct tactyk_asmvm__memblock_lowlevel *shadow_mbll = &shadow_mbs[mbhl->memblock_id];
+    struct tactyk_asmvm__memblock_highlevel *mbhl = NULL;
+    struct tactyk_asmvm__memblock_lowlevel *mbll = NULL;
+    struct tactyk_asmvm__memblock_lowlevel *shadow_mbll = NULL;
+
+    uint64_t mb_index = 0;
+    if (tactyk_dblock__try_parseuint(&mb_index, name)) {
+        mbhl = tactyk_dblock__index_allocated(src_program->memory_layout_hl->store, mb_index);
+        mbll = tactyk_dblock__index_allocated(src_program->memory_layout_ll, mb_index);
+        shadow_mbll = &shadow_mbs[mb_index];
+    }
+    else {
+        mbhl = tactyk_dblock__get(src_program->memory_layout_hl, name);
+        mbll = tactyk_dblock__index(src_program->memory_layout_ll, mbhl->memblock_id);
+        shadow_mbll = &shadow_mbs[mbhl->memblock_id];
+    }
 
     struct tactyk_asmvm__memblock_lowlevel *target = &vmctx->active_memblocks[entry->element_offset-1];
     struct tactyk_asmvm__memblock_lowlevel *shadow_target = &shadow_vmctx->active_memblocks[entry->element_offset-1];

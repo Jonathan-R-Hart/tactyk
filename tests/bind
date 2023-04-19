@@ -40,6 +40,14 @@ PROGRAM
     bind addr2 b
     bind addr4 c
     exit
+  
+  DO_INVALID_INTREF_BIND:
+    bind addr1 1234
+    exit
+  DO_INVALID_DYNAMICREF_BIND:
+    assign a 3456
+    bind addr1 a
+    exit
 
 ALLOC em
   byte 213
@@ -74,6 +82,15 @@ TEST
   addr1 txt 0
   addr2 mm 0
   addr4 em 0
+
+EXEC DO_INVALID_INTREF_BIND
+TEST
+  status 101
+
+EXEC DO_INVALID_DYNAMICREF_BIND
+TEST
+  status 101
+  rA 3456
 
 
 

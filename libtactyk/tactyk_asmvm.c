@@ -100,7 +100,7 @@ bool tactyk_asmvm__prepare_invoke(struct tactyk_asmvm__Context *context, struct 
 
     context->hl_program_ref = prog;
     context->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) prog->memory_layout_ll->data;
-    context->memblock_count = TACTYK_ASMVM__MEMBLOCK_CAPACITY;
+    context->memblock_count = prog->memory_layout_ll->element_count;
     context->max_instruction_pointer = prog->length-1;
     context->program_map = prog->command_map;
     context->instruction_index = iptr;

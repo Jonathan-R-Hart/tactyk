@@ -1163,6 +1163,16 @@ void* tactyk_dblock__index(struct tactyk_dblock__DBlock *container, uint64_t ind
     uint8_t *data = (uint8_t*)container->data;
     return &data[index * container->stride];
 }
+void* tactyk_dblock__index_allocated(struct tactyk_dblock__DBlock *container, uint64_t index) {
+    if (container->store != NULL) {
+        return tactyk_dblock__index(container->store, index);
+    }
+    if (index >= container->element_capacity) {
+        error("DBLOCK-CONTAINER index out of bounds", NULL);
+    }
+    uint8_t *data = (uint8_t*)container->data;
+    return &data[index * container->stride];
+}
 
 struct tactyk_dblock__DBlock* tactyk_dblock__interpolate(
     struct tactyk_dblock__DBlock *pattern, char var_indicator, bool *identifier_chars, struct tactyk_dblock__DBlock *main_vars, struct tactyk_dblock__DBlock *alt_vars) {
