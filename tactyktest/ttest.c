@@ -916,7 +916,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
             else {
                 int64_t rel_ofs = ofs - offsetof(struct tactyk_asmvm__Context, reg);
                 // main register file (standard x86 registers)
-                if (ofs < offsetof(struct tactyk_asmvm__register_bank, xa)) {
+                if (rel_ofs < offsetof(struct tactyk_asmvm__register_bank, xa)) {
                     snprintf(
                         test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
                         "Register-file deviation at offset %jd (qword #%jd), expected=%jd observed=%jd",
