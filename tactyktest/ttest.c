@@ -979,6 +979,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
                         "Memblock %ju data deviation at offset %ju, expected=%u observed=%u",
                         i, j, shadow_mbll->base_address[j], mbll->base_address[j]
                     );
+                    return TACTYK_TESTSTATE__FAIL;
                 }
             }
         }
