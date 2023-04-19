@@ -1237,7 +1237,7 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
                 }
                *((uint32_t*) &shadow_mbll->base_address[idx]) = (uint32_t)ival;
             }
-            else if ( tactyk_dblock__equals_c_string(item_type, "word") ) {
+            else if ( tactyk_dblock__equals_c_string(item_type, "qword") ) {
                 if (*((uint64_t*) &mbll->base_address[idx]) != (uint64_t)ival) {
                     char buf[64];
                     tactyk_dblock__export_cstring(buf, 64, name);
