@@ -837,10 +837,6 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
         program_map[j] = iv;
     }
 
-    #define ASM_PROGRAM_FILENAME "/tmp/tactyk_input.asm"
-    #define ASM_OBJECT_FILENAME "/tmp/tactyk_output.o"
-    #define ASM_SYMBOLS_FILENAME "/tmp/tactyk_symbols.map"
-
     char fname_assembly_code[64];
     char fname_object[64];
     char fname_symbols[64];

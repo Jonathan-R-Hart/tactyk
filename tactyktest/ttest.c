@@ -274,10 +274,10 @@ int main(int argc, char *argv[], char *envp[]) {
                         fprintf(tout, "REPORT: %s\n", tstate->report);
                     }
                     if (tstate->error[0] != 0) {
-                        fprintf(tout, "ERROR: %s\n", tstate->report);
+                        fprintf(tout, "ERROR: %s\n", tstate->error);
                     }
                     if (tstate->warning[0] != 0) {
-                        fprintf(tout, "WARNING: %s\n", tstate->report);
+                        fprintf(tout, "WARNING: %s\n", tstate->warning);
                     }
                     fprintf(tout, "\n");
 
@@ -297,10 +297,10 @@ int main(int argc, char *argv[], char *envp[]) {
                         fprintf(tout, "REPORT: %s\n", tstate->report);
                     }
                     if (tstate->error[0] != 0) {
-                        fprintf(tout, "ERROR: %s\n", tstate->report);
+                        fprintf(tout, "ERROR: %s\n", tstate->error);
                     }
                     if (tstate->warning[0] != 0) {
-                        fprintf(tout, "WARNING: %s\n", tstate->report);
+                        fprintf(tout, "WARNING: %s\n", tstate->warning);
                     }
                     fprintf(tout, "\n");
 
@@ -321,10 +321,10 @@ int main(int argc, char *argv[], char *envp[]) {
                             fprintf(tout, "REPORT: %s\n", tstate->report);
                         }
                         if (tstate->error[0] != 0) {
-                            fprintf(tout, "ERROR: %s\n", tstate->report);
+                            fprintf(tout, "ERROR: %s\n", tstate->error);
                         }
                         if (tstate->warning[0] != 0) {
-                            fprintf(tout, "WARNING: %s\n", tstate->report);
+                            fprintf(tout, "WARNING: %s\n", tstate->warning);
                         }
                     }
                     printf(".");
@@ -344,10 +344,10 @@ int main(int argc, char *argv[], char *envp[]) {
                         fprintf(tout, "REPORT: %s\n", tstate->report);
                     }
                     if (tstate->error[0] != 0) {
-                        fprintf(tout, "ERROR: %s\n", tstate->report);
+                        fprintf(tout, "ERROR: %s\n", tstate->error);
                     }
                     if (tstate->warning[0] != 0) {
-                        fprintf(tout, "WARNING: %s\n", tstate->report);
+                        fprintf(tout, "WARNING: %s\n", tstate->warning);
                     }
                     if (tstate->dump_context_expectation[0] != 0) {
                         fprintf(tout, "EXPECTED CONTEXT STATE:\n%s\n", tstate->dump_context_expectation);
@@ -513,8 +513,10 @@ void tactyk_test__error_handler(char *msg, void *data) {
     strncpy(test_state->error, msg, TACTYK_TEST__REPORT_BUFSIZE);
     int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-1;
 
-    if ((space_remaining > 0) && (data != NULL)) {
-        tactyk_dblock__export_cstring(&test_state->error[strlen(msg)], space_remaining, data);
+    if ((space_remaining > 2) && (data != NULL)) {
+        test_state->error[strlen(msg)+0] = ':';
+        test_state->error[strlen(msg)+1] = ' ';
+        tactyk_dblock__export_cstring(&test_state->error[strlen(msg)+2], space_remaining, data);
     }
 
     //longjmp(tactyk_test_err_jbuf, 1);

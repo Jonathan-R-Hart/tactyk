@@ -4,7 +4,6 @@
 # at a specified offset (must be lower than element_bound), and writes it to a register.
 # 
 # Virtual-ISA: tactyk_core
-# Templates:  assign data-const (DC), assign-data-integer (DI), assign-data-string (DS)
 # 
 # Coverage:
 #   load qword-data-addr-data (QDAD)
