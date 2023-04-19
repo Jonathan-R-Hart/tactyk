@@ -1,0 +1,107 @@
+# TEST:  addition
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  add data-data (DD), add data-integer (AI) add data-const (AC)
+
+PROGRAM
+  const C10 10
+  const C200 200
+  const C3000 3000
+  const C40000 40000
+  const C500000 500000
+  const C6000000 6000000
+
+  DO_INTS_1:
+    add a 9
+    add b 80
+    add c 700
+    add d 6000
+    add e 50000
+    add f 400000 
+    exit
+  
+  DO_INTS_2:
+    add a -1000
+    add b -1000
+    add c -1000
+    add d -1000
+    add e -1000
+    add f -1000 
+    exit
+  
+  DO_REGS_1:
+    add b a
+    add c b
+    add d c
+    add e d
+    add f e
+    exit
+
+  DO_REGS_2:
+    add e f
+    add d e
+    add c d
+    add b c
+    add a b
+    exit
+  
+  DO_CONSTANTS:
+    add a C10
+    add b C200
+    add c C3000
+    add d C40000
+    add e C500000
+    add f C6000000
+    exit
+
+EXEC DO_INTS_1
+
+TEST
+  rA 9
+  rB 80
+  rC 700
+  rD 6000
+  rE 50000
+  rF 400000
+
+EXEC DO_INTS_2
+
+TEST
+  rA -991
+  rB -920
+  rC -300
+  rD 5000
+  rE 49000
+  rF 399000
+
+EXEC DO_REGS_1
+
+TEST
+  rA -991
+  rB -1911
+  rC -2211
+  rD 2789
+  rE 51789
+  rF 450789
+
+EXEC DO_REGS_2
+
+TEST
+  rA 500254
+  rB 501245
+  rC 503156
+  rD 505367
+  rE 502578
+  rF 450789
+
+EXEC DO_CONSTANTS
+
+TEST
+  rA 500264
+  rB 501445
+  rC 506156
+  rD 545367
+  rE 1002578
+  rF 6450789
+
+

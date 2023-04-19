@@ -6,6 +6,7 @@ Test coverage for store instruction (and bounds checking)
 Expand bind instruction coverage to include failures
 Test coverage for push and pop instructions
 Test coverage for swap instruction
+Test coverage for add, sub, mul, and div instructions
 
 Prevent binding of uninitailized memblocks
   (It was probably harmless, but I'd rather not write tests for it, and it has to bounds-check memblock IDs anyway).
