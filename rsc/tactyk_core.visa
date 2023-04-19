@@ -744,7 +744,7 @@ instruction push
         cmp rTEMPA, fs:[$CTX_ARRAY_BOUND]
         errorge STATUS_MEMORY_OVERFLOW
         mov [$ADDRESS_REGISTER], rTEMPC
-        add $$ADDRESS_REGISTER, 8
+        add $ADDRESS_REGISTER, 8
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
         
