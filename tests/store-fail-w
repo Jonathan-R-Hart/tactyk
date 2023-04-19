@@ -1,0 +1,191 @@
+# TEST:  Bounds checking for store instructions (word)
+#
+# This verifies that tactyk halts when out-of-bounds offsets are used in store instructions
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   store word-addr-data-data    (WADD)
+#   store word-addr-integer-data (WAID)
+#   store word-addr-const-data   (WACD)
+
+PROGRAM
+  struct st
+    1 i0
+    1 i1
+    1 i2
+    1 i3
+    1 i4
+    1 i5
+    1 i6
+    1 i7
+    1 i8
+    1 i9
+  
+  const CN1 -1
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C5 5
+  const C6 6
+  const C7 7
+  const C8 8
+  const C9 9
+  const C10 10
+  
+  mem mm st 1
+  
+  INIT:
+    bind addr1 mm
+    assign a 10000
+    exit
+  
+  st_WADD_neg:
+    inc a
+    assign b -1
+    store word addr1 b a
+    exit
+  st_WADD_zero:
+    inc a
+    assign b 0
+    store word addr1 b a
+    exit
+  st_WADD_edge:
+    inc a
+    assign b 8
+    store word addr1 b a
+    exit
+  st_WADD_cross:
+    inc a
+    assign b 9
+    store word addr1 b a
+    exit
+  st_WADD_beyond:
+    inc a
+    assign b 10
+    store word addr1 b a
+    exit
+  
+  st_WAID_neg:
+    inc a
+    store word addr1 -1 a
+    exit
+  st_WAID_zero:
+    inc a
+    store word addr1 0 a
+    exit
+  st_WAID_edge:
+    inc a
+    store word addr1 8 a
+    exit
+  st_WAID_cross:
+    inc a
+    store word addr1 9 a
+    exit
+  st_WAID_beyond:
+    inc a
+    store word addr1 10 a
+    exit
+  
+  st_WACD_neg:
+    inc a
+    store word addr1 CN1 a
+    exit
+  st_WACD_zero:
+    inc a
+    store word addr1 C0 a
+    exit
+  st_WACD_edge:
+    inc a
+    store word addr1 C8 a
+    exit
+  st_WACD_cross:
+    inc a
+    store word addr1 C9 a
+    exit
+  st_WACD_beyond:
+    inc a
+    store word addr1 C10 a
+    exit
+
+EXEC INIT
+TEST
+  addr1 mm 0
+  rA 10000
+
+EXEC st_WADD_neg
+TEST
+  status 101
+  rA 10001
+  rB -1
+EXEC st_WADD_zero
+TEST
+  status 4
+  rA 10002
+  rB 0
+  mem mm 0 word 10002
+EXEC st_WADD_edge
+TEST
+  status 4
+  rA 10003
+  rB 8
+  mem mm 8 word 10003
+EXEC st_WADD_cross
+TEST
+  status 101
+  rA 10004
+  rB 9
+EXEC st_WADD_beyond
+TEST
+  status 101
+  rA 10005
+  rB 10
+
+
+EXEC st_WAID_neg
+TEST
+  status 101
+  rA 10006
+EXEC st_WAID_zero
+TEST
+  status 4
+  rA 10007
+  mem mm 0 word 10007
+EXEC st_WAID_edge
+TEST
+  status 4
+  rA 10008
+  mem mm 8 word 10008
+EXEC st_WAID_cross
+TEST
+  status 101
+  rA 10009
+EXEC st_WAID_beyond
+TEST
+  status 101
+  rA 10010
+
+EXEC st_WACD_neg
+TEST
+  status 101
+  rA 10011
+EXEC st_WACD_zero
+TEST
+  status 4
+  rA 10012
+  mem mm 0 word 10012
+EXEC st_WACD_edge
+TEST
+  status 4
+  rA 10013
+  mem mm 8 word 10013
+EXEC st_WACD_cross
+TEST
+  status 101
+  rA 10014
+EXEC st_WACD_beyond
+TEST
+  status 101
+  rA 10015

@@ -1,0 +1,217 @@
+# TEST:  Bounds checking for store instructions (dword)
+#
+# This verifies that tactyk halts when out-of-bounds offsets are used in store instructions
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   store dword-addr-data-data    (DADD)
+#   store dword-addr-integer-data (DAID)
+#   store dword-addr-const-data   (DACD)
+
+PROGRAM
+  struct st
+    1 i0
+    1 i1
+    1 i2
+    1 i3
+    1 i4
+    1 i5
+    1 i6
+    1 i7
+    1 i8
+    1 i9
+  
+  const CN1 -1
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C5 5
+  const C6 6
+  const C7 7
+  const C8 8
+  const C9 9
+  const C10 10
+  
+  mem mm st 1
+  
+  INIT:
+    bind addr1 mm
+    assign a 1000000
+    exit
+  
+  st_DADD_neg:
+    inc a
+    assign b -1
+    store dword addr1 b a
+    exit
+  st_DADD_zero:
+    inc a
+    assign b 0
+    store dword addr1 b a
+    exit
+  st_DADD_edge:
+    inc a
+    assign b 6
+    store dword addr1 b a
+    exit
+  st_DADD_cross:
+    inc a
+    assign b 7
+    store dword addr1 b a
+    exit
+  st_DADD_far:
+    inc a
+    assign b 9
+    store dword addr1 b a
+    exit
+  st_DADD_beyond:
+    inc a
+    assign b 10
+    store dword addr1 b a
+    exit
+  
+  st_DAID_neg:
+    inc a
+    store dword addr1 -1 a
+    exit
+  st_DAID_zero:
+    inc a
+    store dword addr1 0 a
+    exit
+  st_DAID_edge:
+    inc a
+    store dword addr1 6 a
+    exit
+  st_DAID_cross:
+    inc a
+    store dword addr1 7 a
+    exit
+  st_DAID_far:
+    inc a
+    store dword addr1 9 a
+    exit
+  st_DAID_beyond:
+    inc a
+    store dword addr1 10 a
+    exit
+  
+  st_DACD_neg:
+    inc a
+    store dword addr1 CN1 a
+    exit
+  st_DACD_zero:
+    inc a
+    store dword addr1 C0 a
+    exit
+  st_DACD_edge:
+    inc a
+    store dword addr1 C6 a
+    exit
+  st_DACD_cross:
+    inc a
+    store dword addr1 C7 a
+    exit
+  st_DACD_far:
+    inc a
+    store dword addr1 C9 a
+    exit
+  st_DACD_beyond:
+    inc a
+    store dword addr1 C10 a
+    exit
+
+EXEC INIT
+TEST
+  addr1 mm 0
+  rA 1000000
+
+EXEC st_DADD_neg
+TEST
+  status 101
+  rA 1000001
+  rB -1
+EXEC st_DADD_zero
+TEST
+  status 4
+  rA 1000002
+  rB 0
+  mem mm 0 dword 1000002
+EXEC st_DADD_edge
+TEST
+  status 4
+  rA 1000003
+  rB 6
+  mem mm 6 dword 1000003
+EXEC st_DADD_cross
+TEST
+  status 101
+  rA 1000004
+  rB 7
+EXEC st_DADD_far
+TEST
+  status 101
+  rA 1000005
+  rB 9
+EXEC st_DADD_beyond
+TEST
+  status 101
+  rA 1000006
+  rB 10
+
+
+EXEC st_DAID_neg
+TEST
+  status 101
+  rA 1000007
+EXEC st_DAID_zero
+TEST
+  status 4
+  rA 1000008
+  mem mm 0 dword 1000008
+EXEC st_DAID_edge
+TEST
+  status 4
+  rA 1000009
+  mem mm 6 dword 1000009
+EXEC st_DAID_cross
+TEST
+  status 101
+  rA 1000010
+EXEC st_DAID_far
+TEST
+  status 101
+  rA 1000011
+EXEC st_DAID_beyond
+TEST
+  status 101
+  rA 1000012
+
+EXEC st_DACD_neg
+TEST
+  status 101
+  rA 1000013
+EXEC st_DACD_zero
+TEST
+  status 4
+  rA 1000014
+  mem mm 0 dword 1000014
+EXEC st_DACD_edge
+TEST
+  status 4
+  rA 1000015
+  mem mm 6 dword 1000015
+EXEC st_DACD_cross
+TEST
+  status 101
+  rA 1000016
+EXEC st_DACD_far
+TEST
+  status 101
+  rA 1000017
+EXEC st_DACD_beyond
+TEST
+  status 101
+  rA 1000018
