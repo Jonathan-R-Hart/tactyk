@@ -4,6 +4,7 @@ Use mkstemps() to generate unique temporary filenames when building assembly int
 Test coverage for load instruction bounds checking
 Test coverage for store instruction (and bounds checking)
 Expand bind instruction coverage to include failures
+Test coverage for push and pop instructions
 
 Prevent binding of uninitailized memblocks
   (It was probably harmless, but I'd rather not write tests for it, and it has to bounds-check memblock IDs anyway).

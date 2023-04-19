@@ -1,0 +1,138 @@
+# TEST:  memblock stack operations
+# 
+# This sets up a 4-qword stack bound to addr1 and performs the a series of pops and pushes with it.
+# This also tests overflow and underflow detection.
+#
+# Virtual-ISA: tactyk_core
+# 
+# Coverage: push-addr-data (AD) push-addr-int (AI) push-addr-const (AC) pop-addr (A)
+
+PROGRAM
+  # Standard struct layout.  Technically unnecessesary, as it is also the default memblock layout.
+  #   But, due to too many long debug sessions ending with "specify the layout", TACTYK issues a warning if the layout is not specified.
+  struct layout
+    8 item
+  
+  mem m1 layout 5
+  
+  const C1 11111111
+  const C2 111222211111
+  const C3 3
+  const C4 456234234235
+  
+  DO_PUSH_INT1:
+    bind addr1 m1
+    push addr1 1234
+    exit
+  
+  DO_PUSH_INT_MORE:
+    push addr1 2345
+    push addr1 3456
+    push addr1 4567
+    exit
+  
+  DO_PUSH_INT_FAIL:
+    push addr1 5678
+    exit
+  
+  POP_SOME:
+    pop a addr1
+    pop b addr1
+    pop c addr1
+    exit
+  
+  DO_PUSH_CONSTANTS:
+    push addr1 C1
+    push addr1 C2
+    push addr1 C3
+    exit
+  
+  DO_PUSH_CONSTANT_FAIL:
+    push addr1 C4
+    exit
+  
+  POP_SOME_MORE:
+    pop e addr1
+    pop d addr1
+    add e d
+    pop d addr1
+    add e d
+    exit
+  
+  PUSH_REGISTERS:
+    push addr1 e
+    push addr1 d
+    push addr1 a
+    exit
+  
+  DO_PUSH_REGISTER_FAIL:
+    push addr1 a
+    exit
+
+  POP_IT_ALL:
+    pop f addr1
+    pop f addr1
+    pop f addr1
+    pop f addr1
+    exit
+
+EXEC DO_PUSH_INT1
+TEST
+  addr1 m1 8
+  mem m1 0 qword 1234
+
+EXEC DO_PUSH_INT_MORE
+TEST
+  addr1 m1 32
+  mem m1 8 qword 2345
+  mem m1 16 qword 3456
+  mem m1 24 qword 4567
+
+EXEC DO_PUSH_INT_FAIL
+TEST
+  status 105 # memory overflow
+
+EXEC POP_SOME
+TEST
+  addr1 m1 8
+  status 4
+  rA 4567
+  rB 3456
+  rC 2345
+
+EXEC DO_PUSH_CONSTANTS
+TEST
+  addr1 m1 32
+  mem m1 8 qword 11111111
+  mem m1 16 qword 111222211111
+  mem m1 24 qword 3
+
+EXEC DO_PUSH_CONSTANT_FAIL
+TEST
+  status 105 # memory overflow
+
+EXEC POP_SOME_MORE
+TEST
+  addr1 m1 8
+  rD 11111111
+  rE 111233322225
+
+EXEC PUSH_REGISTERS
+TEST
+  addr1 m1 32
+  mem m1 8 qword 111233322225
+  mem m1 16 qword 11111111
+  mem m1 24 qword 4567
+
+EXEC DO_PUSH_REGISTER_FAIL
+TEST
+  status 105 # memory overflow
+
+EXEC POP_IT_ALL
+TEST
+  addr1 m1 0
+  rF 1234
+
+EXEC POP_IT_ALL
+TEST
+  status 106 # memory underflow
