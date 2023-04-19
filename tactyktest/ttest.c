@@ -1146,7 +1146,6 @@ uint64_t read_spec__binary_data(struct tactyk_dblock__DBlock **out, struct tacty
 uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *name = spec->token->next;
 
-
     // if the name is the name of a loaded program, then a "foreign" memblock is specified, so use the "foreign" program's memblock table.
     //  Also:  I should probably generate a test errror for programs which share the same name as a memblock.
     struct tactyk_asmvm__Program *src_program = tactyk_dblock__get(programs, name);
@@ -1191,13 +1190,12 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
                 snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "'%s' is not an integer", buf);
                 return TACTYK_TESTSTATE__TEST_ERROR;
             }
-            struct tactyk_dblock__DBlock *item_type = name->next;
+            struct tactyk_dblock__DBlock *item_type = iindex->next;
             struct tactyk_dblock__DBlock *expected_value = item_type->next;
             if (expected_value == NULL) {
                 expected_value = item_type;
                 item_type = NULL;
             }
-
             int64_t ival = 0;
             if (!tactyk_dblock__try_parseint(&ival, expected_value)) {
                 char buf[64];
