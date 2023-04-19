@@ -1012,6 +1012,7 @@ uint64_t tactyk_test__STATE(struct tactyk_dblock__DBlock *spec) {
         }
 
         if (!test->adjust(test, td)) {
+            tactyk_test__report("state adjustment rejected or not implemented");
             return TACTYK_TESTSTATE__TEST_ERROR;
         }
 
@@ -1276,7 +1277,7 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
 
 bool tactyk_test__SET_MEM(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *value = spec->token->next;
-    return true;
+    return false;
 }
 
 uint64_t tactyk_test__ALLOC(struct tactyk_dblock__DBlock *spec) {

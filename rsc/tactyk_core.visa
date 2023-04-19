@@ -573,7 +573,7 @@ instruction store
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
         lfence
-        mov [$ADDRESS_REGISTER+rTEMPC], $SRC
+        mov [$ADDRESS_REGISTER+$OFFSET], $SRC
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     case QAID QACD
