@@ -1,0 +1,179 @@
+# TEST:  Bounds checking for load instructions (dword)
+#
+# This verifies that tactyk halts when out-of-bounds offsets are used in load instructions
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   load dword-data-addr-data (DDAD)
+#   load dword-data-addr-integer (DDAI)
+#   load dword-data-addr-const (DDAC)
+
+PROGRAM
+  struct st
+    1 i0
+    1 i1
+    1 i2
+    1 i3
+    1 i4
+    1 i5
+    1 i6
+    1 i7
+    1 i8
+    1 i9
+
+  const CN1 -1
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C5 5
+  const C6 6
+  const C7 7
+  const C8 8
+  const C9 9
+  const C10 10
+  
+  data mm st 1
+    100 101 102 103 104 105 106 107 108 109
+  
+  INIT:
+    bind addr1 mm
+    exit
+  
+  ld_DDAD_neg:
+    assign b -1
+    load dword a addr1 b
+    exit
+  ld_DDAD_zero:
+    assign b 0
+    load dword a addr1 b
+    exit
+  ld_DDAD_edge:
+    assign b 6
+    load dword a addr1 b
+    exit
+  ld_DDAD_cross:
+    assign b 7
+    load dword a addr1 b
+    exit
+  ld_DDAD_far:
+    assign b 9
+    load dword a addr1 b
+    exit
+  ld_DDAD_beyond:
+    assign b 10
+    load dword a addr1 b
+    exit
+  
+  ld_DDAI_neg:
+    load dword a addr1 -1
+    exit
+  ld_DDAI_zero:
+    load dword a addr1 0
+    exit
+  ld_DDAI_edge:
+    load dword a addr1 6
+    exit
+  ld_DDAI_cross:
+    load dword a addr1 7
+    exit
+  ld_DDAI_far:
+    load dword a addr1 9
+    exit
+  ld_DDAI_beyond:
+    load dword a addr1 10
+    exit
+  
+  ld_DDAC_neg:
+    load dword a addr1 CN1
+    exit
+  ld_DDAC_zero:
+    load dword a addr1 C0
+    exit
+  ld_DDAC_edge:
+    load dword a addr1 C6
+    exit
+  ld_DDAC_cross:
+    load dword a addr1 C7
+    exit
+  ld_DDAC_far:
+    load dword a addr1 C9
+    exit
+  ld_DDAC_beyond:
+    load dword a addr1 C10
+    exit
+
+EXEC INIT
+TEST
+  addr1 mm 0
+
+EXEC ld_DDAD_neg
+TEST
+  status 101
+  rB -1
+EXEC ld_DDAD_zero
+TEST
+  status 4
+  rB 0
+  rA 1734763876
+EXEC ld_DDAD_edge
+TEST
+  status 4
+  rB 6
+  rA 1835821930
+EXEC ld_DDAD_cross
+TEST
+  status 101
+  rB 7
+EXEC ld_DDAD_far
+TEST
+  status 101
+  rB 9
+EXEC ld_DDAD_beyond
+TEST
+  status 101
+  rB 10
+
+EXEC ld_DDAI_neg
+TEST
+  status 101
+EXEC ld_DDAI_zero
+TEST
+  status 4
+  rA 1734763876
+EXEC ld_DDAI_edge
+TEST
+  status 4
+  rA 1835821930
+EXEC ld_DDAI_cross
+TEST
+  status 101
+EXEC ld_DDAI_far
+TEST
+  status 101
+EXEC ld_DDAI_beyond
+TEST
+  status 101
+
+EXEC ld_DDAC_neg
+TEST
+  status 101
+EXEC ld_DDAC_zero
+TEST
+  status 4
+  rA 1734763876
+EXEC ld_DDAC_edge
+TEST
+  status 4
+  rA 1835821930
+EXEC ld_DDAC_cross
+TEST
+  status 101
+EXEC ld_DDAC_far
+TEST
+  status 101
+EXEC ld_DDAC_beyond
+TEST
+  status 101

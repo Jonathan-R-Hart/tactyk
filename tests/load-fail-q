@@ -1,0 +1,188 @@
+# TEST:  Bounds checking for load instructions (qword)
+#
+# This verifies that tactyk halts when out-of-bounds offsets are used in load instructions
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   load qword-data-addr-data (QDAD)
+#   load qword-data-addr-integer (QDAI)
+#   load qword-data-addr-const (QDAC)
+
+PROGRAM
+  struct st
+    1 i0
+    1 i1
+    1 i2
+    1 i3
+    1 i4
+    1 i5
+    1 i6
+    1 i7
+    1 i8
+    1 i9
+
+  const CN1 -1
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C5 5
+  const C6 6
+  const C7 7
+  const C8 8
+  const C9 9
+  const C10 10
+  
+  data mm st 1
+    100 101 102 103 104 105 106 107 108 109
+  
+  INIT:
+    bind addr1 mm
+    exit
+  
+  ld_QDAD_neg:
+    assign b -1
+    load qword a addr1 b
+    exit
+  ld_QDAD_zero:
+    assign b 0
+    load qword a addr1 b
+    exit
+  ld_QDAD_edge:
+    assign b 2
+    load qword a addr1 b
+    exit
+  ld_QDAD_cross:
+    assign b 3
+    load qword a addr1 b
+    exit
+  ld_QDAD_far:
+    assign b 9
+    load qword a addr1 b
+    exit
+  ld_QDAD_beyond:
+    assign b 10
+    load qword a addr1 b
+    exit
+  
+  ld_QDAI_neg:
+    load qword a addr1 -1
+    exit
+  ld_QDAI_zero:
+    load qword a addr1 0
+    exit
+  ld_QDAI_edge:
+    load qword a addr1 2
+    exit
+  ld_QDAI_cross:
+    load qword a addr1 3
+    exit
+  ld_QDAI_far:
+    load qword a addr1 9
+    exit
+  ld_QDAI_beyond:
+    load qword a addr1 10
+    exit
+  
+  ld_QDAC_neg:
+    load qword a addr1 CN1
+    exit
+  ld_QDAC_zero:
+    load qword a addr1 C0
+    exit
+  ld_QDAC_edge:
+    load qword a addr1 C2
+    exit
+  ld_QDAC_cross:
+    load qword a addr1 C3
+    exit
+  ld_QDAC_far:
+    load qword a addr1 C9
+    exit
+  ld_QDAC_beyond:
+    load qword a addr1 C10
+    exit
+
+EXEC INIT
+TEST
+  addr1 mm 0
+
+EXEC ld_QDAD_neg
+TEST
+  status 101
+  rB -1
+EXEC ld_QDAD_zero
+TEST
+  status 4
+  rB 0
+  rA 7740114806721897828
+EXEC ld_QDAD_edge
+TEST
+  status 4
+  rB 2
+  rA 7884795152398051174
+EXEC ld_QDAD_cross
+TEST
+  status 101
+  rB 3
+EXEC ld_QDAD_far
+TEST
+  status 101
+  rB 9
+EXEC ld_QDAD_beyond
+TEST
+  status 101
+  rB 10
+
+EXEC ld_QDAI_neg
+TEST
+  status 101
+EXEC ld_QDAI_zero
+TEST
+  status 4
+  rA 7740114806721897828
+EXEC ld_QDAI_edge
+TEST
+  status 4
+  rA 7884795152398051174
+EXEC ld_QDAI_cross
+TEST
+  status 101
+EXEC ld_QDAI_far
+TEST
+  status 101
+EXEC ld_QDAI_beyond
+TEST
+  status 101
+
+EXEC ld_QDAC_neg
+TEST
+  status 101
+EXEC ld_QDAC_zero
+TEST
+  status 4
+  rA 7740114806721897828
+EXEC ld_QDAC_edge
+TEST
+  status 4
+  rA 7884795152398051174
+EXEC ld_QDAC_cross
+TEST
+  status 101
+EXEC ld_QDAC_far
+TEST
+  status 101
+EXEC ld_QDAC_beyond
+TEST
+  status 101
+
+    
+  
+  
+
+
+
+
+
