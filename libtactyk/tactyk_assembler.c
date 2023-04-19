@@ -58,7 +58,7 @@ struct tactyk_assembly* tactyk_assemble(char *asm_fname, char *obj_name, char *s
         fseek(tf, 0, SEEK_END);
         out->length = ftell(tf);
         fseek(tf, 0, SEEK_SET);
-        out->bin = calloc(1, out->length);
+        out->bin = calloc(1, out->length+1);
         fread(out->bin, out->length, 1, tf);
 
         fclose(tf);

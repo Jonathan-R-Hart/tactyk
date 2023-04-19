@@ -85,7 +85,7 @@ void tactyk_visa__init(char *fname) {
     }
     fseek(f, 0, SEEK_END);
     int64_t len = ftell(f);
-    uint8_t *fbytes = calloc(len, sizeof(uint8_t));
+    uint8_t *fbytes = calloc(len+1, sizeof(uint8_t));
     fseek(f,0, SEEK_SET);
     fread(fbytes, len, 1, f);
     fclose(f);
@@ -211,7 +211,7 @@ bool tactyk_visa__ld_header(struct tactyk_emit__Context *ctx, struct tactyk_dblo
     FILE *f = fopen(buf, "r");
     fseek(f, 0, SEEK_END);
     int64_t len = ftell(f);
-    ctx->asm_header = calloc(len, sizeof(char));
+    ctx->asm_header = calloc(len, sizeof(char)+1);
     fseek(f,0, SEEK_SET);
     fread(ctx->asm_header, len, 1, f);
     fclose(f);

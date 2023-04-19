@@ -77,7 +77,7 @@ void aux__read_file(struct tactyk_asmvm__Context *asmvm_ctx) {
     FILE *f = aux_open_file__from_ctxref(asmvm_ctx, "r");
     fseek(f, 0, SEEK_END);
     int64_t len = ftell(f)+8;
-    uint8_t *f_data = calloc(len, sizeof(char));
+    uint8_t *f_data = calloc(len+1, sizeof(char));
     fseek(f,0, SEEK_SET);
     fread(f_data, len, 1, f);
     fclose(f);

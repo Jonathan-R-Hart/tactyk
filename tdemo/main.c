@@ -160,7 +160,7 @@ int main(int argc, char *argv[], char *envp[]) {
             FILE *f = fopen(arg, "r");
             fseek(f, 0, SEEK_END);
             int64_t len = ftell(f);
-            char *pl_src = calloc(len, sizeof(char));
+            char *pl_src = calloc(len+1, sizeof(char));
             fseek(f,0, SEEK_SET);
             fread(pl_src, len, 1, f);
             fclose(f);

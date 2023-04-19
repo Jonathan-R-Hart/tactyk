@@ -12,6 +12,8 @@ Revise stack operations (lwcall/lwreturn, push/pop)
   Stack pointers (or indices) now start at the base address and point at the next entry
   lwcall now uses the whole register and uses proper bounds checking
 
+Append a string terminator to all files read into a buffer.
+
 17-18 Apr 2023
 Add memory and memory binding to the testing system
   It gets a bit complex because memory bindings don't always have a convenient origin.
