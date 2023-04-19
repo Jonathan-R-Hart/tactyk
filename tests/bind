@@ -20,10 +20,25 @@ PROGRAM
   
   extmem em
   
-  MAIN:
+  DO_SYMBOLIC_BIND:
     bind addr1 mm
     bind addr3 txt
     bind addr4 em
+    exit
+
+  DO_INTREF_BIND:
+    bind addr2 0
+    bind addr4 1
+    bind addr3 2
+    exit
+
+  DO_DYNAMICREF_BIND:
+    assign a 0
+    assign b 1
+    assign c 2
+    bind addr1 a
+    bind addr2 b
+    bind addr4 c
     exit
 
 ALLOC em
@@ -35,7 +50,7 @@ ALLOC em
   word 1000
   qword -100
 
-EXEC MAIN
+EXEC DO_SYMBOLIC_BIND
 
 TEST
   addr1 mm +0 3169 32
@@ -44,7 +59,21 @@ TEST
   mem txt *
   mem mm *
 
+EXEC DO_INTREF_BIND
+TEST
+  addr2 txt 0
+  addr3 em 0
+  addr4 mm 0
 
+EXEC DO_DYNAMICREF_BIND
+TEST
+  status 4
+  rA 0
+  rB 1
+  rC 2
+  addr1 txt 0
+  addr2 mm 0
+  addr4 em 0
 
 
 
