@@ -5,9 +5,9 @@
 # Virtual-ISA: tactyk_core
 # 
 # Coverage:
-#   store byte-addr-data-data    (WADD)
-#   store byte-addr-integer-data (WAID)
-#   store byte-addr-const-data   (WACD)
+#   store byte-addr-data-data    (BADD)
+#   store byte-addr-integer-data (BAID)
+#   store byte-addr-const-data   (BACD)
 
 PROGRAM
   struct st

@@ -2,7 +2,7 @@
 Use mkstemps() to generate unique temporary filenames when building assembly intermediates.
   (Fixes automated tests failures when using multiple processes)
 Test coverage for load instruction bounds checking
-Test coverage for store instruction
+Test coverage for store instruction (and bounds checking)
 
 17-18 Apr 2023
 Add memory and memory binding to the testing system
