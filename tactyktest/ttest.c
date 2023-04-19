@@ -1495,22 +1495,22 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
 
     switch(entry->element_offset) {
         case 1: {
-            observed_ofs = vmctx->reg.rADDR1 - (uint64_t*)target->base_address;
+            observed_ofs = (uint8_t*) vmctx->reg.rADDR1 - (uint8_t*)target->base_address;
             shadow_vmctx->reg.rADDR1 = (uint64_t*) &target->base_address[expected_ofs];
             break;
         }
         case 2: {
-            observed_ofs = vmctx->reg.rADDR2 - (uint64_t*)target->base_address;
+            observed_ofs = (uint8_t*) vmctx->reg.rADDR2 - (uint8_t*)target->base_address;
             shadow_vmctx->reg.rADDR2 = (uint64_t*) &target->base_address[expected_ofs];
             break;
         }
         case 3: {
-            observed_ofs = vmctx->reg.rADDR3 - (uint64_t*)target->base_address;
+            observed_ofs = (uint8_t*) vmctx->reg.rADDR3 - (uint8_t*)target->base_address;
             shadow_vmctx->reg.rADDR3 = (uint64_t*) &target->base_address[expected_ofs];
             break;
         }
         case 4: {
-            observed_ofs = vmctx->reg.rADDR4 - (uint64_t*)target->base_address;
+            observed_ofs = (uint8_t*) vmctx->reg.rADDR4 - (uint8_t*)target->base_address;
             shadow_vmctx->reg.rADDR4 = (uint64_t*) &target->base_address[expected_ofs];
             break;
         }

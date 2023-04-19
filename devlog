@@ -14,6 +14,8 @@ Revise stack operations (lwcall/lwreturn, push/pop)
 
 Append a string terminator to all files read into a buffer.
 
+Fix memblock offset derviation in testing system
+
 17-18 Apr 2023
 Add memory and memory binding to the testing system
   It gets a bit complex because memory bindings don't always have a convenient origin.
