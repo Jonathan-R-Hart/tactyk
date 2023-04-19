@@ -573,7 +573,7 @@ instruction store
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
         lfence
-        mov [$ADDRESS_REGISTER+$OFFSET], $SRC
+        mov [$ADDRESS_REGISTER+rTEMPC], $SRC
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     case QAID QACD
@@ -586,7 +586,7 @@ instruction store
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
         lfence
-        mov [$ADDRESS_REGISTER+$OFFSET], $SRC
+        mov [$ADDRESS_REGISTER+rTEMPC], $SRC
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
@@ -613,7 +613,7 @@ instruction store
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
         lfence
-        mov dword [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_32
+        mov dword [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_32
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
@@ -640,7 +640,7 @@ instruction store
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
         lfence
-        mov word [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_16
+        mov word [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_16
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
@@ -665,7 +665,7 @@ instruction store
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
         lfence
-        mov byte [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_8
+        mov byte [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_8
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
@@ -692,7 +692,7 @@ instruction store
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
         lfence
-        movq [$ADDRESS_REGISTER+$OFFSET], $SRC
+        movq [$ADDRESS_REGISTER+rTEMPC], $SRC
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
