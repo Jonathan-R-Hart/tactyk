@@ -284,6 +284,7 @@
     %define microcontext_size_bits 9
     %define microcontext_stack_size 65536
     %define lwcall_stack_size 65536
+    %define lwcall_stack_max 65535
     
     struc context
         

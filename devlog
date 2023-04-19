@@ -3,12 +3,20 @@ Use mkstemps() to generate unique temporary filenames when building assembly int
   (Fixes automated tests failures when using multiple processes)
 Test coverage for load instruction bounds checking
 Test coverage for store instruction (and bounds checking)
+Expand bind instruction coverage to include failures
+
+Prevent binding of uninitailized memblocks
+  (It was probably harmless, but I'd rather not write tests for it, and it has to bounds-check memblock IDs anyway).
+
+Revise stack operations (lwcall/lwreturn, push/pop)
+  Stack pointers (or indices) now start at the base address and point at the next entry
+  lwcall now uses the whole register and uses proper bounds checking
 
 17-18 Apr 2023
 Add memory and memory binding to the testing system
   It gets a bit complex because memory bindings don't always have a convenient origin.
 Test coverage for the bind instruction
-Test coverage for load isntruction (data register only)
+Test coverage for load instruction (data register only)
 
 Implement tactyk_pl data directive
   This defines and initializes a memblock containing formatted binary data

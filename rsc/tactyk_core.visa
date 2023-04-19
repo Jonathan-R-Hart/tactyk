@@ -705,13 +705,13 @@ instruction pop
     type address
     $ADDRESS_REGISTER $VALUE
   code
-    mov $DEST__DATA_REG, [$ADDRESS_REGISTER]
     mov rTEMPA, $ADDRESS_REGISTER
     sub rTEMPA, 8
     cmp rTEMPA, fs:[$CTX_ADDR]
     errorlt STATUS_MEMORY_UNDERFLOW
     lfence
     sub $ADDRESS_REGISTER, 8
+    mov $DEST__DATA_REG, [$ADDRESS_REGISTER]
     xor rTEMPA, rTEMPA
     jmp $NEXT_INSTRUCTION
 
@@ -731,8 +731,8 @@ instruction push
         add rTEMPA, 8
         cmp rTEMPA, fs:[$CTX_ARRAY_BOUND]
         errorge STATUS_MEMORY_OVERFLOW
-        add $ADDRESS_REGISTER, 8
         mov [$ADDRESS_REGISTER], $SRC__DATA_REGISTER
+        add $ADDRESS_REGISTER, 8
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     case AI AC
@@ -743,8 +743,8 @@ instruction push
         add rTEMPA, 8
         cmp rTEMPA, fs:[$CTX_ARRAY_BOUND]
         errorge STATUS_MEMORY_OVERFLOW
-        add $$ADDRESS_REGISTER, 8
         mov [$ADDRESS_REGISTER], rTEMPC
+        add $$ADDRESS_REGISTER, 8
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
         
@@ -2026,26 +2026,28 @@ instruction lwcall
     scramble rTEMPC $LD_RETURN_TARGET $COMMAND_INDEX_NEXT
   code
     $LD_RETURN_TARGET
-    inc rLWCSI_16
-    movzx rTEMPA, rLWCSI_16
+    cmp rLWCSI, lwcall_stack_max
+    errorge STATUS_STACK_OVERFLOW
+    mov rTEMPA, rLWCSI
     shl rTEMPA, 2
     add rTEMPA, fs:[context.lwcall_stack_address]
     mov dword [rTEMPA], rTEMPC_32
+    inc rLWCSI
     xor rTEMPA, rTEMPA
     xor rTEMPC, rTEMPC
     jmp $JTARGET
 
 instruction lwreturn
   code
-    movzx rMAPPER, rLWCSI_16
     cmp rLWCSI_16, fs:[context.lwcall_floor]
-    errorlt STATUS_STACK_UNDERFLOW
+    errorle STATUS_STACK_UNDERFLOW
+    dec rLWCSI
+    mov rMAPPER, rLWCSI
     shl rMAPPER, 2
     add rMAPPER, fs:[context.lwcall_stack_address]
     mov rMAPPER_32, [rMAPPER]
     ;cmp rMAPPER, fs:[context.instruction_count]
     ;errorge STATUS_ROGUE_BRANCH
-    dec rLWCSI_16
     shl rMAPPER, 3
     add rMAPPER, fs:[context.program_map]
     jmp [rMAPPER]
