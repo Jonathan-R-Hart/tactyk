@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
 
 #include "tactyk.h"
 #include "tactyk_dblock.h"
@@ -533,45 +534,156 @@ bool tactyk_dblock__try_parseint(int64_t *out, struct tactyk_dblock__DBlock *dbl
     if (dblock->length == 0) {
         return false;
     }
+
     int64_t result = 0;
     int64_t sign = 1;
     int64_t i = 0;
+    uint64_t radix = 10;
     char *str = (char*)dblock->data;
-    if (str[0] == '-') {
-        sign = -1;
-        i += 1;
+    switch(str[0]) {
+        case '-': {
+            sign = -1;
+            i += 1;
+            break;
+        }
+        case '+': {
+            i += 1;
+            break;
+        }
     }
-    else if (str[0] == '+') {
-        i += 1;
+    switch(str[i]) {
+        case 'H':
+        case 'h': {
+            if (str[i+1] != '.') {
+                return false;
+            }
+            i += 1;
+            radix = 16;
+            break;
+        }
+        case 'B':
+        case 'b': {
+            if (str[i+1] != '.') {
+                return false;
+            }
+            i += 1;
+            radix = 2;
+            break;
+        }
     }
     for (; i < (int64_t)dblock->length; i++) {
         char c = str[i];
-        if (c < '0' || c > '9') {
+        uint64_t v = 0;
+        switch(c) {
+            case '0': { v=0; break; }
+            case '1': { v=1; break; }
+            case '2': { v=2; break; }
+            case '3': { v=3; break; }
+            case '4': { v=4; break; }
+            case '5': { v=5; break; }
+            case '6': { v=6; break; }
+            case '7': { v=7; break; }
+            case '8': { v=8; break; }
+            case '9': { v=9; break; }
+
+            case 'a': { v=10; break; }
+            case 'b': { v=11; break; }
+            case 'c': { v=12; break; }
+            case 'd': { v=13; break; }
+            case 'e': { v=14; break; }
+            case 'f': { v=15; break; }
+
+            case 'A': { v=10; break; }
+            case 'B': { v=11; break; }
+            case 'C': { v=12; break; }
+            case 'D': { v=13; break; }
+            case 'E': { v=14; break; }
+            case 'F': { v=15; break; }
+            case '_': { continue; }
+            default: { return false; }
+        }
+        if (v >= radix) {
             return false;
         }
-        int64_t v = c - (int64_t)'0';
-        result *= 10;
+        result *= radix;
         result += v;
     }
 
     *out = result * sign;
     return true;
+
 }
 bool tactyk_dblock__try_parseuint(uint64_t *out, struct tactyk_dblock__DBlock *dblock) {
 
     if (dblock->length == 0) {
         return false;
     }
-    char *str = (char*)dblock->data;
     int64_t result = 0;
+    int64_t sign = 1;
     int64_t i = 0;
+    uint64_t radix = 10;
+    char *str = (char*)dblock->data;
+    switch(str[0]) {
+        case '+': {
+            i += 1;
+            break;
+        }
+    }
+    switch(str[i]) {
+        case 'H':
+        case 'h': {
+            if (str[i+1] != '.') {
+                return false;
+            }
+            i += 2;
+            radix = 16;
+            break;
+        }
+        case 'B':
+        case 'b': {
+            if (str[i+1] != '.') {
+                return false;
+            }
+            i += 2;
+            radix = 2;
+            break;
+        }
+    }
     for (; i < (int64_t)dblock->length; i++) {
         char c = str[i];
-        if (c < '0' || c > '9') {
+        uint64_t v = 0;
+        switch(c) {
+            case '0': { v=0; break; }
+            case '1': { v=1; break; }
+            case '2': { v=2; break; }
+            case '3': { v=3; break; }
+            case '4': { v=4; break; }
+            case '5': { v=5; break; }
+            case '6': { v=6; break; }
+            case '7': { v=7; break; }
+            case '8': { v=8; break; }
+            case '9': { v=9; break; }
+
+            case 'a': { v=10; break; }
+            case 'b': { v=11; break; }
+            case 'c': { v=12; break; }
+            case 'd': { v=13; break; }
+            case 'e': { v=14; break; }
+            case 'f': { v=15; break; }
+
+            case 'A': { v=10; break; }
+            case 'B': { v=11; break; }
+            case 'C': { v=12; break; }
+            case 'D': { v=13; break; }
+            case 'E': { v=14; break; }
+            case 'F': { v=15; break; }
+            case '_': { continue; }
+            default: { return false; }
+        }
+        if (v >= radix) {
             return false;
         }
-        int64_t v = c - (int64_t)'0';
-        result *= 10;
+        result *= radix;
         result += v;
     }
 

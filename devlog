@@ -23,6 +23,10 @@ Add two methods for handling integer division by zero:
   Exit tactyk with a status code.
   Jump if the denominator is zero.
 
+Add binary and hexadecimal integer format parsing
+  bin:  b.0010101110101
+  hex:  h.afd2131231aee
+
 17-18 Apr 2023
 Add memory and memory binding to the testing system
   It gets a bit complex because memory bindings don't always have a convenient origin.
