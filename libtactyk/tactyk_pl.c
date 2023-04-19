@@ -316,7 +316,6 @@ bool tactyk_pl__mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock
     if (m_hl->definition == &default_mem_layout) {
         warn("PL -- memblock defined without a layout (struct)", dblock);
     }
-    printf("MEM entries=%ju stride=%ju\n", m_hl->num_entries, m_hl->definition->byte_stride);
 
     m_hl->data = tactyk_alloc__allocate(m_hl->num_entries, m_hl->definition->byte_stride);
 
