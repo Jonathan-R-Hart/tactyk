@@ -1158,6 +1158,119 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
         }
     }
 
+    for (uint64_t i = 0; i < TACTYK_ASMVM__MCTX_STACK_SIZE; i++) {
+        struct tactyk_asmvm__MicrocontextStash *stash = &vmctx->microcontext_stack[i];
+        struct tactyk_asmvm__MicrocontextStash *shadow_stash = &shadow_mctxstack[i];
+
+        for (uint64_t j = 0; j < 4; j++) {
+            struct tactyk_asmvm__memblock_lowlevel *mbll = &stash->memblocks[i];
+            struct tactyk_asmvm__memblock_lowlevel *shadow_mbll = &stash->memblocks[i];
+            if (mbll->base_address != shadow_mbll->base_address) {
+                snprintf(
+                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                    "stash[%ju] deviation - memblock[%ju].base_address: expected=%p, observed=%p",
+                    i, j, shadow_mbll->base_address, mbll->base_address
+                );
+                return TACTYK_TESTSTATE__FAIL;
+            }
+            if (mbll->array_bound != shadow_mbll->array_bound) {
+                snprintf(
+                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                    "stash[%ju] deviation - memblock[%ju].array_bound: expected=%u, observed=%u",
+                    i, j, shadow_mbll->array_bound, mbll->array_bound
+                );
+                return TACTYK_TESTSTATE__FAIL;
+            }
+            if (mbll->element_bound != shadow_mbll->element_bound) {
+                snprintf(
+                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                    "stash[%ju] deviation - memblock[%ju].element_bound: expected=%u, observed=%u",
+                    i, j, shadow_mbll->element_bound, mbll->element_bound
+                );
+                return TACTYK_TESTSTATE__FAIL;
+            }
+            if (mbll->memblock_index != shadow_mbll->memblock_index) {
+                snprintf(
+                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                    "stash[%ju] deviation - memblock[%ju].memblock_index: expected=%u, observed=%u",
+                    i, j, shadow_mbll->memblock_index, mbll->memblock_index
+                );
+                return TACTYK_TESTSTATE__FAIL;
+            }
+            if (mbll->type != shadow_mbll->type) {
+                snprintf(
+                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                    "stash[%ju] deviation - memblock[%ju].type: expected=%u, observed=%u",
+                    i, j, shadow_mbll->type, mbll->type
+                );
+                return TACTYK_TESTSTATE__FAIL;
+            }
+        }
+        #define STASH_CHK(PROP,FMT,TYPE) \
+        if (shadow_stash->PROP != stash->PROP) { \
+            snprintf( \
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE, \
+                "stash[%ju] deviation - " #PROP ": expected=" #FMT ", observed=" #FMT, \
+                i, (TYPE)shadow_stash->PROP, (TYPE)stash->PROP \
+            ); \
+            return TACTYK_TESTSTATE__FAIL; \
+        }
+        STASH_CHK(a1, %ju, int64_t);
+        STASH_CHK(a2, %ju, int64_t);
+        STASH_CHK(a3, %ju, int64_t);
+        STASH_CHK(b1, %ju, int64_t);
+        STASH_CHK(b2, %ju, int64_t);
+        STASH_CHK(b3, %ju, int64_t);
+        STASH_CHK(c1, %ju, int64_t);
+        STASH_CHK(c2, %ju, int64_t);
+        STASH_CHK(c3, %ju, int64_t);
+        STASH_CHK(d1, %ju, int64_t);
+        STASH_CHK(d2, %ju, int64_t);
+        STASH_CHK(d3, %ju, int64_t);
+        STASH_CHK(e1, %ju, int64_t);
+        STASH_CHK(e2, %ju, int64_t);
+        STASH_CHK(e3, %ju, int64_t);
+        STASH_CHK(f1, %ju, int64_t);
+        STASH_CHK(f2, %ju, int64_t);
+        STASH_CHK(f3, %ju, int64_t);
+        STASH_CHK(unused1, %ju, int64_t);
+        STASH_CHK(unused2, %ju, int64_t);
+        STASH_CHK(xa.f64[0], %f, double);
+        STASH_CHK(xa.f64[1], %f, double);
+        STASH_CHK(xb.f64[0], %f, double);
+        STASH_CHK(xb.f64[1], %f, double);
+        STASH_CHK(xc.f64[0], %f, double);
+        STASH_CHK(xc.f64[1], %f, double);
+        STASH_CHK(xd.f64[0], %f, double);
+        STASH_CHK(xd.f64[1], %f, double);
+        STASH_CHK(xe.f64[0], %f, double);
+        STASH_CHK(xe.f64[1], %f, double);
+        STASH_CHK(xf.f64[0], %f, double);
+        STASH_CHK(xf.f64[1], %f, double);
+        STASH_CHK(xg.f64[0], %f, double);
+        STASH_CHK(xg.f64[1], %f, double);
+        STASH_CHK(xh.f64[0], %f, double);
+        STASH_CHK(xh.f64[1], %f, double);
+        STASH_CHK(xi.f64[0], %f, double);
+        STASH_CHK(xi.f64[1], %f, double);
+        STASH_CHK(xj.f64[0], %f, double);
+        STASH_CHK(xj.f64[1], %f, double);
+        STASH_CHK(xk.f64[0], %f, double);
+        STASH_CHK(xk.f64[1], %f, double);
+        STASH_CHK(xl.f64[0], %f, double);
+        STASH_CHK(xl.f64[1], %f, double);
+        STASH_CHK(xm.f64[0], %f, double);
+        STASH_CHK(xm.f64[1], %f, double);
+        STASH_CHK(xn.f64[0], %f, double);
+        STASH_CHK(xn.f64[1], %f, double);
+        STASH_CHK(xTEMPA.f64[0], %f, double);
+        STASH_CHK(xTEMPA.f64[1], %f, double);
+        STASH_CHK(xTEMPB.f64[0], %f, double);
+        STASH_CHK(xTEMPB.f64[1], %f, double);
+        #undef STASH_CHK
+
+    }
+
     return TACTYK_TESTSTATE__PASS;
 }
 
