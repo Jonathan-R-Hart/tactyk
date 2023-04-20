@@ -3,6 +3,7 @@ Add instructions:  not, negate (tactyk_core.visa)
 Add test coverage for and, or, xor, not, negate, inc, dec instructions  (tactyk_core.visa)
 Add test coverage for shift operations (shift-left, shift-right, rotate-left, rotate-right)
 Add test coverage for goto
+Add test coverage for tcall and ccall
 
 Add template for using integers or constants to offset an address.
 
@@ -12,6 +13,7 @@ Correct and expand address offsetting through the assign instruction.
 
 Correct register usage for shift instruction (which taking the shift parameter from a data register)
 
+Expand the testing system to accept and validate callbacks from tactyk.
 
 19 Apr 2023
 Use mkstemps() to generate unique temporary filenames when building assembly intermediates.
