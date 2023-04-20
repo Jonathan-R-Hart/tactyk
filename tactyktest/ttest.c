@@ -1206,6 +1206,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
                 return TACTYK_TESTSTATE__FAIL;
             }
         }
+
         #define STASH_CHK(PROP,FMT,TYPE) \
         if (shadow_stash->PROP != stash->PROP) { \
             snprintf( \
@@ -1215,26 +1216,26 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
             ); \
             return TACTYK_TESTSTATE__FAIL; \
         }
-        STASH_CHK(a1, %ju, int64_t);
-        STASH_CHK(a2, %ju, int64_t);
-        STASH_CHK(a3, %ju, int64_t);
-        STASH_CHK(b1, %ju, int64_t);
-        STASH_CHK(b2, %ju, int64_t);
-        STASH_CHK(b3, %ju, int64_t);
-        STASH_CHK(c1, %ju, int64_t);
-        STASH_CHK(c2, %ju, int64_t);
-        STASH_CHK(c3, %ju, int64_t);
-        STASH_CHK(d1, %ju, int64_t);
-        STASH_CHK(d2, %ju, int64_t);
-        STASH_CHK(d3, %ju, int64_t);
-        STASH_CHK(e1, %ju, int64_t);
-        STASH_CHK(e2, %ju, int64_t);
-        STASH_CHK(e3, %ju, int64_t);
-        STASH_CHK(f1, %ju, int64_t);
-        STASH_CHK(f2, %ju, int64_t);
-        STASH_CHK(f3, %ju, int64_t);
-        STASH_CHK(unused1, %ju, int64_t);
-        STASH_CHK(unused2, %ju, int64_t);
+        STASH_CHK(a1, %jd, int64_t);
+        STASH_CHK(a2, %jd, int64_t);
+        STASH_CHK(a3, %jd, int64_t);
+        STASH_CHK(b1, %jd, int64_t);
+        STASH_CHK(b2, %jd, int64_t);
+        STASH_CHK(b3, %jd, int64_t);
+        STASH_CHK(c1, %jd, int64_t);
+        STASH_CHK(c2, %jd, int64_t);
+        STASH_CHK(c3, %jd, int64_t);
+        STASH_CHK(d1, %jd, int64_t);
+        STASH_CHK(d2, %jd, int64_t);
+        STASH_CHK(d3, %jd, int64_t);
+        STASH_CHK(e1, %jd, int64_t);
+        STASH_CHK(e2, %jd, int64_t);
+        STASH_CHK(e3, %jd, int64_t);
+        STASH_CHK(f1, %jd, int64_t);
+        STASH_CHK(f2, %jd, int64_t);
+        STASH_CHK(f3, %jd, int64_t);
+        STASH_CHK(unused1, %jd, int64_t);
+        STASH_CHK(unused2, %jd, int64_t);
         STASH_CHK(xa.f64[0], %f, double);
         STASH_CHK(xa.f64[1], %f, double);
         STASH_CHK(xb.f64[0], %f, double);
