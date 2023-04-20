@@ -1436,19 +1436,6 @@ instruction if
         .pass:
         xor rTEMPA, rTEMPA
         jmp $JTARGET
-    case ITIL ITCL CTIL CTCL
-      code
-        $LD_IMMEDIATE_A
-        $LD_IMMEDIATE_B
-        cmp rTEMPA, rTEMPC
-        $CJUMP .pass
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
-        .pass:
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $JTARGET
     
     # comparison with floats on xmmx registers
     #  For packed floats, these all pass if any comparisons pass
@@ -1591,47 +1578,6 @@ instruction if
         $LD_IMMEDIATE_A
         movq xTEMPA, rTEMPA
         mov$VECFMT xTEMPB, $B
-        movq rTEMPA, xTEMPA
-        cmp rTEMPA, 0
-        jne .pass
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
-        .pass:
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
-        jmp $JTARGET
-    case FTIL FTCL CfTIL CfTCL
-      code
-        $LD_IMMEDIATE_A
-        $LD_IMMEDIATE_B
-        movq xTEMPA, rTEMPA
-        mov$VECFMT xTEMPB, rTEMPC
-        movq rTEMPA, xTEMPA
-        cmp rTEMPA, 0
-        jne .pass
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
-        .pass:
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
-        jmp $JTARGET
-    # maximum silliness
-    case FTFL CfTFL FTCfL CfTCfL
-      code
-        $LD_IMMEDIATE_A
-        $LD_IMMEDIATE_B
-        movq xTEMPA, rTEMPA
-        movq xTEMPB, rTEMPC
         movq rTEMPA, xTEMPA
         cmp rTEMPA, 0
         jne .pass
