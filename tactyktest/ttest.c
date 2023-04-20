@@ -88,7 +88,7 @@ struct tactyk_asmvm__memblock_lowlevel *shadow_memblocks;
 double precision;
 uint64_t callback_id;
 uint64_t ccall_args[6];
-uint64_t ccall_retval;
+int64_t ccall_retval;
 
 uint64_t tactyk_test__exec_test_commands(struct tactyk_dblock__DBlock *test_spec);
 uint64_t tactyk_test__next(struct tactyk_dblock__DBlock *test_spec);
@@ -111,6 +111,7 @@ uint64_t tactyk_test__DATA(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__REF(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__ERROR(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__CONTINUE(struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__RETURN(struct tactyk_dblock__DBlock *spec);
 
 bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
@@ -622,6 +623,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_dblock__put(test_functions, "DATA", tactyk_test__DATA);
     tactyk_dblock__put(test_functions, "REF", tactyk_test__REF);
     tactyk_dblock__put(test_functions, "CONTINUE", tactyk_test__CONTINUE);
+    tactyk_dblock__put(test_functions, "RETURN", tactyk_test__RETURN);
 
     base_tests = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_test_entry));
     tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
@@ -1147,6 +1149,14 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
 
 uint64_t tactyk_test__CONTINUE(struct tactyk_dblock__DBlock *spec) {
     return TACTYK_TESTSTATE__CONTINUE;
+}
+
+uint64_t tactyk_test__RETURN(struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *retval = spec->token->next;
+    ccall_retval = 0;
+    if (retval != NULL) {
+        tactyk_dblock__try_parseint(&ccall_retval, retval);
+    }
 }
 uint64_t tactyk_test__STATE(struct tactyk_dblock__DBlock *spec) {
     if ( vmctx == NULL) {

@@ -1,6 +1,8 @@
 # TEST:  ccall
 #
-# ccall is a call into a c function which operates on integer arguments.
+# ccall is a call into a c function which operates on integer arguments (and which may return an integer).
+#   (At some point, this may be expanded to cover function calls more broadly - floating point numbers on xmm registers,
+#    large floating point numbers on the x87 FPU, and excess values on the stack)
 #
 # Virtual-ISA: tactyk_core
 # Templates:  tcall (Cfunc)
@@ -18,6 +20,20 @@ PROGRAM
     ccall cfunc-2
     ccall cfunc-4
     ccall cfunc-3
+    exit
+  
+  GETSTUFF:
+    ccall a cfunc-1
+    ccall b cfunc-4
+    ccall c cfunc-2
+    ccall d cfunc-3
+    ccall e cfunc-3
+    ccall f cfunc-1
+    add e f
+    add d e
+    add c d
+    add b c
+    add a b
     exit
 
 EXEC MAIN
@@ -52,5 +68,48 @@ EXEC MAIN
     callback 3
   CONTINUE
 
+EXEC GETSTUFF
+  TEST
+    status 1
+    callback 1
+  RETURN 10
+  CONTINUE
+  TEST
+    status 1
+    callback 4
+    rA 10
+  RETURN 30
+  CONTINUE
+  TEST
+    status 1
+    callback 2
+    rB 30
+  RETURN 50
+  CONTINUE
+  TEST
+    status 1
+    callback 3
+    rC 50
+  RETURN 70
+  CONTINUE
+  TEST
+    status 1
+    callback 3
+    rD 70
+  RETURN 90
+  CONTINUE
+  TEST
+    status 1
+    callback 1
+    rE 90
+  RETURN 110
+  CONTINUE
+
 TEST
+  rF 110
+  rE 200
+  rD 270
+  rC 320
+  rB 350
+  rA 360
 
