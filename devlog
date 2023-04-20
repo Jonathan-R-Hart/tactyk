@@ -2,8 +2,9 @@
 Add instructions:  not, negate (tactyk_core.visa)
 Add test coverage for and, or, xor, not, negate, inc, dec instructions  (tactyk_core.visa)
 Add test coverage for shift operations (shift-left, shift-right, rotate-left, rotate-right)
-Add test coverage for goto
-Add test coverage for tcall and ccall
+Add test coverage for goto instruction
+Add test coverage for tcall and ccall instructions
+Add test coverage for if instruction
 
 Add template for using integers or constants to offset an address.
 
