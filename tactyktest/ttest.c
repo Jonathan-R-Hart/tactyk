@@ -1588,8 +1588,7 @@ uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *valtest_spec,
         tactyk_test__report("Test value parameter is not an integer");
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
-    uint64_t uival = (uint64_t)ival;
-    uint64_t stval = 0;
+    int64_t stval = 0;
     switch(valtest_spec->element_offset) {
         case 0: {
             stval = vmctx->reg.rA;
@@ -1627,11 +1626,11 @@ uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *valtest_spec,
         }
     }
 
-    if (stval == uival) {
+    if (stval == ival) {
         return TACTYK_TESTSTATE__PASS;
     }
     else {
-        sprintf(test_state->report, "deviation on register %s, expected:%ju observed:%ju", valtest_spec->name, uival, stval);
+        sprintf(test_state->report, "deviation on register %s, expected:%jd observed:%jd", valtest_spec->name, ival, stval);
         return TACTYK_TESTSTATE__FAIL;
     }
 }
