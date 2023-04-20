@@ -1,3 +1,6 @@
+20 Apr 2023
+Add instructions:  not, negate (tactyk_core.visa)
+
 19 Apr 2023
 Use mkstemps() to generate unique temporary filenames when building assembly intermediates.
   (Fixes automated tests failures when using multiple processes)

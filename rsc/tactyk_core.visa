@@ -1223,6 +1223,14 @@ instruction dec
   $INSTRUCTION dec
   sub simple_unary_instruction
 
+instruction not
+  $INSTRUCTION not
+  sub simple_unary_instruction
+
+instruction negate
+  $INSTRUCTION neg
+  sub simple_unary_instruction
+
 instruction goto
   operand
     type branch
