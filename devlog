@@ -1,5 +1,8 @@
 20 Apr 2023
 Add instructions:  not, negate (tactyk_core.visa)
+Add test coverage for and, or, xor, not, negate, inc and dec instructions  (tactyk_core.visa)
+
+Add template for using integers or constants to offset an address.
 
 19 Apr 2023
 Use mkstemps() to generate unique temporary filenames when building assembly intermediates.
