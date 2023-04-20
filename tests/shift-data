@@ -1,0 +1,61 @@
+# TEST:  bitwise shifting
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  add data-data (DD), add data-integer (AI) add data-const (AC)
+
+PROGRAM
+  const C7 7
+  const C11 11
+  const C21 21
+  const C49 49
+
+  DO_INTS:
+    assign a h.0000ffff0000ffff
+    assign b h.1000100010001000
+    assign c h.0000000000000033
+    assign d h.8888888800000000
+    shift-left a 4
+    shift-right b 1
+    rotate-left c 60
+    rotate-right d 45
+    exit
+  
+  DO_CONSTS:
+    shift-left a C49
+    shift-right b C21
+    rotate-left c C11
+    rotate-right d C7
+    exit
+  
+  DO_DYNAMIC:
+    assign e 6
+    shift-left a e
+    shift-right b e
+    rotate-left c e
+    rotate-right d e
+    exit
+
+EXEC DO_INTS
+
+TEST
+  rA h.000ffff0000ffff0
+  rB h.0800080008000800
+  rC h.3000000000000003
+  rD h.4440000000044444
+
+EXEC DO_CONSTS
+
+TEST
+  rA h.ffe0000000000000
+  rB h.0000004000400040
+  rC h.0000000000001980
+  rD h.8888800000000888
+
+EXEC DO_DYNAMIC
+
+TEST
+  rE 6
+  rA h.f800000000000000
+  rB h.0000000100010001
+  rC h.0000000000066000
+  rD h.2222220000000022

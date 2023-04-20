@@ -1201,7 +1201,7 @@ subroutine shift
     case DD
       code 
         mov rcx, $B
-        $INSTRUCTION $A, rcx
+        $INSTRUCTION $A, cl
         xor rcx, rcx
         jmp $NEXT_INSTRUCTION
     case DI DC
