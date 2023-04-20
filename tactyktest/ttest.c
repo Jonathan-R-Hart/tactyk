@@ -725,6 +725,10 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
 
 uint64_t tactyk_test__exec_test_commands(struct tactyk_dblock__DBlock *test_spec) {
     while (test_spec != NULL) {
+        if (test_continuation != NULL) {
+            tactyk_test__report("Expected callback not received");
+            tactyk_test__exit(TACTYK_TESTSTATE__FAIL);
+        }
         uint64_t tresult = tactyk_test__next(test_spec);
         switch(tresult) {
             case TACTYK_TESTSTATE__PASS: {
@@ -844,6 +848,7 @@ uint64_t tactyk_test__PROGRAM(struct tactyk_dblock__DBlock *spec) {
 uint64_t tactyk_test__EXEC(struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *program_name;
     struct tactyk_dblock__DBlock *func_name = spec->token->next;
+    test_continuation = spec->child;
     if (tactyk_dblock__count_tokens(spec) == 3) {
         program_name = func_name;
         func_name = func_name->next;
@@ -893,6 +898,7 @@ uint64_t tactyk_test__RECV_CCALL_1(int64_t a, int64_t b, int64_t c, int64_t d, i
     ccall_args[4] = e;
     ccall_args[5] = f;
     callback_id = 1;
+    test_continuation = NULL;
     struct tactyk_dblock__DBlock *spec = *active_test_spec;
     assert(spec != NULL);
     if (spec->child != NULL) {
@@ -900,7 +906,6 @@ uint64_t tactyk_test__RECV_CCALL_1(int64_t a, int64_t b, int64_t c, int64_t d, i
         spec->child = test_continuation;
     }
     *active_test_spec = spec;
-    callback_id = 0;
     return ccall_retval;
 }
 uint64_t tactyk_test__RECV_CCALL_2(int64_t a, int64_t b, int64_t c, int64_t d, int64_t e, int64_t f) {
@@ -911,6 +916,7 @@ uint64_t tactyk_test__RECV_CCALL_2(int64_t a, int64_t b, int64_t c, int64_t d, i
     ccall_args[4] = e;
     ccall_args[5] = f;
     callback_id = 2;
+    test_continuation = NULL;
     struct tactyk_dblock__DBlock *spec = *active_test_spec;
     assert(spec != NULL);
     if (spec->child != NULL) {
@@ -918,7 +924,6 @@ uint64_t tactyk_test__RECV_CCALL_2(int64_t a, int64_t b, int64_t c, int64_t d, i
         spec->child = test_continuation;
     }
     *active_test_spec = spec;
-    callback_id = 0;
     return ccall_retval;
 }
 uint64_t tactyk_test__RECV_CCALL_3(int64_t a, int64_t b, int64_t c, int64_t d, int64_t e, int64_t f) {
@@ -929,6 +934,7 @@ uint64_t tactyk_test__RECV_CCALL_3(int64_t a, int64_t b, int64_t c, int64_t d, i
     ccall_args[4] = e;
     ccall_args[5] = f;
     callback_id = 3;
+    test_continuation = NULL;
     struct tactyk_dblock__DBlock *spec = *active_test_spec;
     assert(spec != NULL);
     if (spec->child != NULL) {
@@ -936,7 +942,6 @@ uint64_t tactyk_test__RECV_CCALL_3(int64_t a, int64_t b, int64_t c, int64_t d, i
         spec->child = test_continuation;
     }
     *active_test_spec = spec;
-    callback_id = 0;
     return ccall_retval;
 }
 uint64_t tactyk_test__RECV_CCALL_4(int64_t a, int64_t b, int64_t c, int64_t d, int64_t e, int64_t f) {
@@ -947,6 +952,7 @@ uint64_t tactyk_test__RECV_CCALL_4(int64_t a, int64_t b, int64_t c, int64_t d, i
     ccall_args[4] = e;
     ccall_args[5] = f;
     callback_id = 4;
+    test_continuation = NULL;
     struct tactyk_dblock__DBlock *spec = *active_test_spec;
     assert(spec != NULL);
     if (spec->child != NULL) {
@@ -954,11 +960,11 @@ uint64_t tactyk_test__RECV_CCALL_4(int64_t a, int64_t b, int64_t c, int64_t d, i
         spec->child = test_continuation;
     }
     *active_test_spec = spec;
-    callback_id = 0;
     return ccall_retval;
 }
 void tactyk_test__RECV_TCALL_5(struct tactyk_asmvm__Context *ctx) {
     callback_id = 5;
+    test_continuation = NULL;
     struct tactyk_dblock__DBlock *spec = *active_test_spec;
     assert(spec != NULL);
     if (spec->child != NULL) {
@@ -966,10 +972,10 @@ void tactyk_test__RECV_TCALL_5(struct tactyk_asmvm__Context *ctx) {
         spec->child = test_continuation;
     }
     *active_test_spec = spec;
-    callback_id = 0;
 }
 void tactyk_test__RECV_TCALL_6(struct tactyk_asmvm__Context *ctx) {
     callback_id = 6;
+    test_continuation = NULL;
     struct tactyk_dblock__DBlock *spec = *active_test_spec;
     assert(spec != NULL);
     if (spec->child != NULL) {
@@ -977,10 +983,10 @@ void tactyk_test__RECV_TCALL_6(struct tactyk_asmvm__Context *ctx) {
         spec->child = test_continuation;
     }
     *active_test_spec = spec;
-    callback_id = 0;
 }
 void tactyk_test__RECV_TCALL_7(struct tactyk_asmvm__Context *ctx) {
     callback_id = 7;
+    test_continuation = NULL;
     struct tactyk_dblock__DBlock *spec = *active_test_spec;
     assert(spec != NULL);
     if (spec->child != NULL) {
@@ -988,10 +994,10 @@ void tactyk_test__RECV_TCALL_7(struct tactyk_asmvm__Context *ctx) {
         spec->child = test_continuation;
     }
     *active_test_spec = spec;
-    callback_id = 0;
 }
 void tactyk_test__RECV_TCALL_8(struct tactyk_asmvm__Context *ctx) {
     callback_id = 8;
+    test_continuation = NULL;
     struct tactyk_dblock__DBlock *spec = *active_test_spec;
     assert(spec != NULL);
     if (spec->child != NULL) {
@@ -999,7 +1005,6 @@ void tactyk_test__RECV_TCALL_8(struct tactyk_asmvm__Context *ctx) {
         spec->child = test_continuation;
     }
     *active_test_spec = spec;
-    callback_id = 0;
 }
 uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *td = spec->child;
@@ -1028,6 +1033,13 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
         }
 
         td = td->next;
+    }
+
+    // if callback id not cleared, then it means a ccall or tcall is not accounted for
+    //   this may occur either in a TEST command nested inside of an EXEC and invoked through a callback, or it may occur after the return form the callback when the next TEST command is handled.
+    if (callback_id != 0) {
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "Unexpected callback, id:%ju", callback_id);
+        return TACTYK_TESTSTATE__FAIL;
     }
 
     // not part of the test.
@@ -1229,6 +1241,7 @@ uint64_t tactyk_test__TEST_CALLBACK(struct tactyk_test_entry *entry, struct tact
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
     if (uival == callback_id) {
+        callback_id = 0;        // The callback has been properly accounted for at this point.
         return TACTYK_TESTSTATE__PASS;
     }
     else {
