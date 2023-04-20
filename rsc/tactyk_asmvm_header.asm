@@ -277,8 +277,22 @@
         dwords addr3_element_bound, addr3_array_bound, addr3_memblock_index, addr3_type
         qwords addr4
         dwords addr4_element_bound, addr4_array_bound, addr4_memblock_index, addr4_type
-        qwords x1a, x1b, x1c, x1d, x1e, x1f, x1g, x1h, x1i, x1j, x1k, x1l, x1m, x1n, x1o, x1p
-        qwords x2a, x2b, x2c, x2d, x2e, x2f, x2g, x2h, x2i, x2j, x2k, x2l, x2m, x2n, x2o, x2p
+        .xa: qwords x1a, x2a
+        .xb: qwords x1b, x2b
+        .xc: qwords x1c, x2c
+        .xd: qwords x1d, x2d
+        .xe: qwords x1e, x2e
+        .xf: qwords x1f, x2f
+        .xg: qwords x1g, x2g
+        .xh: qwords x1h, x2h
+        .xi: qwords x1i, x2i
+        .xj: qwords x1j, x2j
+        .xk: qwords x1k, x2k
+        .xl: qwords x1l, x2l
+        .xm: qwords x1m, x2m
+        .xn: qwords x1n, x2n
+        .xo: qwords x1o, x2o
+        .xp: qwords x1p, x2p
     endstruc
     
     %define microcontext_size_bits 9
