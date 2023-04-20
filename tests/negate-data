@@ -1,7 +1,7 @@
-# TEST:  decrement
+# TEST:  negate
 # 
 # Virtual-ISA: tactykcore
-# Templates:  dec data (D)
+# Templates:  negate data (D)
 
 PROGRAM  
   MAIN:
@@ -11,20 +11,20 @@ PROGRAM
     assign d -1
     assign e -1234567890123456789
     assign f -1000000
-    dec a
-    dec b    
-    dec c
-    dec d
-    dec e
-    dec f
+    negate a
+    negate b    
+    negate c
+    negate d
+    negate e
+    negate f
     exit
   
 EXEC MAIN
 
 TEST
-  rA -1
-  rB 1234567890123456788
-  rC 999999
-  rD -2
-  rE -1234567890123456790
-  rF -1000001
+  rA 0
+  rB -1234567890123456789
+  rC -1000000
+  rD 1
+  rE 1234567890123456789
+  rF 1000000
