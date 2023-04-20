@@ -27,6 +27,7 @@
 #define TACTYK_TESTSTATE__PREPARING 5
 #define TACTYK_TESTSTATE__INITIALIZING 6
 #define TACTYK_TESTSTATE__INACTIVE 7
+#define TACTYK_TESTSTATE__CONTINUE 8
 
 #define TEST_CLASS_I8 1
 #define TEST_CLASS_I16 2
@@ -109,6 +110,7 @@ uint64_t tactyk_test__ALLOC(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__DATA(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__REF(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__ERROR(struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__CONTINUE(struct tactyk_dblock__DBlock *spec);
 
 bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
@@ -122,6 +124,7 @@ uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *entry, struct
 uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__TEST_CALLBACK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 void tactyk_test__mk_data_register_test(char *name, uint64_t ofs);
 void tactyk_test__mk_xmm_register_test(char *name, uint64_t ofs);
 
@@ -140,6 +143,10 @@ struct tactyk_dblock__DBlock *DEFAULT_NAME;
 double DEFAULT_PRECISION = DBL_EPSILON * 256.0;
 
 struct tactyk_dblock__DBlock **active_test_spec;
+
+// test command immediately following a "CONTINUE" command
+// This is used by callbacks [from tactyk] to update test-command control flow so that multiple callbacks can be handled.
+struct tactyk_dblock__DBlock *test_continuation;
 
 #define TACTYK_TEST__FNAME_BUFSIZE (1<<10)
 #define TACTYK_TEST__REPORT_BUFSIZE (1<<10)
@@ -559,6 +566,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
 
     active_test_spec = calloc(1, sizeof(void*));
     *active_test_spec = NULL;
+    test_continuation = NULL;
 
     tactyk_init();
 
@@ -594,9 +602,9 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_emit__add_c_apifunc(emitctx, "cfunc-3", tactyk_test__RECV_CCALL_3);
     tactyk_emit__add_c_apifunc(emitctx, "cfunc-4", tactyk_test__RECV_CCALL_4);
     tactyk_emit__add_tactyk_apifunc(emitctx, "tfunc-5", tactyk_test__RECV_TCALL_5);
-    tactyk_emit__add_tactyk_apifunc(emitctx, "tfunc-5", tactyk_test__RECV_TCALL_6);
-    tactyk_emit__add_tactyk_apifunc(emitctx, "tfunc-5", tactyk_test__RECV_TCALL_7);
-    tactyk_emit__add_tactyk_apifunc(emitctx, "tfunc-5", tactyk_test__RECV_TCALL_8);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "tfunc-6", tactyk_test__RECV_TCALL_6);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "tfunc-7", tactyk_test__RECV_TCALL_7);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "tfunc-8", tactyk_test__RECV_TCALL_8);
 
     programs = tactyk_dblock__new_table(64);
     shadow_memblock_sets = tactyk_dblock__new_table(64);
@@ -611,6 +619,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_dblock__put(test_functions, "ALLOC", tactyk_test__ALLOC);
     tactyk_dblock__put(test_functions, "DATA", tactyk_test__DATA);
     tactyk_dblock__put(test_functions, "REF", tactyk_test__REF);
+    tactyk_dblock__put(test_functions, "CONTINUE", tactyk_test__CONTINUE);
 
     base_tests = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_test_entry));
     tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
@@ -646,6 +655,13 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     mem_test->test = tactyk_test__TEST_MEM;
     mem_test->element_offset = 0;
     mem_test->array_offset = 0;
+
+    struct tactyk_test_entry *cb_test = tactyk_dblock__new_managedobject(base_tests, "callback");
+    cb_test->name = "callback";
+    cb_test->adjust = NULL;
+    cb_test->test = tactyk_test__TEST_CALLBACK;
+    cb_test->element_offset = 0;
+    cb_test->array_offset = 0;
 
     tactyk_test__mk_data_register_test("rA", 0);
     tactyk_test__mk_data_register_test("rB", 1);
@@ -712,6 +728,10 @@ uint64_t tactyk_test__exec_test_commands(struct tactyk_dblock__DBlock *test_spec
             case TACTYK_TESTSTATE__EXIT: {
                 tactyk_test__exit(TACTYK_TESTSTATE__PASS);
                 break;
+            }
+            case TACTYK_TESTSTATE__CONTINUE: {
+                test_continuation = test_spec->next;
+                return TACTYK_TESTSTATE__CONTINUE;
             }
             // impossible condition
             default: {
@@ -868,6 +888,7 @@ uint64_t tactyk_test__RECV_CCALL_1(int64_t a, int64_t b, int64_t c, int64_t d, i
     assert(spec != NULL);
     if (spec->child != NULL) {
         tactyk_test__exec_test_commands(spec->child);
+        spec->child = test_continuation;
     }
     callback_id = 0;
     return ccall_retval;
@@ -884,6 +905,7 @@ uint64_t tactyk_test__RECV_CCALL_2(int64_t a, int64_t b, int64_t c, int64_t d, i
     assert(spec != NULL);
     if (spec->child != NULL) {
         tactyk_test__exec_test_commands(spec->child);
+        spec->child = test_continuation;
     }
     callback_id = 0;
     return ccall_retval;
@@ -900,6 +922,7 @@ uint64_t tactyk_test__RECV_CCALL_3(int64_t a, int64_t b, int64_t c, int64_t d, i
     assert(spec != NULL);
     if (spec->child != NULL) {
         tactyk_test__exec_test_commands(spec->child);
+        spec->child = test_continuation;
     }
     callback_id = 0;
     return ccall_retval;
@@ -916,6 +939,7 @@ uint64_t tactyk_test__RECV_CCALL_4(int64_t a, int64_t b, int64_t c, int64_t d, i
     assert(spec != NULL);
     if (spec->child != NULL) {
         tactyk_test__exec_test_commands(spec->child);
+        spec->child = test_continuation;
     }
     callback_id = 0;
     return ccall_retval;
@@ -926,6 +950,7 @@ void tactyk_test__RECV_TCALL_5(struct tactyk_asmvm__Context *ctx) {
     assert(spec != NULL);
     if (spec->child != NULL) {
         tactyk_test__exec_test_commands(spec->child);
+        spec->child = test_continuation;
     }
     callback_id = 0;
 }
@@ -935,6 +960,7 @@ void tactyk_test__RECV_TCALL_6(struct tactyk_asmvm__Context *ctx) {
     assert(spec != NULL);
     if (spec->child != NULL) {
         tactyk_test__exec_test_commands(spec->child);
+        spec->child = test_continuation;
     }
     callback_id = 0;
 }
@@ -944,6 +970,7 @@ void tactyk_test__RECV_TCALL_7(struct tactyk_asmvm__Context *ctx) {
     assert(spec != NULL);
     if (spec->child != NULL) {
         tactyk_test__exec_test_commands(spec->child);
+        spec->child = test_continuation;
     }
     callback_id = 0;
 }
@@ -953,6 +980,7 @@ void tactyk_test__RECV_TCALL_8(struct tactyk_asmvm__Context *ctx) {
     assert(spec != NULL);
     if (spec->child != NULL) {
         tactyk_test__exec_test_commands(spec->child);
+        spec->child = test_continuation;
     }
     callback_id = 0;
 }
@@ -1087,6 +1115,10 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
 
     return TACTYK_TESTSTATE__PASS;
 }
+
+uint64_t tactyk_test__CONTINUE(struct tactyk_dblock__DBlock *spec) {
+    return TACTYK_TESTSTATE__CONTINUE;
+}
 uint64_t tactyk_test__STATE(struct tactyk_dblock__DBlock *spec) {
     if ( vmctx == NULL) {
         tactyk_test__report("No asmvm context");
@@ -1112,6 +1144,10 @@ uint64_t tactyk_test__STATE(struct tactyk_dblock__DBlock *spec) {
             return TACTYK_TESTSTATE__TEST_ERROR;
         }
 
+        if (test->adjust == NULL) {
+            tactyk_test__report("state adjustment function is undefined");
+            return TACTYK_TESTSTATE__TEST_ERROR;
+        }
         if (!test->adjust(test, td)) {
             tactyk_test__report("state adjustment rejected or not implemented");
             return TACTYK_TESTSTATE__TEST_ERROR;
@@ -1160,6 +1196,26 @@ uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec
     }
     else {
         sprintf(test_state->report, "context status deviation, expected:%ju observed:%ju", vmctx->STATUS, (uint64_t)ival);
+        return TACTYK_TESTSTATE__FAIL;
+    }
+}
+
+uint64_t tactyk_test__TEST_CALLBACK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *expected_cbid = spec->token->next;
+    uint64_t uival = 0;
+    if (!tactyk_dblock__try_parseuint(&uival, expected_cbid)) {
+        tactyk_test__report("Callback-id parameter is not an integer");
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+    if (uival > 8) {
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "Invalid callback id: %ju", uival);
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+    if (uival == callback_id) {
+        return TACTYK_TESTSTATE__PASS;
+    }
+    else {
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "Incorrect callback -- expected id: %ju, observed id:%ju", uival, callback_id);
         return TACTYK_TESTSTATE__FAIL;
     }
 }
