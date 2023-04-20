@@ -1147,6 +1147,17 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
         }
     }
 
+    for (uint64_t i = 0; i < TACTYK_ASMVM__LWCALL_STACK_SIZE; i++) {
+        if (vmctx->lwcall_stack[i] != shadow_lwcall_stack[i]) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "lwcall stack deviation at offset %ju: expected=%u observed=%u",
+                i, shadow_lwcall_stack[i], vmctx->lwcall_stack[i]
+            );
+            return TACTYK_TESTSTATE__FAIL;
+        }
+    }
+
     return TACTYK_TESTSTATE__PASS;
 }
 
