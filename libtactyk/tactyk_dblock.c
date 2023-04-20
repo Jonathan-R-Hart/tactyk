@@ -557,7 +557,7 @@ bool tactyk_dblock__try_parseint(int64_t *out, struct tactyk_dblock__DBlock *dbl
             if (str[i+1] != '.') {
                 return false;
             }
-            i += 1;
+            i += 2;
             radix = 16;
             break;
         }
@@ -566,7 +566,7 @@ bool tactyk_dblock__try_parseint(int64_t *out, struct tactyk_dblock__DBlock *dbl
             if (str[i+1] != '.') {
                 return false;
             }
-            i += 1;
+            i += 2;
             radix = 2;
             break;
         }
@@ -608,7 +608,6 @@ bool tactyk_dblock__try_parseint(int64_t *out, struct tactyk_dblock__DBlock *dbl
         result *= radix;
         result += v;
     }
-
     *out = result * sign;
     return true;
 

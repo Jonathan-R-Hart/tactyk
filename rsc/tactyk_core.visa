@@ -894,7 +894,7 @@ instruction xor
   $INSTRUCTION xor
   sub simple_binary_instruction
 
-#
+
 typespec address-offset
   select-operand
     case addr1.offset
