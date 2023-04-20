@@ -4,6 +4,10 @@ Add test coverage for and, or, xor, not, negate, inc and dec instructions  (tact
 
 Add template for using integers or constants to offset an address.
 
+Correct and expand address offsetting through the assign instruction.
+  the instruction now accepts a data register, a hard-coded integer, or a constant.
+  Also added test coverage for it
+
 19 Apr 2023
 Use mkstemps() to generate unique temporary filenames when building assembly intermediates.
   (Fixes automated tests failures when using multiple processes)

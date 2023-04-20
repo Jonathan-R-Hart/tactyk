@@ -926,27 +926,27 @@ instruction assign
     scramble rTEMPC $LD_B_HIGHBITS_IMMEDIATE $VALUE_UPPER
   select-template
     case OD
-      cmp $B, 0
-      errorlt
-      cmp $B, fs:[$CTX_ADDRESS_BOUND]
-      errorge STATUS_ROGUE_POINTER
-      cmp $B, 0
-      errorlt STATUS_ROGUE_POINTER
-      lfence
-      mov $ADDRESS_REGISTER, $B
-      jmp $NEXT_INSTRUCTION
+      code
+        cmp $B, fs:[$CTX_ADDRESS_BOUND]
+        errorge STATUS_ROGUE_POINTER
+        cmp $B, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov $ADDRESS_REGISTER, $B
+        add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS]
+        jmp $NEXT_INSTRUCTION
     case OI OC
-      $LD_B_IMMEDIATE
-      cmp rTEMPA, 0
-      errorlt
-      cmp rTEMPA, fs:[$CTX_ADDRESS_BOUND]
-      errorge STATUS_ROGUE_POINTER
-      cmp rTEMPA, 0
-      errorlt STATUS_ROGUE_POINTER
-      lfence
-      mov $ADDRESS_REGISTER, rTEMPA
-      xor rTEMPA, rTEMPA
-      jmp $NEXT_INSTRUCTION
+      code
+        $LD_B_IMMEDIATE
+        cmp rTEMPA, fs:[$CTX_ADDRESS_BOUND]
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPA, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov $ADDRESS_REGISTER, rTEMPA
+        add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
     case DO
       code
         mov $A, $ADDRESS_REGISTER

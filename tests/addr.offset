@@ -1,0 +1,130 @@
+# TEST:  Offset an address by "assigning" to its offset 
+#        (Internally, this invokes a setter which bounds-checks the offset and re-calculates the address)
+#
+# Virtual-ISA: tactyk_core
+# Coverage:  
+#   assign address.offset-data    (OD)
+#   assign address.offset-integer (OI)
+#   assign address.offset-const   (OC)
+
+PROGRAM
+  struct s1
+    2 va
+    8 vb
+
+  const CN1 -1
+  const C90 90
+  const C91 91
+  const C100 100
+
+  data m1 s1 10
+    0 0123456789999999999
+    1 1234567899999999999
+    2 2345678999999999999
+    3 3456789999999999999
+    4 4567899999999999999
+    5 5678999999999999999
+    6 6789999999999999999
+    7 7899999999999999999
+    8 8999999999999999999
+    9 9999999999999999999
+  
+  DO_INT_OFFSET:
+    bind addr1 m1
+    assign addr1.offset 50
+    load word a addr1 s1.va
+    load qword b addr1 s1.vb
+    exit
+
+  DO_CONST_OFFSET:
+    assign addr1.offset C90
+    load word a addr1 s1.va
+    load qword b addr1 s1.vb
+    exit
+
+  DO_DYNAMIC_OFFSET:
+    assign c 20
+    assign addr1.offset c
+    load word a addr1 s1.va
+    load qword b addr1 s1.vb
+    exit
+
+  DO_INT_OFFSET__FAIL_neg:
+    assign addr1.offset -1
+    exit
+  DO_INT_OFFSET__FAIL_edge:
+    assign addr1.offset 91
+    exit
+  DO_INT_OFFSET__FAIL_beyond:
+    assign addr1.offset 100
+    exit
+
+  DO_CONST_OFFSET__FAIL_neg:
+    assign addr1.offset CN1
+    exit
+  DO_CONST_OFFSET__FAIL_edge:
+    assign addr1.offset C91
+    exit
+  DO_CONST_OFFSET__FAIL_beyond:
+    assign addr1.offset C100
+    exit
+
+  DO_DYNAMIC_OFFSET__FAIL_neg:
+    assign c -1
+    assign addr1.offset c
+    exit
+  DO_DYNAMIC_OFFSET__FAIL_edge:
+    assign c 91
+    assign addr1.offset c
+    exit
+  DO_DYNAMIC_OFFSET__FAIL_beyond:
+    assign c 100
+    assign addr1.offset c
+    exit
+
+EXEC DO_INT_OFFSET
+
+TEST
+  addr1 m1 50
+  rA 5
+  rB 5678999999999999999
+
+EXEC DO_CONST_OFFSET
+TEST
+  addr1 m1 90
+  rA 9
+  rB 9999999999999999999
+  
+EXEC DO_DYNAMIC_OFFSET
+TEST
+  addr1 m1 20
+  rA 2
+  rB 2345678999999999999
+  rC 20
+
+EXEC DO_CONST_OFFSET__FAIL_neg
+TEST
+  status 101
+EXEC DO_CONST_OFFSET__FAIL_edge
+TEST
+  status 101
+EXEC DO_CONST_OFFSET__FAIL_beyond
+TEST
+  status 101
+
+EXEC DO_DYNAMIC_OFFSET__FAIL_neg
+TEST
+  status 101
+  rC -1
+EXEC DO_DYNAMIC_OFFSET__FAIL_edge
+TEST
+  status 101
+  rC 91
+EXEC DO_DYNAMIC_OFFSET__FAIL_beyond
+TEST
+  status 101
+  rC 100
+
+
+
+
