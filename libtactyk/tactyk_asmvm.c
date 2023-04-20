@@ -26,7 +26,7 @@ struct tactyk_asmvm__VM* tactyk_asmvm__new_vm() {
 
 struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM *vm) {
     struct tactyk_asmvm__Context *ctx = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__Context));
-    ctx->microcontext_stack = tactyk_alloc__allocate(TACTYK_ASMVM__MCTX_STACK_SIZE*TACTYK_ASMVM__MCTX_ENTRY_SIZE, sizeof(uint64_t));
+    ctx->microcontext_stack = (struct tactyk_asmvm__MicrocontextStash*) tactyk_alloc__allocate(TACTYK_ASMVM__MCTX_STACK_SIZE, sizeof(struct tactyk_asmvm__MicrocontextStash));
     ctx->microcontext_stack_offset = 0;
     ctx->lwcall_stack_floor = 0;
     ctx->mctx_stack_floor = 0;

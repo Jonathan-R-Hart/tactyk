@@ -170,6 +170,15 @@ struct tactyk_asmvm__VM {
 
 struct tactyk_asmvm__Program;
 
+struct tactyk_asmvm__MicrocontextStash {
+    uint64_t a1,b1,c1,d1,e1,f1;
+    uint64_t a2,b2,c2,d2,e2,f2;
+    uint64_t a3,b3,c3,d3,e3,f3;
+    uint64_t unused1, unused2;
+    struct tactyk_asmvm__memblock_lowlevel active_memblocks[4];
+    union tactyk_asmvm__reg128 xa, xb, xc, xd, xe, xf, xg, xh, xi, xj, xk, xl, xm, xn, xo, xp;
+};
+
 // would prefer an explicit struct memory layout here, since this represents a low-level data structure
 struct tactyk_asmvm__Context {
 
@@ -186,7 +195,7 @@ struct tactyk_asmvm__Context {
 
     // dword #16
     void *lwcall_stack;
-    void *microcontext_stack;
+    struct tactyk_asmvm__MicrocontextStash *microcontext_stack;
     uint64_t microcontext_stack_offset;
     uint32_t lwcall_stack_floor;
     uint32_t mctx_stack_floor;
