@@ -194,7 +194,7 @@ struct tactyk_asmvm__Context {
     struct tactyk_asmvm__memblock_lowlevel active_memblocks[4];
 
     // dword #16
-    void *lwcall_stack;
+    uint32_t *lwcall_stack;
     struct tactyk_asmvm__MicrocontextStash *microcontext_stack;
     uint64_t microcontext_stack_offset;
     uint32_t lwcall_stack_floor;
