@@ -7,7 +7,6 @@ PROGRAM
   CCC:
     goto DDD
     assign a 23454
-  
   SPHAGETTOMAX:
     assign a 1
     goto BBB
@@ -18,14 +17,14 @@ PROGRAM
   BBB:
     goto CCC
     assign a 4321
-  
   DDD:
     goto EEE
     exit
   DONE:
+    inc a
     exit
-    
+
 EXEC SPHAGETTOMAX
 
 TEST
-  rA 1
+  rA 2
