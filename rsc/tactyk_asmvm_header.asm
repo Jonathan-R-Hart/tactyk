@@ -219,6 +219,23 @@
     %define rF_32 %[rF]_32
     %define rF_64 %[rF]_64
     
+    %define xA xmm0
+    %define xB xmm1
+    %define xC xmm2
+    %define xD xmm3
+    %define xE xmm4
+    %define xF xmm5
+    %define xG xmm6
+    %define xH xmm7
+    %define xI xmm8
+    %define xJ xmm9
+    %define xK xmm10
+    %define xL xmm11
+    %define xM xmm12
+    %define xN xmm13
+    %define xTEMPA xmm14
+    %define xTEMPB xmm15
+    
     %macro dwords 1-*
         %rep %0
             .%[%1]: resd 1
