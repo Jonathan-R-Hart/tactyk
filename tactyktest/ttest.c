@@ -85,6 +85,8 @@ struct tactyk_asmvm__Context *vmctx;
 // Unexpected state transitions are to be captured by scanning vmctx and shadow_vmctx for any deviations.
 struct tactyk_asmvm__Context *shadow_vmctx;
 struct tactyk_asmvm__memblock_lowlevel *shadow_memblocks;
+struct tactyk_asmvm__MicrocontextStash *shadow_mctxstack;
+uint32_t *shadow_lwcall_stack;
 double precision;
 uint64_t callback_id;
 uint64_t ccall_args[6];
@@ -597,7 +599,8 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     vm = tactyk_asmvm__new_vm();
     vmctx = tactyk_asmvm__new_context(vm);
     shadow_vmctx = calloc(1, sizeof(struct tactyk_asmvm__Context));
-
+    shadow_mctxstack = (struct tactyk_asmvm__MicrocontextStash*) calloc(TACTYK_ASMVM__MCTX_STACK_SIZE, sizeof(struct tactyk_asmvm__MicrocontextStash));
+    shadow_lwcall_stack = (uint32_t*) calloc(TACTYK_ASMVM__LWCALL_STACK_SIZE, sizeof(uint32_t));
     tactyk_debug__configure_api(emitctx);
     tactyk_emit_svc__configure(emitctx);
     tactyk_emit__add_c_apifunc(emitctx, "cfunc-1", tactyk_test__RECV_CCALL_1);
