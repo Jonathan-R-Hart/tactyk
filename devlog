@@ -3,13 +3,18 @@ Repurposed "type" field from memory block specification.
   It is Renamed to "offset" and is now intended solely for storing the address offset while stashed.
   (and will only be updated when stashing memory bindings)
 
-Redesign the micrcontext stash
-  Stash memory no longer shadows registers or contest properties.
-  Storage for conventional registers and xmm registers is now combined and available for either.
-    The two unused fields are also included (several refactorings ago, these where for storing branch targets)
-
-Revise the stash instruction
-  It will handle stashing unstashing, and swapping (and can combine them arbitrarilly)
+Micrcontext stash redesign
+  Most of stash memory is now general-purpose
+    All data, xmm, and unused slots in the stash have been combined into a general-purpose stash 
+      Ttotal of 52 8-byte slots, or 26 16-byte slots (if/when large vectorized/SSE2 operations get more than a few bits of stub code)
+    All data and xmm stash operators can now read from or write to any part of general-purpose stash (no more shadowing).
+  Stashed memory bindings still use a reserved portion of the stash (same size)
+    (the reservation is to help avoid having to re-apply memory safety checks)
+  The stash and unstash instructions have been merged.
+  Stash arguments have been broken up and are now a sequence of destination-source token pairs
+  The stash command is now a composite operation which can perform any combination of load, store, and swap (maximum of 16 operations).
+    Conflicting load/store/swap sequences is undefiend behavior (the result of which is non-deterministic on account of internal randomization).
+    Exact duplicate operations are not permitted (duplicate operations will be silently culled prior to assembly)
 
 20 Apr 2023
 Add instructions:  not, negate (tactyk_core.visa)
