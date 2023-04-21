@@ -44,28 +44,28 @@ settings
 # addresses and data registers are recognized by reading code directly.
 typespec address
   select-operand
-    case @1 addr1
+    case @1 addr1 rADDR1
       value rADDR1
       $CTX_ADDR context.addr1
       $CTX_ARRAY_BOUND context.addr1_array_bound
       $CTX_ELEMENT_BOUND context.addr1_element_bound
       $CTX_MEMBLOCK_INDEX context.addr1_memblock_index
       $CTX_MEMBLOCK_TYPE context.addr1_type
-    case @2 addr2
+    case @2 addr2 rADDR2
       value rADDR2
       $CTX_ADDR context.addr2
       $CTX_ARRAY_BOUND context.addr2_array_bound
       $CTX_ELEMENT_BOUND context.addr2_element_bound
       $CTX_MEMBLOCK_INDEX context.addr2_memblock_index
       $CTX_MEMBLOCK_TYPE context.addr2_type
-    case @3 addr3
+    case @3 addr3 rADDR3
       value rADDR3
       $CTX_ADDR context.addr3
       $CTX_ARRAY_BOUND context.addr3_array_bound
       $CTX_ELEMENT_BOUND context.addr3_element_bound
       $CTX_MEMBLOCK_INDEX context.addr3_memblock_index
       $CTX_MEMBLOCK_TYPE context.addr3_type
-    case @4 addr4
+    case @4 addr4 rADDR4
       value rADDR4
       $CTX_ADDR context.addr4
       $CTX_ARRAY_BOUND context.addr4_array_bound
@@ -76,17 +76,17 @@ typespec address
 
 typespec data
   select-operand
-    case a ra
+    case a ra rA
       value rA
-    case b rb
+    case b rb rB
       value rB
-    case c rc
+    case c rc rC
       value rC
-    case d rd
+    case d rd rD
       value rD
-    case e re
+    case e re rE
       value rE
-    case f rf
+    case f rf rF
       value rF
   pick D
 
@@ -2197,33 +2197,33 @@ typespec vec-float-format
 
 typespec xmmx
   select-operand
-    case x0 xmm0 xa
+    case x0 xmm0 xa xA
       value xmm0
-    case x1 xmm1 xb
+    case x1 xmm1 xb xB
       value xmm1
-    case x2 xmm2 xc
+    case x2 xmm2 xc xC
       value xmm2
-    case x3 xmm3 xd
+    case x3 xmm3 xd xD
       value xmm3
-    case x4 xmm4 xe
+    case x4 xmm4 xe xE
       value xmm4
-    case x5 xmm5 xf
+    case x5 xmm5 xf xF
       value xmm5
-    case x6 xmm6 xg
+    case x6 xmm6 xg xG
       value xmm6
-    case x7 xmm7 xh
+    case x7 xmm7 xh xH
       value xmm7
-    case x8 xmm8 xi
+    case x8 xmm8 xi xI
       value xmm8
-    case x9 xmm9 xj
+    case x9 xmm9 xj xJ
       value xmm9
-    case x10 xmm10 xk
+    case x10 xmm10 xk xK
       value xmm10
-    case x11 xmm11 xl
+    case x11 xmm11 xl xL
       value xmm11
-    case x12 xmm12 xm
+    case x12 xmm12 xm xM
       value xmm12
-    case x13 xmm13 xn
+    case x13 xmm13 xn xN
       value xmm13
   pick X
 
