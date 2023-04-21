@@ -561,59 +561,84 @@ bool tactyk_emit__OptionalOperand(struct tactyk_emit__Context *ctx, struct tacty
 
 // command interpreter which performs actions until either all tokens are consumed or until a preset limit is reached
 //  and optionally can randomly permute generated code.
+//
+// The permutation option might seem oddly placed -- it is for assisting with binary executable randomization
+//      (the products of the composite operation would otherwise yield predictable sequences in executable memory)
 bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
     bool permute = false;
+    bool remove_duplicates = false;
     uint64_t max_ops = 16;
 
-    struct tactyk_dblock__DBlock *maxops_param = vopcfg->token->next;
-    if (maxops_param != NULL) {
-        if (!tactyk_dblock__try_parseuint(&max_ops, maxops_param)) {
-            error("EMIT [composite] -- Not an integer", maxops_param);
-        }
-        struct tactyk_dblock__DBlock *permute_param = maxops_param->next;
-        if (permute_param != NULL) {
-            if (tactyk_dblock__equals_c_string(permute_param, "permute-code")) {
+    struct tactyk_dblock__DBlock *param = vopcfg->token;
+    while (param != NULL) {
+        if (!tactyk_dblock__try_parseuint(&max_ops, param)) {
+            if (tactyk_dblock__equals_c_string(param, "permute-code")) {
                 permute = true;
+            }
+            else if (tactyk_dblock__equals_c_string(param, "no-duplicates")) {
+                remove_duplicates = true;
+            }
+        }
+        param = param->next;
+    }
+
+    struct tactyk_dblock__DBlock *main_cb = ctx->active_command->asm_code;
+    struct tactyk_dblock__DBlock **code_fragments = calloc(max_ops, sizeof(void*));
+    uint64_t opcount = 0;
+    struct tactyk_dblock__DBlock *cfrag = tactyk_dblock__new(4096);
+    ctx->active_command->asm_code = cfrag;
+
+    while ( (ctx->pl_operand_raw != NULL) || (opcount < max_ops) ) {
+
+        if (!tactyk_emit__ExecSubroutine(ctx, vopcfg)) {
+            if (ctx->pl_operand_raw == NULL) {
+                break;
+            }
+            else {
+                error("EMIT -- nonspecific error during composite subroutine evalation", vopcfg);
+                return false;
+            }
+        }
+
+        if (cfrag->length > 0) {
+            code_fragments[opcount] = cfrag;
+            cfrag = tactyk_dblock__new(4096);
+            ctx->active_command->asm_code = cfrag;
+            opcount += 1;
+            tactyk_dblock__clear(ctx->code_template);
+        }
+
+        for (uint64_t i = 0; i < opcount; i++) {
+            struct tactyk_dblock__DBlock *cfrag_a = code_fragments[i];
+            for (uint64_t j = i+1; j < opcount; j++) {
+                struct tactyk_dblock__DBlock *cfrag_b = code_fragments[j];
+                if (tactyk_dblock__equals(cfrag_a, cfrag_b)) {
+                    tactyk_dblock__clear(cfrag_a);
+                    break;
+                }
             }
         }
     }
-
-    printf("composite-op--START\n");
-
     if (permute) {
-        struct tactyk_dblock__DBlock *main_cb = ctx->active_command->asm_code;
-        struct tactyk_dblock__DBlock **code_fragments = calloc(max_ops, sizeof(void*));
-        uint64_t opcount = 0;
-        struct tactyk_dblock__DBlock *cfrag = tactyk_dblock__new(4096);
-        ctx->active_command->asm_code = cfrag;
-
-        while ( (ctx->pl_operand_raw != NULL) || (opcount < max_ops) ) {
-
-            printf("composite-op--SUB\n");
-            if (!tactyk_emit__ExecSubroutine(ctx, vopcfg)) {
-                return false;
-            }
-            printf("composite-op--SUB-OUT\n");
-
-            if (cfrag->length > 0) {
-                code_fragments[opcount] = cfrag;
-                cfrag = tactyk_dblock__new(4096);
-                ctx->active_command->asm_code = cfrag;
-                opcount += 1;
-            }
-        }
-        // permute the code fragments
-        for (uint64_t i = 0; i < (opcount-1); i++) {
+        for (uint64_t i = 0; i < opcount; i++) {
             uint64_t randpos = tactyk_util__rand_range(opcount-i);
             cfrag = code_fragments[randpos];
             assert(cfrag != NULL);
             code_fragments[randpos] = code_fragments[opcount-i-1];
+            if (cfrag->length > 0) {
+                tactyk_dblock__append(main_cb, cfrag);
+            }
+        }
+        ctx->active_command->asm_code = main_cb;
+    }
+    else {
+        for (uint64_t i = 0; i < opcount; i++) {
+            cfrag = code_fragments[i];
             tactyk_dblock__append(main_cb, cfrag);
         }
-        ctx->active_command->asm_code = cfrag;
+        ctx->active_command->asm_code = main_cb;
     }
 
-    printf("composite-op--DONE\n");
     return true;
 }
 
