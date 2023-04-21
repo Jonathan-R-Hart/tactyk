@@ -2314,19 +2314,19 @@ uint64_t tactyk_test__TEST_LWCALL_STACK(struct tactyk_test_entry *entry, struct 
 uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *ofs_token = spec->token->next;
     struct tactyk_dblock__DBlock *fieldname_token = ofs_token->next;
-    struct tactyk_dblock__DBlock *val_token = fieldname_token->next;
 
     uint64_t ofs = 0;
     if (!tactyk_dblock__try_parseuint(&ofs, ofs_token)) {
-        char buf[64];
-        tactyk_dblock__export_cstring(buf, 64, ofs_token);
-        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "mctx stack offset is not an integer: %s", buf);
-        return TACTYK_TESTSTATE__TEST_ERROR;
+        ofs = vmctx->reg.rMCSI;
+        fieldname_token = ofs_token;
     }
     else if (ofs >= TACTYK_ASMVM__MCTX_STACK_SIZE) {
         snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "mctx stack offset is out of bounds: %ju", ofs);
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
+
+    struct tactyk_dblock__DBlock *val_token = fieldname_token->next;
+
     struct tactyk_asmvm__MicrocontextStash *stash = &vmctx->microcontext_stack[ofs];
     struct tactyk_asmvm__MicrocontextStash *shstash = &shadow_mctxstack[ofs];
 
@@ -2339,29 +2339,27 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
     int64_t st_ival = 0;
 
     bool pass = false;
+    bool field_matched = false;
 
     tactyk_dblock__try_parsedouble(&f64val, val_token);
     tactyk_dblock__try_parseint(&ival, val_token);
-
-    bool ifield = false;
 
     #define STASH_TEST(NAME, FIELD) \
     else if (strncmp(fn, #NAME, 64) == 0) { \
         pass = (ival == stash->FIELD); \
         shstash->FIELD = ival; \
         st_ival = stash->FIELD; \
-        ifield = true; \
+        field_matched = true; \
     }
     #define STASH_ATEST(NAME, FIELD, TYPE) \
     else if (strncmp(fn, NAME, 64) == 0) { \
         pass = ((TYPE)ival == stash->FIELD); \
         shstash->FIELD = (TYPE)ival; \
         st_ival = stash->FIELD; \
-        ifield = true; \
+        field_matched = true; \
     }
     if ( (strncmp(fn, "addr", 4) == 0) && (strlen(fn) == 5) ) {
         uint64_t aofs = fn[4] - '1';
-        ifield = true;
         struct tactyk_asmvm__memblock_lowlevel *mbll = &stash->memblocks[aofs];
         struct tactyk_asmvm__memblock_lowlevel *shmbll = &shstash->memblocks[aofs];
         if (ival == 0) {
@@ -2390,6 +2388,7 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
         }
         pass = ((uint8_t*)ival == mbll->base_address);
         shmbll->base_address = (uint8_t*)ival;
+        field_matched = true;
     }
     STASH_ATEST("addr1.array_bound", memblocks[0].array_bound, uint32_t)
     STASH_ATEST("addr1.element_bound", memblocks[0].element_bound, uint32_t)
@@ -2448,7 +2447,7 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
     STASH_TEST(rl, r.i64[0])
     STASH_TEST(rh, r.i64[1])
     STASH_TEST(sl, s.i64[0])
-    STASH_TEST(ss, s.i64[1])
+    STASH_TEST(sh, s.i64[1])
     STASH_TEST(tl, t.i64[0])
     STASH_TEST(th, t.i64[1])
 
@@ -2468,18 +2467,20 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
     #undef STASH_TEST
     #undef STASH_ATEST
 
-    if (pass) {
-        return TACTYK_TESTSTATE__PASS;
-    }
-    else {
-        if (ifield) {
-            sprintf(test_state->report, "deviation on mctx-stash field '%s', expected:%jd observed:%jd", fn, ival, st_ival);
+    if (field_matched) {
+        if (pass) {
+            return TACTYK_TESTSTATE__PASS;
         }
         else {
-            sprintf(test_state->report, "deviation on mctx-stash field '%s', expected:%f observed:%f", fn, f64val, st_f64val);
+            sprintf(test_state->report, "deviation on mctx-stash field '%s', expected:%jd observed:%jd", fn, ival, st_ival);
+            return TACTYK_TESTSTATE__FAIL;
         }
-        return TACTYK_TESTSTATE__FAIL;
     }
+    else {
+        sprintf(test_state->report, "unrecognized mctx field: '%s'", fn);
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+
 }
 
 uint64_t tactyk_test__TEST_CCALL_ARGUMENT(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {

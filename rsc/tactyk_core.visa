@@ -1874,7 +1874,7 @@ instruction stash
           xchg gs:[microcontext.$DEST], $SRC
       case WDSi WDSil WDSih
         code
-          mov $DEST, gs:[microcontext.$SRC]
+          xchg $DEST, gs:[microcontext.$SRC]
       case WSilX WSihX
         code
           movq xTEMPA, $SRC
