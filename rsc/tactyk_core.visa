@@ -984,8 +984,8 @@ instruction assign
         jmp $NEXT_INSTRUCTION
     case DSreg
       code
-        mov $A, $B
-        sub $A, fs:[$STACK_FLOOR]
+        mov %[$A]_16, %[$B]_16
+        sub %[$A]_16, word fs:[$STACK_FLOOR]
         jmp $NEXT_INSTRUCTION
     case DI DC DS
       code 
