@@ -1979,6 +1979,41 @@ instruction mctxpop
     xor rTEMPA, rTEMPA
     jmp $NEXT_INSTRUCTION
 
+instruction mctxjump
+  operand
+    type data const integer
+    $TARGET $VALUE
+    scramble rTEMPA $LD_IMMEDIATE_TARGET
+  select-template
+    case D
+      code
+        movzx rTEMPA, %[$TARGET]_16
+        movzx rTEMPC, word fs:[context.microcontext_floor]
+        add rTEMPA_16, rTEMPC_16    # restrict to range 0-65535
+        cmp rTEMPA, rTEMPC
+        errorlt STATUS_STACK_UNDERFLOW
+        mov rMCSI, rTEMPA
+        shl rTEMPA, microcontext_size_bits
+        add rTEMPA, fs:[context.microcontext_stack_address]
+        wrgsbase rTEMPA
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case I C
+      code
+        $LD_IMMEDIATE_TARGET
+        movzx rTEMPA, rTEMPA_16
+        add rTEMPA_16, rTEMPC_16    # restrict to range 0-65535
+        cmp rTEMPA, rTEMPC
+        errorlt STATUS_STACK_UNDERFLOW
+        mov rMCSI, rTEMPA
+        shl rTEMPA, microcontext_size_bits
+        add rTEMPA, fs:[context.microcontext_stack_address]
+        wrgsbase rTEMPA
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+
 instruction tvmpush
   operand
     type data const integer
