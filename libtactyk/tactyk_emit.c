@@ -586,22 +586,30 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
         ctx->active_command->asm_code = cfrag;
 
         while ( (ctx->pl_operand_raw != NULL) || (opcount < max_ops) ) {
+
+            if (!tactyk_emit__ExecSubroutine(ctx, vopcfg)) {
+                return false;
+            }
+
             if (cfrag->length > 0) {
                 code_fragments[opcount] = cfrag;
                 cfrag = tactyk_dblock__new(4096);
                 ctx->active_command->asm_code = cfrag;
+                opcount += 1;
             }
         }
         // permute the code fragments
         for (uint64_t i = 0; i < (opcount-1); i++) {
-            uint64_t randpos = 0;
+            uint64_t randpos = tactyk_util__rand_range(opcount-i);
             cfrag = code_fragments[randpos];
             assert(cfrag != NULL);
             code_fragments[randpos] = code_fragments[opcount-i-1];
+            tactyk_dblock__append(main_cb, cfrag);
         }
+        ctx->active_command->asm_code = cfrag;
     }
 
-    return false;
+    return true;
 }
 
 // Called by functions which write to $VALUE to ensure $KW is updated with an appropriate keyword (for integer handling that differ based on word size).
