@@ -2004,7 +2004,7 @@ instruction mctxjump
       code
         movzx rTEMPA, %[$TARGET]_16
         movzx rTEMPC, word fs:[context.microcontext_floor]
-        add rTEMPA_16, rTEMPC_16    # restrict to range 0-65535
+        add rTEMPA_16, rTEMPC_16    ; restrict to range 0-65535
         cmp rTEMPA, rTEMPC
         errorlt STATUS_STACK_UNDERFLOW
         mov rMCSI, rTEMPA
@@ -2018,7 +2018,7 @@ instruction mctxjump
       code
         $LD_IMMEDIATE_TARGET
         movzx rTEMPA, rTEMPA_16
-        add rTEMPA_16, rTEMPC_16    # restrict to range 0-65535
+        add rTEMPA_16, rTEMPC_16    ; restrict to range 0-65535
         cmp rTEMPA, rTEMPC
         errorlt STATUS_STACK_UNDERFLOW
         mov rMCSI, rTEMPA
