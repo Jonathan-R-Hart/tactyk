@@ -129,6 +129,7 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
 uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_CALLBACK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_CCALL_ARGUMENT(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__TEST_LWCALL_STACK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 void tactyk_test__mk_register_test(char *name, uint64_t ofs);
 void tactyk_test__mk_xmm_register_test(char *name, uint64_t ofs);
@@ -681,6 +682,13 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     stash_test->test = tactyk_test__TEST_STASH;
     stash_test->element_offset = 0;
     stash_test->array_offset = 0;
+
+    struct tactyk_test_entry *lwcs_test = tactyk_dblock__new_managedobject(base_tests, "lwcstack");
+    lwcs_test->name = "lwcstack";
+    lwcs_test->adjust = NULL;
+    lwcs_test->test = tactyk_test__TEST_LWCALL_STACK;
+    lwcs_test->element_offset = 0;
+    lwcs_test->array_offset = 0;
 
     tactyk_test__mk_register_test("rLWCSI", 1);
     tactyk_test__mk_register_test("rMCSI", 2);
@@ -2220,6 +2228,59 @@ uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *valtest
         return TACTYK_TESTSTATE__FAIL;
     }
 }
+
+uint64_t tactyk_test__TEST_LWCALL_STACK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    uint64_t num_tokens = tactyk_dblock__count_tokens(spec);
+    if (num_tokens < 2) {
+        tactyk_test__report("[lwcstack] Not enough arguments");
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+    struct tactyk_dblock__DBlock *ofs_token = spec->token->next;
+    struct tactyk_dblock__DBlock *val_token = ofs_token->next;
+    struct tactyk_dblock__DBlock *rpt_token = val_token->next;
+
+    uint64_t ofs = 0;
+    uint64_t val = 0;
+    uint64_t rpt = 1;
+
+    if (!tactyk_dblock__try_parseuint(&ofs, ofs_token)) {
+        char buf[64];
+        tactyk_dblock__export_cstring(buf, 64, ofs_token);
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "[lwcstack] Invalid offset: %s", buf);
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+    if (!tactyk_dblock__try_parseuint(&val, val_token)) {
+        char buf[64];
+        tactyk_dblock__export_cstring(buf, 64, val_token);
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "[lwcstack] Invalid stack index: %s", buf);
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+    if ((rpt_token != NULL) && (!tactyk_dblock__try_parseuint(&rpt, rpt_token))) {
+        char buf[64];
+        tactyk_dblock__export_cstring(buf, 64, rpt_token);
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "[lwcstack] Invalid repetition qualifier: %s", buf);
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+
+    uint64_t limit = ofs + rpt;
+    if (limit > TACTYK_ASMVM__LWCALL_STACK_SIZE) {
+        limit = TACTYK_ASMVM__LWCALL_STACK_SIZE;
+    }
+
+    for (;ofs < limit; ofs++) {
+        if (vmctx->lwcall_stack[ofs] != val) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "LW Call Stack deviation at offset %ju, expected=%ju observed=%u",
+                ofs, val, vmctx->lwcall_stack[ofs]
+            );
+            return TACTYK_TESTSTATE__FAIL;
+        }
+        shadow_lwcall_stack[ofs] = val;
+    }
+    return TACTYK_TESTSTATE__PASS;
+}
+
 uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *ofs_token = spec->token->next;
     struct tactyk_dblock__DBlock *fieldname_token = ofs_token->next;
