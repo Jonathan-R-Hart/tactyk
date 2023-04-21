@@ -92,18 +92,18 @@ int main() {
     aux_sdl__configure(emitctx);
     tactyk_emit_svc__configure(emitctx);
     //tactyk_dblock__persist_all(50);
-    struct tactyk_asmvm__Program *floatprg = run_float_test(emitctx, ctx);
+    //struct tactyk_asmvm__Program *floatprg = run_float_test(emitctx, ctx);
 
     //run_fib_test(emitctx, 10000000000, ctx);
     //struct tactyk_asmvm__Program *fibprg = run_fib_test(emitctx, 2000000, ctx);
-    struct tactyk_asmvm__Program *fibprg = run_fib_test(emitctx, 25, ctx);
+    //struct tactyk_asmvm__Program *fibprg = run_fib_test(emitctx, 25, ctx);
     //run_qsort_tests(emitctx, 10000000, 1, ctx);
     struct tactyk_asmvm__Program *qsprg = run_qsort_tests(emitctx, 10, 1, ctx);
 
     //tactyk_asmvm__invoke(ctx, fibprg, "MAIN");
     //tactyk_asmvm__invoke(ctx, qsprg, "MAIN");
 
-    struct tactyk_asmvm__Program *esvcprg = run_esvc_test(emitctx, ctx);
+    //struct tactyk_asmvm__Program *esvcprg = run_esvc_test(emitctx, ctx);
     return 0;
 }
 #endif // default [testing] interface

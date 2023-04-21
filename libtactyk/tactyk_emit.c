@@ -186,8 +186,6 @@ bool tactyk_emit__ExecSubroutine(struct tactyk_emit__Context *ctx, struct tactyk
     struct tactyk_dblock__DBlock *sub_data = data->child;
     while (sub_data != NULL) {
         struct tactyk_dblock__DBlock *name = sub_data->token;
-        //printf("token: ");
-        //tactyk_dblock__println(name);
 
         tactyk_emit__sub_func sfunc = tactyk_dblock__get(ctx->operator_table, name);
         if (sfunc != NULL) {
@@ -289,6 +287,9 @@ bool tactyk_emit__Type(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
     struct tactyk_dblock__DBlock *token = data->token->next;
     while (token != NULL) {
         struct tactyk_emit__subroutine_spec *type_applicator = tactyk_dblock__get(ctx->typespec_table, token);
+        if (type_applicator == NULL) {
+            error("EMIT -- invalid type specifier", token);
+        }
         if (type_applicator->func(ctx, type_applicator->vopcfg)) {
             return true;
         }
@@ -419,7 +420,6 @@ bool tactyk_emit__ExecSelector(struct tactyk_emit__Context *ctx, struct tactyk_d
     struct tactyk_dblock__DBlock *sub_data = data->child;
     while (sub_data != NULL) {
         tactyk_emit__sub_func matcher_func = tactyk_dblock__get(ctx->operator_table, sub_data->token);
-
         if (matcher_func == NULL) {
             error("EMIT select-operand -- Invalid matcher", sub_data);
         }
@@ -578,6 +578,8 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
         }
     }
 
+    printf("composite-op--START\n");
+
     if (permute) {
         struct tactyk_dblock__DBlock *main_cb = ctx->active_command->asm_code;
         struct tactyk_dblock__DBlock **code_fragments = calloc(max_ops, sizeof(void*));
@@ -587,9 +589,11 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
 
         while ( (ctx->pl_operand_raw != NULL) || (opcount < max_ops) ) {
 
+            printf("composite-op--SUB\n");
             if (!tactyk_emit__ExecSubroutine(ctx, vopcfg)) {
                 return false;
             }
+            printf("composite-op--SUB-OUT\n");
 
             if (cfrag->length > 0) {
                 code_fragments[opcount] = cfrag;
@@ -609,6 +613,7 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
         ctx->active_command->asm_code = cfrag;
     }
 
+    printf("composite-op--DONE\n");
     return true;
 }
 
