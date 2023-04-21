@@ -114,6 +114,7 @@ uint64_t tactyk_test__REF(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__ERROR(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__CONTINUE(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__RETURN(struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__RESUME(struct tactyk_dblock__DBlock *spec);
 
 bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
@@ -547,6 +548,11 @@ void tactyk_test__error_handler(char *msg, void *data) {
     }
 
     if (test_spec != NULL) {
+        char buf[64];
+        tactyk_dblock__export_cstring(buf, 64, test_spec->token);
+        if (strncmp(buf, "ERROR", 6) == 0) {
+            tactyk_test__exit(TACTYK_TESTSTATE__PASS);
+        }
         // unexpected errors are a test failure.
         tactyk_test__report("Unexpected error");
         tactyk_test__exit(TACTYK_TESTSTATE__FAIL);
@@ -629,6 +635,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_dblock__put(test_functions, "REF", tactyk_test__REF);
     tactyk_dblock__put(test_functions, "CONTINUE", tactyk_test__CONTINUE);
     tactyk_dblock__put(test_functions, "RETURN", tactyk_test__RETURN);
+    tactyk_dblock__put(test_functions, "RESUME", tactyk_test__RESUME);
 
     base_tests = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_test_entry));
     tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
@@ -915,6 +922,24 @@ uint64_t tactyk_test__EXEC(struct tactyk_dblock__DBlock *spec) {
 
     shadow_vmctx->STATUS = 4;
     test_state->ran = true;
+    return TACTYK_TESTSTATE__PASS;
+}
+
+
+uint64_t tactyk_test__RESUME(struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *program_name = spec->token->next;
+    if (program_name != NULL) {
+        tprg = tactyk_dblock__get(programs, program_name);
+        if (tprg == NULL) {
+            char bufpn[64];
+            tactyk_dblock__export_cstring(bufpn, 64, program_name);
+            snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "EXEC -- Can not resume undefined program '%s'", bufpn);
+            return TACTYK_TESTSTATE__TEST_ERROR;
+        }
+    }
+
+    tactyk_asmvm__resume(vmctx);
+    shadow_vmctx->STATUS = 4;
     return TACTYK_TESTSTATE__PASS;
 }
 uint64_t tactyk_test__RECV_CCALL_1(int64_t a, int64_t b, int64_t c, int64_t d, int64_t e, int64_t f) {
@@ -1410,7 +1435,7 @@ uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec
         return TACTYK_TESTSTATE__PASS;
     }
     else {
-        sprintf(test_state->report, "context status deviation, expected:%ju observed:%ju", vmctx->STATUS, (uint64_t)ival);
+        sprintf(test_state->report, "context status deviation, expected:%ju observed:%ju", (uint64_t)ival, vmctx->STATUS);
         return TACTYK_TESTSTATE__FAIL;
     }
 }

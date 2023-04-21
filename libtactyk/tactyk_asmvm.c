@@ -136,6 +136,27 @@ void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_a
     }
 }
 
+bool tactyk_asmvm__resume(struct tactyk_asmvm__Context *context) {
+    if (context->instruction_index >= context->max_instruction_pointer) {
+        error("ASMVM -- Can not resume: invalid instruction pointer", NULL);
+    }
+    if (context->STATUS != 3) {
+        error("ASMVM -- Can not resume: not in 'suspended' state", NULL);
+    }
+    // probably an effectively redundant check
+    if (context->hl_program_ref == NULL) {
+        error("ASMVM -- Can not resume: no program attached", NULL);
+    }
+
+    uint64_t result = context->hl_program_ref->run(context);
+    if (result < 100) {
+        result = context->STATUS;
+    }
+
+    // indicate if the machine is in a valid state
+    return (result == 2) || (result == 3) || (result == 4);
+}
+
 /*
 void tactyk_asmvm__dispose_VM(struct tactyk_asmvm__VM *vm) {
     tfree(vm->contexts);

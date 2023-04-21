@@ -22,6 +22,9 @@ Expand the testing system to validate microcontext stack and lwcall stack state 
 Remove all constant to constant conditional jump templates
   (get your own preprocessor!)
 
+Add break .. resume, with test coverage
+  The "break" instruction places the vm in a suspended state.
+  A subsequent "resume" operation causes the execution to continue where it left off.
 
 19 Apr 2023
 Use mkstemps() to generate unique temporary filenames when building assembly intermediates.

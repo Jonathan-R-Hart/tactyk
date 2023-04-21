@@ -274,6 +274,7 @@ void tactyk_asmvm__set(struct tactyk_asmvm__Program *tactyk_pl__prog, void* data
 bool tactyk_asmvm__prepare_invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname);
 void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *tactyk_pl__prog, char* funcname);
 bool tactyk_asmvm__call(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *tactyk_pl__prog, char* funcname);
+bool tactyk_asmvm__resume(struct tactyk_asmvm__Context *context);
 
 typedef void (*tactyk_asmvm__debug_callback)(struct tactyk_asmvm__Context *ctx);
 void tactyk_asmvm__invoke_debug(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *tactyk_pl__prog, char* funcname, tactyk_asmvm__debug_callback dbg_callback);
