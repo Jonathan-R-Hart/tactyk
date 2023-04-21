@@ -127,7 +127,7 @@ struct tactyk_asmvm__memblock_lowlevel {
     uint32_t element_bound;
     uint32_t array_bound;
     uint32_t memblock_index;
-    uint32_t type;
+    uint32_t offset;
 };
 // memory layout specification used outside of the virtual machine
 //      (a pointer to the allocated memory plus information about each property)

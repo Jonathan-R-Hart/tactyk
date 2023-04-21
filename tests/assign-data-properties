@@ -49,28 +49,28 @@ PROGRAM
     assign a addr1.array_bound
     assign b addr1.element_bound
     assign c addr1.index
-    assign d addr1.type
+    assign d addr1.offset
     exit
   
   CHK_A2:
     assign a addr2.array_bound
     assign b addr2.element_bound
     assign c addr2.index
-    assign d addr2.type
+    assign d addr2.offset
     exit
 
   CHK_A3:
     assign a addr3.array_bound
     assign b addr3.element_bound
     assign c addr3.index
-    assign d addr3.type
+    assign d addr3.offset
     exit
 
   CHK_A4:
     assign a addr4.array_bound
     assign b addr4.element_bound
     assign c addr4.index
-    assign d addr4.type
+    assign d addr4.offset
     exit
 
 EXEC INIT
@@ -87,7 +87,7 @@ TEST
   rA 1
   rB 40
   rC 0
-  rD 2
+  rD 0
 
 EXEC CHK_A2
 
@@ -95,7 +95,7 @@ TEST
   rA 217
   rB 24
   rC 1
-  rD 2
+  rD 0
 
 EXEC CHK_A3
 
@@ -103,7 +103,7 @@ TEST
   rA 1585
   rB 16
   rC 2
-  rD 2
+  rD 0
 
 EXEC CHK_A4
 
@@ -111,7 +111,7 @@ TEST
   rA 11989
   rB 12
   rC 3
-  rD 2
+  rD 0
 
 
 

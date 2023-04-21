@@ -1198,11 +1198,11 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
                 i, shadow_mbll->memblock_index, mbll->memblock_index
             );
         }
-        if (mbll->type != shadow_mbll->type) {
+        if (mbll->offset != shadow_mbll->offset) {
             snprintf(
                 test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "memblock %ju: type deviation, expected=%u observed=%u",
-                i, shadow_mbll->type, mbll->type
+                "memblock %ju: offset-field deviation, expected=%u observed=%u",
+                i, shadow_mbll->offset, mbll->offset
             );
         }
         uint64_t len = mbll->array_bound + mbll->element_bound -1;
@@ -1270,11 +1270,11 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
                 );
                 return TACTYK_TESTSTATE__FAIL;
             }
-            if (mbll->type != shadow_mbll->type) {
+            if (mbll->offset != shadow_mbll->offset) {
                 snprintf(
                     test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "stash[%ju] deviation - memblock[%ju].type: expected=%u, observed=%u",
-                    i, j, shadow_mbll->type, mbll->type
+                    "stash[%ju] deviation - memblock[%ju].offset: expected=%u, observed=%u",
+                    i, j, shadow_mbll->offset, mbll->offset
                 );
                 return TACTYK_TESTSTATE__FAIL;
             }
@@ -1879,11 +1879,11 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
         );
         return TACTYK_TESTSTATE__FAIL;
     }
-    if ( target->type != mbll->type ) {
+    if ( target->offset != mbll->offset ) {
         snprintf(
             test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-            "memory binding deviation -- expected memblock type=%u observed memblock type=%u",
-            mbll->type, target->type
+            "memory binding deviation -- expected memblock offset=%u observed memblock offset=%u",
+            mbll->offset, target->offset
         );
         return TACTYK_TESTSTATE__FAIL;
     }
@@ -1917,7 +1917,7 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
     shadow_target->array_bound = expected_abound;
     shadow_target->element_bound = expected_ebound;
     shadow_target->memblock_index = target->memblock_index;
-    shadow_target->type = target->type;
+    shadow_target->offset = target->offset;
 
     if (observed_ofs != expected_ofs) {
         snprintf(
@@ -2415,19 +2415,19 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
     STASH_ATEST("addr1.array_bound", memblocks[0].array_bound, uint32_t)
     STASH_ATEST("addr1.element_bound", memblocks[0].element_bound, uint32_t)
     STASH_ATEST("addr1.index", memblocks[0].memblock_index, uint32_t)
-    STASH_ATEST("addr1.type", memblocks[0].type, uint32_t)
+    STASH_ATEST("addr1.offset", memblocks[0].offset, uint32_t)
     STASH_ATEST("addr2.array_bound", memblocks[1].array_bound, uint32_t)
     STASH_ATEST("addr2.element_bound", memblocks[1].element_bound, uint32_t)
     STASH_ATEST("addr2.index", memblocks[1].memblock_index, uint32_t)
-    STASH_ATEST("addr2.type", memblocks[1].type, uint32_t)
+    STASH_ATEST("addr2.offset", memblocks[1].offset, uint32_t)
     STASH_ATEST("addr3.array_bound", memblocks[2].array_bound, uint32_t)
     STASH_ATEST("addr3.element_bound", memblocks[2].element_bound, uint32_t)
     STASH_ATEST("addr3.index", memblocks[2].memblock_index, uint32_t)
-    STASH_ATEST("addr3.type", memblocks[2].type, uint32_t)
+    STASH_ATEST("addr3.offset", memblocks[2].offset, uint32_t)
     STASH_ATEST("addr4.array_bound", memblocks[3].array_bound, uint32_t)
     STASH_ATEST("addr4.element_bound", memblocks[3].element_bound, uint32_t)
     STASH_ATEST("addr4.index", memblocks[3].memblock_index, uint32_t)
-    STASH_ATEST("addr4.type", memblocks[3].type, uint32_t)
+    STASH_ATEST("addr4.offset", memblocks[3].offset, uint32_t)
     STASH_FTEST("xA.1", xa.f64[0])
     STASH_FTEST("xA.2", xa.f64[1])
     STASH_FTEST("xB.1", xb.f64[0])

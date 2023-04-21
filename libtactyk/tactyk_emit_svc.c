@@ -94,7 +94,7 @@ void tactyk_emit_svc__mem_ref(struct tactyk_asmvm__Context *asmvm_ctx) {
 
     mem_ll->array_bound = refm_ll->array_bound;
     mem_ll->element_bound = refm_ll->element_bound;
-    mem_ll->type = refm_ll->type;
+    mem_ll->offset = refm_ll->offset;
     mem_ll->base_address = refm_ll->base_address;
 
     mem_hl->num_entries = refm_hl->num_entries;
@@ -265,7 +265,7 @@ void tactyk_emit_svc__declare_memblock(struct tactyk_asmvm__Context *asmvm_ctx, 
     mem_ll->array_bound = 0;
     mem_ll->element_bound = 0;
     mem_ll->memblock_index = id;
-    mem_ll->type = 0;
+    mem_ll->offset = 0;
     mem_ll->base_address = NULL;
 
     mem_hl->memblock = mem_ll;

@@ -42,28 +42,28 @@ void tactyk_debug__write_mbind(struct tactyk_asmvm__Context *ctx, FILE *stream) 
     fprintf(stream, "| Element Bound  | %20d |\n", mbll->element_bound);
     fprintf(stream, "| Array Bound    | %20d |\n", mbll->array_bound);
     fprintf(stream, "| Memblock Index | %20d |\n", mbll->memblock_index);
-    fprintf(stream, "| Type Code      | %20d |\n", mbll->type);
+    fprintf(stream, "| Offset         | %20d |\n", mbll->offset);
     fprintf(stream, "| -------------- | -------------------- |\n");
     mbll = &ctx->active_memblocks[1];
     fprintf(stream, "| ADDR2          | %20p |\n", mbll->base_address);
     fprintf(stream, "| Element Bound  | %20d |\n", mbll->element_bound);
     fprintf(stream, "| Array Bound    | %20d |\n", mbll->array_bound);
     fprintf(stream, "| Memblock Index | %20d |\n", mbll->memblock_index);
-    fprintf(stream, "| Type Code      | %20d |\n", mbll->type);
+    fprintf(stream, "| Offset         | %20d |\n", mbll->offset);
     fprintf(stream, "| -------------- | -------------------- |\n");
     mbll = &ctx->active_memblocks[2];
     fprintf(stream, "| ADDR2          | %20p |\n", mbll->base_address);
     fprintf(stream, "| Element Bound  | %20d |\n", mbll->element_bound);
     fprintf(stream, "| Array Bound    | %20d |\n", mbll->array_bound);
     fprintf(stream, "| Memblock Index | %20d |\n", mbll->memblock_index);
-    fprintf(stream, "| Type Code      | %20d |\n", mbll->type);
+    fprintf(stream, "| Offset         | %20d |\n", mbll->offset);
     fprintf(stream, "| -------------- | -------------------- |\n");
     mbll = &ctx->active_memblocks[3];
     fprintf(stream, "| ADDR2          | %20p |\n", mbll->base_address);
     fprintf(stream, "| Element Bound  | %20d |\n", mbll->element_bound);
     fprintf(stream, "| Array Bound    | %20d |\n", mbll->array_bound);
     fprintf(stream, "| Memblock Index | %20d |\n", mbll->memblock_index);
-    fprintf(stream, "| Type Code      | %20d |\n", mbll->type);
+    fprintf(stream, "| Offset         | %20d |\n", mbll->offset);
     fprintf(stream, "=========================================\n");
 }
 void tactyk_debug__write_vmstack(struct tactyk_asmvm__Context *ctx, FILE *stream) {

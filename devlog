@@ -1,3 +1,8 @@
+21 Apr 2023
+Repurposed "type" field from memory block specification.  
+  It is Renamed to "offset" and is now intended solely for storing the address offset while stashed.
+  (and will only be updated when stashing memory bindings)
+
 20 Apr 2023
 Add instructions:  not, negate (tactyk_core.visa)
 Add test coverage for and, or, xor, not, negate, inc, dec instructions  (tactyk_core.visa)
