@@ -1619,416 +1619,282 @@ instruction cpuclocks
     xor rTEMPD, rTEMPD
     jmp $NEXT_INSTRUCTION
 
+typespec stash-addr
+  select-operand
+    case s-addr1 stash-addr1
+      value addr1
+    case s-addr2 stash-addr2
+      value addr2
+    case s-addr3 stash-addr3
+      value addr3
+    case s-addr4 stash-addr4
+      value addr4
+  pick Sa
+
+typespec stash-item
+  select-operand
+    case sa sA
+      value al
+    case sb sB
+      value bl
+    case sc sC
+      value cl
+    case sd sD
+      value dl
+    case se sE
+      value el
+    
+    case sf sF
+      value fl
+    case sg sG
+      value gl
+    case sh sH
+      value hl
+    case si sI
+      value il
+    case sj sJ
+      value jl
+
+    case sk sK
+      value kl
+    case sl sL
+      value ll
+    case sm sM
+      value ml
+    case sn sN
+      value nl
+    case so sO
+      value ol
+
+    case sp sP
+      value pl
+    case sq sQ
+      value ql
+    case sr sR
+      value rl
+    case ss sS
+      value sl
+    case st sT
+      value tl
+
+    case su sU
+      value ul
+    case sv sV
+      value vl
+    case sw sW
+      value wl
+    case sx sX
+      value xl
+    case sy sY
+      value yl
+    case sz sZ
+      value zl
+  pick Si
+
+typespec stash-item-low
+  select-operand
+    case sal sAl
+      value al
+    case sbl sBl
+      value bl
+    case scl sCl
+      value cl
+    case sdl sDl
+      value dl
+    case sel sEl
+      value el
+    
+    case sfl sFl
+      value fl
+    case sgl sGl
+      value gl
+    case shl sHl
+      value hl
+    case sil sIl
+      value il
+    case sjl sJl
+      value jl
+
+    case skl sKl
+      value kl
+    case sll sLl
+      value ll
+    case sml sMl
+      value ml
+    case snl sNl
+      value nl
+    case sol sOl
+      value ol
+
+    case spl sPl
+      value pl
+    case sql sQl
+      value ql
+    case srl sRl
+      value rl
+    case ssl sSl
+      value sl
+    case stl sTl
+      value tl
+
+    case sul sUl
+      value ul
+    case svl sVl
+      value vl
+    case swl sWl
+      value wl
+    case sxl sXl
+      value xl
+    case syl sYl
+      value yl
+    case szl sZl
+      value zl
+  pick Sil
+
+typespec stash-item-high
+  select-operand
+    case sah sAh
+      value ah
+    case sbh sBh
+      value bh
+    case sch sCh
+      value ch
+    case sdh sDh
+      value dh
+    case seh sEh
+      value eh
+    
+    case sfh sFh
+      value fh
+    case sgh sGh
+      value gh
+    case shh sHh
+      value hh
+    case sih sIh
+      value ih
+    case sjh sJh
+      value jh
+
+    case skh sKh
+      value kh
+    case slh sLh
+      value lh
+    case smh sMh
+      value mh
+    case snh sNh
+      value nh
+    case soh sOh
+      value oh
+
+    case sph sPh
+      value ph
+    case sqh sQh
+      value qh
+    case srh sRh
+      value rh
+    case ssh sSh
+      value sh
+    case sth sTh
+      value th
+
+    case suh sUh
+      value uh
+    case svh sVh
+      value vh
+    case swh sWh
+      value wh
+    case sxh sXh
+      value xh
+    case syh sYh
+      value yh
+    case szh sZh
+      value zh
+  pick Sih
+
 instruction stash
-  operand
-  flags
-    contains a1
-      code
-        mov gs:[microcontext.a1], rA
-    contains a2
-      code
-        mov gs:[microcontext.a2], rA
-    contains a3
-      code
-        mov gs:[microcontext.a3], rA
-    contains b1
-      code
-        mov gs:[microcontext.b1], rB
-    contains b2
-      code
-        mov gs:[microcontext.b2], rB
-    contains b3
-      code
-        mov gs:[microcontext.b3], rB
-    contains c1
-      code
-        mov gs:[microcontext.c1], rC
-    contains c2
-      code
-        mov gs:[microcontext.c2], rC
-    contains c3
-      code
-        mov gs:[microcontext.c3], rC
-    contains d1
-      code
-        mov gs:[microcontext.d1], rD
-    contains d2
-      code
-        mov gs:[microcontext.d2], rD
-    contains d3
-      code
-        mov gs:[microcontext.d3], rD
-    contains e1
-      code
-        mov gs:[microcontext.e1], rE
-    contains e2
-      code
-        mov gs:[microcontext.e2], rE
-    contains e3
-      code
-        mov gs:[microcontext.e3], rE
-    contains f1
-      code
-        mov gs:[microcontext.f1], rF
-    contains f2
-      code
-        mov gs:[microcontext.f2], rF
-    contains f3
-      code
-        mov gs:[microcontext.f3], rF
-    contains x1a
-      code
-        movq gs:[microcontext.x1a], xA
-    contains x1b
-      code
-        movq gs:[microcontext.x1b], xB
-    contains x1c
-      code
-        movq gs:[microcontext.x1c], xC
-    contains x1d
-      code
-        movq gs:[microcontext.x1d], xD
-    contains x1e
-      code
-        movq gs:[microcontext.x1e], xE
-    contains x1f
-      code
-        movq gs:[microcontext.x1f], xF
-    contains x1g
-      code
-        movq gs:[microcontext.x1g], xG
-    contains x1h
-      code
-        movq gs:[microcontext.x1h], xH
-    contains x1i
-      code
-        movq gs:[microcontext.x1i], xI
-    contains x1j
-      code
-        movq gs:[microcontext.x1j], xJ
-    contains x1k
-      code
-        movq gs:[microcontext.x1k], xK
-    contains x1l
-      code
-        movq gs:[microcontext.x1l], xL
-    contains x1m
-      code
-        movq gs:[microcontext.x1m], xM
-    contains x1n
-      code
-        movq gs:[microcontext.x1n], xN
-    #contains x1o
-    #  code
-    #    movq gs:[microcontext.x1o], xO
-    #contains x1p
-    #  code
-    #    movq gs:[microcontext.x1p], xP
-    
-    contains x2a
-      code
-        movq gs:[microcontext.x2a], xA
-    contains x2b
-      code
-        movq gs:[microcontext.x2b], xB
-    contains x2c
-      code
-        movq gs:[microcontext.x2c], xC
-    contains x2d
-      code
-        movq gs:[microcontext.x2d], xD
-    contains x2e
-      code
-        movq gs:[microcontext.x2e], xE
-    contains x2f
-      code
-        movq gs:[microcontext.x2f], xF
-    contains x2g
-      code
-        movq gs:[microcontext.x2g], xG
-    contains x2h
-      code
-        movq gs:[microcontext.x2h], xH
-    contains x2i
-      code
-        movq gs:[microcontext.x2i], xI
-    contains x2j
-      code
-        movq gs:[microcontext.x2j], xJ
-    contains x2k
-      code
-        movq gs:[microcontext.x2k], xK
-    contains x2l
-      code
-        movq gs:[microcontext.x2l], xL
-    contains x2m
-      code
-        movq gs:[microcontext.x2m], xM
-    contains x2n
-      code
-        movq gs:[microcontext.x2n], xN
-    #contains x2o
-    #  code
-    #    movq gs:[microcontext.x2o], xO
-    #contains x2p
-    #  code
-    #    movq gs:[microcontext.x2p], xP
-    
-    contains xa
-      code
-        movdqu gs:[microcontext.xa], xA
-    contains xb
-      code
-        movdqu gs:[microcontext.xb], xB
-    contains xc
-      code
-        movdqu gs:[microcontext.xc], xC
-    contains xd
-      code
-        movdqu gs:[microcontext.xd], xD
-    contains xe
-      code
-        movdqu gs:[microcontext.xe], xE
-    contains xf
-      code
-        movdqu gs:[microcontext.xf], xF
-    contains xg
-      code
-        movdqu gs:[microcontext.xg], xG
-    contains xh
-      code
-        movdqu gs:[microcontext.xh], xH
-    contains xi
-      code
-        movdqu gs:[microcontext.xi], xI
-    contains xj
-      code
-        movdqu gs:[microcontext.xj], xJ
-    contains xk
-      code
-        movdqu gs:[microcontext.xk], xK
-    contains xl
-      code
-        movdqu gs:[microcontext.xl], xL
-    contains xm
-      code
-        movdqu gs:[microcontext.xm], xM
-    contains xn
-      code
-        movdqu gs:[microcontext.xn], xN
-    #contains xo
-    #  code
-    #    movdqu gs:[microcontext.xo], xO
-    #contains xp
-    #  code
-    #    movdqu gs:[microcontext.xp], xP
-  code
-    jmp $NEXT_INSTRUCTION
-
-instruction unstash
-  operand
-  flags
-    contains a1
-      code
-        mov rA, gs:[microcontext.a1]
-    contains a2
-      code
-        mov rA, gs:[microcontext.a2]
-    contains a3
-      code
-        mov rA, gs:[microcontext.a3]
-    contains b1
-      code
-        mov rB, gs:[microcontext.b1]
-    contains b2
-      code
-        mov rB, gs:[microcontext.b2]
-    contains b3
-      code
-        mov rB, gs:[microcontext.b3]
-    contains c1
-      code
-        mov rC, gs:[microcontext.c1]
-    contains c2
-      code
-        mov rC, gs:[microcontext.c2]
-    contains c3
-      code
-        mov rC, gs:[microcontext.c3]
-    contains d1
-      code
-        mov rD, gs:[microcontext.d1]
-    contains d2
-      code
-        mov rD, gs:[microcontext.d2]
-    contains d3
-      code
-        mov rD, gs:[microcontext.d3]
-    contains e1
-      code
-        mov rE, gs:[microcontext.e1]
-    contains e2
-      code
-        mov rE, gs:[microcontext.e2]
-    contains e3
-      code
-        mov rE, gs:[microcontext.e3]
-    contains f1
-      code
-        mov rF, gs:[microcontext.f1]
-    contains f2
-      code
-        mov rF, gs:[microcontext.f2]
-    contains f3
-      code
-        mov rF, gs:[microcontext.f3]
-    contains x1a
-      code
-        movq xA, gs:[microcontext.x1a]
-    contains x1b
-      code
-        movq xB, gs:[microcontext.x1b]
-    contains x1c
-      code
-        movq xC, gs:[microcontext.x1c]
-    contains x1d
-      code
-        movq xD, gs:[microcontext.x1d]
-    contains x1e
-      code
-        movq xE, gs:[microcontext.x1e]
-    contains x1f
-      code
-        movq xF, gs:[microcontext.x1f]
-    contains x1g
-      code
-        movq xG, gs:[microcontext.x1g]
-    contains x1h
-      code
-        movq xH, gs:[microcontext.x1h]
-    contains x1i
-      code
-        movq xI, gs:[microcontext.x1i]
-    contains x1j
-      code
-        movq xJ, gs:[microcontext.x1j]
-    contains x1k
-      code
-        movq xK, gs:[microcontext.x1k]
-    contains x1l
-      code
-        movq xL, gs:[microcontext.x1l]
-    contains x1m
-      code
-        movq xM, gs:[microcontext.x1m]
-    contains x1n
-      code
-        movq xN, gs:[microcontext.x1n]
-    #contains x1o
-    #  code
-    #    movq xO, gs:[microcontext.x1o]
-    #contains x1p
-    #  code
-    #    movq xP, gs:[microcontext.x1p]
-    
-    contains x2a
-      code
-        movq xA, gs:[microcontext.x2a]
-    contains x2b
-      code
-        movq xB, gs:[microcontext.x2b]
-    contains x2c
-      code
-        movq xC, gs:[microcontext.x2c]
-    contains x2d
-      code
-        movq xD, gs:[microcontext.x2d]
-    contains x2e
-      code
-        movq xE, gs:[microcontext.x2e]
-    contains x2f
-      code
-        movq xF, gs:[microcontext.x2f]
-    contains x2g
-      code
-        movq xG, gs:[microcontext.x2g]
-    contains x2h
-      code
-        movq xH, gs:[microcontext.x2h]
-    contains x2i
-      code
-        movq xI, gs:[microcontext.x2i]
-    contains x2j
-      code
-        movq xJ, gs:[microcontext.x2j]
-    contains x2k
-      code
-        movq xK, gs:[microcontext.x2k]
-    contains x2l
-      code
-        movq xL, gs:[microcontext.x2l]
-    contains x2m
-      code
-        movq xM, gs:[microcontext.x2m]
-    contains x2n
-      code
-        movq xN, gs:[microcontext.x2n]
-    contains x2o
-      code
-        movq xO, gs:[microcontext.x2o]
-    #contains x2p
-    #  code
-    #    movq xP, gs:[microcontext.x2p]
-
-    contains xa
-      code
-        movdqu xA, gs:[microcontext.xa]
-    contains xb
-      code
-        movdqu xB, gs:[microcontext.xb]
-    contains xc
-      code
-        movdqu xC, gs:[microcontext.xc]
-    contains xd
-      code
-        movdqu xD, gs:[microcontext.xd]
-    contains xe
-      code
-        movdqu xE, gs:[microcontext.xe]
-    contains xf
-      code
-        movdqu xF, gs:[microcontext.xf]
-    contains xg
-      code
-        movqdqu xG, gs:[microcontext.xg]
-    contains xh
-      code
-        movqdqu xH, gs:[microcontext.xh]
-    contains xi
-      code
-        movqdqu xI, gs:[microcontext.xi]
-    contains xj
-      code
-        movdqu xJ, gs:[microcontext.xj]
-    contains xk
-      code
-        movdqu xK, gs:[microcontext.xk]
-    contains xl
-      code
-        movdqu xL, gs:[microcontext.xl]
-    contains xm
-      code
-        movdqu xM, gs:[microcontext.xm]
-    contains xn
-      code
-        movdqu xN, gs:[microcontext.xn]
-    #contains xo
-    #  code
-    #    movdqu xO, gs:[microcontext.xo]
-    #contains xp
-    #  code
-    #    movdqu xP, gs:[microcontext.xp]
-    
+  composite 16
+    opt-operand
+      select-operand
+        case swap
+          pick W
+    operand
+      type data xmmx addr stash-addr stash-item stash-item-low stash-item-high
+      $DEST $VALUE
+    operand
+      type data xmmx addr stash-addr stash-item stash-item-low stash-item-high
+      $SRC $VALUE
+    select-template
+      case SiD SilD SihD
+        code
+          mov gs:[microcontext.$DEST], $SRC
+      case DSi DSil DSih
+        code
+          mov $DEST, gs:[microcontext.$SRC]
+      case SilX SihX
+        code
+          movq gs:[microcontext.$DEST], $SRC
+      case XSil XSih
+        code
+          movq $DEST, gs:[microcontext.$SRC]
+      case SiX
+        code
+          movdqu gs:[microcontext.$DEST], $SRC
+      case XSi
+        code
+          movdqu $DEST, gs:[microcontext.$SRC]
+      case SaA
+        code
+          mov rTEMPA, fs:[$CONTEXT_ADDR]
+          mov gs:[microcontext.$DEST], rTEMPA
+          negate rTEMPA
+          add rTEMPA, $SRC
+          mov dword gs:[microcontext.$DEST+20], %[$SRC]_32
+          mov rTEMPC, fs:[$CTX_ELEMENT_BOUND]
+          mov gs:[microcontext.$DEST+8], rTEMPC
+          mov rTEMPD_32, dword fs:[$CTX_MEMBLOCK_INDEX]
+          mov dword gs:[microcontext.$DEST+16], rTEMPD_32
+          xor rTEMPA, rTEMPA
+          xor rTEMPC, rTEMPC
+          xor rTEMPD, rTEMPD
+      case ASa
+        code
+          mov rTEMPA, gs:[microcontext.$SRC]
+          mov fs:[$CONTEST_ADDR]
+          mov $DEST, rTEMPA
+          add $DEST, dword gs:[microcontext.$SRC+20]
+          mov rTEMPC, gs:[microcontext.$SRC+8]
+          mov fs:[$CTX_ELEMENT_BOUND], rTEMPC
+          mov rTEMPD_32, dword gs:[microcontext.$SRC+16]
+          mov dword fs:[$CTX_MEMBLOCK_INDEX], rTEMPD_16
+          xor rTEMPA, rTEMPA
+          xor rTEMPC, rTEMPC
+          xor rTEMPD, rTEMPD
+      case WSiD WSilD WSihD
+        code
+          xchg gs:[microcontext.$DEST], $SRC
+      case WDSi WDSil WDSih
+        code
+          mov $DEST, gs:[microcontext.$SRC]
+      case WSilX WSihX
+        code
+          movq xTEMPA, $SRC
+          movq $SRC, gs:[microcontext.$DEST]
+          movq gs:[microcontext.$DEST], xTEMPA
+      case WXSil WXSih
+        code
+          movq xTEMPA, $DEST
+          movq $DEST, gs:[microcontext.$SRC]
+          movq gs:[microcontext.$SRC], xTEMPA
+      case WSiX
+        code
+          movdqu xTEMPA, $SRC
+          movdqu $SRC, gs:[microcontext.$DEST]
+          movdqu gs:[microcontext.$DEST], xTEMPA
+      case WXSi
+        code
+          movdqu xTEMPA, $DEST
+          movdqu $DEST, gs:[microcontext.$SRC]
+          movdqu gs:[microcontext.$SRC], xTEMPA
   code
     jmp $NEXT_INSTRUCTION
 

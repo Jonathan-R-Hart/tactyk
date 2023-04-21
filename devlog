@@ -8,6 +8,9 @@ Redesign the micrcontext stash
   Storage for conventional registers and xmm registers is now combined and available for either.
     The two unused fields are also included (several refactorings ago, these where for storing branch targets)
 
+Revise the stash instruction
+  It will handle stashing unstashing, and swapping (and can combine them arbitrarilly)
+
 20 Apr 2023
 Add instructions:  not, negate (tactyk_core.visa)
 Add test coverage for and, or, xor, not, negate, inc, dec instructions  (tactyk_core.visa)
