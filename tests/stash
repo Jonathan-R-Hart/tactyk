@@ -1,0 +1,347 @@
+# TEST:  stash
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   stash <flags>
+#   unstash <flags>
+
+PROGRAM prg
+  # Hhello, world!
+  # generate some values and stash them.
+  STASH_TEST_1:
+    assign a 1
+    assign b 2
+    assign c 3
+    assign d 4
+    assign e 5
+    assign f 6
+    stash sA a sB b sC c sD d sE e sF f
+    exit
+  
+  # individual stash ops can be arranged in any way
+  #   (internally, tactyk permutes them to try to put a bit more randomness into generated executables)
+  STASH_TEST_2:
+    assign a 12
+    assign b 11
+    assign c 10
+    assign d 9
+    assign e 8
+    assign f 7
+    stash sG f sH e sI d sJ c sK b sL a
+    exit
+  
+  # Stash operations have variable length 
+  STASH_TEST_3:
+    assign a 13
+    assign b 14
+    assign c 15
+    assign d 16
+    assign e 17
+    assign f 18
+    stash sN b sM a sO c
+    stash sQ e sR f
+    stash sP d
+    exit
+  
+  STASH_TEST_4:
+    assign a 19
+    assign b 20
+    assign c 21
+    assign d 22
+    assign e 23
+    assign f 24
+    stash sS a sT b sU c sV d sW e sX f
+    assign a 25
+    assign b 26
+    stash sY a sZ b
+    exit
+  
+  # By reversing the argument order, the "stash" becomes an "unstash" operation
+  STASH_TEST_5:
+    stash a sA b sB c sC d sD e sE f sF
+    add a 26
+    add b 26
+    add c 26
+    add d 26
+    add e 26
+    add f 26
+    stash sAh a sBh b sCh c sDh d sEh e sFh f
+    exit
+  
+  # Stash fields have a "low" value property and a "high" property
+  # When dealing with values 8 bytes of less, these are effectively independent fields
+  # But, when dealing with 16 byte fields, the "low" and "high" fields represent a single property and the unaffixed name is the proper name
+  #   (Under the little-endian perspective, "low" refers to the lower bytes, and "high" refers to the upper bytes)
+  STASH_TEST_6:
+    stash d sJl e sKl f sLl a sGl b sHl c sIl
+    add a 26
+    add b 26
+    add c 26
+    add d 26
+    add e 26
+    add f 26
+    stash sLh f sGh a sHh b sIh c sJh d sKh e
+    exit
+  
+  STASH_TEST_7:
+    stash f sM e sN d sO c sP b sQ a sR
+    add a 26
+    add b 26
+    add c 26
+    add d 26
+    add e 26
+    add f 26
+    stash sMh f sNh e sOh d sPh c sQh b sRh a
+    exit
+
+  STASH_TEST_8:
+    stash a sS b sT c sU d sV e sW
+    stash f sX
+    add a 26
+    add b 26
+    add c 26
+    add d 26
+    add e 26
+    add f 26
+    stash sSh a sTh b sUh c sVh d sWh e sXh f
+    stash a sY b sZ
+    add a 26
+    add b 26
+    stash sYh a sZh b
+    exit
+  
+  # stash also has the ability to swap register contents with stash contents
+  STASH_TEST_9:
+    stash a sAl b sBl c sCl d sDl e sEl f sFl
+    stash swap a sAh swap b sBh swap c sCh swap d sDh swap e sEh swap f sFh
+    exit
+
+  STASH_TEST_10:
+    stash swap f sGl  swap e sHl  swap d sIl  swap c sJl  swap b sKl  swap a sLl
+    stash swap f sGh  swap e sHh  swap d sIh  swap c sJh  swap b sKh  swap a sLh
+    exit
+  
+  # Stash has the ability to perform memory-memory operations
+  STASH_TEST_11:
+    stash swap sMl sMh  swap sNl sNh  swap sOl sOh  swap sPl sPh  swap sQl sQh  swap sRl sRh  swap sSl sSh  swap sTl sTh
+    stash swap sUh sUl  swap sVh sVl  swap sWh sWl  swap sXh sXl  swap sYh sYl  swap sZh sZl
+    exit
+  
+  # self-targetting memory-memory ops are also valid, but have no effect
+  STASH_TEST_12:
+    stash swap sZl sZl swap sHl sHl  sZl sZl  sCh sCh
+    exit
+  
+  STASH_TEST_13:
+    stash swap sAl sZh swap sAh sZl swap sBl sYl swap sBh sYh
+    stash sCl sDh  sEl sFl  sGh sHl  sIh sJh
+    exit
+
+EXEC STASH_TEST_1
+TEST
+  rA 1
+  rB 2
+  rC 3
+  rD 4
+  rE 5
+  rF 6
+  stash al 1
+  stash bl 2
+  stash cl 3
+  stash dl 4
+  stash el 5
+  stash fl 6
+
+EXEC STASH_TEST_2
+TEST
+  rA 12
+  rB 11
+  rC 10
+  rD 9
+  rE 8
+  rF 7
+  stash gl 7
+  stash hl 8
+  stash il 9
+  stash jl 10
+  stash kl 11
+  stash ll 12
+
+EXEC STASH_TEST_3
+TEST
+  rA 13
+  rB 14
+  rC 15
+  rD 16
+  rE 17
+  rF 18
+  stash ml 13
+  stash nl 14
+  stash ol 15
+  stash pl 16
+  stash ql 17
+  stash rl 18
+
+EXEC STASH_TEST_4
+TEST
+  rA 25
+  rB 26
+  rC 21
+  rD 22
+  rE 23
+  rF 24
+  stash sl 19
+  stash tl 20
+  stash ul 21
+  stash vl 22
+  stash wl 23
+  stash xl 24
+  stash yl 25
+  stash zl 26
+
+EXEC STASH_TEST_5
+TEST
+  rA 27
+  rB 28
+  rC 29
+  rD 30
+  rE 31
+  rF 32
+  stash ah 27
+  stash bh 28
+  stash ch 29
+  stash dh 30
+  stash eh 31
+  stash fh 32
+
+EXEC STASH_TEST_6
+TEST
+  rA 33
+  rB 34
+  rC 35
+  rD 36
+  rE 37
+  rF 38
+  stash gh 33
+  stash hh 34
+  stash ih 35
+  stash jh 36
+  stash kh 37
+  stash lh 38
+
+EXEC STASH_TEST_7
+TEST
+  rA 44
+  rB 43
+  rC 42
+  rD 41
+  rE 40
+  rF 39
+  stash mh 39
+  stash nh 40
+  stash oh 41
+  stash ph 42
+  stash qh 43
+  stash rh 44
+
+EXEC STASH_TEST_8
+TEST
+  rA 51
+  rB 52
+  rC 47
+  rD 48
+  rE 49
+  rF 50
+  stash sh 45
+  stash th 46
+  stash uh 47
+  stash vh 48
+  stash wh 49
+  stash xh 50
+  stash yh 51
+  stash zh 52
+
+EXEC STASH_TEST_9
+TEST
+  rA 27
+  rB 28
+  rC 29
+  rD 30
+  rE 31
+  rF 32
+  stash ah 1
+  stash bh 2
+  stash ch 3
+  stash dh 4
+  stash eh 5
+  stash fh 6
+
+EXEC STASH_TEST_10
+TEST
+  rA 38
+  rB 37
+  rC 36
+  rD 35
+  rE 34
+  rF 33
+  stash gl 32
+  stash hl 31
+  stash il 30
+  stash jl 29
+  stash kl 28
+  stash ll 27
+  stash gh 7
+  stash hh 8
+  stash ih 9
+  stash jh 10
+  stash kh 11
+  stash lh 12
+
+EXEC STASH_TEST_11
+TEST
+  stash ml 39
+  stash nl 40
+  stash ol 41
+  stash pl 42
+  stash ql 43
+  stash rl 44
+  stash sl 45
+  stash tl 46
+  stash ul 47
+  stash vl 48
+  stash wl 49
+  stash xl 50
+  stash yl 51
+  stash zl 52
+  stash mh 13
+  stash nh 14
+  stash oh 15
+  stash ph 16
+  stash qh 17
+  stash rh 18
+  stash sh 19
+  stash th 20
+  stash uh 21
+  stash vh 22
+  stash wh 23
+  stash xh 24
+  stash yh 25
+  stash zh 26
+
+EXEC STASH_TEST_12
+TEST
+
+EXEC STASH_TEST_13
+TEST
+  stash al 26
+  stash ah 52
+  stash zl 1
+  stash zh 1
+  stash bl 51
+  stash bh 25
+  stash yl 2
+  stash yh 2
+  stash cl 4
+  stash el 6
+  stash gh 31
+  stash ih 10
