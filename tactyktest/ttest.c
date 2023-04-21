@@ -1280,67 +1280,72 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
             }
         }
 
-        #define STASH_CHK(PROP,FMT,TYPE) \
+        #define STASH_CHK(PROP) \
         if (shadow_stash->PROP != stash->PROP) { \
             snprintf( \
                 test_state->report, TACTYK_TEST__REPORT_BUFSIZE, \
-                "stash[%ju] deviation - " #PROP ": expected=" #FMT ", observed=" #FMT, \
-                i, (TYPE)shadow_stash->PROP, (TYPE)stash->PROP \
+                "stash[%ju] deviation - " #PROP ": expected=%jd, observed=%jd", \
+                i, shadow_stash->PROP, stash->PROP \
             ); \
             return TACTYK_TESTSTATE__FAIL; \
         }
-        STASH_CHK(a1, %jd, int64_t);
-        STASH_CHK(a2, %jd, int64_t);
-        STASH_CHK(a3, %jd, int64_t);
-        STASH_CHK(b1, %jd, int64_t);
-        STASH_CHK(b2, %jd, int64_t);
-        STASH_CHK(b3, %jd, int64_t);
-        STASH_CHK(c1, %jd, int64_t);
-        STASH_CHK(c2, %jd, int64_t);
-        STASH_CHK(c3, %jd, int64_t);
-        STASH_CHK(d1, %jd, int64_t);
-        STASH_CHK(d2, %jd, int64_t);
-        STASH_CHK(d3, %jd, int64_t);
-        STASH_CHK(e1, %jd, int64_t);
-        STASH_CHK(e2, %jd, int64_t);
-        STASH_CHK(e3, %jd, int64_t);
-        STASH_CHK(f1, %jd, int64_t);
-        STASH_CHK(f2, %jd, int64_t);
-        STASH_CHK(f3, %jd, int64_t);
-        STASH_CHK(unused1, %jd, int64_t);
-        STASH_CHK(unused2, %jd, int64_t);
-        STASH_CHK(xa.f64[0], %f, double);
-        STASH_CHK(xa.f64[1], %f, double);
-        STASH_CHK(xb.f64[0], %f, double);
-        STASH_CHK(xb.f64[1], %f, double);
-        STASH_CHK(xc.f64[0], %f, double);
-        STASH_CHK(xc.f64[1], %f, double);
-        STASH_CHK(xd.f64[0], %f, double);
-        STASH_CHK(xd.f64[1], %f, double);
-        STASH_CHK(xe.f64[0], %f, double);
-        STASH_CHK(xe.f64[1], %f, double);
-        STASH_CHK(xf.f64[0], %f, double);
-        STASH_CHK(xf.f64[1], %f, double);
-        STASH_CHK(xg.f64[0], %f, double);
-        STASH_CHK(xg.f64[1], %f, double);
-        STASH_CHK(xh.f64[0], %f, double);
-        STASH_CHK(xh.f64[1], %f, double);
-        STASH_CHK(xi.f64[0], %f, double);
-        STASH_CHK(xi.f64[1], %f, double);
-        STASH_CHK(xj.f64[0], %f, double);
-        STASH_CHK(xj.f64[1], %f, double);
-        STASH_CHK(xk.f64[0], %f, double);
-        STASH_CHK(xk.f64[1], %f, double);
-        STASH_CHK(xl.f64[0], %f, double);
-        STASH_CHK(xl.f64[1], %f, double);
-        STASH_CHK(xm.f64[0], %f, double);
-        STASH_CHK(xm.f64[1], %f, double);
-        STASH_CHK(xn.f64[0], %f, double);
-        STASH_CHK(xn.f64[1], %f, double);
-        STASH_CHK(xTEMPA.f64[0], %f, double);
-        STASH_CHK(xTEMPA.f64[1], %f, double);
-        STASH_CHK(xTEMPB.f64[0], %f, double);
-        STASH_CHK(xTEMPB.f64[1], %f, double);
+        STASH_CHK(a.i64[0]);
+        STASH_CHK(a.i64[1]);
+        STASH_CHK(b.i64[0]);
+        STASH_CHK(b.i64[1]);
+        STASH_CHK(c.i64[0]);
+        STASH_CHK(c.i64[1]);
+        STASH_CHK(d.i64[0]);
+        STASH_CHK(d.i64[1]);
+        STASH_CHK(e.i64[0]);
+        STASH_CHK(e.i64[1]);
+
+        STASH_CHK(f.i64[0]);
+        STASH_CHK(f.i64[1]);
+        STASH_CHK(g.i64[0]);
+        STASH_CHK(g.i64[1]);
+        STASH_CHK(h.i64[0]);
+        STASH_CHK(h.i64[1]);
+        STASH_CHK(i.i64[0]);
+        STASH_CHK(i.i64[1]);
+        STASH_CHK(j.i64[0]);
+        STASH_CHK(j.i64[1]);
+
+        STASH_CHK(k.i64[0]);
+        STASH_CHK(k.i64[1]);
+        STASH_CHK(l.i64[0]);
+        STASH_CHK(l.i64[1]);
+        STASH_CHK(m.i64[0]);
+        STASH_CHK(m.i64[1]);
+        STASH_CHK(n.i64[0]);
+        STASH_CHK(n.i64[1]);
+        STASH_CHK(o.i64[0]);
+        STASH_CHK(o.i64[1]);
+
+        STASH_CHK(p.i64[0]);
+        STASH_CHK(p.i64[1]);
+        STASH_CHK(q.i64[0]);
+        STASH_CHK(q.i64[1]);
+        STASH_CHK(r.i64[0]);
+        STASH_CHK(r.i64[1]);
+        STASH_CHK(s.i64[0]);
+        STASH_CHK(s.i64[1]);
+        STASH_CHK(t.i64[0]);
+        STASH_CHK(t.i64[1]);
+
+        STASH_CHK(u.i64[0]);
+        STASH_CHK(u.i64[1]);
+        STASH_CHK(v.i64[0]);
+        STASH_CHK(v.i64[1]);
+        STASH_CHK(w.i64[0]);
+        STASH_CHK(w.i64[1]);
+        STASH_CHK(x.i64[0]);
+        STASH_CHK(x.i64[1]);
+        STASH_CHK(y.i64[0]);
+        STASH_CHK(y.i64[1]);
+
+        STASH_CHK(z.i64[0]);
+        STASH_CHK(z.i64[1]);
         #undef STASH_CHK
     }
 
@@ -2340,10 +2345,10 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
 
     bool ifield = false;
 
-    #define STASH_ITEST(FIELD, TYPE) \
-    else if (strncmp(fn, #FIELD, 64) == 0) { \
-        pass = ((TYPE)ival == stash->FIELD); \
-        shstash->FIELD = (TYPE)ival; \
+    #define STASH_TEST(NAME, FIELD) \
+    else if (strncmp(fn, #NAME, 64) == 0) { \
+        pass = (ival == stash->FIELD); \
+        shstash->FIELD = ival; \
         st_ival = stash->FIELD; \
         ifield = true; \
     }
@@ -2351,14 +2356,8 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
     else if (strncmp(fn, NAME, 64) == 0) { \
         pass = ((TYPE)ival == stash->FIELD); \
         shstash->FIELD = (TYPE)ival; \
-        st_ival = (int64_t)stash->FIELD; \
+        st_ival = stash->FIELD; \
         ifield = true; \
-    }
-    #define STASH_FTEST(NAME, FIELD) \
-    else if (strncmp(fn, NAME, 64) == 0) { \
-        pass = tactyk_test__approximately_eq(f64val, stash->FIELD); \
-        st_f64val = stash->FIELD; \
-        shstash->FIELD = f64val; \
     }
     if ( (strncmp(fn, "addr", 4) == 0) && (strlen(fn) == 5) ) {
         uint64_t aofs = fn[4] - '1';
@@ -2392,26 +2391,6 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
         pass = ((uint8_t*)ival == mbll->base_address);
         shmbll->base_address = (uint8_t*)ival;
     }
-    STASH_ITEST(a1, int64_t)
-    STASH_ITEST(a2, int64_t)
-    STASH_ITEST(a3, int64_t)
-    STASH_ITEST(b1, int64_t)
-    STASH_ITEST(b2, int64_t)
-    STASH_ITEST(b3, int64_t)
-    STASH_ITEST(c1, int64_t)
-    STASH_ITEST(c2, int64_t)
-    STASH_ITEST(c3, int64_t)
-    STASH_ITEST(d1, int64_t)
-    STASH_ITEST(d2, int64_t)
-    STASH_ITEST(d3, int64_t)
-    STASH_ITEST(e1, int64_t)
-    STASH_ITEST(e2, int64_t)
-    STASH_ITEST(e3, int64_t)
-    STASH_ITEST(f1, int64_t)
-    STASH_ITEST(f2, int64_t)
-    STASH_ITEST(f3, int64_t)
-    STASH_ITEST(unused1, int64_t)
-    STASH_ITEST(unused2, int64_t)
     STASH_ATEST("addr1.array_bound", memblocks[0].array_bound, uint32_t)
     STASH_ATEST("addr1.element_bound", memblocks[0].element_bound, uint32_t)
     STASH_ATEST("addr1.index", memblocks[0].memblock_index, uint32_t)
@@ -2428,39 +2407,66 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
     STASH_ATEST("addr4.element_bound", memblocks[3].element_bound, uint32_t)
     STASH_ATEST("addr4.index", memblocks[3].memblock_index, uint32_t)
     STASH_ATEST("addr4.offset", memblocks[3].offset, uint32_t)
-    STASH_FTEST("xA.1", xa.f64[0])
-    STASH_FTEST("xA.2", xa.f64[1])
-    STASH_FTEST("xB.1", xb.f64[0])
-    STASH_FTEST("xB.2", xb.f64[1])
-    STASH_FTEST("xC.1", xc.f64[0])
-    STASH_FTEST("xC.2", xc.f64[1])
-    STASH_FTEST("xD.1", xd.f64[0])
-    STASH_FTEST("xD.2", xd.f64[1])
-    STASH_FTEST("xE.1", xe.f64[0])
-    STASH_FTEST("xE.2", xe.f64[1])
-    STASH_FTEST("xF.1", xf.f64[0])
-    STASH_FTEST("xF.2", xf.f64[1])
-    STASH_FTEST("xG.1", xg.f64[0])
-    STASH_FTEST("xG.2", xg.f64[1])
-    STASH_FTEST("xH.1", xh.f64[0])
-    STASH_FTEST("xH.2", xh.f64[1])
-    STASH_FTEST("xI.1", xi.f64[0])
-    STASH_FTEST("xI.2", xi.f64[1])
-    STASH_FTEST("xJ.1", xj.f64[0])
-    STASH_FTEST("xJ.2", xj.f64[1])
-    STASH_FTEST("xK.1", xk.f64[0])
-    STASH_FTEST("xK.2", xk.f64[1])
-    STASH_FTEST("xL.1", xl.f64[0])
-    STASH_FTEST("xL.2", xl.f64[1])
-    STASH_FTEST("xM.1", xm.f64[0])
-    STASH_FTEST("xM.2", xm.f64[1])
-    STASH_FTEST("xTEMPA.0", xTEMPA.f64[0])
-    STASH_FTEST("xTEMPA.0", xTEMPA.f64[1])
-    STASH_FTEST("xTEMPB.0", xTEMPB.f64[0])
-    STASH_FTEST("xTEMPB.0", xTEMPB.f64[1])
-    #undef STASH_ITEST
+
+    STASH_TEST(al, a.i64[0])
+    STASH_TEST(ah, a.i64[1])
+    STASH_TEST(bl, b.i64[0])
+    STASH_TEST(bh, b.i64[1])
+    STASH_TEST(cl, c.i64[0])
+    STASH_TEST(ch, c.i64[1])
+    STASH_TEST(dl, d.i64[0])
+    STASH_TEST(dh, d.i64[1])
+    STASH_TEST(el, e.i64[0])
+    STASH_TEST(eh, e.i64[1])
+
+    STASH_TEST(fl, f.i64[0])
+    STASH_TEST(fh, f.i64[1])
+    STASH_TEST(gl, g.i64[0])
+    STASH_TEST(gh, g.i64[1])
+    STASH_TEST(hl, h.i64[0])
+    STASH_TEST(hh, h.i64[1])
+    STASH_TEST(il, i.i64[0])
+    STASH_TEST(ih, i.i64[1])
+    STASH_TEST(jl, j.i64[0])
+    STASH_TEST(jh, j.i64[1])
+
+    STASH_TEST(kl, k.i64[0])
+    STASH_TEST(kh, k.i64[1])
+    STASH_TEST(ll, l.i64[0])
+    STASH_TEST(lh, l.i64[1])
+    STASH_TEST(ml, m.i64[0])
+    STASH_TEST(mh, m.i64[1])
+    STASH_TEST(nl, n.i64[0])
+    STASH_TEST(nh, n.i64[1])
+    STASH_TEST(ol, o.i64[0])
+    STASH_TEST(oh, o.i64[1])
+
+    STASH_TEST(pl, p.i64[0])
+    STASH_TEST(ph, p.i64[1])
+    STASH_TEST(ql, q.i64[0])
+    STASH_TEST(qh, q.i64[1])
+    STASH_TEST(rl, r.i64[0])
+    STASH_TEST(rh, r.i64[1])
+    STASH_TEST(sl, s.i64[0])
+    STASH_TEST(ss, s.i64[1])
+    STASH_TEST(tl, t.i64[0])
+    STASH_TEST(th, t.i64[1])
+
+    STASH_TEST(ul, u.i64[0])
+    STASH_TEST(uh, u.i64[1])
+    STASH_TEST(vl, v.i64[0])
+    STASH_TEST(vh, v.i64[1])
+    STASH_TEST(wl, w.i64[0])
+    STASH_TEST(wh, w.i64[1])
+    STASH_TEST(xl, x.i64[0])
+    STASH_TEST(xh, x.i64[1])
+    STASH_TEST(yl, y.i64[0])
+    STASH_TEST(yh, y.i64[1])
+
+    STASH_TEST(zl, z.i64[0])
+    STASH_TEST(zh, z.i64[1])
+    #undef STASH_TEST
     #undef STASH_ATEST
-    #undef STASH_FTEST
 
     if (pass) {
         return TACTYK_TESTSTATE__PASS;

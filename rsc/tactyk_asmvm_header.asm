@@ -282,34 +282,40 @@
     endstruc
     
     struc microcontext
-        qwords a1,b1,c1,d1,e1,f1
-        qwords a2,b2,c2,d2,e2,f2
-        qwords a3,b3,c3,d3,e3,f3
-        qwords lwcsi, mcsi
         qwords addr1
-        dwords addr1_element_bound, addr1_array_bound, addr1_memblock_index, addr1_type
+        dwords addr1_element_bound, addr1_array_bound, addr1_memblock_index, addr1_offset
         qwords addr2
-        dwords addr2_element_bound, addr2_array_bound, addr2_memblock_index, addr2_type
+        dwords addr2_element_bound, addr2_array_bound, addr2_memblock_index, addr2_offset
         qwords addr3
-        dwords addr3_element_bound, addr3_array_bound, addr3_memblock_index, addr3_type
+        dwords addr3_element_bound, addr3_array_bound, addr3_memblock_index, addr3_offset
         qwords addr4
-        dwords addr4_element_bound, addr4_array_bound, addr4_memblock_index, addr4_type
-        .xa: qwords x1a, x2a
-        .xb: qwords x1b, x2b
-        .xc: qwords x1c, x2c
-        .xd: qwords x1d, x2d
-        .xe: qwords x1e, x2e
-        .xf: qwords x1f, x2f
-        .xg: qwords x1g, x2g
-        .xh: qwords x1h, x2h
-        .xi: qwords x1i, x2i
-        .xj: qwords x1j, x2j
-        .xk: qwords x1k, x2k
-        .xl: qwords x1l, x2l
-        .xm: qwords x1m, x2m
-        .xn: qwords x1n, x2n
-        .xo: qwords x1o, x2o
-        .xp: qwords x1p, x2p
+        dwords addr4_element_bound, addr4_array_bound, addr4_memblock_index, addr4_offset
+        .a: qwords al, ah
+        .b: qwords bl, bh
+        .c: qwords cl, ch
+        .d: qwords dl, dh
+        .e: qwords el, eh
+        .f: qwords fl, fh
+        .g: qwords gl, gh
+        .h: qwords hl, hh
+        .i: qwords il, ih
+        .j: qwords jl, jh
+        .k: qwords kl, kh
+        .l: qwords ll, lh
+        .m: qwords ml, mh
+        .n: qwords nl, nh
+        .o: qwords ol, oh
+        .p: qwords pl, ph
+        .q: qwords ql, qh
+        .r: qwords rl, rh
+        .s: qwords sl, sh
+        .t: qwords tl, th
+        .u: qwords ul, uh
+        .v: qwords vl, vh
+        .w: qwords wl, wh
+        .x: qwords xl, xh
+        .y: qwords yl, yh
+        .z: qwords zl, zh
     endstruc
     
     %define microcontext_size_bits 9
@@ -327,13 +333,13 @@
         ; 32
         
         qwords addr1
-        dwords addr1_element_bound, addr1_array_bound, addr1_memblock_index, addr1_type
+        dwords addr1_element_bound, addr1_array_bound, addr1_memblock_index, addr1_offset
         qwords addr2
-        dwords addr2_element_bound, addr2_array_bound, addr2_memblock_index, addr2_type
+        dwords addr2_element_bound, addr2_array_bound, addr2_memblock_index, addr2_offset
         qwords addr3
-        dwords addr3_element_bound, addr3_array_bound, addr3_memblock_index, addr3_type
+        dwords addr3_element_bound, addr3_array_bound, addr3_memblock_index, addr3_offset
         qwords addr4
-        dwords addr4_element_bound, addr4_array_bound, addr4_memblock_index, addr4_type
+        dwords addr4_element_bound, addr4_array_bound, addr4_memblock_index, addr4_offset
 
         ; 128
 

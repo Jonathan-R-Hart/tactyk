@@ -3,6 +3,11 @@ Repurposed "type" field from memory block specification.
   It is Renamed to "offset" and is now intended solely for storing the address offset while stashed.
   (and will only be updated when stashing memory bindings)
 
+Redesign the micrcontext stash
+  Stash memory no longer shadows registers or contest properties.
+  Storage for conventional registers and xmm registers is now combined and available for either.
+    The two unused fields are also included (several refactorings ago, these where for storing branch targets)
+
 20 Apr 2023
 Add instructions:  not, negate (tactyk_core.visa)
 Add test coverage for and, or, xor, not, negate, inc, dec instructions  (tactyk_core.visa)
