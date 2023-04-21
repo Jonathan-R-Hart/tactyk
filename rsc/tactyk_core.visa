@@ -144,8 +144,8 @@ typespec context-property
     case addr1.index
       value context.addr1_memblock_index
       $KW dword
-    case addr1.type
-      value context.addr1_type
+    case addr1.offset
+      value context.addr1_offset
       $KW dword
     case addr2.array_bound
       value context.addr2_array_bound
@@ -156,8 +156,8 @@ typespec context-property
     case addr2.index
       value context.addr2_memblock_index
       $KW dword
-    case addr2.type
-      value context.addr2_type
+    case addr2.offset
+      value context.addr2_offset
       $KW dword
     case addr3.array_bound
       value context.addr3_array_bound
@@ -168,8 +168,8 @@ typespec context-property
     case addr3.index
       value context.addr3_memblock_index
       $KW dword
-    case addr3.type
-      value context.addr3_type
+    case addr3.offset
+      value context.addr3_offset
       $KW dword
     case addr4.array_bound
       value context.addr4_array_bound
@@ -180,8 +180,8 @@ typespec context-property
     case addr4.index
       value context.addr4_memblock_index
       $KW dword
-    case addr4.type
-      value context.addr4_type
+    case addr4.offset
+      value context.addr4_offset
       $KW dword
   pick Ctx
 
