@@ -1812,7 +1812,7 @@ typespec stash-item-high
   pick Sih
 
 instruction stash
-  composite 16
+  composite 16 permute-code
     opt-operand
       select-operand
         case swap

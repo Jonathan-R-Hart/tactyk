@@ -23,6 +23,28 @@ uint64_t tactyk__rand_uint64() {
     return rand;
 }
 
+uint64_t tactyk__rand_range(uint64_t max) {
+
+    //Pick a random integer between 0 and max
+    //This must be uniformly random and taken from a secure pseudo-random number generator.
+    // the secure PRNG is /dev/urandom
+    // the uniformity is accomplished by rounding the maximum uint64 down to an integer divisible by max,
+    // then discarding any excessively high random values
+    //      (if accepted, these high values would slightly bias the result of binary executable randomization randomization)
+    // NOTE:  This particular method of selecting secure random numbers should not be considered secure, as it also introduces potentially
+    //        observable effects on system timing (I think that this is a non-issue, but that assessment is best deferred to actual experts)
+    //        Additionally, division *slow* and the shuffling loop is not vectorizable due to random read-write memory access (the division
+    //        operation is independent of all non-deterministic aspects of the loop, so it maybe will be optimized a bit).
+    uint64_t max_rnd = 0xffffffffffffffff / max;
+    max_rnd *= max;
+    uint64_t result;
+    do {
+        result = tactyk__rand_uint64();
+    } while (result > max_rnd);
+    result %= max;
+    return result;
+}
+
 // overridable error handler
 tactyk__error_handler error;
 tactyk__error_handler warn;

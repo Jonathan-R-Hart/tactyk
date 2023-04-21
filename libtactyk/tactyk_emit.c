@@ -115,6 +115,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__put(ctx->operator_table, "pick", tactyk_emit__Pick);
     tactyk_dblock__put(ctx->operator_table, "operand", tactyk_emit__Operand);
     tactyk_dblock__put(ctx->operator_table, "opt-operand", tactyk_emit__OptionalOperand);
+    tactyk_dblock__put(ctx->operator_table, "composite", tactyk_emit__Composite);
     tactyk_dblock__put(ctx->operator_table, "type", tactyk_emit__Type);
     tactyk_dblock__put(ctx->operator_table, "value", tactyk_emit__Value);
 
@@ -556,6 +557,51 @@ bool tactyk_emit__OptionalOperand(struct tactyk_emit__Context *ctx, struct tacty
     }
     return true;
 
+}
+
+// command interpreter which performs actions until either all tokens are consumed or until a preset limit is reached
+//  and optionally can randomly permute generated code.
+bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    bool permute = false;
+    uint64_t max_ops = 16;
+
+    struct tactyk_dblock__DBlock *maxops_param = vopcfg->token->next;
+    if (maxops_param != NULL) {
+        if (!tactyk_dblock__try_parseuint(&max_ops, maxops_param)) {
+            error("EMIT [composite] -- Not an integer", maxops_param);
+        }
+        struct tactyk_dblock__DBlock *permute_param = maxops_param->next;
+        if (permute_param != NULL) {
+            if (tactyk_dblock__equals_c_string(permute_param, "permute-code")) {
+                permute = true;
+            }
+        }
+    }
+
+    if (permute) {
+        struct tactyk_dblock__DBlock *main_cb = ctx->active_command->asm_code;
+        struct tactyk_dblock__DBlock **code_fragments = calloc(max_ops, sizeof(void*));
+        uint64_t opcount = 0;
+        struct tactyk_dblock__DBlock *cfrag = tactyk_dblock__new(4096);
+        ctx->active_command->asm_code = cfrag;
+
+        while ( (ctx->pl_operand_raw != NULL) || (opcount < max_ops) ) {
+            if (cfrag->length > 0) {
+                code_fragments[opcount] = cfrag;
+                cfrag = tactyk_dblock__new(4096);
+                ctx->active_command->asm_code = cfrag;
+            }
+        }
+        // permute the code fragments
+        for (uint64_t i = 0; i < (opcount-1); i++) {
+            uint64_t randpos = 0;
+            cfrag = code_fragments[randpos];
+            assert(cfrag != NULL);
+            code_fragments[randpos] = code_fragments[opcount-i-1];
+        }
+    }
+
+    return false;
 }
 
 // Called by functions which write to $VALUE to ensure $KW is updated with an appropriate keyword (for integer handling that differ based on word size).
