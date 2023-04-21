@@ -1,0 +1,136 @@
+# TEST:  microcontext stack operations
+# 
+# Verify that microcontext stack operations work, are bounds-checked, and correctly affect stash operations
+#
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   mctxpush
+#   mctxpop
+#   mctxjump int    (I)
+#   mctxjump const  (C)
+#   mctxjump data   (D)
+
+PROGRAM prg
+  
+  const C50 50
+  const C65537 65537
+  
+  TESTIT:
+    assign a 12
+    assign b 23
+    assign c 34
+    stash sA a
+    mctxpush
+    stash sA b
+    mctxpush
+    stash sA c
+    stash d sA
+    mctxpop
+    stash e sA
+    mctxpop
+    stash f sA
+    exit
+  
+  UNDERFLOWIT:
+    mctxpop
+    exit
+
+  OVERFLOWIT:
+    mctxjump 65535
+    mctxpush
+    exit
+
+  INT_MCTX_JUMP:
+    mctxjump 2
+    stash a sA
+    exit
+  
+  CONST_MCTX_JUMP:
+    mctxjump C50
+    inc a
+    stash sZ a
+    exit
+
+  REG_MCTX_JUMP:
+    mctxjump rA
+    inc a
+    stash sQh a
+    exit
+
+  CLAMPED_INT_MCTX_JUMP:
+    mctxjump 65540
+    inc a
+    stash sFl a
+    exit
+
+  CLAMPED_CONST_MCTX_JUMP:
+    mctxjump C65537
+    inc a
+    stash sGh a
+    exit
+
+  CLAMPED_REG_MCTX_JUMP:
+    mul rA rA
+    mul rA rA
+    mctxjump rA
+    stash sVh b
+    exit
+
+
+EXEC TESTIT
+TEST
+  rA 12
+  rB 23
+  rC 34
+  rD 34
+  rE 23
+  rF 12
+  stash 0 al 12
+  stash 1 al 23
+  stash 2 al 34
+
+EXEC UNDERFLOWIT
+TEST
+  status 104
+
+EXEC OVERFLOWIT
+TEST
+  status 103
+  rMCSI 65535
+
+EXEC INT_MCTX_JUMP
+TEST
+  rMCSI 2
+  rA 34
+
+EXEC CONST_MCTX_JUMP
+TEST
+  rMCSI 50
+  rA 35
+  stash 50 zl 35
+
+EXEC REG_MCTX_JUMP
+TEST
+  rMCSI 35
+  stash 35 qh 36
+  rA 36
+
+EXEC CLAMPED_INT_MCTX_JUMP
+TEST
+  rMCSI 4
+  rA 37
+  stash 4 fl 37
+
+EXEC CLAMPED_CONST_MCTX_JUMP
+TEST
+  rMCSI 1
+  rA 38
+  stash 1 gh 38
+
+EXEC CLAMPED_REG_MCTX_JUMP
+TEST
+  rMCSI 53520
+  rA 2085136
+  stash 53520 vh 23
+
+
