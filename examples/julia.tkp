@@ -58,11 +58,11 @@ MAIN:
   tcall fb_new
   assign c a
   # store budder width in stash
-  stash c1
+  stash sC c
   assign a 0
   assign b 0
   sub a 1
-  stash a1b1
+  stash sA a sB b
 
   # setup floating point constants
   # xk:  2.0/width
@@ -124,11 +124,11 @@ MAINLOOP:
   assign a 0
   assign b 0
   sub a 1
-  stash a1b1
+  stash sA a sB b
 RENDER_FRAC:
   
   SELECT_NEXT_PIXEL:
-    unstash a1b1
+    stash a sA b sB
     add a 1
     if a < width RENDER_PIXEL
       add b 1
@@ -136,10 +136,10 @@ RENDER_FRAC:
       if b == height DISPLAY_IT
   
   RENDER_PIXEL:
-  stash a1b1
+  stash sA a sB b
   
   # pixel buffer position - ([stashed] buffer width * y + x) * 4
-  unstash c1
+  stash c sC
   mul c b
   add c a
   mul c 4
