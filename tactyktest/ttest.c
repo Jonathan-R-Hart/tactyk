@@ -129,6 +129,7 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
 uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_CALLBACK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_CCALL_ARGUMENT(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 void tactyk_test__mk_data_register_test(char *name, uint64_t ofs);
 void tactyk_test__mk_xmm_register_test(char *name, uint64_t ofs);
 void tactyk_test__mk_ccallarg_test(char *name, uint64_t ofs);
@@ -670,6 +671,13 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     cb_test->element_offset = 0;
     cb_test->array_offset = 0;
 
+    struct tactyk_test_entry *stash_test = tactyk_dblock__new_managedobject(base_tests, "stash");
+    stash_test->name = "stash";
+    stash_test->adjust = NULL;
+    stash_test->test = tactyk_test__TEST_STASH;
+    stash_test->element_offset = 0;
+    stash_test->array_offset = 0;
+
     tactyk_test__mk_data_register_test("rA", 0);
     tactyk_test__mk_data_register_test("rB", 1);
     tactyk_test__mk_data_register_test("rC", 2);
@@ -1011,6 +1019,32 @@ void tactyk_test__RECV_TCALL_8(struct tactyk_asmvm__Context *ctx) {
     }
     *active_test_spec = spec;
 }
+
+bool tactyk_test__approximately_eq(double a, double b) {
+    if ( a == b ) {
+        return true;
+    }
+    else if (!isfinite(a)) {
+        return false;
+    }
+    else if (!isfinite(b)) {
+        return false;
+    }
+    else if (isnan(a)) {
+        return isnan(b);    // For state transition tracking purposes (NAN == NAN) is TRUE
+    }
+    else if (isnan(b)) {
+        return false;
+    }
+    else if (a == 0) {
+        return fabs(b) < precision;
+    }
+    else if (b == 0) {
+        return fabs(a) < precision;
+    }
+    return ( fabs(1.0-(a/b)) < precision);
+}
+
 uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *td = spec->child;
     while (td != NULL) {
@@ -1269,7 +1303,6 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
         STASH_CHK(xTEMPB.f64[0], %f, double);
         STASH_CHK(xTEMPB.f64[1], %f, double);
         #undef STASH_CHK
-
     }
 
     return TACTYK_TESTSTATE__PASS;
@@ -1285,6 +1318,7 @@ uint64_t tactyk_test__RETURN(struct tactyk_dblock__DBlock *spec) {
     if (retval != NULL) {
         tactyk_dblock__try_parseint(&ccall_retval, retval);
     }
+    return TACTYK_TESTSTATE__PASS;
 }
 uint64_t tactyk_test__STATE(struct tactyk_dblock__DBlock *spec) {
     if ( vmctx == NULL) {
@@ -2157,6 +2191,175 @@ uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *valtest
     }
     else {
         sprintf(test_state->report, "deviation on register %s, expected:%f observed:%f", valtest_spec->name, fval, stval);
+        return TACTYK_TESTSTATE__FAIL;
+    }
+}
+uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *ofs_token = spec->token->next;
+    struct tactyk_dblock__DBlock *fieldname_token = ofs_token->next;
+    struct tactyk_dblock__DBlock *val_token = fieldname_token->next;
+
+    uint64_t ofs = 0;
+    if (!tactyk_dblock__try_parseuint(&ofs, ofs_token)) {
+        char buf[64];
+        tactyk_dblock__export_cstring(buf, 64, ofs_token);
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "mctx stack offset is not an integer: %s", buf);
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+    else if (ofs >= TACTYK_ASMVM__MCTX_STACK_SIZE) {
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "mctx stack offset is out of bounds: %ju", ofs);
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+    struct tactyk_asmvm__MicrocontextStash *stash = &vmctx->microcontext_stack[ofs];
+    struct tactyk_asmvm__MicrocontextStash *shstash = &shadow_mctxstack[ofs];
+
+    char fn[64];
+    tactyk_dblock__export_cstring(fn, 64, fieldname_token);
+
+    double f64val = 0;
+    int64_t ival = 0;
+    double st_f64val = 0;
+    int64_t st_ival = 0;
+
+    bool pass = false;
+
+    tactyk_dblock__try_parsedouble(&f64val, val_token);
+    tactyk_dblock__try_parseint(&ival, val_token);
+
+    bool ifield = false;
+
+    #define STASH_ITEST(FIELD, TYPE) \
+    else if (strncmp(fn, #FIELD, 64) == 0) { \
+        pass = ((TYPE)ival == stash->FIELD); \
+        shstash->FIELD = (TYPE)ival; \
+        st_ival = stash->FIELD; \
+        ifield = true; \
+    }
+    #define STASH_ATEST(NAME, FIELD, TYPE) \
+    else if (strncmp(fn, NAME, 64) == 0) { \
+        pass = ((TYPE)ival == stash->FIELD); \
+        shstash->FIELD = (TYPE)ival; \
+        st_ival = (int64_t)stash->FIELD; \
+        ifield = true; \
+    }
+    #define STASH_FTEST(NAME, FIELD) \
+    else if (strncmp(fn, NAME, 64) == 0) { \
+        pass = tactyk_test__approximately_eq(f64val, stash->FIELD); \
+        st_f64val = stash->FIELD; \
+        shstash->FIELD = f64val; \
+    }
+    if ( (strncmp(fn, "addr", 4) == 0) && (strlen(fn) == 5) ) {
+        uint64_t aofs = fn[4] - '1';
+        ifield = true;
+        struct tactyk_asmvm__memblock_lowlevel *mbll = &stash->memblocks[aofs];
+        struct tactyk_asmvm__memblock_lowlevel *shmbll = &shstash->memblocks[aofs];
+        if (ival == 0) {
+            struct tactyk_dblock__DBlock *prgref = val_token;
+            struct tactyk_dblock__DBlock *addrref = val_token->next;
+            struct tactyk_asmvm__Program *prg = tactyk_dblock__get(programs, prgref);
+            if (prg == NULL) {
+                addrref = val_token;
+                prg = tprg;
+            }
+            struct tactyk_dblock__DBlock *addrofs = addrref->next;
+            struct tactyk_asmvm__memblock_highlevel *mbhl = tactyk_dblock__get(prg->memory_layout_hl, addrref);
+            if (mbhl == NULL) {
+                char buf[64];
+                tactyk_dblock__export_cstring(buf, 64, prgref);
+                snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "Undefined memblock:  '%s'", buf);
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
+            ival += (int64_t)mbhl->data;
+
+            if (addrofs != NULL) {
+                uint64_t uival = 0;
+                tactyk_dblock__try_parseuint(&uival, addrofs);
+                ival += uival;
+            }
+        }
+        pass = ((uint8_t*)ival == mbll->base_address);
+        shmbll->base_address = (uint8_t*)ival;
+    }
+    STASH_ITEST(a1, int64_t)
+    STASH_ITEST(a2, int64_t)
+    STASH_ITEST(a3, int64_t)
+    STASH_ITEST(b1, int64_t)
+    STASH_ITEST(b2, int64_t)
+    STASH_ITEST(b3, int64_t)
+    STASH_ITEST(c1, int64_t)
+    STASH_ITEST(c2, int64_t)
+    STASH_ITEST(c3, int64_t)
+    STASH_ITEST(d1, int64_t)
+    STASH_ITEST(d2, int64_t)
+    STASH_ITEST(d3, int64_t)
+    STASH_ITEST(e1, int64_t)
+    STASH_ITEST(e2, int64_t)
+    STASH_ITEST(e3, int64_t)
+    STASH_ITEST(f1, int64_t)
+    STASH_ITEST(f2, int64_t)
+    STASH_ITEST(f3, int64_t)
+    STASH_ITEST(unused1, int64_t)
+    STASH_ITEST(unused2, int64_t)
+    STASH_ATEST("addr1.array_bound", memblocks[0].array_bound, uint32_t)
+    STASH_ATEST("addr1.element_bound", memblocks[0].element_bound, uint32_t)
+    STASH_ATEST("addr1.index", memblocks[0].memblock_index, uint32_t)
+    STASH_ATEST("addr1.type", memblocks[0].type, uint32_t)
+    STASH_ATEST("addr2.array_bound", memblocks[1].array_bound, uint32_t)
+    STASH_ATEST("addr2.element_bound", memblocks[1].element_bound, uint32_t)
+    STASH_ATEST("addr2.index", memblocks[1].memblock_index, uint32_t)
+    STASH_ATEST("addr2.type", memblocks[1].type, uint32_t)
+    STASH_ATEST("addr3.array_bound", memblocks[2].array_bound, uint32_t)
+    STASH_ATEST("addr3.element_bound", memblocks[2].element_bound, uint32_t)
+    STASH_ATEST("addr3.index", memblocks[2].memblock_index, uint32_t)
+    STASH_ATEST("addr3.type", memblocks[2].type, uint32_t)
+    STASH_ATEST("addr4.array_bound", memblocks[3].array_bound, uint32_t)
+    STASH_ATEST("addr4.element_bound", memblocks[3].element_bound, uint32_t)
+    STASH_ATEST("addr4.index", memblocks[3].memblock_index, uint32_t)
+    STASH_ATEST("addr4.type", memblocks[3].type, uint32_t)
+    STASH_FTEST("xA.1", xa.f64[0])
+    STASH_FTEST("xA.2", xa.f64[1])
+    STASH_FTEST("xB.1", xb.f64[0])
+    STASH_FTEST("xB.2", xb.f64[1])
+    STASH_FTEST("xC.1", xc.f64[0])
+    STASH_FTEST("xC.2", xc.f64[1])
+    STASH_FTEST("xD.1", xd.f64[0])
+    STASH_FTEST("xD.2", xd.f64[1])
+    STASH_FTEST("xE.1", xe.f64[0])
+    STASH_FTEST("xE.2", xe.f64[1])
+    STASH_FTEST("xF.1", xf.f64[0])
+    STASH_FTEST("xF.2", xf.f64[1])
+    STASH_FTEST("xG.1", xg.f64[0])
+    STASH_FTEST("xG.2", xg.f64[1])
+    STASH_FTEST("xH.1", xh.f64[0])
+    STASH_FTEST("xH.2", xh.f64[1])
+    STASH_FTEST("xI.1", xi.f64[0])
+    STASH_FTEST("xI.2", xi.f64[1])
+    STASH_FTEST("xJ.1", xj.f64[0])
+    STASH_FTEST("xJ.2", xj.f64[1])
+    STASH_FTEST("xK.1", xk.f64[0])
+    STASH_FTEST("xK.2", xk.f64[1])
+    STASH_FTEST("xL.1", xl.f64[0])
+    STASH_FTEST("xL.2", xl.f64[1])
+    STASH_FTEST("xM.1", xm.f64[0])
+    STASH_FTEST("xM.2", xm.f64[1])
+    STASH_FTEST("xTEMPA.0", xTEMPA.f64[0])
+    STASH_FTEST("xTEMPA.0", xTEMPA.f64[1])
+    STASH_FTEST("xTEMPB.0", xTEMPB.f64[0])
+    STASH_FTEST("xTEMPB.0", xTEMPB.f64[1])
+    #undef STASH_ITEST
+    #undef STASH_ATEST
+    #undef STASH_FTEST
+
+    if (pass) {
+        return TACTYK_TESTSTATE__PASS;
+    }
+    else {
+        if (ifield) {
+            sprintf(test_state->report, "deviation on mctx-stash field '%s', expected:%jd observed:%jd", fn, ival, st_ival);
+        }
+        else {
+            sprintf(test_state->report, "deviation on mctx-stash field '%s', expected:%f observed:%f", fn, f64val, st_f64val);
+        }
         return TACTYK_TESTSTATE__FAIL;
     }
 }

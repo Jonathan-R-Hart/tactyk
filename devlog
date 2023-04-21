@@ -14,12 +14,14 @@ Correct and expand address offsetting through the assign instruction.
 
 Correct register usage for shift instruction (which taking the shift parameter from a data register)
 
+Correct the microcontext stash layout
+
 Expand the testing system to accept and validate callbacks from tactyk.
+Expand the testing system to validate microcontext stack and lwcall stack state transitions.
 
 Remove all constant to constant conditional jump templates
   (get your own preprocessor!)
 
-Correct the microcontext stash layout
 
 19 Apr 2023
 Use mkstemps() to generate unique temporary filenames when building assembly intermediates.
