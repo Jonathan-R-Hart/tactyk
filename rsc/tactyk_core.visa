@@ -1850,7 +1850,7 @@ instruction stash
       case SilSil SilSih SihSil SihSih SilSi SihSi SiSil SiSih
         code
           mov rTEMPA, gs:[microcontext.$SRC]
-          mov gs:[microcontext.$SRC], rTEMPA
+          mov gs:[microcontext.$DEST], rTEMPA
           xor rTEMPA, rTEMPA
       case WSiD WSilD WSihD
         code
