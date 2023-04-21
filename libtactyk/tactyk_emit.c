@@ -595,7 +595,7 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
                 break;
             }
             else {
-                error("EMIT -- nonspecific error during composite subroutine evalation", vopcfg);
+                error("EMIT -- nonspecific error during composite command evalation", ctx->active_command->pl_code);
                 return false;
             }
         }
