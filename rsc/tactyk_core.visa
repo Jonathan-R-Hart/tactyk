@@ -1842,6 +1842,60 @@ instruction stash
       case XSi
         code
           movdqu $DEST, gs:[microcontext.$SRC]
+      case SiSi
+        code
+          movdqu xTEMPA, gs:[microcontext.$SRC]
+          movdqu gs:[microcontext.$DEST], xTEMPA
+          pxor xTEMPA, xTEMPA
+      case SilSil SilSih SihSil SihSih SilSi SihSi SiSil SiSih
+        code
+          mov rTEMPA, gs:[microcontext.$SRC]
+          mov gs:[microcontext.$SRC], rTEMPA
+          xor rTEMPA, rTEMPA
+      case WSiD WSilD WSihD
+        code
+          xchg gs:[microcontext.$DEST], $SRC
+      case WDSi WDSil WDSih
+        code
+          xchg $DEST, gs:[microcontext.$SRC]
+      case WSilX WSihX
+        code
+          movq xTEMPA, $SRC
+          movq $SRC, gs:[microcontext.$DEST]
+          movq gs:[microcontext.$DEST], xTEMPA
+          pxor xTEMPA, xTEMPA
+      case WXSil WXSih
+        code
+          movq xTEMPA, $DEST
+          movq $DEST, gs:[microcontext.$SRC]
+          movq gs:[microcontext.$SRC], xTEMPA
+          pxor xTEMPA, xTEMPA
+      case WSiX
+        code
+          movdqu xTEMPA, $SRC
+          movdqu $SRC, gs:[microcontext.$DEST]
+          movdqu gs:[microcontext.$DEST], xTEMPA
+          pxor xTEMPA, xTEMPA
+      case WXSi
+        code
+          movdqu xTEMPA, $DEST
+          movdqu $DEST, gs:[microcontext.$SRC]
+          movdqu gs:[microcontext.$SRC], xTEMPA
+          pxor xTEMPA, xTEMPA
+      case WSiSi
+        code
+          movdqu xTEMPA, gs:[microcontext.$SRC]
+          movdqu xTEMPB, gs:[microcontext.$DEST]
+          movdqu gs:[microcontext.$SRC], xTEMPB
+          movdqu gs:[microcontext.$DEST], xTEMPA
+          pxor xTEMPA, xTEMPA
+          pxor xTEMPB, xTEMPB
+      case WSilSil WSilSih WSihSil WSihSih WSilSi WSihSi WSiSil WSiSih
+        code
+          mov rTEMPA, gs:[microcontext.$SRC]
+          xchg rTEMPA, gs:[microcontext.$DEST]
+          mov gs:[microcontext.$SRC], rTEMPA
+          xor rTEMPA, rTEMPA
       case SaA
         code
           mov rTEMPA, fs:[$CONTEXT_ADDR]
@@ -1869,32 +1923,6 @@ instruction stash
           xor rTEMPA, rTEMPA
           xor rTEMPC, rTEMPC
           xor rTEMPD, rTEMPD
-      case WSiD WSilD WSihD
-        code
-          xchg gs:[microcontext.$DEST], $SRC
-      case WDSi WDSil WDSih
-        code
-          xchg $DEST, gs:[microcontext.$SRC]
-      case WSilX WSihX
-        code
-          movq xTEMPA, $SRC
-          movq $SRC, gs:[microcontext.$DEST]
-          movq gs:[microcontext.$DEST], xTEMPA
-      case WXSil WXSih
-        code
-          movq xTEMPA, $DEST
-          movq $DEST, gs:[microcontext.$SRC]
-          movq gs:[microcontext.$SRC], xTEMPA
-      case WSiX
-        code
-          movdqu xTEMPA, $SRC
-          movdqu $SRC, gs:[microcontext.$DEST]
-          movdqu gs:[microcontext.$DEST], xTEMPA
-      case WXSi
-        code
-          movdqu xTEMPA, $DEST
-          movdqu $DEST, gs:[microcontext.$SRC]
-          movdqu gs:[microcontext.$SRC], xTEMPA
   code
     jmp $NEXT_INSTRUCTION
 
