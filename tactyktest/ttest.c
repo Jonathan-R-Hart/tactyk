@@ -119,18 +119,18 @@ bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tac
 uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 
 void tactyk_test__mk_var_test(char *name, tactyk_test__VALUE_ADJUSTER setter, tactyk_test__VALUE_TESTER *tester);
-bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+bool tactyk_test__SET_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 bool tactyk_test__SET_ADDR (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 bool tactyk_test__SET_MEM (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
-uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__TEST_REGISTER(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_CALLBACK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_CCALL_ARGUMENT(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
-void tactyk_test__mk_data_register_test(char *name, uint64_t ofs);
+void tactyk_test__mk_register_test(char *name, uint64_t ofs);
 void tactyk_test__mk_xmm_register_test(char *name, uint64_t ofs);
 void tactyk_test__mk_ccallarg_test(char *name, uint64_t ofs);
 
@@ -631,6 +631,10 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
 
     base_tests = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_test_entry));
     tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
+    tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
+    tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
+    tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
+    tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
 
     struct tactyk_test_entry *addr1_test = tactyk_dblock__new_managedobject(base_tests, "addr1");
     addr1_test->name = "addr1";
@@ -678,12 +682,14 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     stash_test->element_offset = 0;
     stash_test->array_offset = 0;
 
-    tactyk_test__mk_data_register_test("rA", 0);
-    tactyk_test__mk_data_register_test("rB", 1);
-    tactyk_test__mk_data_register_test("rC", 2);
-    tactyk_test__mk_data_register_test("rD", 3);
-    tactyk_test__mk_data_register_test("rE", 4);
-    tactyk_test__mk_data_register_test("rF", 5);
+    tactyk_test__mk_register_test("rLWCSI", 1);
+    tactyk_test__mk_register_test("rMCSI", 2);
+    tactyk_test__mk_register_test("rA", 10);
+    tactyk_test__mk_register_test("rB", 11);
+    tactyk_test__mk_register_test("rC", 12);
+    tactyk_test__mk_register_test("rD", 13);
+    tactyk_test__mk_register_test("rE", 14);
+    tactyk_test__mk_register_test("rF", 15);
     tactyk_test__mk_xmm_register_test("xA", 0);
     tactyk_test__mk_xmm_register_test("xB", 1);
     tactyk_test__mk_xmm_register_test("xC", 2);
@@ -1892,7 +1898,7 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
     return TACTYK_TESTSTATE__PASS;
 }
 
-bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+bool tactyk_test__SET_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *value = spec->token->next;
 
     int64_t ival = 0;
@@ -1901,32 +1907,42 @@ bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tac
         return false;
     }
     switch(entry->element_offset) {
-        case 0: {
+        case 1: {
+            vmctx->reg.rLWCSI = (uint64_t) ival;
+            shadow_vmctx->reg.rLWCSI = (uint64_t) ival;
+            return true;
+        }
+        case 2: {
+            vmctx->reg.rMCSI = (uint64_t) ival;
+            shadow_vmctx->reg.rMCSI = (uint64_t) ival;
+            return true;
+        }
+        case 10: {
             vmctx->reg.rA = (uint64_t) ival;
             shadow_vmctx->reg.rA = (uint64_t) ival;
             return true;
         }
-        case 1: {
+        case 11: {
             vmctx->reg.rB = (uint64_t) ival;
             shadow_vmctx->reg.rB = (uint64_t) ival;
             return true;
         }
-        case 2: {
+        case 12: {
             vmctx->reg.rC = (uint64_t) ival;
             shadow_vmctx->reg.rC = (uint64_t) ival;
             return true;
         }
-        case 3: {
+        case 13: {
             vmctx->reg.rD = (uint64_t) ival;
             shadow_vmctx->reg.rD = (uint64_t) ival;
             return true;
         }
-        case 4: {
+        case 14: {
             vmctx->reg.rE = (uint64_t) ival;
             shadow_vmctx->reg.rE = (uint64_t) ival;
             return true;
         }
-        case 5: {
+        case 15: {
             vmctx->reg.rF = (uint64_t) ival;
             shadow_vmctx->reg.rF = (uint64_t) ival;
             return true;
@@ -1938,7 +1954,7 @@ bool tactyk_test__SET_DATA_REGISTER (struct tactyk_test_entry *entry, struct tac
     }
 }
 
-uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
+uint64_t tactyk_test__TEST_REGISTER(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *expected_value = spec->token->next;
 
     int64_t ival = 0;
@@ -1948,32 +1964,42 @@ uint64_t tactyk_test__TEST_DATA_REGISTER(struct tactyk_test_entry *valtest_spec,
     }
     int64_t stval = 0;
     switch(valtest_spec->element_offset) {
-        case 0: {
+        case 1: {
+            stval = vmctx->reg.rLWCSI;
+            shadow_vmctx->reg.rLWCSI = vmctx->reg.rLWCSI;
+            break;
+        }
+        case 2: {
+            stval = vmctx->reg.rMCSI;
+            shadow_vmctx->reg.rMCSI = vmctx->reg.rMCSI;
+            break;
+        }
+        case 10: {
             stval = vmctx->reg.rA;
             shadow_vmctx->reg.rA = vmctx->reg.rA;
             break;
         }
-        case 1: {
+        case 11: {
             stval = vmctx->reg.rB;
             shadow_vmctx->reg.rB = vmctx->reg.rB;
             break;
         }
-        case 2: {
+        case 12: {
             stval = vmctx->reg.rC;
             shadow_vmctx->reg.rC = vmctx->reg.rC;
             break;
         }
-        case 3: {
+        case 13: {
             stval = vmctx->reg.rD;
             shadow_vmctx->reg.rD = vmctx->reg.rD;
             break;
         }
-        case 4: {
+        case 14: {
             stval = vmctx->reg.rE;
             shadow_vmctx->reg.rE = vmctx->reg.rE;
             break;
         }
-        case 5: {
+        case 15: {
             stval = vmctx->reg.rF;
             shadow_vmctx->reg.rF = vmctx->reg.rF;
             break;
@@ -2401,11 +2427,11 @@ void tactyk_test__mk_var_test(char *name, tactyk_test__VALUE_ADJUSTER setter, ta
     entry->array_offset = 0;
 }
 
-void tactyk_test__mk_data_register_test(char *name, uint64_t ofs) {
+void tactyk_test__mk_register_test(char *name, uint64_t ofs) {
     struct tactyk_test_entry *entry = tactyk_dblock__new_managedobject(base_tests, name);
     entry->name = name;
-    entry->adjust = tactyk_test__SET_DATA_REGISTER;
-    entry->test = tactyk_test__TEST_DATA_REGISTER;
+    entry->adjust = tactyk_test__SET_REGISTER;
+    entry->test = tactyk_test__TEST_REGISTER;
     entry->element_offset = ofs;
     entry->array_offset = 0;
 }
