@@ -1976,6 +1976,8 @@ instruction lwreturn
 
 instruction mctxpush
   code
+    cmp rMCSI, 65535
+    errorge STATUS_STACK_OVERFLOW
     inc rMCSI_16
     movzx rTEMPA, rMCSI_16
     shl rTEMPA, microcontext_size_bits
@@ -1986,6 +1988,8 @@ instruction mctxpush
 
 instruction mctxpop
   code
+    cmp rMCSI_16, word fs:[context.microcontext_floor]
+    errorle STATUS_STACK_UNDERFLOW
     dec rMCSI_16
     movzx rTEMPA, rMCSI_16
     shl rTEMPA, microcontext_size_bits
