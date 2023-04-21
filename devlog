@@ -5,6 +5,7 @@ Add test coverage for shift operations (shift-left, shift-right, rotate-left, ro
 Add test coverage for goto instruction
 Add test coverage for tcall and ccall instructions
 Add test coverage for if instruction
+Add test coverage for lwcall
 
 Add template for using integers or constants to offset an address.
 
