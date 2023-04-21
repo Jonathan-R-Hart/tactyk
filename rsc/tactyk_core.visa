@@ -90,6 +90,16 @@ typespec data
       value rF
   pick D
 
+typespec stackreg
+  select-operand
+    case mctx mcxtstack
+      value rMCSI
+      $STACK_FLOOR context.microcontext_floor
+    case lwc lwcstack
+      value rLWCSI
+      $STACK_FLOOR context.lwcall_floor
+  pick Sreg
+
 
 # integers are recognized by casting to integer, then range-tested to obtain a byte width.
 typespec integer
@@ -936,7 +946,7 @@ instruction assign
     type data xmmx address-offset
     $A $VALUE
   operand
-    type data xmmx const fconst address-offset context-property integer float string
+    type data xmmx stackreg const fconst address-offset context-property integer float string
     $B $VALUE
     scramble rTEMPA $LD_B_IMMEDIATE
     scramble rTEMPC $LD_B_HIGHBITS_IMMEDIATE $VALUE_UPPER
@@ -971,6 +981,11 @@ instruction assign
     case DD
       code 
         mov $A, $B
+        jmp $NEXT_INSTRUCTION
+    case DSreg
+      code
+        mov $A, $B
+        sub $A, fs:[$STACK_FLOOR]
         jmp $NEXT_INSTRUCTION
     case DI DC DS
       code 

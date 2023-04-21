@@ -16,6 +16,13 @@ Micrcontext stash redesign
     Conflicting load/store/swap sequences is undefiend behavior (the result of which is non-deterministic on account of internal randomization).
     Exact duplicate operations are not permitted (duplicate operations will be silently culled prior to assembly)
 
+Add "mctxjump" instruction
+  This allows programs to bind any stash in the microcontext stack (above the "floor")
+  This is intended to allow support the use of the microcontext stack as script-local storage.
+
+Extend assign instruction to read stack registers (rLWSCI and rMSCI)
+  The value obtained is relative to the stack floor
+
 20 Apr 2023
 Add instructions:  not, negate (tactyk_core.visa)
 Add test coverage for and, or, xor, not, negate, inc, dec instructions  (tactyk_core.visa)
