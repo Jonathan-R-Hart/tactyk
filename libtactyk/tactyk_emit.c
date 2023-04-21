@@ -856,26 +856,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     uint64_t j;
 
     for (uint64_t i = 0; i < (program_size-1); i++) {
-
-        //Pick a random integer between the value of i and the length of the program
-        //This must be uniformly random and taken from a secure pseudo-random number generator.
-        // the secure PRNG is /dev/urandom
-        // the uniformity is accomplished by rounding the maximum uint64 down to an integer divisible by len(program)-i,
-        // then discarding any excessively high random values
-        //      (if accepted, these high values would slightly bias the result of binary executable randomization randomization)
-        // NOTE:  This particular method of selecting secure random numbers should not be considered secure, as it also introduces potentially
-        //        observable effects on system timing (I think that this is a non-issue, but that assessment is best deferred to actual experts)
-        //        Additionally, division *slow* and the shuffling loop is not vectorizable due to random read-write memory access (the division
-        //        operation is independent of all non-deterministic aspects of the loop, so it maybe will be optimized a bit).
-        uint64_t sz = program_size - i;
-        uint64_t max = 0xffffffffffffffff / sz;
-        max *= sz;
-        do {
-            j = tactyk__rand_uint64();
-        } while (j > max);
-        j %= sz;
-        j = j + i;
-
+        uint64_t j = i + tactyk_util__rand_range(program_size-i);
         int32_t iv = program_map[i];
         int32_t jv = program_map[j];
 
