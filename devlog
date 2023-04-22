@@ -1,4 +1,6 @@
 22 Apr 2023
+Add test coverage for tvmcall instructions (tvmpush, tvmjump, tvmreturn)
+
 tactyk-test refactoring
   Improve descriptions when indicating where unexpected state transitions are observed.
   Use a generic macro to checking for and describe unexpected state transtions
