@@ -23,6 +23,8 @@ Corrected an inconsist state change in tvmpush.  This one arguably gets a bit pe
     (An extra temp register was subsequently made available through a refactoring effort, so there is no need for any such compromise)
   (NOTE:  fixes segfaults originating inside of tactyk under script control have a much higher priority than fixes for segfaults in the runtime).
 
+Added variants of tvmcall isntruction which use integer/const arguments
+
 21 Apr 2023
 Add test coverage for instructions: stash, mctxpush, mctxpop, mctxjump
 

@@ -2051,8 +2051,6 @@ instruction tvmpush
         mov rTEMPD_32, fs:[context.instruction_count + random_const_FS]
         mov [rTEMPC + tvmstackentry.source_max_iptr], rTEMPD_32
         
-        ;xor rMAPPER, rMAPPER
-        
         mov rMAPPER, $PROG_HANDLE
         mov rTEMPA, $FUNC_HANDLE
         
@@ -2090,7 +2088,195 @@ instruction tvmpush
         
         ; the only thing missing here is the return index (not avaialble until the actual jump).
         jmp $NEXT_INSTRUCTION
+    
+    case II IC CI CC
+      code
+        mov rTEMPC, fs:[context.stack + random_const_FS]
+        mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
+        cmp rTEMPA, 0
+        errorneq STATUS_INVALID_TVMJUMP_STATE
+        mov qword [rTEMPC + tactyk_stack.stack_lock], 1
+        mov rTEMPA, [rTEMPC + tactyk_stack.stack_position]
+        inc rTEMPA
+        cmp rTEMPA, stacksize
+        errorge STATUS_STACK_OVERFLOW
+        mov [rTEMPC + tactyk_stack.stack_position], rTEMPA
 
+        ; rTEMPC -> stack entry pointer
+        imul rTEMPA, tvmstackentry_size
+        add rTEMPC, tactyk_stack.stack
+        add rTEMPC, rTEMPA
+        
+        mov rTEMPA, fs:[context.floor + random_const_FS]
+        mov rMAPPER, fs:[context.program_map + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_program], rMAPPER
+        mov [rTEMPC + tvmstackentry.source_stack_floor], rTEMPA
+        mov rTEMPD_32, fs:[context.instruction_count + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_max_iptr], rTEMPD_32
+        
+        $LD_IMMEDIATE_PROG_HANDLE
+        $LD_IMMEDIATE_FUNC_HANDLE
+        
+        ; validate $PROG_HANDLE
+        cmp rMAPPER, 0
+        errorlt STATUS_INVALID_TVMJUMP
+        mov rTEMPD, fs:[context.vm + random_const_FS]
+        cmp rMAPPER, [rTEMPD + tactyk_vm.program_count]
+        errorge STATUS_INVALID_TVMJUMP
+        
+        ; rTEMPD -> program declaration
+        mov rTEMPD, [rTEMPD + tactyk_vm.program_list]
+        imul rMAPPER, program_dec_size
+        add rTEMPD, rMAPPER
+        
+        ; validate $FUNC_HANDLE
+        cmp rTEMPA, 0
+        errorlt STATUS_INVALID_TVMJUMP
+        cmp rTEMPA, [rTEMPD + program_dec.function_count]
+        errorge STATUS_INVALID_TVMJUMP
+        mov [rTEMPC + tvmstackentry.target_jump_index], rTEMPA_32
+        
+        ; obtain target jump tables.
+        mov rTEMPA, [rTEMPD + program_dec.instruction_jumptable]
+        mov rMAPPER, [rTEMPD + program_dec.function_jumptable]
+        mov [rTEMPC + tvmstackentry.target_program], rTEMPA
+        mov [rTEMPC + tvmstackentry.target_function_jumptable], rMAPPER
+        mov rTEMPA, [rTEMPD + program_dec.instruction_count]
+        mov [rTEMPC + tvmstackentry.dest_max_iptr], rTEMPA_32
+        
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        xor rMAPPER, rMAPPER
+        
+        ; the only thing missing here is the return index (not avaialble until the actual jump).
+        jmp $NEXT_INSTRUCTION
+    
+    case DI DC
+      code
+        mov rTEMPC, fs:[context.stack + random_const_FS]
+        mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
+        cmp rTEMPA, 0
+        errorneq STATUS_INVALID_TVMJUMP_STATE
+        mov qword [rTEMPC + tactyk_stack.stack_lock], 1
+        mov rTEMPA, [rTEMPC + tactyk_stack.stack_position]
+        inc rTEMPA
+        cmp rTEMPA, stacksize
+        errorge STATUS_STACK_OVERFLOW
+        mov [rTEMPC + tactyk_stack.stack_position], rTEMPA
+
+        ; rTEMPC -> stack entry pointer
+        imul rTEMPA, tvmstackentry_size
+        add rTEMPC, tactyk_stack.stack
+        add rTEMPC, rTEMPA
+        
+        mov rTEMPA, fs:[context.floor + random_const_FS]
+        mov rMAPPER, fs:[context.program_map + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_program], rMAPPER
+        mov [rTEMPC + tvmstackentry.source_stack_floor], rTEMPA
+        mov rTEMPD_32, fs:[context.instruction_count + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_max_iptr], rTEMPD_32
+        
+        $LD_IMMEDIATE_FUNC_HANDLE
+        mov rMAPPER, $PROG_HANDLE
+        
+        ; validate $PROG_HANDLE
+        cmp rMAPPER, 0
+        errorlt STATUS_INVALID_TVMJUMP
+        mov rTEMPD, fs:[context.vm + random_const_FS]
+        cmp rMAPPER, [rTEMPD + tactyk_vm.program_count]
+        errorge STATUS_INVALID_TVMJUMP
+        
+        ; rTEMPD -> program declaration
+        mov rTEMPD, [rTEMPD + tactyk_vm.program_list]
+        imul rMAPPER, program_dec_size
+        add rTEMPD, rMAPPER
+        
+        ; validate $FUNC_HANDLE
+        cmp rTEMPA, 0
+        errorlt STATUS_INVALID_TVMJUMP
+        cmp rTEMPA, [rTEMPD + program_dec.function_count]
+        errorge STATUS_INVALID_TVMJUMP
+        mov [rTEMPC + tvmstackentry.target_jump_index], rTEMPA_32
+        
+        ; obtain target jump tables.
+        mov rTEMPA, [rTEMPD + program_dec.instruction_jumptable]
+        mov rMAPPER, [rTEMPD + program_dec.function_jumptable]
+        mov [rTEMPC + tvmstackentry.target_program], rTEMPA
+        mov [rTEMPC + tvmstackentry.target_function_jumptable], rMAPPER
+        mov rTEMPA, [rTEMPD + program_dec.instruction_count]
+        mov [rTEMPC + tvmstackentry.dest_max_iptr], rTEMPA_32
+        
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        xor rMAPPER, rMAPPER
+        
+        ; the only thing missing here is the return index (not avaialble until the actual jump).
+        jmp $NEXT_INSTRUCTION
+    
+    case ID CD
+      code
+        mov rTEMPC, fs:[context.stack + random_const_FS]
+        mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
+        cmp rTEMPA, 0
+        errorneq STATUS_INVALID_TVMJUMP_STATE
+        mov qword [rTEMPC + tactyk_stack.stack_lock], 1
+        mov rTEMPA, [rTEMPC + tactyk_stack.stack_position]
+        inc rTEMPA
+        cmp rTEMPA, stacksize
+        errorge STATUS_STACK_OVERFLOW
+        mov [rTEMPC + tactyk_stack.stack_position], rTEMPA
+
+        ; rTEMPC -> stack entry pointer
+        imul rTEMPA, tvmstackentry_size
+        add rTEMPC, tactyk_stack.stack
+        add rTEMPC, rTEMPA
+        
+        mov rTEMPA, fs:[context.floor + random_const_FS]
+        mov rMAPPER, fs:[context.program_map + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_program], rMAPPER
+        mov [rTEMPC + tvmstackentry.source_stack_floor], rTEMPA
+        mov rTEMPD_32, fs:[context.instruction_count + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_max_iptr], rTEMPD_32
+        
+        $LD_IMMEDIATE_PROG_HANDLE
+        mov rTEMPA, $FUNC_HANDLE
+        
+        ; validate $PROG_HANDLE
+        cmp rMAPPER, 0
+        errorlt STATUS_INVALID_TVMJUMP
+        mov rTEMPD, fs:[context.vm + random_const_FS]
+        cmp rMAPPER, [rTEMPD + tactyk_vm.program_count]
+        errorge STATUS_INVALID_TVMJUMP
+        
+        ; rTEMPD -> program declaration
+        mov rTEMPD, [rTEMPD + tactyk_vm.program_list]
+        imul rMAPPER, program_dec_size
+        add rTEMPD, rMAPPER
+        
+        ; validate $FUNC_HANDLE
+        cmp rTEMPA, 0
+        errorlt STATUS_INVALID_TVMJUMP
+        cmp rTEMPA, [rTEMPD + program_dec.function_count]
+        errorge STATUS_INVALID_TVMJUMP
+        mov [rTEMPC + tvmstackentry.target_jump_index], rTEMPA_32
+        
+        ; obtain target jump tables.
+        mov rTEMPA, [rTEMPD + program_dec.instruction_jumptable]
+        mov rMAPPER, [rTEMPD + program_dec.function_jumptable]
+        mov [rTEMPC + tvmstackentry.target_program], rTEMPA
+        mov [rTEMPC + tvmstackentry.target_function_jumptable], rMAPPER
+        mov rTEMPA, [rTEMPD + program_dec.instruction_count]
+        mov [rTEMPC + tvmstackentry.dest_max_iptr], rTEMPA_32
+        
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        xor rMAPPER, rMAPPER
+        
+        ; the only thing missing here is the return index (not avaialble until the actual jump).
+        jmp $NEXT_INSTRUCTION
 instruction tvmjump
   $KW dword
   scramble rTEMPA $LD_CMDNEXT_IMMEDIATE $COMMAND_INDEX_NEXT
