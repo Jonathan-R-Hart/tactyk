@@ -35,6 +35,7 @@ uint64_t tactyk_test__TEST_CONTEXT_PROGRAM(struct tactyk_test_entry *valtest_spe
     }
 
     shadow_vmctx->program_map = prog->command_map;
+    shadow_vmctx->instruction_count = prog->length;
     return TACTYK_TESTSTATE__PASS;
 }
 
