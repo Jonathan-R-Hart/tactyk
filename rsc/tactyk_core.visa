@@ -2153,14 +2153,6 @@ instruction tvmreturn
     shl rTEMPA, 3
     add rMAPPER, rTEMPA
     
-    ; zero out the stack entry (or delete this if too much paranoia)
-    mov qword [rTEMPC + tvmstackentry.source_program], 0
-    mov qword [rTEMPC + tvmstackentry.source_return_index], 0
-    mov qword [rTEMPC + tvmstackentry.source_stack_floor], 0
-    mov qword [rTEMPC + tvmstackentry.target_program], 0
-    mov qword [rTEMPC + tvmstackentry.target_jump_index], 0
-    
-    
     xor rTEMPA, rTEMPA
     xor rTEMPC, rTEMPC
     xor rTEMPD, rTEMPD
