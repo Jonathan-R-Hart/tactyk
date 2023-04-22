@@ -47,6 +47,12 @@ Linux/Unix on amd64 (x86-64) architecture
   allocator which uses a kernel-provided address space layout for servicing application memory allocations instead of a conventional heap).
   A quick Internet search for "batched memory allocation" did not yield a meaningful result, so this one might have to start with a proposal.
 
+- Exopointers
+  Registers which reference common statically allocated [from script perspective] data structures are offset significantly from the actual address of the data structure.
+  The offsets are random 30-bit integers generated during tactyk initialization.  These values are inserted as displacement constants in all operations which access
+  the relevant data structures.  The main intent of this is to force extra random bytes into executable code which are not under the control of adversarial content.
+  Secondarilly, this also somewhat improves ASLR, as randomly selected displacement constants might be harder to obtain through exploits than raw pointers.
+
 ## Auditability Focus
 TACTYK is intended to be auditable under an alternative standard:  A competent individual or a small team should be able to conduct the audit (or verify the results of a professional audit).  The amount of code in the project is to be kept low.  Dependencies are to be kept to a minimum.  When there is a choice between a complex and 
 broadly capable function and a simple and narrowly defined function, the simple function should win out (unless there is an actual need for the additional features from
