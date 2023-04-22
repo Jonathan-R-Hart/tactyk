@@ -108,7 +108,11 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
     while (testitem != NULL) {
         struct tactyk_dblock__DBlock *token = testitem->token;
 
-        if (tactyk_dblock__equals_c_string(token, "dest-program")) {
+        if (tactyk_dblock__equals_c_string(token, "unwind")) {
+            memset(shadow_st_entry, 0, sizeof(struct tactyk_asmvm__vm_stack_entry));
+            break;
+        }
+        else if (tactyk_dblock__equals_c_string(token, "dest-program")) {
             token = token->next;
             dest_program = tactyk_dblock__get(programs, token);
             shadow_st_entry->dest_command_map = dest_program->command_map;
@@ -215,11 +219,6 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
         }
         handle_next_item:
         testitem = testitem->next;
-    }
-
-    struct tactyk_dblock__DBlock *permissive_param = index_param->next;
-    if ( (permissive_param != NULL) && tactyk_dblock__equals_c_string(permissive_param, "*")) {
-        memcpy(shadow_st_entry, ctx_st_entry, sizeof( struct tactyk_asmvm__vm_stack_entry));
     }
     return TACTYK_TESTSTATE__PASS;
 }

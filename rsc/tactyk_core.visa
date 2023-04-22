@@ -2031,12 +2031,12 @@ instruction tvmpush
         mov rTEMPC, fs:[context.stack + random_const_FS]
         mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
         cmp rTEMPA, 0
-        errorneq STATUS_INVALID_TVMJUMP
+        errorneq STATUS_INVALID_TVMJUMP_STATE
         mov qword [rTEMPC + tactyk_stack.stack_lock], 1
         mov rTEMPA, [rTEMPC + tactyk_stack.stack_position]
         inc rTEMPA
         cmp rTEMPA, stacksize
-        errorge STATUS_INVALID_TVMJUMP_STATE
+        errorge STATUS_STACK_OVERFLOW
         mov [rTEMPC + tactyk_stack.stack_position], rTEMPA
 
         ; rTEMPC -> stack entry pointer
@@ -2048,6 +2048,9 @@ instruction tvmpush
         mov rMAPPER, fs:[context.program_map + random_const_FS]
         mov [rTEMPC + tvmstackentry.source_program], rMAPPER
         mov [rTEMPC + tvmstackentry.source_stack_floor], rTEMPA
+        mov rTEMPD_32, fs:[context.instruction_count + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_max_iptr], rTEMPD_32
+        
         xor rMAPPER, rMAPPER
         
         ; validate $PROG_HANDLE
@@ -2069,6 +2072,8 @@ instruction tvmpush
         mov rMAPPER, [rTEMPD + program_dec.function_jumptable]
         mov [rTEMPC + tvmstackentry.target_program], rTEMPA
         mov [rTEMPC + tvmstackentry.target_function_jumptable], rMAPPER
+        mov rTEMPA, [rTEMPD + program_dec.instruction_count]
+        mov [rTEMPC + tvmstackentry.dest_max_iptr], rTEMPA_32
         
         ; validate $FUNC_HANDLE
         ;mov fs:[ctx.extra + random_const_FS], rTEMPD
@@ -2078,11 +2083,7 @@ instruction tvmpush
         errorlt STATUS_INVALID_TVMJUMP
         cmp rTEMPA, [rTEMPD + program_dec.function_count]
         errorge STATUS_INVALID_TVMJUMP
-        mov rTEMPD, [rTEMPD + program_dec.instruction_count]
-        mov [rTEMPC + tvmstackentry.dest_max_iptr], rTEMPD_32
         mov [rTEMPC + tvmstackentry.target_jump_index], rTEMPA_32
-        mov rTEMPD_32, fs:[context.instruction_count + random_const_FS]
-        mov [rTEMPC + tvmstackentry.source_max_iptr], rTEMPD_32
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -2102,7 +2103,8 @@ instruction tvmjump
     mov rTEMPC, fs:[context.stack + random_const_FS]
     mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
     cmp rTEMPA, 1
-    errorneq STATUS_INVALID_TVMJUMP
+    errorneq STATUS_INVALID_TVMJUMP_STATE
+    
     mov qword [rTEMPC + tactyk_stack.stack_lock], 0
     mov rTEMPA, [rTEMPC + tactyk_stack.stack_position]
     
@@ -2113,13 +2115,13 @@ instruction tvmjump
     
     $LD_CMDNEXT_IMMEDIATE
     mov [rTEMPC + tvmstackentry.source_return_index], rTEMPA_32
-    
+
     ; load the target context
     mov rTEMPA, [rTEMPC + tvmstackentry.target_program]
     mov fs:[context.program_map + random_const_FS], rTEMPA
     mov rTEMPA_32, [rTEMPC + tvmstackentry.dest_max_iptr]
     mov fs:[context.instruction_count + random_const_FS], rTEMPA
-
+    
     ; prepare the jump
     mov rMAPPER_32, [rTEMPC + tvmstackentry.target_jump_index]
     shl rMAPPER, 3
@@ -2135,7 +2137,7 @@ instruction tvmreturn
     mov rTEMPC, fs:[context.stack + random_const_FS]
     mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
     cmp rTEMPA, 0
-    errorneq STATUS_INVALID_TVMJUMP
+    errorneq STATUS_INVALID_TVMJUMP_STATE
     mov rTEMPA, [rTEMPC + tactyk_stack.stack_position]
     cmp rTEMPA, 0
     errorlt STATUS_STACK_UNDERFLOW
@@ -2160,6 +2162,15 @@ instruction tvmreturn
     mov rTEMPA_32, [rTEMPC + tvmstackentry.source_return_index]
     shl rTEMPA, 3
     add rMAPPER, rTEMPA
+
+    ; MAYBE zero out the stack entry - this doesn't seem to be needed, as the most exploitable case that came up in testing
+    ; does not differ from what can be accomplished through ordinary means.
+    ; mov qword [rTEMPC + tvmstackentry.source_program], 0
+    ; mov qword [rTEMPC + tvmstackentry.source_exec_position], 0
+    ; mov qword [rTEMPC + tvmstackentry.source_stack_floor], 0
+    ; mov qword [rTEMPC + tvmstackentry.target_program], 0
+    ; mov qword [rTEMPC + tvmstackentry.target_function_jumptable], 0
+    ; mov qword [rTEMPC + tvmstackentry.target_exec_position], 0
     
     xor rTEMPA, rTEMPA
     xor rTEMPC, rTEMPC
