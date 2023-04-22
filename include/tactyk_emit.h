@@ -140,6 +140,10 @@ struct tactyk_emit__Context {
 
     uint64_t token_handle_count;
     bool has_visa_constants;
+
+    uint64_t random_const_fs;
+    uint64_t random_const_gs;
+
 };
 
 struct tactyk_emit__Context* tactyk_emit__init();

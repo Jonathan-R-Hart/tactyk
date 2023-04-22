@@ -76,6 +76,8 @@ void tactyk_emit__error(struct tactyk_emit__Context *ctx, void *msg_ptr) {
 
 struct tactyk_emit__Context* tactyk_emit__init() {
     struct tactyk_emit__Context *ctx = tactyk_alloc__allocate(1, sizeof(struct tactyk_emit__Context));
+    ctx->random_const_fs = tactyk__rand_uint64() & 0x3fffffff;
+    ctx->random_const_gs = tactyk__rand_uint64() & 0x3fffffff;
 
     ctx->visa_file_prefix = "";
 
@@ -921,6 +923,10 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     FILE *asm_file =  fopen( fname_assembly_code, "w" );
     fprintf(asm_file, "BITS 64\n");
     fprintf(asm_file, "[map symbols %s]\n", fname_symbols);
+
+    fprintf(asm_file, "%%define random_const_FS %ju\n", ctx->random_const_fs);
+    fprintf(asm_file, "%%define random_const_GS %ju\n", ctx->random_const_gs);
+
     fprintf(asm_file, "%s\n", ctx->asm_header);
 
     for (uint64_t i = 0; i < program_size; i++) {

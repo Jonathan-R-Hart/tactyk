@@ -25,6 +25,15 @@ Add "mctxjump" instruction
 Extend assign instruction to read stack registers (rLWSCI and rMSCI)
   The value obtained is relative to the stack floor
 
+New security feature:  Random address displacement
+  Two random 30-bit constants are generated and used for address displacement.
+  These are generated during initialization and apply to all programs using the same context
+    (different contexts may use different displacements, but support for mutliple contexts is not [yet] a part of tactyk).
+  These are are applied to the context data structure (which uses the fs segment register) and the microcontext stash (which uses the gs segment register).
+  The displacement value is subtracted from the pointers prior to writing to the segment register, and added as a constant displacement to each address referencing them.
+  The primary interest is to fortify the stash operation
+    (it allows scripts to specify a multiple immediately adjacent instructions and can achieve only a moderate level of randomization without resorting to arbitrarilly inserted nops)
+
 20 Apr 2023
 Add instructions:  not, negate (tactyk_core.visa)
 Add test coverage for and, or, xor, not, negate, inc, dec instructions  (tactyk_core.visa)

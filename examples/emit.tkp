@@ -247,9 +247,9 @@ PRINTIT:
 
 MAKE_CALCULATOR:
   tcall emit-new
-  
   assign a 0
   tcall emit-intlabel
+  ccall printint
   store byte addr2 calc.multiply a
   assign a .mul
   tcall emit-cmd

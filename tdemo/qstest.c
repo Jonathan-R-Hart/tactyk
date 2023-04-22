@@ -37,7 +37,6 @@ char* tactyk_qsort_program_ctl = R"""(
         assign d 45
         assign e 56
         assign f 67
-        #stash a1b1c1d1e1f1
         stash sA a sB b sC c sD d sE e sF f
         assign a 0
         assign b 0
@@ -45,10 +44,9 @@ char* tactyk_qsort_program_ctl = R"""(
         assign d 0
         assign e 0
         assign f 0
-        mctxpop
+        # mctxpop
         lwcall REDIR1
-        mctxpush
-        # unstash a1b1c1d1e1f1
+        # mctxpush
         stash a sa b sb c sc d sd e se f sf
         exit
 )""";

@@ -443,72 +443,73 @@
 
     %macro load_context 1
         wrfsbase %1
-        mov rLWCSI, fs:[context.registers + regbank.lwcsi]
-        mov rMCSI, fs:[context.registers + regbank.mcsi]
-        mov rADDR1, fs:[context.registers + regbank.addr1]
-        mov rADDR2, fs:[context.registers + regbank.addr2]
-        mov rADDR3, fs:[context.registers + regbank.addr3]
-        mov rADDR4, fs:[context.registers + regbank.addr4]
-        mov rA, fs:[context.registers + regbank.a]
-        mov rB, fs:[context.registers + regbank.b]
-        mov rC, fs:[context.registers + regbank.c]
-        mov rD, fs:[context.registers + regbank.d]
-        mov rE, fs:[context.registers + regbank.e]
-        mov rF, fs:[context.registers + regbank.f]
-        mov rTEMPA, fs:[context.microcontext_stack_address]
-        add rTEMPA, fs:[context.microcontext_stack_offset]
+        mov rLWCSI, fs:[context.registers + regbank.lwcsi + random_const_FS]
+        mov rMCSI, fs:[context.registers + regbank.mcsi + random_const_FS]
+        mov rADDR1, fs:[context.registers + regbank.addr1 + random_const_FS]
+        mov rADDR2, fs:[context.registers + regbank.addr2 + random_const_FS]
+        mov rADDR3, fs:[context.registers + regbank.addr3 + random_const_FS]
+        mov rADDR4, fs:[context.registers + regbank.addr4 + random_const_FS]
+        mov rA, fs:[context.registers + regbank.a + random_const_FS]
+        mov rB, fs:[context.registers + regbank.b + random_const_FS]
+        mov rC, fs:[context.registers + regbank.c + random_const_FS]
+        mov rD, fs:[context.registers + regbank.d + random_const_FS]
+        mov rE, fs:[context.registers + regbank.e + random_const_FS]
+        mov rF, fs:[context.registers + regbank.f + random_const_FS]
+        mov rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
+        add rTEMPA, fs:[context.microcontext_stack_offset + random_const_FS]
+        sub rTEMPA, random_const_GS
         wrgsbase rTEMPA
 
-        movdqu xmm0, fs:[context.registers + regbank.xa ]
-        movdqu xmm1, fs:[context.registers + regbank.xb ]
-        movdqu xmm2, fs:[context.registers + regbank.xc ]
-        movdqu xmm3, fs:[context.registers + regbank.xd ]
-        movdqu xmm4, fs:[context.registers + regbank.xe ]
-        movdqu xmm5, fs:[context.registers + regbank.xf ]
-        movdqu xmm6, fs:[context.registers + regbank.xg ]
-        movdqu xmm7, fs:[context.registers + regbank.xh ]
-        movdqu xmm8, fs:[context.registers + regbank.xi ]
-        movdqu xmm9, fs:[context.registers + regbank.xj ]
-        movdqu xmm10, fs:[context.registers + regbank.xk ]
-        movdqu xmm11, fs:[context.registers + regbank.xl ]
-        movdqu xmm12, fs:[context.registers + regbank.xm ]
-        movdqu xmm13, fs:[context.registers + regbank.xn ]
-        movdqu xmm14, fs:[context.registers + regbank.xo ]
-        movdqu xmm15, fs:[context.registers + regbank.xp ]
+        movdqu xmm0, fs:[context.registers + regbank.xa  + random_const_FS]
+        movdqu xmm1, fs:[context.registers + regbank.xb  + random_const_FS]
+        movdqu xmm2, fs:[context.registers + regbank.xc  + random_const_FS]
+        movdqu xmm3, fs:[context.registers + regbank.xd  + random_const_FS]
+        movdqu xmm4, fs:[context.registers + regbank.xe  + random_const_FS]
+        movdqu xmm5, fs:[context.registers + regbank.xf  + random_const_FS]
+        movdqu xmm6, fs:[context.registers + regbank.xg  + random_const_FS]
+        movdqu xmm7, fs:[context.registers + regbank.xh  + random_const_FS]
+        movdqu xmm8, fs:[context.registers + regbank.xi  + random_const_FS]
+        movdqu xmm9, fs:[context.registers + regbank.xj  + random_const_FS]
+        movdqu xmm10, fs:[context.registers + regbank.xk  + random_const_FS]
+        movdqu xmm11, fs:[context.registers + regbank.xl  + random_const_FS]
+        movdqu xmm12, fs:[context.registers + regbank.xm  + random_const_FS]
+        movdqu xmm13, fs:[context.registers + regbank.xn  + random_const_FS]
+        movdqu xmm14, fs:[context.registers + regbank.xo  + random_const_FS]
+        movdqu xmm15, fs:[context.registers + regbank.xp  + random_const_FS]
     %endmacro
 
     %macro store_context 0
-        mov fs:[context.registers + regbank.lwcsi], rLWCSI
-        mov fs:[context.registers + regbank.mcsi], rMCSI
-        mov fs:[context.registers + regbank.addr1], rADDR1
-        mov fs:[context.registers + regbank.addr2], rADDR2
-        mov fs:[context.registers + regbank.addr3], rADDR3
-        mov fs:[context.registers + regbank.addr4], rADDR4
-        mov fs:[context.registers + regbank.a], rA
-        mov fs:[context.registers + regbank.b], rB
-        mov fs:[context.registers + regbank.c], rC
-        mov fs:[context.registers + regbank.d], rD
-        mov fs:[context.registers + regbank.e], rE
-        mov fs:[context.registers + regbank.f], rF
+        mov fs:[context.registers + regbank.lwcsi + random_const_FS], rLWCSI
+        mov fs:[context.registers + regbank.mcsi + random_const_FS], rMCSI
+        mov fs:[context.registers + regbank.addr1 + random_const_FS], rADDR1
+        mov fs:[context.registers + regbank.addr2 + random_const_FS], rADDR2
+        mov fs:[context.registers + regbank.addr3 + random_const_FS], rADDR3
+        mov fs:[context.registers + regbank.addr4 + random_const_FS], rADDR4
+        mov fs:[context.registers + regbank.a + random_const_FS], rA
+        mov fs:[context.registers + regbank.b + random_const_FS], rB
+        mov fs:[context.registers + regbank.c + random_const_FS], rC
+        mov fs:[context.registers + regbank.d + random_const_FS], rD
+        mov fs:[context.registers + regbank.e + random_const_FS], rE
+        mov fs:[context.registers + regbank.f + random_const_FS], rF
         ; rdgsbase rTEMPA
-        ; mov fs:[context.microcontext_stack_address], rTEMPA
+        ; mov fs:[context.microcontext_stack_address + random_const_FS], rTEMPA
         
-        movdqu fs:[context.registers + regbank.xa ], xmm0
-        movdqu fs:[context.registers + regbank.xb ], xmm1
-        movdqu fs:[context.registers + regbank.xc ], xmm2
-        movdqu fs:[context.registers + regbank.xd ], xmm3
-        movdqu fs:[context.registers + regbank.xe ], xmm4
-        movdqu fs:[context.registers + regbank.xf ], xmm5
-        movdqu fs:[context.registers + regbank.xg ], xmm6
-        movdqu fs:[context.registers + regbank.xh ], xmm7
-        movdqu fs:[context.registers + regbank.xi ], xmm8
-        movdqu fs:[context.registers + regbank.xj ], xmm9
-        movdqu fs:[context.registers + regbank.xk ], xmm10
-        movdqu fs:[context.registers + regbank.xl ], xmm11
-        movdqu fs:[context.registers + regbank.xm ], xmm12
-        movdqu fs:[context.registers + regbank.xn ], xmm13
-        movdqu fs:[context.registers + regbank.xo ], xmm14
-        movdqu fs:[context.registers + regbank.xp ], xmm15
+        movdqu fs:[context.registers + regbank.xa + random_const_FS ], xmm0
+        movdqu fs:[context.registers + regbank.xb + random_const_FS ], xmm1
+        movdqu fs:[context.registers + regbank.xc + random_const_FS ], xmm2
+        movdqu fs:[context.registers + regbank.xd + random_const_FS ], xmm3
+        movdqu fs:[context.registers + regbank.xe + random_const_FS ], xmm4
+        movdqu fs:[context.registers + regbank.xf + random_const_FS ], xmm5
+        movdqu fs:[context.registers + regbank.xg + random_const_FS ], xmm6
+        movdqu fs:[context.registers + regbank.xh + random_const_FS ], xmm7
+        movdqu fs:[context.registers + regbank.xi + random_const_FS ], xmm8
+        movdqu fs:[context.registers + regbank.xj + random_const_FS ], xmm9
+        movdqu fs:[context.registers + regbank.xk + random_const_FS ], xmm10
+        movdqu fs:[context.registers + regbank.xl + random_const_FS ], xmm11
+        movdqu fs:[context.registers + regbank.xm + random_const_FS ], xmm12
+        movdqu fs:[context.registers + regbank.xn + random_const_FS ], xmm13
+        movdqu fs:[context.registers + regbank.xo + random_const_FS ], xmm14
+        movdqu fs:[context.registers + regbank.xp + random_const_FS ], xmm15
     %endmacro
 
     ; zero data/address registers and memory locations which augment context state.
@@ -557,9 +558,10 @@
     %endmacro
 
     %macro tactyk_ret 0
-        mov fs:[context.status], dword STATUS_HALT
+        mov fs:[context.status + random_const_FS], dword STATUS_HALT
         store_context
         rdfsbase rax
+        add rax, random_const_FS
         load_runtimecontext rax
         mov r14, [rax + context.runtime_registers + 40]
         mov r15, [rax + context.runtime_registers + 48]
@@ -568,9 +570,10 @@
     %endmacro
 
     %macro error 1
-        mov fs:[context.status], dword %1
+        mov fs:[context.status + random_const_FS], dword %1
         store_context
         rdfsbase rax
+        add rax, random_const_FS
         load_runtimecontext rax
         mov r14, [rax + context.runtime_registers + 40]
         mov r15, [rax + context.runtime_registers + 48]
@@ -614,24 +617,24 @@
 ; for readability (as a side-effect of register spill avoidance), the instruction pointer is incremented in the function in which this
 ;   macro is used
 %macro push_lwcall 1
-    mov rTEMPD_32, fs:[context.lwcall_position%1]
-    mov fs:[context.lwcall_stack+rTEMPD], rTEMPC_32
+    mov rTEMPD_32, fs:[context.lwcall_position%1 + random_const_FS]
+    mov fs:[context.lwcall_stack+rTEMPD + random_const_FS], rTEMPC_32
     add rTEMPD_32, 4
     cmp rTEMPD_32, 512*4
     errorge STATUS_STACK_OVERFLOW
-    mov fs:[context.lwcall_position%1], rTEMPD_32
+    mov fs:[context.lwcall_position%1 + random_const_FS], rTEMPD_32
     xor rTEMPC, rTEMPC
     xor rTEMPD, rTEMPD
 %endmacro
 
 ; restore instruction pointer from the lightweight call stack
 %macro pop_lwcall 1
-    mov rTEMPD_32, fs:[context.lwcall_position%1]
+    mov rTEMPD_32, fs:[context.lwcall_position%1 + random_const_FS]
     sub rTEMPD_32, 4
     cmp rTEMPD_32, 0
     errorlt STATUS_STACK_UNDERFLOW
-    mov fs:[context.lwcall_position%1], rTEMPD_32
-    mov rLWCSI_32, fs:[context.lwcall_stack+rTEMPD]
+    mov fs:[context.lwcall_position%1 + random_const_FS], rTEMPD_32
+    mov rLWCSI_32, fs:[context.lwcall_stack+rTEMPD + random_const_FS]
     xor rTEMPD, rTEMPD
 %endmacro
 
@@ -651,11 +654,12 @@
 run:
   validate_context_pointer rdi
   store_runtimecontext rdi
+  sub rdi, random_const_FS
   load_context rdi
-  mov fs:[context.status], dword STATUS_RUN
-  mov rMAPPER, fs:[context.instruction_index]
+  mov fs:[context.status + random_const_FS], dword STATUS_RUN
+  mov rMAPPER, fs:[context.instruction_index + random_const_FS]
   shl rMAPPER, 3
-  add rMAPPER, fs:[context.program_map]
+  add rMAPPER, fs:[context.program_map + random_const_FS]
   jmp [rMAPPER]
 
 

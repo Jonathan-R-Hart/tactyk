@@ -255,11 +255,12 @@ instruction exit
   scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX
   code
     $LD_IPTR_IMMEDIATE
-    mov fs:[context.instruction_index], rTEMPA
+    mov fs:[context.instruction_index + random_const_FS], rTEMPA
     xor rTEMPA, rTEMPA
-    mov fs:[context.status], dword STATUS_HALT
+    mov fs:[context.status + random_const_FS], dword STATUS_HALT
     store_context
     rdfsbase rax
+    add rax, random_const_FS
     load_runtimecontext rax
     mov r14, [rax + context.runtime_registers + 40]
     mov r15, [rax + context.runtime_registers + 48]
@@ -271,11 +272,12 @@ instruction break
   scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
   code
     $LD_IPTR_IMMEDIATE
-    mov fs:[context.instruction_index], rTEMPA
+    mov fs:[context.instruction_index + random_const_FS], rTEMPA
     xor rTEMPA, rTEMPA
-    mov fs:[context.status], dword STATUS_SUSPEND
+    mov fs:[context.status + random_const_FS], dword STATUS_SUSPEND
     store_context
     rdfsbase rax
+    add rax, random_const_FS
     load_runtimecontext rax
     mov r14, [rax + context.runtime_registers + 40]
     mov r15, [rax + context.runtime_registers + 48]
@@ -309,20 +311,20 @@ instruction bind
         
         cmp $SRC, 0
         errorlt STATUS_ROGUE_POINTER
-        cmp rTEMPA, fs:[context.memblocks_count]
+        cmp rTEMPA, fs:[context.memblocks_count + random_const_FS]
         errorge STATUS_ROGUE_POINTER
         
         lfence
         
         imul rTEMPA, 24
-        add rTEMPA, fs:[context.memblocks]
+        add rTEMPA, fs:[context.memblocks + random_const_FS]
         mov $ADDRESS_REGISTER, [rTEMPA]
-        mov fs:[$CTX_ADDR], $ADDRESS_REGISTER
+        mov fs:[$CTX_ADDR + random_const_FS], $ADDRESS_REGISTER
 
         mov rTEMPC, [rTEMPA+8]
         mov rTEMPD, [rTEMPA+16]
-        mov fs:[$CTX_ADDR+8], rTEMPC
-        mov fs:[$CTX_ADDR+16], rTEMPD
+        mov fs:[$CTX_ADDR+8 + random_const_FS], rTEMPC
+        mov fs:[$CTX_ADDR+16 + random_const_FS], rTEMPD
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -335,20 +337,20 @@ instruction bind
         
         cmp rTEMPA, 0
         errorlt STATUS_ROGUE_POINTER
-        cmp rTEMPA, fs:[context.memblocks_count]
+        cmp rTEMPA, fs:[context.memblocks_count + random_const_FS]
         errorge STATUS_ROGUE_POINTER
         
         lfence
         
         imul rTEMPA, 24
-        add rTEMPA, fs:[context.memblocks]
+        add rTEMPA, fs:[context.memblocks + random_const_FS]
         mov $ADDRESS_REGISTER, [rTEMPA]
-        mov fs:[$CTX_ADDR], $ADDRESS_REGISTER
+        mov fs:[$CTX_ADDR + random_const_FS], $ADDRESS_REGISTER
         
         mov rTEMPC, [rTEMPA+8]
         mov rTEMPD, [rTEMPA+16]
-        mov fs:[$CTX_ADDR+8], rTEMPC
-        mov fs:[$CTX_ADDR+16], rTEMPD
+        mov fs:[$CTX_ADDR+8 + random_const_FS], rTEMPC
+        mov fs:[$CTX_ADDR+16 + random_const_FS], rTEMPD
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -365,14 +367,14 @@ instruction bind
     #    $LD_SRC_IMMEDIATE
     #
     #    imul rTEMPA, 24
-    #    add rTEMPA, fs:[context.memblocks]
+    #    add rTEMPA, fs:[context.memblocks + random_const_FS]
     #    mov $ADDRESS_REGISTER, [rTEMPA]
-    #    mov fs:[$CTX_ADDR], $ADDRESS_REGISTER
+    #    mov fs:[$CTX_ADDR + random_const_FS], $ADDRESS_REGISTER
     #    
     #    mov rTEMPC, [rTEMPA+8]
     #    mov rTEMPD, [rTEMPA+16]
-    #    mov fs:[$CTX_ADDR+8], rTEMPC
-    #    mov fs:[$CTX_ADDR+16], rTEMPD
+    #    mov fs:[$CTX_ADDR+8 + random_const_FS], rTEMPC
+    #    mov fs:[$CTX_ADDR+16 + random_const_FS], rTEMPD
     #    
     #    xor rTEMPA, rTEMPA
     #    xor rTEMPC, rTEMPC
@@ -414,7 +416,7 @@ instruction load
   select-template
     case QDAD
       code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -430,7 +432,7 @@ instruction load
       code
         $LD_OFFSET_IMMEDIATE
         
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -445,7 +447,7 @@ instruction load
         jmp $NEXT_INSTRUCTION
     case DDAD
       code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 3
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -459,7 +461,7 @@ instruction load
       code
         $LD_OFFSET_IMMEDIATE
         
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 3
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -474,7 +476,7 @@ instruction load
         jmp $NEXT_INSTRUCTION
     case WDAD
       code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         dec rTEMPA_32
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -490,7 +492,7 @@ instruction load
       code
         $LD_OFFSET_IMMEDIATE
 
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         dec rTEMPA_32
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -505,7 +507,7 @@ instruction load
         jmp $NEXT_INSTRUCTION
     case BDAD
       code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
@@ -520,7 +522,7 @@ instruction load
       code
         $LD_OFFSET_IMMEDIATE
         
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
@@ -535,7 +537,7 @@ instruction load
 
     case XXAD
       code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -551,7 +553,7 @@ instruction load
       code
         $LD_OFFSET_IMMEDIATE
         
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -592,7 +594,7 @@ instruction store
   select-template
     case QADD
       code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -605,7 +607,7 @@ instruction store
     case QAID QACD
       code
         $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -619,7 +621,7 @@ instruction store
     
     case DADD
       code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 3
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -632,7 +634,7 @@ instruction store
     case DAID DACD
       code
         $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 3
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -646,7 +648,7 @@ instruction store
     
     case WADD
       code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         dec rTEMPA_32
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -659,7 +661,7 @@ instruction store
     case WAID WACD
       code
         $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         dec rTEMPA_32
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -673,7 +675,7 @@ instruction store
     
     case BADD
       code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
@@ -685,7 +687,7 @@ instruction store
     case BAID BACD
       code
         $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
@@ -698,7 +700,7 @@ instruction store
     
     case XADX
       code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -711,7 +713,7 @@ instruction store
     case XAIX XACX
       code
         $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -733,7 +735,7 @@ instruction pop
   code
     mov rTEMPA, $ADDRESS_REGISTER
     sub rTEMPA, 8
-    cmp rTEMPA, fs:[$CTX_ADDR]
+    cmp rTEMPA, fs:[$CTX_ADDR + random_const_FS]
     errorlt STATUS_MEMORY_UNDERFLOW
     lfence
     sub $ADDRESS_REGISTER, 8
@@ -753,9 +755,9 @@ instruction push
     case AD
       code
         mov rTEMPA, $ADDRESS_REGISTER
-        sub rTEMPA, fs:[$CTX_ADDR]
+        sub rTEMPA, fs:[$CTX_ADDR + random_const_FS]
         add rTEMPA, 8
-        cmp rTEMPA, fs:[$CTX_ARRAY_BOUND]
+        cmp rTEMPA, fs:[$CTX_ARRAY_BOUND + random_const_FS]
         errorge STATUS_MEMORY_OVERFLOW
         mov [$ADDRESS_REGISTER], $SRC__DATA_REGISTER
         add $ADDRESS_REGISTER, 8
@@ -765,9 +767,9 @@ instruction push
       code
         $LD_SRC_IMMEDIATE
         mov rTEMPA, $ADDRESS_REGISTER
-        sub rTEMPA, fs:[$CTX_ADDR]
+        sub rTEMPA, fs:[$CTX_ADDR + random_const_FS]
         add rTEMPA, 8
-        cmp rTEMPA, fs:[$CTX_ARRAY_BOUND]
+        cmp rTEMPA, fs:[$CTX_ARRAY_BOUND + random_const_FS]
         errorge STATUS_MEMORY_OVERFLOW
         mov [$ADDRESS_REGISTER], rTEMPC
         add $ADDRESS_REGISTER, 8
@@ -953,30 +955,30 @@ instruction assign
   select-template
     case OD
       code
-        cmp $B, fs:[$CTX_ADDRESS_BOUND]
+        cmp $B, fs:[$CTX_ADDRESS_BOUND + random_const_FS]
         errorge STATUS_ROGUE_POINTER
         cmp $B, 0
         errorlt STATUS_ROGUE_POINTER
         lfence
         mov $ADDRESS_REGISTER, $B
-        add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS]
+        add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS + random_const_FS]
         jmp $NEXT_INSTRUCTION
     case OI OC
       code
         $LD_B_IMMEDIATE
-        cmp rTEMPA, fs:[$CTX_ADDRESS_BOUND]
+        cmp rTEMPA, fs:[$CTX_ADDRESS_BOUND + random_const_FS]
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPA, 0
         errorlt STATUS_ROGUE_POINTER
         lfence
         mov $ADDRESS_REGISTER, rTEMPA
-        add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS]
+        add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS + random_const_FS]
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     case DO
       code
         mov $A, $ADDRESS_REGISTER
-        sub $A, fs:[$CTX_ADDRESS]
+        sub $A, fs:[$CTX_ADDRESS + random_const_FS]
         jmp $NEXT_INSTRUCTION
     case DD
       code 
@@ -985,7 +987,7 @@ instruction assign
     case DSreg
       code
         mov %[$A]_16, %[$B]_16
-        sub %[$A]_16, word fs:[$STACK_FLOOR]
+        sub %[$A]_16, word fs:[$STACK_FLOOR + random_const_FS]
         jmp $NEXT_INSTRUCTION
     case DI DC DS
       code 
@@ -997,7 +999,7 @@ instruction assign
       select-kw
         case dword
           code
-            mov %[$A]_32, fs:[$B]
+            mov %[$A]_32, fs:[$B + random_const_FS]
             jmp $NEXT_INSTRUCTION
     case DX
       code
@@ -1291,25 +1293,17 @@ instruction tcall
     store_context    
     
     ; align the data registers with the unix call
-    rdfsbase rdi
+    ; rdfsbase rdi
+    ; add rdi, random_const_FS
     mov rsi, rB
     mov rdx, rC
     mov rcx, rD
     ;rE, rF are aligned
 
     rdfsbase r14
-    
+    add r14, random_const_FS
+    mov rdi, r14
     load_runtimecontext r14
-    ;mov rax, fs:[context.controlstate]
-    ;mov r12, [rax + controlstate.runtime_registers + 56]
-    ;mov r13, [rax + controlstate.runtime_registers + 64]
-    ;wrfsbase r12
-    ;wrgsbase r13
-    ;mov rbx, [rax + controlstate.runtime_registers + 0]
-    ;mov rbp, [rax + controlstate.runtime_registers + 8]
-    ;mov rsp, [rax + controlstate.runtime_registers + 16]
-    ;mov r12, [rax + controlstate.runtime_registers + 24]
-    ;mov r13, [rax + controlstate.runtime_registers + 32]
     
     xor rax, rax
     xor r10, r10
@@ -1321,6 +1315,7 @@ instruction tcall
     
     pop rbp
     validate_context_pointer r14
+    sub r14, random_const_FS
     load_context r14
     
     xor rTEMPA, rTEMPA
@@ -1350,26 +1345,18 @@ instruction ccall
         ;rE, rF are already aligned
         
         rdfsbase r14
+        add r14, random_const_FS
         load_runtimecontext r14
-        
-        ;mov rTEMPA, fs:[context.controlstate]
-
-        ;mov r12, [r14 + controlstate.runtime_registers + 56]
-        ;mov r13, [r14 + controlstate.runtime_registers + 64]
-        ;wrfsbase r12
-        ;wrgsbase r13
-        ;mov rbx, [r14 + controlstate.runtime_registers + 0]
-        ;mov rbp, [r14 + controlstate.runtime_registers + 8]
-        ;mov rsp, [r14 + controlstate.runtime_registers + 16]
-        ;mov r12, [r14 + controlstate.runtime_registers + 24]
-        ;mov r13, [r14 + controlstate.runtime_registers + 32]
         
         push rbp
         mov r10, $A
         call r10
         
         pop rbp
+        
         validate_context_pointer r14
+        sub r14, random_const_FS
+        
         load_context r14
         
         xor rTEMPA, rTEMPA
@@ -1389,18 +1376,8 @@ instruction ccall
         ;rE, rF are already aligned
         
         rdfsbase r14
+        add r14, random_const_FS
         load_runtimecontext r14
-        
-        ;mov rTEMPA, fs:[context.controlstate]
-        ;mov r12, [rTEMPA + controlstate.runtime_registers + 56]
-        ;mov r13, [rTEMPA + controlstate.runtime_registers + 64]
-        ;wrfsbase r12
-        ;wrgsbase r13
-        ;mov rbx, [rTEMPA + controlstate.runtime_registers + 0]
-        ;mov rbp, [rTEMPA + controlstate.runtime_registers + 8]
-        ;mov rsp, [rTEMPA + controlstate.runtime_registers + 16]
-        ;mov r12, [rTEMPA + controlstate.runtime_registers + 24]
-        ;mov r13, [rTEMPA + controlstate.runtime_registers + 32]
         
         push rbp
         mov r10, $B
@@ -1410,6 +1387,8 @@ instruction ccall
         mov rTEMPD, rTEMPA
         
         validate_context_pointer r14
+        sub r14, random_const_FS
+        
         load_context r14
         
         mov $A, rTEMPD
@@ -1629,7 +1608,7 @@ instruction cpuclocks
     rdtsc
     shl rTEMPD, 32
     or rTEMPA, rTEMPD
-    mov fs:[context.diagnostic_out+0], rTEMPA
+    mov fs:[context.diagnostic_out+0 + random_const_FS], rTEMPA
     xor rTEMPA, rTEMPA
     xor rTEMPD, rTEMPD
     jmp $NEXT_INSTRUCTION
@@ -1841,100 +1820,100 @@ instruction stash
     select-template
       case SiD SilD SihD
         code
-          mov gs:[microcontext.$DEST], $SRC
+          mov gs:[microcontext.$DEST+random_const_GS], $SRC
       case DSi DSil DSih
         code
-          mov $DEST, gs:[microcontext.$SRC]
+          mov $DEST, gs:[microcontext.$SRC+random_const_GS]
       case SilX SihX
         code
-          movq gs:[microcontext.$DEST], $SRC
+          movq gs:[microcontext.$DEST+random_const_GS], $SRC
       case XSil XSih
         code
-          movq $DEST, gs:[microcontext.$SRC]
+          movq $DEST, gs:[microcontext.$SRC+random_const_GS]
       case SiX
         code
-          movdqu gs:[microcontext.$DEST], $SRC
+          movdqu gs:[microcontext.$DEST+random_const_GS], $SRC
       case XSi
         code
-          movdqu $DEST, gs:[microcontext.$SRC]
+          movdqu $DEST, gs:[microcontext.$SRC+random_const_GS]
       case SiSi
         code
-          movdqu xTEMPA, gs:[microcontext.$SRC]
-          movdqu gs:[microcontext.$DEST], xTEMPA
+          movdqu xTEMPA, gs:[microcontext.$SRC+random_const_GS]
+          movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case SilSil SilSih SihSil SihSih SilSi SihSi SiSil SiSih
         code
-          mov rTEMPA, gs:[microcontext.$SRC]
-          mov gs:[microcontext.$DEST], rTEMPA
+          mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
+          mov gs:[microcontext.$DEST+random_const_GS], rTEMPA
           xor rTEMPA, rTEMPA
       case WSiD WSilD WSihD
         code
-          xchg gs:[microcontext.$DEST], $SRC
+          xchg gs:[microcontext.$DEST+random_const_GS], $SRC
       case WDSi WDSil WDSih
         code
-          xchg $DEST, gs:[microcontext.$SRC]
+          xchg $DEST, gs:[microcontext.$SRC+random_const_GS]
       case WSilX WSihX
         code
           movq xTEMPA, $SRC
-          movq $SRC, gs:[microcontext.$DEST]
-          movq gs:[microcontext.$DEST], xTEMPA
+          movq $SRC, gs:[microcontext.$DEST+random_const_GS]
+          movq gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case WXSil WXSih
         code
           movq xTEMPA, $DEST
-          movq $DEST, gs:[microcontext.$SRC]
-          movq gs:[microcontext.$SRC], xTEMPA
+          movq $DEST, gs:[microcontext.$SRC+random_const_GS]
+          movq gs:[microcontext.$SRC+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case WSiX
         code
           movdqu xTEMPA, $SRC
-          movdqu $SRC, gs:[microcontext.$DEST]
-          movdqu gs:[microcontext.$DEST], xTEMPA
+          movdqu $SRC, gs:[microcontext.$DEST+random_const_GS]
+          movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case WXSi
         code
           movdqu xTEMPA, $DEST
-          movdqu $DEST, gs:[microcontext.$SRC]
-          movdqu gs:[microcontext.$SRC], xTEMPA
+          movdqu $DEST, gs:[microcontext.$SRC+random_const_GS]
+          movdqu gs:[microcontext.$SRC+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case WSiSi
         code
-          movdqu xTEMPA, gs:[microcontext.$SRC]
-          movdqu xTEMPB, gs:[microcontext.$DEST]
-          movdqu gs:[microcontext.$SRC], xTEMPB
-          movdqu gs:[microcontext.$DEST], xTEMPA
+          movdqu xTEMPA, gs:[microcontext.$SRC+random_const_GS]
+          movdqu xTEMPB, gs:[microcontext.$DEST+random_const_GS]
+          movdqu gs:[microcontext.$SRC+random_const_GS], xTEMPB
+          movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
           pxor xTEMPB, xTEMPB
       case WSilSil WSilSih WSihSil WSihSih WSilSi WSihSi WSiSil WSiSih
         code
-          mov rTEMPA, gs:[microcontext.$SRC]
-          xchg rTEMPA, gs:[microcontext.$DEST]
-          mov gs:[microcontext.$SRC], rTEMPA
+          mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
+          xchg rTEMPA, gs:[microcontext.$DEST+random_const_GS]
+          mov gs:[microcontext.$SRC+random_const_GS], rTEMPA
           xor rTEMPA, rTEMPA
       case SaA
         code
-          mov rTEMPA, fs:[$CONTEXT_ADDR]
-          mov gs:[microcontext.$DEST], rTEMPA
+          mov rTEMPA, fs:[$CONTEXT_ADDR + random_const_FS]
+          mov gs:[microcontext.$DEST+random_const_GS], rTEMPA
           negate rTEMPA
           add rTEMPA, $SRC
-          mov dword gs:[microcontext.$DEST+20], %[$SRC]_32
-          mov rTEMPC, fs:[$CTX_ELEMENT_BOUND]
-          mov gs:[microcontext.$DEST+8], rTEMPC
-          mov rTEMPD_32, dword fs:[$CTX_MEMBLOCK_INDEX]
-          mov dword gs:[microcontext.$DEST+16], rTEMPD_32
+          mov dword gs:[microcontext.$DEST+20+random_const_GS], %[$SRC]_32
+          mov rTEMPC, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+          mov gs:[microcontext.$DEST+8+random_const_GS], rTEMPC
+          mov rTEMPD_32, dword fs:[$CTX_MEMBLOCK_INDEX + random_const_FS]
+          mov dword gs:[microcontext.$DEST+16+random_const_GS], rTEMPD_32
           xor rTEMPA, rTEMPA
           xor rTEMPC, rTEMPC
           xor rTEMPD, rTEMPD
       case ASa
         code
-          mov rTEMPA, gs:[microcontext.$SRC]
-          mov fs:[$CONTEST_ADDR]
+          mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
+          mov fs:[$CONTEST_ADDR + random_const_FS]
           mov $DEST, rTEMPA
-          add $DEST, dword gs:[microcontext.$SRC+20]
-          mov rTEMPC, gs:[microcontext.$SRC+8]
-          mov fs:[$CTX_ELEMENT_BOUND], rTEMPC
-          mov rTEMPD_32, dword gs:[microcontext.$SRC+16]
-          mov dword fs:[$CTX_MEMBLOCK_INDEX], rTEMPD_16
+          add $DEST, dword gs:[microcontext.$SRC+20+random_const_GS]
+          mov rTEMPC, gs:[microcontext.$SRC+8+random_const_GS]
+          mov fs:[$CTX_ELEMENT_BOUND + random_const_FS], rTEMPC
+          mov rTEMPD_32, dword gs:[microcontext.$SRC+16+random_const_GS]
+          mov dword fs:[$CTX_MEMBLOCK_INDEX + random_const_FS], rTEMPD_16
           xor rTEMPA, rTEMPA
           xor rTEMPC, rTEMPC
           xor rTEMPD, rTEMPD
@@ -1952,7 +1931,7 @@ instruction lwcall
     errorge STATUS_STACK_OVERFLOW
     mov rTEMPA, rLWCSI
     shl rTEMPA, 2
-    add rTEMPA, fs:[context.lwcall_stack_address]
+    add rTEMPA, fs:[context.lwcall_stack_address + random_const_FS]
     mov dword [rTEMPA], rTEMPC_32
     inc rLWCSI
     xor rTEMPA, rTEMPA
@@ -1961,17 +1940,17 @@ instruction lwcall
 
 instruction lwreturn
   code
-    cmp rLWCSI_16, fs:[context.lwcall_floor]
+    cmp rLWCSI_16, fs:[context.lwcall_floor + random_const_FS]
     errorle STATUS_STACK_UNDERFLOW
     dec rLWCSI
     mov rMAPPER, rLWCSI
     shl rMAPPER, 2
-    add rMAPPER, fs:[context.lwcall_stack_address]
+    add rMAPPER, fs:[context.lwcall_stack_address + random_const_FS]
     mov rMAPPER_32, [rMAPPER]
-    ;cmp rMAPPER, fs:[context.instruction_count]
+    ;cmp rMAPPER, fs:[context.instruction_count + random_const_FS]
     ;errorge STATUS_ROGUE_BRANCH
     shl rMAPPER, 3
-    add rMAPPER, fs:[context.program_map]
+    add rMAPPER, fs:[context.program_map + random_const_FS]
     jmp [rMAPPER]
 
 instruction mctxpush
@@ -1981,19 +1960,21 @@ instruction mctxpush
     inc rMCSI_16
     movzx rTEMPA, rMCSI_16
     shl rTEMPA, microcontext_size_bits
-    add rTEMPA, fs:[context.microcontext_stack_address]
+    add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
+    sub rTEMPA, random_const_GS
     wrgsbase rTEMPA
     xor rTEMPA, rTEMPA
     jmp $NEXT_INSTRUCTION
 
 instruction mctxpop
   code
-    cmp rMCSI_16, word fs:[context.microcontext_floor]
+    cmp rMCSI_16, word fs:[context.microcontext_floor + random_const_FS]
     errorle STATUS_STACK_UNDERFLOW
     dec rMCSI_16
     movzx rTEMPA, rMCSI_16
     shl rTEMPA, microcontext_size_bits
-    add rTEMPA, fs:[context.microcontext_stack_address]
+    add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
+    sub rTEMPA, random_const_GS
     wrgsbase rTEMPA
     xor rTEMPA, rTEMPA
     jmp $NEXT_INSTRUCTION
@@ -2007,13 +1988,14 @@ instruction mctxjump
     case D
       code
         movzx rTEMPA, %[$TARGET]_16
-        movzx rTEMPC, word fs:[context.microcontext_floor]
+        movzx rTEMPC, word fs:[context.microcontext_floor + random_const_FS]
         add rTEMPA_16, rTEMPC_16    ; restrict to range 0-65535
         cmp rTEMPA, rTEMPC
         errorlt STATUS_STACK_UNDERFLOW
         mov rMCSI, rTEMPA
         shl rTEMPA, microcontext_size_bits
-        add rTEMPA, fs:[context.microcontext_stack_address]
+        add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
+        sub rTEMPA, random_const_GS
         wrgsbase rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -2027,7 +2009,8 @@ instruction mctxjump
         errorlt STATUS_STACK_UNDERFLOW
         mov rMCSI, rTEMPA
         shl rTEMPA, microcontext_size_bits
-        add rTEMPA, fs:[context.microcontext_stack_address]
+        add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
+        sub rTEMPA, random_const_GS
         wrgsbase rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -2045,7 +2028,7 @@ instruction tvmpush
   select-template
     case DD
       code
-        mov rTEMPC, fs:[context.stack]
+        mov rTEMPC, fs:[context.stack + random_const_FS]
         mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
         cmp rTEMPA, 0
         errorneq STATUS_INVALID_TVMJUMP
@@ -2061,8 +2044,8 @@ instruction tvmpush
         add rTEMPC, tactyk_stack.stack
         add rTEMPC, rTEMPA
         
-        mov rTEMPA, fs:[context.floor]
-        mov rMAPPER, fs:[context.program_map]
+        mov rTEMPA, fs:[context.floor + random_const_FS]
+        mov rMAPPER, fs:[context.program_map + random_const_FS]
         mov [rTEMPC + tvmstackentry.source_program], rMAPPER
         mov [rTEMPC + tvmstackentry.source_stack_floor], rTEMPA
         xor rMAPPER, rMAPPER
@@ -2072,7 +2055,7 @@ instruction tvmpush
         mov rTEMPA, $PROG_HANDLE
         cmp rTEMPA, 0
         errorlt STATUS_INVALID_TVMJUMP
-        mov rTEMPD, fs:[context.vm]
+        mov rTEMPD, fs:[context.vm + random_const_FS]
         cmp rTEMPA, [rTEMPD + tactyk_vm.program_count]
         errorge STATUS_INVALID_TVMJUMP
         
@@ -2088,9 +2071,9 @@ instruction tvmpush
         mov [rTEMPC + tvmstackentry.target_function_jumptable], rMAPPER
         
         ; validate $FUNC_HANDLE
-        ;mov fs:[ctx.extra], rTEMPD
+        ;mov fs:[ctx.extra + random_const_FS], rTEMPD
         mov rTEMPA, $FUNC_HANDLE
-        ;mov rTEMPD, fs:[ctx.extra]
+        ;mov rTEMPD, fs:[ctx.extra + random_const_FS]
         cmp rTEMPA, 0
         errorlt STATUS_INVALID_TVMJUMP
         cmp rTEMPA, [rTEMPD + program_dec.function_count]
@@ -2109,10 +2092,10 @@ instruction tvmjump
   $KW dword
   scramble rTEMPA $LD_CMDNEXT_IMMEDIATE $COMMAND_INDEX_NEXT
   code
-    mov dword fs:[context.lwcall_floor], rLWCSI_32
-    mov dword fs:[context.microcontext_floor], rMCSI_32
+    mov dword fs:[context.lwcall_floor + random_const_FS], rLWCSI_32
+    mov dword fs:[context.microcontext_floor + random_const_FS], rMCSI_32
     
-    mov rTEMPC, fs:[context.stack]
+    mov rTEMPC, fs:[context.stack + random_const_FS]
     mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
     cmp rTEMPA, 1
     errorneq STATUS_INVALID_TVMJUMP
@@ -2129,7 +2112,7 @@ instruction tvmjump
     
     ; load the target context
     mov rTEMPA, [rTEMPC + tvmstackentry.target_program]
-    mov fs:[context.program_map], rTEMPA
+    mov fs:[context.program_map + random_const_FS], rTEMPA
     
     ; prepare the jump
     mov rMAPPER, [rTEMPC + tvmstackentry.target_jump_index]
@@ -2143,7 +2126,7 @@ instruction tvmjump
 
 instruction tvmreturn
   code
-    mov rTEMPC, fs:[context.stack]
+    mov rTEMPC, fs:[context.stack + random_const_FS]
     mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
     cmp rTEMPA, 0
     errorneq STATUS_INVALID_TVMJUMP
@@ -2161,9 +2144,9 @@ instruction tvmreturn
     
     ; restore the caller context
     mov rTEMPD, [rTEMPC + tvmstackentry.source_stack_floor]
-    mov fs:[context.floor], rTEMPD
+    mov fs:[context.floor + random_const_FS], rTEMPD
     mov rMAPPER, [rTEMPC + tvmstackentry.source_program]
-    mov fs:[context.program_map], rMAPPER
+    mov fs:[context.program_map + random_const_FS], rMAPPER
     
     ; prepare a return jump
     mov rTEMPA, [rTEMPC + tvmstackentry.source_return_index]
@@ -2266,7 +2249,7 @@ instruction vec-in
     case XAI XAC
       code
         $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -2293,7 +2276,7 @@ instruction vec-in
     case ItofXAI ItofXAC
       code
         $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -2325,7 +2308,7 @@ instruction vec-out
     case AIX ACX
       code
         $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
@@ -2344,7 +2327,7 @@ instruction vec-out
     case FtoiAIX FtoiACX
       code
         $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND]
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
