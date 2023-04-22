@@ -54,8 +54,6 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
     struct tactyk_asmvm__vm_stack_entry *ctx_st_entry = &vmctx->stack->entries[idx];
     struct tactyk_asmvm__vm_stack_entry *shadow_st_entry = &shadow_ctx_stack->entries[idx];
 
-    bool permissive = false;
-
     struct tactyk_asmvm__Program *dest_program = NULL;
     struct tactyk_asmvm__Program *source_program = tprg;
 
@@ -420,6 +418,11 @@ uint64_t tactyk_test__TEST_REGISTER(struct tactyk_test_entry *valtest_spec, stru
     return TACTYK_TESTSTATE__PASS;
 }
 
+// floating-point test
+// This deviates substantially from the established pattern:
+//      Due to floating point rounding errors, this directly copies actual state into the shadow state,
+//      then performs its own state transition check using a floating point comparison with error tolerance.
+//      If the comparison test fails, this will pre-empt the general-purpose state transition tracker by returning a failure.
 uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *expected_value = spec->token->next;
 
@@ -584,7 +587,6 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
 
     struct tactyk_dblock__DBlock *val_token = fieldname_token->next;
 
-    struct tactyk_asmvm__MicrocontextStash *stash = &vmctx->microcontext_stack[ofs];
     struct tactyk_asmvm__MicrocontextStash *shstash = &shadow_mctxstack[ofs];
 
     char fn[64];
@@ -592,10 +594,7 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
 
     double f64val = 0;
     int64_t ival = 0;
-    //double st_f64val = 0;
-    int64_t st_ival = 0;
 
-    bool pass = false;
     bool field_matched = false;
 
     tactyk_dblock__try_parsedouble(&f64val, val_token);
@@ -613,7 +612,7 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
     }
     if ( (strncmp(fn, "addr", 4) == 0) && (strlen(fn) == 5) ) {
         uint64_t aofs = fn[4] - '1';
-        struct tactyk_asmvm__memblock_lowlevel *mbll = &stash->memblocks[aofs];
+        //struct tactyk_asmvm__memblock_lowlevel *mbll = &stash->memblocks[aofs];
         struct tactyk_asmvm__memblock_lowlevel *shmbll = &shstash->memblocks[aofs];
         if (ival == 0) {
             struct tactyk_dblock__DBlock *prgref = val_token;
