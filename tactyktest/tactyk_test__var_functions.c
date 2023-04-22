@@ -60,6 +60,32 @@ uint64_t tactyk_test__TEST_STACKPOSITION(struct tactyk_test_entry *entry, struct
     return TACTYK_TESTSTATE__PASS;
 }
 
+int64_t getFunctionID(struct tactyk_asmvm__Program *prog, struct tactyk_dblock__DBlock *label) {
+    struct tactyk_asmvm__identifier *id = tactyk_dblock__get(prog->functions, label);
+    if (id == NULL) {
+        return -1;
+    }
+    else {
+        for (uint64_t i = 0; i < prog->functions->element_count; i++) {
+            struct tactyk_asmvm__identifier *iid = tactyk_dblock__index(prog->functions->store, i);
+            if (id == iid) {
+                return i;
+            }
+        }
+        return -1;
+    }
+}
+
+int64_t getLabelPosition(struct tactyk_asmvm__Program *prog, struct tactyk_dblock__DBlock *label) {
+    struct tactyk_asmvm__identifier *id = tactyk_dblock__get(prog->functions, label);
+    if (id != NULL) {
+        return id->value;
+    }
+    else {
+        return -1;
+    }
+}
+
 uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *index_param = spec->token->next;
     uint64_t idx = 0;
@@ -97,19 +123,36 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
         }
         else if (tactyk_dblock__equals_c_string(token, "jumptarget")) {
             token = token->next;
-            uint64_t jtarget = 0;
-            if (!tactyk_dblock__try_parseuint(&jtarget, token)) {
-                // should probably allow jump targets reference by name (it isn't conveniently stored)
-                char buf[256];
-                tactyk_dblock__export_cstring(buf, 256, token);
-                snprintf(
-                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "invalid jump target: %s\n",
-                    buf
-                );
+            if (token == NULL) {
+                tactyk_test__report("stackentry-Jumptarget: target not specified.");
                 return TACTYK_TESTSTATE__TEST_ERROR;
             }
-            shadow_st_entry->dest_jump_index = jtarget;
+            if (dest_program == NULL) {
+                tactyk_test__report("stackenrty-Jumptarget: destination program not declared.");
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
+            {
+                int64_t jtarget = getFunctionID(dest_program, token);
+                if (jtarget != -1) {
+                    shadow_st_entry->dest_jump_index = (uint32_t)jtarget;
+                    goto handle_next_item;
+                }
+            }
+            {
+                uint64_t jtarget = 0;
+                if (!tactyk_dblock__try_parseuint(&jtarget, token)) {
+                    // should probably allow jump targets reference by name (it isn't conveniently stored)
+                    char buf[256];
+                    tactyk_dblock__export_cstring(buf, 256, token);
+                    snprintf(
+                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                        "invalid jump target: %s\n",
+                        buf
+                    );
+                    return TACTYK_TESTSTATE__TEST_ERROR;
+                }
+                shadow_st_entry->dest_jump_index = jtarget;
+            }
         }
         else if (tactyk_dblock__equals_c_string(token, "returntarget")) {
             token = token->next;
@@ -157,6 +200,7 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
             }
             shadow_st_entry->source_mctxstack_floor = mctxfloor;
         }
+        handle_next_item:
         testitem = testitem->next;
     }
 
