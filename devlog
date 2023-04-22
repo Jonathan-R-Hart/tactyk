@@ -2,6 +2,10 @@
 tactyk-test refactoring
   Improve descriptions when indicating where unexpected state transitions are observed.
   Use a generic macro to checking for and describe unexpected state transtions
+  Remove most pass/fail testing from individual property tests
+    For the most part, these functions now just write the expected state change to the relevant shadow object.
+    Responsibility for recognizing unexpected state changes now mostly belongs to the general-purpose state transition recognition function.
+      (where specialized handling is needed, the individual test functions can still do it)
 
 Remove direct state adjustment functions from tactyk-test
   tactyk is quite capable on its own state on its own.

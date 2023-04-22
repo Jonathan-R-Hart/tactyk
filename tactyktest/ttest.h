@@ -150,6 +150,7 @@ void tactyk_test__reset_state(struct tactyk_test__Status *tstate);
 void tactyk_test__await_start(struct tactyk_test__Status *tstate);
 
 
+bool tactyk_test__approximately_eq(double a, double b);
 
 uint64_t read_spec__binary_data(struct tactyk_dblock__DBlock **out, struct tactyk_dblock__DBlock *spec);
 

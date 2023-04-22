@@ -15,13 +15,7 @@ uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
     shadow_vmctx->STATUS = vmctx->STATUS;
-    if (vmctx->STATUS == (uint64_t) ival) {
-        return TACTYK_TESTSTATE__PASS;
-    }
-    else {
-        sprintf(test_state->report, "context status deviation, expected:%ju observed:%ju", (uint64_t)ival, vmctx->STATUS);
-        return TACTYK_TESTSTATE__FAIL;
-    }
+    return TACTYK_TESTSTATE__PASS;
 }
 
 uint64_t tactyk_test__TEST_STACKLOCK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
@@ -32,13 +26,7 @@ uint64_t tactyk_test__TEST_STACKLOCK(struct tactyk_test_entry *entry, struct tac
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
     shadow_ctx_stack->stack_lock = vmctx->stack->stack_lock;
-    if (vmctx->stack->stack_lock == uival) {
-        return TACTYK_TESTSTATE__PASS;
-    }
-    else {
-        sprintf(test_state->report, "stack lock deviation, expected:%ju observed:%ju", uival, vmctx->stack->stack_lock);
-        return TACTYK_TESTSTATE__FAIL;
-    }
+    return TACTYK_TESTSTATE__PASS;
 }
 uint64_t tactyk_test__TEST_STACKPOSITION(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *expected_value = spec->token->next;
@@ -48,13 +36,7 @@ uint64_t tactyk_test__TEST_STACKPOSITION(struct tactyk_test_entry *entry, struct
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
     shadow_ctx_stack->stack_position = vmctx->stack->stack_position;
-    if (vmctx->stack->stack_position == ival) {
-        return TACTYK_TESTSTATE__PASS;
-    }
-    else {
-        sprintf(test_state->report, "stack position deviation, expected:%jd observed:%jd", ival, vmctx->stack->stack_position);
-        return TACTYK_TESTSTATE__FAIL;
-    }
+    return TACTYK_TESTSTATE__PASS;
 }
 
 uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
@@ -208,12 +190,7 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
     uint64_t len = mbll->array_bound + mbll->element_bound -1;
     uint64_t slen = shadow_mbll->array_bound + shadow_mbll->element_bound -1;
     if (len != slen) {
-        snprintf(
-            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-            "memblock unexpectedly replaced or resized -- expected length:%ju, observed length:%ju",
-            len, slen
-        );
-        return TACTYK_TESTSTATE__FAIL;
+        return TACTYK_TESTSTATE__PASS;
     }
 
     struct tactyk_dblock__DBlock *iindex = name->next;
@@ -246,56 +223,16 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
                 return TACTYK_TESTSTATE__TEST_ERROR;
             }
             if ( (item_type == NULL) || tactyk_dblock__equals_c_string(item_type, "byte") ) {
-                if (mbll->base_address[idx] != (uint8_t)ival) {
-                    char buf[64];
-                    tactyk_dblock__export_cstring(buf, 64, name);
-                    snprintf(
-                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                        "deviation in memblock '%s' at offset %ju - expected value:%u, observed value:%u",
-                        buf, idx, (uint8_t)ival, mbll->base_address[idx]
-                    );
-                    return TACTYK_TESTSTATE__FAIL;
-                }
                 shadow_mbll->base_address[idx] = (uint8_t)ival;
             }
             else if ( tactyk_dblock__equals_c_string(item_type, "word") ) {
-                if (*((uint16_t*) &mbll->base_address[idx]) != (uint16_t)ival) {
-                    char buf[64];
-                    tactyk_dblock__export_cstring(buf, 64, name);
-                    snprintf(
-                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                        "deviation in memblock '%s' at offset %ju - expected value:%u, observed value:%u",
-                        buf, idx, (uint16_t)ival, *((uint16_t*) &mbll->base_address[idx])
-                    );
-                    return TACTYK_TESTSTATE__FAIL;
-                }
                *((uint16_t*) &shadow_mbll->base_address[idx]) = (uint16_t)ival;
             }
 
             else if ( tactyk_dblock__equals_c_string(item_type, "dword") ) {
-                if (*((uint32_t*) &mbll->base_address[idx]) != (uint32_t)ival) {
-                    char buf[64];
-                    tactyk_dblock__export_cstring(buf, 64, name);
-                    snprintf(
-                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                        "deviation in memblock '%s' at offset %ju - expected value:%u, observed value:%u",
-                        buf, idx, (uint32_t)ival, *((uint32_t*) &mbll->base_address[idx])
-                    );
-                    return TACTYK_TESTSTATE__FAIL;
-                }
                *((uint32_t*) &shadow_mbll->base_address[idx]) = (uint32_t)ival;
             }
             else if ( tactyk_dblock__equals_c_string(item_type, "qword") ) {
-                if (*((uint64_t*) &mbll->base_address[idx]) != (uint64_t)ival) {
-                    char buf[64];
-                    tactyk_dblock__export_cstring(buf, 64, name);
-                    snprintf(
-                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                        "deviation in memblock '%s' at offset %ju - expected value:%ju, observed value:%ju",
-                        buf, idx, (uint64_t)ival, *((uint64_t*) &mbll->base_address[idx])
-                    );
-                    return TACTYK_TESTSTATE__FAIL;
-                }
                *((uint64_t*) &shadow_mbll->base_address[idx]) = (uint64_t)ival;
             }
             else {
@@ -312,13 +249,6 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
 
         }
     }
-
-
-    struct tactyk_dblock__DBlock *mspec = spec->child;
-    if (mspec != NULL) {
-        // actually test the entire memblock
-    }
-
     return TACTYK_TESTSTATE__PASS;
 }
 
@@ -373,7 +303,7 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
         char buf[64];
         tactyk_dblock__export_cstring(buf, 64, reg_ofs);
         snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "address-offset '%s' is not an integer.", buf);
-        return false;
+        return TACTYK_TESTSTATE__TEST_ERROR;
     }
     if (num_tokens >= 4) {
         struct tactyk_dblock__DBlock *array_bound = reg_ofs->next;
@@ -382,59 +312,18 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
             char buf[64];
             tactyk_dblock__export_cstring(buf, 64, array_bound);
             snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "array-bound '%s' is not an integer.", buf);
-            return false;
+            return TACTYK_TESTSTATE__TEST_ERROR;
         }
         if (!tactyk_dblock__try_parseuint(&expected_ebound, element_bound)) {
             char buf[64];
             tactyk_dblock__export_cstring(buf, 64, element_bound);
             snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "element-bound '%s' is not an integer.", buf);
-            return false;
+            return TACTYK_TESTSTATE__TEST_ERROR;
         }
     }
     else {
         expected_abound = mbll->array_bound;
         expected_ebound = mbll->element_bound;
-    }
-
-    if ( target->memblock_index != mbll->memblock_index ) {
-        snprintf(
-            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-            "memory binding deviation -- expected memblock id=%u observed memblock id=%u",
-            mbll->memblock_index, target->memblock_index
-        );
-        return TACTYK_TESTSTATE__FAIL;
-    }
-    if ( target->base_address != mbll->base_address ) {
-        snprintf(
-            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-            "memory binding deviation -- expected memblock ptr=%p observed memblock ptr=%p",
-            mbll->base_address, target->base_address
-        );
-        return TACTYK_TESTSTATE__FAIL;
-    }
-    if ( target->array_bound != expected_abound ) {
-        snprintf(
-            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-            "memory binding deviation -- expected memblock array-bound=%ju observed memblock array-bound=%u",
-            expected_abound, target->array_bound
-        );
-        return TACTYK_TESTSTATE__FAIL;
-    }
-    if ( target->element_bound != expected_ebound ) {
-        snprintf(
-            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-            "memory binding deviation -- expected memblock element-bound=%ju observed memblock element-bound=%u",
-            expected_ebound, target->element_bound
-        );
-        return TACTYK_TESTSTATE__FAIL;
-    }
-    if ( target->offset != mbll->offset ) {
-        snprintf(
-            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-            "memory binding deviation -- expected memblock offset=%u observed memblock offset=%u",
-            mbll->offset, target->offset
-        );
-        return TACTYK_TESTSTATE__FAIL;
     }
 
     int64_t observed_ofs = 0;
@@ -462,11 +351,11 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
         }
     }
 
-    shadow_target->base_address = target->base_address;
-    shadow_target->array_bound = expected_abound;
-    shadow_target->element_bound = expected_ebound;
-    shadow_target->memblock_index = target->memblock_index;
-    shadow_target->offset = target->offset;
+    shadow_target->base_address = mbll->base_address;
+    shadow_target->array_bound = mbll->array_bound;
+    shadow_target->element_bound = mbll->element_bound;
+    shadow_target->memblock_index = mbll->memblock_index;
+    shadow_target->offset = mbll->offset;
 
     if (observed_ofs != expected_ofs) {
         snprintf(
@@ -535,14 +424,7 @@ uint64_t tactyk_test__TEST_REGISTER(struct tactyk_test_entry *valtest_spec, stru
             return TACTYK_TESTSTATE__TEST_ERROR;
         }
     }
-
-    if (stval == ival) {
-        return TACTYK_TESTSTATE__PASS;
-    }
-    else {
-        sprintf(test_state->report, "deviation on register %s, expected:%jd observed:%jd", valtest_spec->name, ival, stval);
-        return TACTYK_TESTSTATE__FAIL;
-    }
+    return TACTYK_TESTSTATE__PASS;
 }
 
 uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
@@ -640,12 +522,11 @@ uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *valtest
             return TACTYK_TESTSTATE__TEST_ERROR;
         }
     }
-    stval = fabs(stval - fval);
-    if (stval <= precision) {
+    if (tactyk_test__approximately_eq(stval, fval)) {
         return TACTYK_TESTSTATE__PASS;
     }
     else {
-        sprintf(test_state->report, "deviation on register %s, expected:%f observed:%f", valtest_spec->name, fval, stval);
+        sprintf(test_state->report, "deviation: Register %s, expected:%f observed:%f", valtest_spec->name, fval, stval);
         return TACTYK_TESTSTATE__FAIL;
     }
 }
@@ -689,14 +570,6 @@ uint64_t tactyk_test__TEST_LWCALL_STACK(struct tactyk_test_entry *entry, struct 
     }
 
     for (;ofs < limit; ofs++) {
-        if (vmctx->lwcall_stack[ofs] != val) {
-            snprintf(
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "LW Call Stack deviation at offset %ju, expected=%ju observed=%u",
-                ofs, val, vmctx->lwcall_stack[ofs]
-            );
-            return TACTYK_TESTSTATE__FAIL;
-        }
         shadow_lwcall_stack[ofs] = val;
     }
     return TACTYK_TESTSTATE__PASS;
@@ -737,16 +610,12 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
 
     #define STASH_TEST(NAME, FIELD) \
     else if (strncmp(fn, #NAME, 64) == 0) { \
-        pass = (ival == stash->FIELD); \
         shstash->FIELD = ival; \
-        st_ival = stash->FIELD; \
         field_matched = true; \
     }
     #define STASH_ATEST(NAME, FIELD, TYPE) \
     else if (strncmp(fn, NAME, 64) == 0) { \
-        pass = ((TYPE)ival == stash->FIELD); \
         shstash->FIELD = (TYPE)ival; \
-        st_ival = stash->FIELD; \
         field_matched = true; \
     }
     if ( (strncmp(fn, "addr", 4) == 0) && (strlen(fn) == 5) ) {
@@ -777,7 +646,6 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
                 ival += uival;
             }
         }
-        pass = ((uint8_t*)ival == mbll->base_address);
         shmbll->base_address = (uint8_t*)ival;
         field_matched = true;
     }
@@ -858,20 +726,12 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
     #undef STASH_TEST
     #undef STASH_ATEST
 
-    if (field_matched) {
-        if (pass) {
-            return TACTYK_TESTSTATE__PASS;
-        }
-        else {
-            sprintf(test_state->report, "deviation on mctx-stash field '%s', expected:%jd observed:%jd", fn, ival, st_ival);
-            return TACTYK_TESTSTATE__FAIL;
-        }
-    }
-    else {
+    if (!field_matched) {
         sprintf(test_state->report, "unrecognized mctx field: '%s'", fn);
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
 
+    return TACTYK_TESTSTATE__PASS;
 }
 
 uint64_t tactyk_test__TEST_CCALL_ARGUMENT(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {

@@ -222,32 +222,36 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
 
     #undef SHADOW_OBJ
     #undef REAL_OBJ
-    #define REAL_OBJ (&vmctx->memblocks[0])
-    #define SHADOW_OBJ (&shadow_memblocks[0])
+    #define REAL_OBJ (&vmctx->active_memblocks[0])
+    #define SHADOW_OBJ (&shadow_vmctx->active_memblocks[0])
+    CHK(base_address, "%p", "memblock #1 base address");
     CHK(array_bound, "%u", "memblock #1 array bound");
     CHK(element_bound, "%u", "memblock #1 element bound");
     CHK(memblock_index, "%u", "memblock #1 index");
     CHK(offset, "%u", "memblock #1 offset");
     #undef SHADOW_OBJ
     #undef REAL_OBJ
-    #define REAL_OBJ (&vmctx->memblocks[1])
-    #define SHADOW_OBJ (&shadow_memblocks[1])
+    #define REAL_OBJ (&vmctx->active_memblocks[1])
+    #define SHADOW_OBJ (&shadow_vmctx->active_memblocks[1])
+    CHK(base_address, "%p", "memblock #2 base address");
     CHK(array_bound, "%u", "memblock #2 array bound");
     CHK(element_bound, "%u", "memblock #2 element bound");
     CHK(memblock_index, "%u", "memblock #2 index");
     CHK(offset, "%u", "memblock #2 offset");
     #undef SHADOW_OBJ
     #undef REAL_OBJ
-    #define REAL_OBJ (&vmctx->memblocks[2])
-    #define SHADOW_OBJ (&shadow_memblocks[2])
+    #define REAL_OBJ (&vmctx->active_memblocks[2])
+    #define SHADOW_OBJ (&shadow_vmctx->active_memblocks[2])
+    CHK(base_address, "%p", "memblock #3 base address");
     CHK(array_bound, "%u", "memblock #3 array bound");
     CHK(element_bound, "%u", "memblock #3 element bound");
     CHK(memblock_index, "%u", "memblock #3 index");
     CHK(offset, "%u", "memblock #3 offset");
     #undef SHADOW_OBJ
     #undef REAL_OBJ
-    #define REAL_OBJ (&vmctx->memblocks[3])
-    #define SHADOW_OBJ (&shadow_memblocks[3])
+    #define REAL_OBJ (&vmctx->active_memblocks[3])
+    #define SHADOW_OBJ (&shadow_vmctx->active_memblocks[3])
+    CHK(base_address, "%p", "memblock #4 base address");
     CHK(array_bound, "%u", "memblock #4 array bound");
     CHK(element_bound, "%u", "memblock #4 element bound");
     CHK(memblock_index, "%u", "memblock #4 index");
