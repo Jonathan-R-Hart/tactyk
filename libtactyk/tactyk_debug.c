@@ -67,7 +67,7 @@ void tactyk_debug__write_mbind(struct tactyk_asmvm__Context *ctx, FILE *stream) 
     fprintf(stream, "=========================================\n");
 }
 void tactyk_debug__write_vmstack(struct tactyk_asmvm__Stack *stack, FILE *stream) {
-    fprintf(stream, "===== TACTYK VM STACK =======================================================================================================\n");
+    fprintf(stream, "===== TACTYK VM STACK ===========================================================================================================================================\n");
     char *lockstate;
     if (stack->stack_lock) {
         lockstate = "LOCKED";
@@ -76,14 +76,17 @@ void tactyk_debug__write_vmstack(struct tactyk_asmvm__Stack *stack, FILE *stream
         lockstate = "UNLOCKED";
     }
     fprintf(stream, "| state: %-8s |                                                                                                         |\n", lockstate);
-    fprintf(stream, "|---------------------------------------------------------------------------------------------------------------------------|\n");
-    fprintf(stream, "|   pos |    src-commands |   return-target |  lwc-floor | mctx-floor |   dest-commands |  dest-functions |     jump-target |\n");
-    fprintf(stream, "|---------------------------------------------------------------------------------------------------------------------------|\n");
+    fprintf(stream, "|---------------------------------------------------------------------------------------------------------------------------------------------------------------|\n");
+    fprintf(stream, "|   pos |    src-commands |   return-target |     src-maxiptr |  lwc-floor | mctx-floor |   dest-commands |  dest-functions |     jump-target |    dest-maxiptr |\n");
+    fprintf(stream, "|---------------------------------------------------------------------------------------------------------------------------------------------------------------|\n");
     for (int64_t pos = 0; pos <= stack->stack_position; pos += 1) {
         struct tactyk_asmvm__vm_stack_entry *entry = &stack->entries[pos];
-        fprintf(stream, "| %5ju | %15p | %15ju | %10u | %10u | %15p | %15p | %15ju |\n", pos, entry->source_command_map, entry->source_return_index, entry->source_lwcallstack_floor, entry->source_mctxstack_floor, entry->dest_command_map, entry->dest_function_map, entry->dest_jump_index);
+        fprintf(
+            stream, "| %5ju | %15p | %15u | %15u | %10u | %10u | %15p | %15p | %15u | %15u |\n",
+            pos, entry->source_command_map, entry->source_return_index, entry->source_max_iptr, entry->source_lwcallstack_floor, entry->source_mctxstack_floor,
+            entry->dest_command_map, entry->dest_function_map, entry->dest_jump_index, entry->dest_max_iptr);
     }
-    fprintf(stream, "=============================================================================================================================\n");
+    fprintf(stream, "================================================================================================================================================================\n");
 }
 void tactyk_debug__write_vmprograms(struct tactyk_asmvm__Context *ctx, FILE *stream) {
 

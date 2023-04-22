@@ -18,6 +18,26 @@ uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec
     return TACTYK_TESTSTATE__PASS;
 }
 
+uint64_t tactyk_test__TEST_CONTEXT_PROGRAM(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *expected_value = spec->token->next;
+    if (expected_value == NULL) {
+        tactyk_test__report("TEST_CONTEXT_PROGRAM - No program specified");
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+
+    struct tactyk_asmvm__Program *prog = tactyk_dblock__get(programs, expected_value);
+
+    if (prog == NULL) {
+        char buf[256];
+        tactyk_dblock__export_cstring(buf, 256, expected_value);
+        snprintf(buf, TACTYK_TEST__REPORT_BUFSIZE, "TEST_CONTEXT_PROGRAM - Failed to resolve program: %s", buf);
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+
+    shadow_vmctx->program_map = prog->command_map;
+    return TACTYK_TESTSTATE__PASS;
+}
+
 uint64_t tactyk_test__TEST_STACKLOCK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *expected_value = spec->token->next;
     uint64_t uival = 0;
@@ -66,11 +86,13 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
             dest_program = tactyk_dblock__get(programs, token);
             shadow_st_entry->dest_command_map = dest_program->command_map;
             shadow_st_entry->dest_function_map = dest_program->function_map;
+            shadow_st_entry->dest_max_iptr = dest_program->length;
         }
         else if (tactyk_dblock__equals_c_string(token, "src-program")) {
             token = token->next;
             source_program = tactyk_dblock__get(programs, token);
             shadow_st_entry->source_command_map = source_program->command_map;
+            shadow_st_entry->source_max_iptr = source_program->length;
         }
         else if (tactyk_dblock__equals_c_string(token, "jumptarget")) {
             token = token->next;

@@ -133,6 +133,7 @@ uint64_t tactyk_test__TEST_CCALL_ARGUMENT(struct tactyk_test_entry *entry, struc
 uint64_t tactyk_test__TEST_LWCALL_STACK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__TEST_CONTEXT_PROGRAM(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec);
 
 
 

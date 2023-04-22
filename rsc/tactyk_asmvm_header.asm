@@ -263,7 +263,11 @@
     endstruc
 
     struc tvmstackentry
-      qwords source_program, source_return_index, source_stack_floor, target_program, target_function_jumptable, target_jump_index
+      qwords  source_program
+              .source_exec_position: dwords source_return_index, source_max_iptr
+              .source_stack_floor: dwords source_lwcallstack_floor, source_mctxstack_floor
+      qwords  target_program, target_function_jumptable
+              .target_exec_position: dwords target_jump_index, dest_max_iptr
     endstruc
 
     %define stacksize 1024
@@ -327,7 +331,7 @@
         
         ; 0
         
-        qwords maxip, subcontext
+        qwords instruction_count, subcontext
         qwords memblocks, memblocks_count
         
         ; 32

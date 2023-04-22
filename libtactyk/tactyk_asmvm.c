@@ -102,7 +102,7 @@ bool tactyk_asmvm__prepare_invoke(struct tactyk_asmvm__Context *context, struct 
     context->hl_program_ref = prog;
     context->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) prog->memory_layout_ll->data;
     context->memblock_count = prog->memory_layout_ll->element_count;
-    context->max_instruction_pointer = prog->length-1;
+    context->instruction_count = prog->length;
     context->program_map = prog->command_map;
     context->instruction_index = iptr;
 
@@ -138,7 +138,7 @@ void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_a
 }
 
 bool tactyk_asmvm__resume(struct tactyk_asmvm__Context *context) {
-    if (context->instruction_index >= context->max_instruction_pointer) {
+    if (context->instruction_index >= context->instruction_count) {
         error("ASMVM -- Can not resume: invalid instruction pointer", NULL);
     }
     if (context->STATUS != 3) {

@@ -224,6 +224,11 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     lwcs_test->test = tactyk_test__TEST_LWCALL_STACK;
     lwcs_test->offset = 0;
 
+    struct tactyk_test_entry *program_test = tactyk_dblock__new_managedobject(base_tests, "program");
+    program_test->name = "program";
+    program_test->test = tactyk_test__TEST_CONTEXT_PROGRAM;
+    program_test->offset = 0;
+
     tactyk_test__mk_register_test("rLWCSI", 1);
     tactyk_test__mk_register_test("rMCSI", 2);
     tactyk_test__mk_register_test("rA", 10);

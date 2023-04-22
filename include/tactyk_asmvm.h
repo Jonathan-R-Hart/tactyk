@@ -145,12 +145,14 @@ struct tactyk_asmvm__memblock_highlevel {
 
 struct tactyk_asmvm__vm_stack_entry {
     void *source_command_map;
-    uint64_t source_return_index;
+    uint32_t source_return_index;
+    uint32_t source_max_iptr;
     uint32_t source_lwcallstack_floor;
     uint32_t source_mctxstack_floor;
     void *dest_command_map;
     void *dest_function_map;
-    uint64_t dest_jump_index;
+    uint32_t dest_jump_index;
+    uint32_t dest_max_iptr;
 };
 
 struct tactyk_asmvm__Stack {
@@ -181,7 +183,7 @@ struct tactyk_asmvm__MicrocontextStash {
 // would prefer an explicit struct memory layout here, since this represents a low-level data structure
 struct tactyk_asmvm__Context {
 
-    uint64_t max_instruction_pointer;
+    uint64_t instruction_count;
     struct tactyk_asmvm__Context *subcontext;
 
     // program memory

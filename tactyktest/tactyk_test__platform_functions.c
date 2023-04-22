@@ -159,7 +159,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
 
     #define SHADOW_OBJ shadow_vmctx
     #define REAL_OBJ vmctx
-    CHK(max_instruction_pointer, "%ju", "instruction count")
+    CHK(instruction_count, "%ju", "instruction count")
     CHK(subcontext, "%p", "subcontext")
     CHK(memblocks, "%p", "memblocks pointer")
     CHK(memblock_count, "%ju", "memblock count")
@@ -415,7 +415,6 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
     for (uint64_t i = 0; i < TACTYK_ASMVM__VM_STACK_SIZE; i += 1) {
         struct tactyk_asmvm__vm_stack_entry *se = &vmctx->stack->entries[i];
         struct tactyk_asmvm__vm_stack_entry *shse = &shadow_ctx_stack->entries[i];
-
         sprintf(prefix, "primary stack item #%ju ", i);
         #define DESCRIPTION_PREFIX prefix
         #define REAL_OBJ se
@@ -423,8 +422,10 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
         CHK(dest_command_map, "%p", "destination instruction map");
         CHK(dest_function_map, "%p", "destination function map");
         CHK(source_command_map, "%p", "source instruction map");
-        CHK(dest_jump_index, "%ju", "jump target");
-        CHK(source_return_index, "%ju", "return target");
+        CHK(dest_jump_index, "%u", "jump target");
+        CHK(source_return_index, "%u", "return target");
+        CHK(source_max_iptr, "%u", "source max instruction pointer");
+        CHK(dest_max_iptr, "%u", "detination max instruction pointer");
         CHK(source_lwcallstack_floor, "%u", "source lwcall stack floor");
         CHK(source_mctxstack_floor, "%u", "source mctx stack floor");
         #undef SHADOW_OBJ
