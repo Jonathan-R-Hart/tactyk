@@ -14,7 +14,7 @@ uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec
         tactyk_test__report("Test value parameter is not an integer");
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
-    shadow_vmctx->STATUS = vmctx->STATUS;
+    shadow_vmctx->STATUS = ival;
     return TACTYK_TESTSTATE__PASS;
 }
 
@@ -25,7 +25,7 @@ uint64_t tactyk_test__TEST_STACKLOCK(struct tactyk_test_entry *entry, struct tac
         tactyk_test__report("Test value parameter is not an integer");
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
-    shadow_ctx_stack->stack_lock = vmctx->stack->stack_lock;
+    shadow_ctx_stack->stack_lock = uival;
     return TACTYK_TESTSTATE__PASS;
 }
 uint64_t tactyk_test__TEST_STACKPOSITION(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
@@ -35,7 +35,7 @@ uint64_t tactyk_test__TEST_STACKPOSITION(struct tactyk_test_entry *entry, struct
         tactyk_test__report("Test value parameter is not an integer");
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
-    shadow_ctx_stack->stack_position = vmctx->stack->stack_position;
+    shadow_ctx_stack->stack_position = ival;
     return TACTYK_TESTSTATE__PASS;
 }
 
@@ -119,6 +119,7 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
                 );
                 return TACTYK_TESTSTATE__TEST_ERROR;
             }
+            shadow_st_entry->source_lwcallstack_floor = lwcsfloor;
         }
         else if (tactyk_dblock__equals_c_string(token, "src-mctxfloor")) {
             token = token->next;
@@ -377,46 +378,38 @@ uint64_t tactyk_test__TEST_REGISTER(struct tactyk_test_entry *valtest_spec, stru
         tactyk_test__report("Test value parameter is not an integer");
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
-    int64_t stval = 0;
+    uint64_t uival = (uint64_t)ival;
     switch(valtest_spec->offset) {
         case 1: {
-            stval = vmctx->reg.rLWCSI;
-            shadow_vmctx->reg.rLWCSI = vmctx->reg.rLWCSI;
+            shadow_vmctx->reg.rLWCSI = uival;
             break;
         }
         case 2: {
-            stval = vmctx->reg.rMCSI;
-            shadow_vmctx->reg.rMCSI = vmctx->reg.rMCSI;
+            shadow_vmctx->reg.rMCSI = uival;
             break;
         }
         case 10: {
-            stval = vmctx->reg.rA;
-            shadow_vmctx->reg.rA = vmctx->reg.rA;
+            shadow_vmctx->reg.rA = uival;
             break;
         }
         case 11: {
-            stval = vmctx->reg.rB;
-            shadow_vmctx->reg.rB = vmctx->reg.rB;
+            shadow_vmctx->reg.rB = uival;
             break;
         }
         case 12: {
-            stval = vmctx->reg.rC;
-            shadow_vmctx->reg.rC = vmctx->reg.rC;
+            shadow_vmctx->reg.rC = uival;
             break;
         }
         case 13: {
-            stval = vmctx->reg.rD;
-            shadow_vmctx->reg.rD = vmctx->reg.rD;
+            shadow_vmctx->reg.rD = uival;
             break;
         }
         case 14: {
-            stval = vmctx->reg.rE;
-            shadow_vmctx->reg.rE = vmctx->reg.rE;
+            shadow_vmctx->reg.rE = uival;
             break;
         }
         case 15: {
-            stval = vmctx->reg.rF;
-            shadow_vmctx->reg.rF = vmctx->reg.rF;
+            shadow_vmctx->reg.rF = uival;
             break;
         }
         default: {
