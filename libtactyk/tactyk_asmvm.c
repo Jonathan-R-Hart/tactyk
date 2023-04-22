@@ -77,6 +77,7 @@ void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tac
     }
     mprotect(fjumptable, fjt_size, PROT_READ );
     dec->function_jumptable = fjumptable;
+    program->function_map = fjumptable;
 }
 
 /*

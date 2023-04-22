@@ -246,6 +246,7 @@ struct tactyk_asmvm__Program {
     //void* vmbin;
     //void* immediates;
     tactyk_asmvm__op *command_map;
+    tactyk_asmvm__op *function_map;
     void* executable;
     tactyk_asmvm__runnable run;
     tactyk_asmvm__show_indicator debug_func;

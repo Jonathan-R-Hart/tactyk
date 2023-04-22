@@ -37,7 +37,7 @@ uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec
 
 uint64_t tactyk_test__TEST_STACKLOCK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *expected_value = spec->token->next;
-    int64_t uival = 0;
+    uint64_t uival = 0;
     if (!tactyk_dblock__try_parseuint(&uival, expected_value)) {
         tactyk_test__report("Test value parameter is not an integer");
         return TACTYK_TESTSTATE__TEST_ERROR;
@@ -96,15 +96,90 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
 
     bool permissive = false;
 
-    struct tactyk_dblock__DBlock *param = index_param->next;
-    while (param != NULL) {
-        if (tactyk_dblock__equals_c_string(param, "*")) {
-            permissive = true;
+    struct tactyk_asmvm__Program *dest_program = NULL;
+    struct tactyk_asmvm__Program *source_program = tprg;
+
+    struct tactyk_dblock__DBlock *testitem = spec->child;
+    while (testitem != NULL) {
+        struct tactyk_dblock__DBlock *token = testitem->token;
+
+        if (tactyk_dblock__equals_c_string(token, "dest-program")) {
+            token = token->next;
+            dest_program = tactyk_dblock__get(programs, token);
+            shadow_st_entry->dest_command_map = dest_program->command_map;
+            shadow_st_entry->dest_function_map = dest_program->function_map;
         }
-        param = param->next;
+        else if (tactyk_dblock__equals_c_string(token, "src-program")) {
+            token = token->next;
+            source_program = tactyk_dblock__get(programs, token);
+            shadow_st_entry->source_command_map = source_program->command_map;
+        }
+        else if (tactyk_dblock__equals_c_string(token, "jumptarget")) {
+            token = token->next;
+            uint64_t jtarget = 0;
+            if (!tactyk_dblock__try_parseuint(&jtarget, token)) {
+                // should probably allow jump targets reference by name (it isn't conveniently stored)
+                char buf[256];
+                tactyk_dblock__export_cstring(buf, 256, token);
+                snprintf(
+                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                    "invalid jump target: %s\n",
+                    buf
+                );
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
+            shadow_st_entry->dest_jump_index = jtarget;
+        }
+        else if (tactyk_dblock__equals_c_string(token, "returntarget")) {
+            token = token->next;
+            uint64_t jtarget = 0;
+            if (!tactyk_dblock__try_parseuint(&jtarget, token)) {
+                // should probably allow jump target reference by name (it isn't conveniently stored)
+                char buf[256];
+                tactyk_dblock__export_cstring(buf, 256, token);
+                snprintf(
+                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                    "invalid jump target: %s\n",
+                    buf
+                );
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
+            shadow_st_entry->source_return_index = jtarget;
+        }
+        else if (tactyk_dblock__equals_c_string(token, "src-lwcsfloor")) {
+            token = token->next;
+            uint64_t lwcsfloor = 0;
+            if (!tactyk_dblock__try_parseuint(&lwcsfloor, token)) {
+                char buf[256];
+                tactyk_dblock__export_cstring(buf, 256, token);
+                snprintf(
+                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                    "invalid lw-callstack floor: %s\n",
+                    buf
+                );
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
+        }
+        else if (tactyk_dblock__equals_c_string(token, "src-mctxfloor")) {
+            token = token->next;
+            uint64_t mctxfloor = 0;
+            if (!tactyk_dblock__try_parseuint(&mctxfloor, token)) {
+                char buf[256];
+                tactyk_dblock__export_cstring(buf, 256, token);
+                snprintf(
+                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                    "invalid lw-callstack floor: %s\n",
+                    buf
+                );
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
+            shadow_st_entry->source_mctxstack_floor = mctxfloor;
+        }
+        testitem = testitem->next;
     }
 
-    if (permissive) {
+    struct tactyk_dblock__DBlock *permissive_param = index_param->next;
+    if ( (permissive_param != NULL) && tactyk_dblock__equals_c_string(permissive_param, "*")) {
         memcpy(shadow_st_entry, ctx_st_entry, sizeof( struct tactyk_asmvm__vm_stack_entry));
     }
     return TACTYK_TESTSTATE__PASS;
