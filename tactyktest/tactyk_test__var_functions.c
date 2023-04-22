@@ -30,7 +30,7 @@ uint64_t tactyk_test__TEST_CONTEXT_PROGRAM(struct tactyk_test_entry *valtest_spe
     if (prog == NULL) {
         char buf[256];
         tactyk_dblock__export_cstring(buf, 256, expected_value);
-        snprintf(buf, TACTYK_TEST__REPORT_BUFSIZE, "TEST_CONTEXT_PROGRAM - Failed to resolve program: %s", buf);
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "TEST_CONTEXT_PROGRAM - Failed to resolve program: %s", buf);
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
 
@@ -102,7 +102,7 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
     struct tactyk_asmvm__vm_stack_entry *shadow_st_entry = &shadow_ctx_stack->entries[idx];
 
     struct tactyk_asmvm__Program *dest_program = NULL;
-    struct tactyk_asmvm__Program *source_program = tprg;
+    struct tactyk_asmvm__Program *source_program = NULL;
 
     struct tactyk_dblock__DBlock *testitem = spec->child;
     while (testitem != NULL) {
@@ -156,19 +156,32 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
         }
         else if (tactyk_dblock__equals_c_string(token, "returntarget")) {
             token = token->next;
+            if (token == NULL) {
+                tactyk_test__report("stackentry-returntarget: target not specified.");
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
             uint64_t jtarget = 0;
-            if (!tactyk_dblock__try_parseuint(&jtarget, token)) {
+            if (source_program != NULL) {
+                int64_t lbl_pos = getLabelPosition(source_program, token);
+                if (lbl_pos != -1) {
+                    jtarget = lbl_pos;
+                    token = token->next;
+                }
+            }
+            uint64_t joffset = 0;
+
+            if ( (token != NULL) && (!tactyk_dblock__try_parseuint(&joffset, token))) {
                 // should probably allow jump target reference by name (it isn't conveniently stored)
                 char buf[256];
                 tactyk_dblock__export_cstring(buf, 256, token);
                 snprintf(
                     test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "invalid jump target: %s\n",
+                    "invalid return target: %s\n",
                     buf
                 );
                 return TACTYK_TESTSTATE__TEST_ERROR;
             }
-            shadow_st_entry->source_return_index = jtarget;
+            shadow_st_entry->source_return_index = jtarget+joffset;
         }
         else if (tactyk_dblock__equals_c_string(token, "src-lwcsfloor")) {
             token = token->next;

@@ -10,6 +10,8 @@ tactyk-test refactoring
 Remove direct state adjustment functions from tactyk-test
   tactyk is quite capable on its own state on its own.
 
+Add test functions for validating the primary stack (tvmcalls -- tactyk program callign into other tactyk programs)
+
 21 Apr 2023
 Add test coverage for instructions: stash, mctxpush, mctxpop, mctxjump
 
