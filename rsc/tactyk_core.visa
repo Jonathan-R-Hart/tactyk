@@ -2157,7 +2157,7 @@ instruction tvmreturn
     mov fs:[context.instruction_count + random_const_FS], rTEMPA
     
     ; prepare a return jump
-    mov rTEMPA, [rTEMPC + tvmstackentry.source_return_index]
+    mov rTEMPA_32, [rTEMPC + tvmstackentry.source_return_index]
     shl rTEMPA, 3
     add rMAPPER, rTEMPA
     
