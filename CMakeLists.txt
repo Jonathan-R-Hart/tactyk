@@ -26,6 +26,11 @@ add_executable(tdemo
 
 add_executable(ttest
   tactyktest/ttest.c
+  tactyktest/tactyk_test__TestIt.c
+  tactyktest/tactyk_test__util.c
+  tactyktest/tactyk_test__platform_functions.c
+  tactyktest/tactyk_test__var_functions.c
+  tactyktest/tactyk_test__callbacks.c
 )
 
 find_package(SDL2 REQUIRED)

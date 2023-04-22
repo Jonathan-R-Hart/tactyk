@@ -38,6 +38,7 @@ extern struct tactyk_asmvm__Context *vmctx;
 extern struct tactyk_asmvm__Context *shadow_vmctx;
 extern struct tactyk_asmvm__memblock_lowlevel *shadow_memblocks;
 extern struct tactyk_asmvm__MicrocontextStash *shadow_mctxstack;
+extern struct tactyk_asmvm__Stack *shadow_ctx_stack;
 extern uint32_t *shadow_lwcall_stack;
 extern double precision;
 extern uint64_t callback_id;

@@ -5,6 +5,7 @@
 #include "ttest.h"
 #include "tactyk_pl.h"
 #include "tactyk_dblock.h"
+#include "tactyk_asmvm.h"
 
 uint64_t tactyk_test__PROGRAM(struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *name = spec->token->next;
@@ -363,6 +364,84 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
         STASH_CHK(z.i64[0]);
         STASH_CHK(z.i64[1]);
         #undef STASH_CHK
+    }
+
+    if (shadow_ctx_stack->stack_lock != vmctx->stack->stack_lock) {
+        snprintf(
+            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+            "ctx-stack lock deviation, expected:%ju observed:%ju",
+            shadow_ctx_stack->stack_lock, vmctx->stack->stack_lock
+        );
+        return TACTYK_TESTSTATE__FAIL;
+    }
+    if (shadow_ctx_stack->stack_position != vmctx->stack->stack_position) {
+        snprintf(
+            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+            "ctx-stack position deviation, expected:%ju observed:%ju",
+            shadow_ctx_stack->stack_position, vmctx->stack->stack_position
+        );
+        return TACTYK_TESTSTATE__FAIL;
+    }
+
+    for (uint64_t i = 0; i < TACTYK_ASMVM__VM_STACK_SIZE; i += 1) {
+        struct tactyk_asmvm__vm_stack_entry *se = &vmctx->stack->entries[i];
+        struct tactyk_asmvm__vm_stack_entry *shse = &vmctx->stack->entries[i];
+        if (shse->dest_command_map != se->dest_command_map) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "ctx-stack dest-command-map deviation, expected:%p observed:%p",
+                shse->dest_command_map, se->dest_command_map
+            );
+            return TACTYK_TESTSTATE__FAIL;
+        }
+        if (shse->dest_function_map != se->dest_function_map) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "ctx-stack dest-function-map deviation, expected:%p observed:%p",
+                shse->dest_function_map, se->dest_function_map
+            );
+            return TACTYK_TESTSTATE__FAIL;
+        }
+        if (shse->source_command_map != se->source_command_map) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "ctx-stack source-command-map deviation, expected:%p observed:%p",
+                shse->source_command_map, se->source_command_map
+            );
+            return TACTYK_TESTSTATE__FAIL;
+        }
+        if (shse->dest_jump_index != se->dest_jump_index) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "ctx-stack dest-jump-index deviation, expected:%ju observed:%ju",
+                shse->dest_jump_index, se->dest_jump_index
+            );
+            return TACTYK_TESTSTATE__FAIL;
+        }
+        if (shse->source_return_index != se->source_return_index) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "ctx-stack source-return-index deviation, expected:%ju observed:%ju",
+                shse->source_return_index, se->source_return_index
+            );
+            return TACTYK_TESTSTATE__FAIL;
+        }
+        if (shse->source_lwcallstack_floor != se->source_lwcallstack_floor) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "ctx-stack source-lwcs-floor deviation, expected:%u observed:%u",
+                shse->source_lwcallstack_floor, se->source_lwcallstack_floor
+            );
+            return TACTYK_TESTSTATE__FAIL;
+        }
+        if (shse->source_mctxstack_floor != se->source_mctxstack_floor) {
+            snprintf(
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                "ctx-stack source-mctx-floor deviation, expected:%u observed:%u",
+                shse->source_mctxstack_floor, se->source_mctxstack_floor
+            );
+            return TACTYK_TESTSTATE__FAIL;
+        }
     }
 
     return TACTYK_TESTSTATE__PASS;

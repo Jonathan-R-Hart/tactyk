@@ -23,6 +23,7 @@ struct tactyk_asmvm__Context *vmctx;
 struct tactyk_asmvm__Context *shadow_vmctx;
 struct tactyk_asmvm__memblock_lowlevel *shadow_memblocks;
 struct tactyk_asmvm__MicrocontextStash *shadow_mctxstack;
+struct tactyk_asmvm__Stack *shadow_ctx_stack;
 uint32_t *shadow_lwcall_stack;
 double precision;
 uint64_t callback_id;
@@ -149,6 +150,9 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     shadow_vmctx = calloc(1, sizeof(struct tactyk_asmvm__Context));
     shadow_mctxstack = (struct tactyk_asmvm__MicrocontextStash*) calloc(TACTYK_ASMVM__MCTX_STACK_SIZE, sizeof(struct tactyk_asmvm__MicrocontextStash));
     shadow_lwcall_stack = (uint32_t*) calloc(TACTYK_ASMVM__LWCALL_STACK_SIZE, sizeof(uint32_t));
+    shadow_ctx_stack = calloc(1, sizeof(struct tactyk_asmvm__Stack));
+    shadow_ctx_stack->stack_lock = 0;
+    shadow_ctx_stack->stack_position = -1;
     tactyk_debug__configure_api(emitctx);
     tactyk_emit_svc__configure(emitctx);
     tactyk_emit__add_c_apifunc(emitctx, "cfunc-1", tactyk_test__RECV_CCALL_1);

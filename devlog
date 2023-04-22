@@ -34,6 +34,10 @@ New security feature:  Random address displacement
   The primary interest is to fortify the stash operation
     (it allows scripts to specify a multiple immediately adjacent instructions and can achieve only a moderate level of randomization without resorting to arbitrarilly inserted nops)
 
+Restructured tactyk-test
+
+Add state change tracking for the main stack to the test system.
+
 20 Apr 2023
 Add instructions:  not, negate (tactyk_core.visa)
 Add test coverage for and, or, xor, not, negate, inc, dec instructions  (tactyk_core.visa)
