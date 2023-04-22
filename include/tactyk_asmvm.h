@@ -86,23 +86,23 @@ struct tactyk_asmvm__register_bank {
     uint64_t rE;
     uint64_t rF;
 
-    union tactyk_asmvm__reg128 xa;
-    union tactyk_asmvm__reg128 xb;
-    union tactyk_asmvm__reg128 xc;
-    union tactyk_asmvm__reg128 xd;
+    union tactyk_asmvm__reg128 xA;
+    union tactyk_asmvm__reg128 xB;
+    union tactyk_asmvm__reg128 xC;
+    union tactyk_asmvm__reg128 xD;
 
-    union tactyk_asmvm__reg128 xe;
-    union tactyk_asmvm__reg128 xf;
-    union tactyk_asmvm__reg128 xg;
-    union tactyk_asmvm__reg128 xh;
+    union tactyk_asmvm__reg128 xE;
+    union tactyk_asmvm__reg128 xF;
+    union tactyk_asmvm__reg128 xG;
+    union tactyk_asmvm__reg128 xH;
 
-    union tactyk_asmvm__reg128 xi;
-    union tactyk_asmvm__reg128 xj;
-    union tactyk_asmvm__reg128 xk;
-    union tactyk_asmvm__reg128 xl;
+    union tactyk_asmvm__reg128 xI;
+    union tactyk_asmvm__reg128 xJ;
+    union tactyk_asmvm__reg128 xK;
+    union tactyk_asmvm__reg128 xL;
 
-    union tactyk_asmvm__reg128 xm;
-    union tactyk_asmvm__reg128 xn;
+    union tactyk_asmvm__reg128 xM;
+    union tactyk_asmvm__reg128 xN;
     union tactyk_asmvm__reg128 xTEMPA;
     union tactyk_asmvm__reg128 xTEMPB;
 

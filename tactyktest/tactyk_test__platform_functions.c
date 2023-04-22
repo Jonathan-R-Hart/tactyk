@@ -144,91 +144,127 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
     uint8_t *shadow_bytes = (uint8_t*) shadow_vmctx;
     uint64_t *real_qwords = (uint64_t*) vmctx;
     uint64_t *shadow_qwords = (uint64_t*) shadow_vmctx;
+    char prefix[256];
+    sprintf(prefix, "");
 
-    // scan the context structure, but leave out runtime registers and diagnostic data.
-    //      diagnostic data is not part of testing (It's intended to aid with debugging)
-    //      Runtime registers is whatever C leaves on the registers when calling into TACTYK.
-    //          This would better be handled through a runtime environment correctness test to be performed within callbacks and/or after returning from tactyk.
-    for (int64_t ofs = 0; ofs < offsetof(struct tactyk_asmvm__Context, runtime_registers); ofs += 1) {
-
-        // if a deviation is found, the test fails.
-        if (real_bytes[ofs] != shadow_bytes[ofs]) {
-            int64_t qwpos = ofs / 8;
-
-            // Check offset-ranges to identify which section of the context data structure the deviation was found in.
-
-            // general context data.
-            if (ofs < offsetof(struct tactyk_asmvm__Context, reg)) {
-                snprintf(
-                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "Context-state deviation at offset %jd (qword #%jd), expected=%jd observed=%jd",
-                    ofs, qwpos, shadow_qwords[qwpos], real_qwords[qwpos]
-                );
-            }
-            else {
-                int64_t rel_ofs = ofs - offsetof(struct tactyk_asmvm__Context, reg);
-                // main register file (standard x86 registers)
-                if (rel_ofs < offsetof(struct tactyk_asmvm__register_bank, xa)) {
-                    snprintf(
-                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                        "Register-file deviation at offset %jd (qword #%jd), expected=%jd observed=%jd",
-                        rel_ofs, rel_ofs/8, shadow_qwords[qwpos], real_qwords[qwpos]
-                    );
-                }
-
-                // xmm register file
-                else {
-                    int64_t rel_ofs = ofs - offsetof(struct tactyk_asmvm__Context, reg) - offsetof(struct tactyk_asmvm__register_bank, xa);
-                    snprintf(
-                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                        "XMM Register-file deviation at offset %jd (qword #%jd), expected=%f observed=%f",
-                        rel_ofs, rel_ofs/8, *((double*)&shadow_qwords[qwpos]), *((double*)&real_qwords[qwpos])
-                    );
-                }
-            }
-            return TACTYK_TESTSTATE__FAIL;
+    #define CHK(ACCESSOR, FORMAT, DESCRIPTION) \
+        if (SHADOW_OBJ->ACCESSOR != REAL_OBJ->ACCESSOR) { \
+            snprintf( \
+                test_state->report, TACTYK_TEST__REPORT_BUFSIZE, \
+                "deviation: %s%s, expected: "FORMAT", observed: "FORMAT, \
+                prefix, DESCRIPTION, SHADOW_OBJ->ACCESSOR, REAL_OBJ->ACCESSOR \
+            ); \
+            return TACTYK_TESTSTATE__FAIL; \
         }
-    }
+
+    #define SHADOW_OBJ shadow_vmctx
+    #define REAL_OBJ vmctx
+    CHK(max_instruction_pointer, "%ju", "instruction count")
+    CHK(subcontext, "%p", "subcontext")
+    CHK(memblocks, "%p", "memblocks pointer")
+    CHK(memblock_count, "%ju", "memblock count")
+    CHK(lwcall_stack, "%p", "lwcall stack pointer")
+    CHK(microcontext_stack, "%p", "mctx stack pointer")
+    CHK(microcontext_stack_offset, "%ju", "mctx stack offset")
+    CHK(lwcall_stack_floor, "%u", "lwcall stack floor")
+    CHK(mctx_stack_floor, "%u", "mctx stack floor")
+    CHK(vm, "%p", "vm pointer")
+    CHK(stack, "%p", "main stack pointer")
+    CHK(program_map, "%p", "program instruction map")
+    CHK(hl_program_ref, "%p", "high-level program pointer")
+    CHK(instruction_index, "%ju", "program instruction index")
+    CHK(STATUS, "%ju", "execution status")
+    CHK(signature, "%ju", "context pointer validation signature")
+    CHK(extra, "%ju", "extra")
+
+    CHK(reg.rA, "%jd", "Register rA");
+    CHK(reg.rB, "%jd", "Register rB");
+    CHK(reg.rC, "%jd", "Register rC");
+    CHK(reg.rD, "%jd", "Register rD");
+    CHK(reg.rE, "%jd", "Register rE");
+    CHK(reg.rF, "%jd", "Register rF");
+
+    CHK(reg.xA.f64[0], "%f", "Register xA-low");
+    CHK(reg.xA.f64[1], "%f", "Register xA-high");
+    CHK(reg.xB.f64[0], "%f", "Register xB-low");
+    CHK(reg.xB.f64[1], "%f", "Register xB-high");
+    CHK(reg.xC.f64[0], "%f", "Register xC-low");
+    CHK(reg.xC.f64[1], "%f", "Register xC-high");
+    CHK(reg.xD.f64[0], "%f", "Register xD-low");
+    CHK(reg.xD.f64[1], "%f", "Register xD-high");
+    CHK(reg.xE.f64[0], "%f", "Register xE-low");
+    CHK(reg.xE.f64[1], "%f", "Register xE-high");
+
+    CHK(reg.xF.f64[0], "%f", "Register xF-low");
+    CHK(reg.xF.f64[1], "%f", "Register xF-high");
+    CHK(reg.xG.f64[0], "%f", "Register xG-low");
+    CHK(reg.xG.f64[1], "%f", "Register xG-high");
+    CHK(reg.xH.f64[0], "%f", "Register xH-low");
+    CHK(reg.xH.f64[1], "%f", "Register xH-high");
+    CHK(reg.xI.f64[0], "%f", "Register xI-low");
+    CHK(reg.xI.f64[1], "%f", "Register xI-high");
+    CHK(reg.xJ.f64[0], "%f", "Register xJ-low");
+    CHK(reg.xJ.f64[1], "%f", "Register xJ-high");
+
+    CHK(reg.xK.f64[0], "%f", "Register xK-low");
+    CHK(reg.xK.f64[1], "%f", "Register xK-high");
+    CHK(reg.xL.f64[0], "%f", "Register xL-low");
+    CHK(reg.xL.f64[1], "%f", "Register xL-high");
+    CHK(reg.xM.f64[0], "%f", "Register xM-low");
+    CHK(reg.xM.f64[1], "%f", "Register xM-high");
+    CHK(reg.xN.f64[0], "%f", "Register xN-low");
+    CHK(reg.xN.f64[1], "%f", "Register xN-high");
+
+    CHK(reg.xTEMPA.f64[0], "%f", "Register xTEMPA-low");
+    CHK(reg.xTEMPA.f64[1], "%f", "Register xTEMPA-high");
+    CHK(reg.xTEMPB.f64[0], "%f", "Register xTEMPB-low");
+    CHK(reg.xTEMPB.f64[1], "%f", "Register xTEMPB-high");
+
+    #undef SHADOW_OBJ
+    #undef REAL_OBJ
+    #define REAL_OBJ (&vmctx->memblocks[0])
+    #define SHADOW_OBJ (&shadow_memblocks[0])
+    CHK(array_bound, "%u", "memblock #1 array bound");
+    CHK(element_bound, "%u", "memblock #1 element bound");
+    CHK(memblock_index, "%u", "memblock #1 index");
+    CHK(offset, "%u", "memblock #1 offset");
+    #undef SHADOW_OBJ
+    #undef REAL_OBJ
+    #define REAL_OBJ (&vmctx->memblocks[1])
+    #define SHADOW_OBJ (&shadow_memblocks[1])
+    CHK(array_bound, "%u", "memblock #2 array bound");
+    CHK(element_bound, "%u", "memblock #2 element bound");
+    CHK(memblock_index, "%u", "memblock #2 index");
+    CHK(offset, "%u", "memblock #2 offset");
+    #undef SHADOW_OBJ
+    #undef REAL_OBJ
+    #define REAL_OBJ (&vmctx->memblocks[2])
+    #define SHADOW_OBJ (&shadow_memblocks[2])
+    CHK(array_bound, "%u", "memblock #3 array bound");
+    CHK(element_bound, "%u", "memblock #3 element bound");
+    CHK(memblock_index, "%u", "memblock #3 index");
+    CHK(offset, "%u", "memblock #3 offset");
+    #undef SHADOW_OBJ
+    #undef REAL_OBJ
+    #define REAL_OBJ (&vmctx->memblocks[3])
+    #define SHADOW_OBJ (&shadow_memblocks[3])
+    CHK(array_bound, "%u", "memblock #4 array bound");
+    CHK(element_bound, "%u", "memblock #4 element bound");
+    CHK(memblock_index, "%u", "memblock #4 index");
+    CHK(offset, "%u", "memblock #4 offset");
+    #undef SHADOW_OBJ
+    #undef REAL_OBJ
 
     for (uint64_t i = 0; i < TACTYK_ASMVM__MEMBLOCK_CAPACITY; i++) {
         struct tactyk_asmvm__memblock_lowlevel *mbll = &vmctx->memblocks[i];
         struct tactyk_asmvm__memblock_lowlevel *shadow_mbll = &shadow_memblocks[i];
-        //printf("p1=%p p2=%p\n", mbll, shadow_mbll);
-        if (mbll->array_bound != shadow_mbll->array_bound) {
-            snprintf(
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "memblock %ju: array_bound deviation, expected=%u observed=%u",
-                i, shadow_mbll->array_bound, mbll->array_bound
-            );
-        }
-        if (mbll->element_bound != shadow_mbll->element_bound) {
-            snprintf(
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "memblock %ju: element_bound deviation, expected=%u observed=%u",
-                i, shadow_mbll->element_bound, mbll->element_bound
-            );
-        }
-        if (mbll->memblock_index != shadow_mbll->memblock_index) {
-            snprintf(
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "memblock %ju: memblock_index deviation, expected=%u observed=%u",
-                i, shadow_mbll->memblock_index, mbll->memblock_index
-            );
-        }
-        if (mbll->offset != shadow_mbll->offset) {
-            snprintf(
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "memblock %ju: offset-field deviation, expected=%u observed=%u",
-                i, shadow_mbll->offset, mbll->offset
-            );
-        }
         uint64_t len = mbll->array_bound + mbll->element_bound -1;
         if (mbll->base_address != NULL) {
             for (uint64_t j = 0; j < len; j += 1) {
                 if (mbll->base_address[j] != shadow_mbll->base_address[j]) {
                     snprintf(
                         test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                        "Memblock %ju data deviation at offset %ju, expected=%u observed=%u",
+                        "deviation: memblock #%ju [data], offset: %ju, expected: %u observed: %u",
                         i, j, shadow_mbll->base_address[j], mbll->base_address[j]
                     );
                     return TACTYK_TESTSTATE__FAIL;
@@ -241,7 +277,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
         if (vmctx->lwcall_stack[i] != shadow_lwcall_stack[i]) {
             snprintf(
                 test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "lwcall stack deviation at offset %ju: expected=%u observed=%u",
+                "deviation: lwcall stack at offset %ju: expected: %u observed: %u",
                 i, shadow_lwcall_stack[i], vmctx->lwcall_stack[i]
             );
             return TACTYK_TESTSTATE__FAIL;
@@ -258,7 +294,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
             if (mbll->base_address != shadow_mbll->base_address) {
                 snprintf(
                     test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "stash[%ju] deviation - memblock[%ju].base_address: expected=%p, observed=%p",
+                    "deviation: mctx stash #%ju, memblock #%ju base address: expected: %p observed: %p",
                     i, j, shadow_mbll->base_address, mbll->base_address
                 );
                 return TACTYK_TESTSTATE__FAIL;
@@ -266,7 +302,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
             if (mbll->array_bound != shadow_mbll->array_bound) {
                 snprintf(
                     test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "stash[%ju] deviation - memblock[%ju].array_bound: expected=%u, observed=%u",
+                    "deviation: mctx stash #%ju, memblock #%ju array bound: expected: %u observed: %u",
                     i, j, shadow_mbll->array_bound, mbll->array_bound
                 );
                 return TACTYK_TESTSTATE__FAIL;
@@ -274,7 +310,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
             if (mbll->element_bound != shadow_mbll->element_bound) {
                 snprintf(
                     test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "stash[%ju] deviation - memblock[%ju].element_bound: expected=%u, observed=%u",
+                    "deviation: mctx stash #%ju, memblock #%ju element bound: expected: %u observed: %u",
                     i, j, shadow_mbll->element_bound, mbll->element_bound
                 );
                 return TACTYK_TESTSTATE__FAIL;
@@ -282,7 +318,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
             if (mbll->memblock_index != shadow_mbll->memblock_index) {
                 snprintf(
                     test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "stash[%ju] deviation - memblock[%ju].memblock_index: expected=%u, observed=%u",
+                    "deviation: mctx stash #%ju, memblock #%ju index: expected: %u observed: %u",
                     i, j, shadow_mbll->memblock_index, mbll->memblock_index
                 );
                 return TACTYK_TESTSTATE__FAIL;
@@ -290,159 +326,109 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
             if (mbll->offset != shadow_mbll->offset) {
                 snprintf(
                     test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "stash[%ju] deviation - memblock[%ju].offset: expected=%u, observed=%u",
+                    "deviation: mctx stash #%ju, memblock #%ju offset: expected: %u observed: %u",
                     i, j, shadow_mbll->offset, mbll->offset
                 );
                 return TACTYK_TESTSTATE__FAIL;
             }
         }
 
-        #define STASH_CHK(PROP) \
-        if (shadow_stash->PROP != stash->PROP) { \
-            snprintf( \
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE, \
-                "stash[%ju] deviation - " #PROP ": expected=%jd, observed=%jd", \
-                i, shadow_stash->PROP, stash->PROP \
-            ); \
-            return TACTYK_TESTSTATE__FAIL; \
-        }
-        STASH_CHK(a.i64[0]);
-        STASH_CHK(a.i64[1]);
-        STASH_CHK(b.i64[0]);
-        STASH_CHK(b.i64[1]);
-        STASH_CHK(c.i64[0]);
-        STASH_CHK(c.i64[1]);
-        STASH_CHK(d.i64[0]);
-        STASH_CHK(d.i64[1]);
-        STASH_CHK(e.i64[0]);
-        STASH_CHK(e.i64[1]);
+        sprintf(prefix, "stash #%ju ", i);
+        #undef DESCRIPTION_PREFIX
+        #define DESCRIPTION_PREFIX stash_prefix
+        #define REAL_OBJ stash
+        #define SHADOW_OBJ shadow_stash
+        CHK(a.i64[0], "%jd", "a-low");
+        CHK(a.i64[1], "%jd", "a-high");
+        CHK(b.i64[0], "%jd", "b-low");
+        CHK(b.i64[1], "%jd", "b-high");
+        CHK(c.i64[0], "%jd", "c-low");
+        CHK(c.i64[1], "%jd", "c-high");
+        CHK(d.i64[0], "%jd", "d-low");
+        CHK(d.i64[1], "%jd", "d-high");
+        CHK(e.i64[0], "%jd", "e-low");
+        CHK(e.i64[1], "%jd", "e-high");
 
-        STASH_CHK(f.i64[0]);
-        STASH_CHK(f.i64[1]);
-        STASH_CHK(g.i64[0]);
-        STASH_CHK(g.i64[1]);
-        STASH_CHK(h.i64[0]);
-        STASH_CHK(h.i64[1]);
-        STASH_CHK(i.i64[0]);
-        STASH_CHK(i.i64[1]);
-        STASH_CHK(j.i64[0]);
-        STASH_CHK(j.i64[1]);
+        CHK(f.i64[0], "%jd", "f-low");
+        CHK(f.i64[1], "%jd", "f-high");
+        CHK(g.i64[0], "%jd", "g-low");
+        CHK(g.i64[1], "%jd", "g-high");
+        CHK(h.i64[0], "%jd", "h-low");
+        CHK(h.i64[1], "%jd", "h-high");
+        CHK(i.i64[0], "%jd", "i-low");
+        CHK(i.i64[1], "%jd", "i-high");
+        CHK(j.i64[0], "%jd", "j-low");
+        CHK(j.i64[1], "%jd", "j-high");
 
-        STASH_CHK(k.i64[0]);
-        STASH_CHK(k.i64[1]);
-        STASH_CHK(l.i64[0]);
-        STASH_CHK(l.i64[1]);
-        STASH_CHK(m.i64[0]);
-        STASH_CHK(m.i64[1]);
-        STASH_CHK(n.i64[0]);
-        STASH_CHK(n.i64[1]);
-        STASH_CHK(o.i64[0]);
-        STASH_CHK(o.i64[1]);
+        CHK(k.i64[0], "%jd", "k-low");
+        CHK(k.i64[1], "%jd", "k-high");
+        CHK(l.i64[0], "%jd", "l-low");
+        CHK(l.i64[1], "%jd", "l-high");
+        CHK(m.i64[0], "%jd", "m-low");
+        CHK(m.i64[1], "%jd", "m-high");
+        CHK(n.i64[0], "%jd", "n-low");
+        CHK(n.i64[1], "%jd", "n-high");
+        CHK(o.i64[0], "%jd", "o-low");
+        CHK(o.i64[1], "%jd", "o-high");
 
-        STASH_CHK(p.i64[0]);
-        STASH_CHK(p.i64[1]);
-        STASH_CHK(q.i64[0]);
-        STASH_CHK(q.i64[1]);
-        STASH_CHK(r.i64[0]);
-        STASH_CHK(r.i64[1]);
-        STASH_CHK(s.i64[0]);
-        STASH_CHK(s.i64[1]);
-        STASH_CHK(t.i64[0]);
-        STASH_CHK(t.i64[1]);
+        CHK(p.i64[0], "%jd", "p-low");
+        CHK(p.i64[1], "%jd", "p-high");
+        CHK(q.i64[0], "%jd", "q-low");
+        CHK(q.i64[1], "%jd", "q-high");
+        CHK(r.i64[0], "%jd", "r-low");
+        CHK(r.i64[1], "%jd", "r-high");
+        CHK(s.i64[0], "%jd", "s-low");
+        CHK(s.i64[1], "%jd", "s-high");
+        CHK(t.i64[0], "%jd", "t-low");
+        CHK(t.i64[1], "%jd", "t-high");
 
-        STASH_CHK(u.i64[0]);
-        STASH_CHK(u.i64[1]);
-        STASH_CHK(v.i64[0]);
-        STASH_CHK(v.i64[1]);
-        STASH_CHK(w.i64[0]);
-        STASH_CHK(w.i64[1]);
-        STASH_CHK(x.i64[0]);
-        STASH_CHK(x.i64[1]);
-        STASH_CHK(y.i64[0]);
-        STASH_CHK(y.i64[1]);
+        CHK(u.i64[0], "%jd", "u-low");
+        CHK(u.i64[1], "%jd", "u-high");
+        CHK(v.i64[0], "%jd", "v-low");
+        CHK(v.i64[1], "%jd", "v-high");
+        CHK(w.i64[0], "%jd", "w-low");
+        CHK(w.i64[1], "%jd", "w-high");
+        CHK(x.i64[0], "%jd", "x-low");
+        CHK(x.i64[1], "%jd", "x-high");
+        CHK(y.i64[0], "%jd", "y-low");
+        CHK(y.i64[1], "%jd", "y-high");
 
-        STASH_CHK(z.i64[0]);
-        STASH_CHK(z.i64[1]);
-        #undef STASH_CHK
+        CHK(z.i64[0], "%jd", "z-low");
+        CHK(z.i64[1], "%jd", "z-high");
+        #undef DESCRIPTION_PREFIX
+        #undef SHADOW_OBJ
+        #undef REAL_OBJ
     }
+    sprintf(prefix, "");
 
-    if (shadow_ctx_stack->stack_lock != vmctx->stack->stack_lock) {
-        snprintf(
-            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-            "ctx-stack lock deviation, expected:%ju observed:%ju",
-            shadow_ctx_stack->stack_lock, vmctx->stack->stack_lock
-        );
-        return TACTYK_TESTSTATE__FAIL;
-    }
-    if (shadow_ctx_stack->stack_position != vmctx->stack->stack_position) {
-        snprintf(
-            test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-            "ctx-stack position deviation, expected:%jd observed:%jd",
-            shadow_ctx_stack->stack_position, vmctx->stack->stack_position
-        );
-        return TACTYK_TESTSTATE__FAIL;
-    }
+    #define REAL_OBJ vmctx->stack
+    #define SHADOW_OBJ shadow_ctx_stack
+    CHK(stack_lock, "%ju", "primary stack lock");
+    CHK(stack_position, "%jd", "primary stack position");
+    #undef SHADOW_OBJ
+    #undef REAL_OBJ
 
     for (uint64_t i = 0; i < TACTYK_ASMVM__VM_STACK_SIZE; i += 1) {
         struct tactyk_asmvm__vm_stack_entry *se = &vmctx->stack->entries[i];
         struct tactyk_asmvm__vm_stack_entry *shse = &shadow_ctx_stack->entries[i];
-        if (shse->dest_command_map != se->dest_command_map) {
-            snprintf(
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "ctx-stack dest-command-map deviation, expected:%p observed:%p",
-                shse->dest_command_map, se->dest_command_map
-            );
-            return TACTYK_TESTSTATE__FAIL;
-        }
-        if (shse->dest_function_map != se->dest_function_map) {
-            snprintf(
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "ctx-stack dest-function-map deviation, expected:%p observed:%p",
-                shse->dest_function_map, se->dest_function_map
-            );
-            return TACTYK_TESTSTATE__FAIL;
-        }
-        if (shse->source_command_map != se->source_command_map) {
-            snprintf(
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "ctx-stack source-command-map deviation, expected:%p observed:%p",
-                shse->source_command_map, se->source_command_map
-            );
-            return TACTYK_TESTSTATE__FAIL;
-        }
-        if (shse->dest_jump_index != se->dest_jump_index) {
-            snprintf(
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "ctx-stack dest-jump-index deviation, expected:%ju observed:%ju",
-                shse->dest_jump_index, se->dest_jump_index
-            );
-            return TACTYK_TESTSTATE__FAIL;
-        }
-        if (shse->source_return_index != se->source_return_index) {
-            snprintf(
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "ctx-stack source-return-index deviation, expected:%ju observed:%ju",
-                shse->source_return_index, se->source_return_index
-            );
-            return TACTYK_TESTSTATE__FAIL;
-        }
-        if (shse->source_lwcallstack_floor != se->source_lwcallstack_floor) {
-            snprintf(
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "ctx-stack source-lwcs-floor deviation, expected:%u observed:%u",
-                shse->source_lwcallstack_floor, se->source_lwcallstack_floor
-            );
-            return TACTYK_TESTSTATE__FAIL;
-        }
-        if (shse->source_mctxstack_floor != se->source_mctxstack_floor) {
-            snprintf(
-                test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                "ctx-stack source-mctx-floor deviation, expected:%u observed:%u",
-                shse->source_mctxstack_floor, se->source_mctxstack_floor
-            );
-            return TACTYK_TESTSTATE__FAIL;
-        }
+
+        sprintf(prefix, "primary stack item #%ju ", i);
+        #define DESCRIPTION_PREFIX prefix
+        #define REAL_OBJ se
+        #define SHADOW_OBJ shse
+        CHK(dest_command_map, "%p", "destination instruction map");
+        CHK(dest_function_map, "%p", "destination function map");
+        CHK(source_command_map, "%p", "source instruction map");
+        CHK(dest_jump_index, "%ju", "jump target");
+        CHK(source_return_index, "%ju", "return target");
+        CHK(source_lwcallstack_floor, "%u", "source lwcall stack floor");
+        CHK(source_mctxstack_floor, "%u", "source mctx stack floor");
+        #undef SHADOW_OBJ
+        #undef REAL_OBJ
+        #undef DESCRIPTION_PREFIX
     }
+
+    #undef CHK
 
     return TACTYK_TESTSTATE__PASS;
 }

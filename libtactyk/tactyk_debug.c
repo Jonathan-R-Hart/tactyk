@@ -15,20 +15,20 @@ void tactyk_debug__configure_api(struct tactyk_emit__Context *emitctx) {
 
 void tactyk_debug__write_context(struct tactyk_asmvm__Context *ctx, FILE *stream) {
     fprintf(stream, "===== TACTYK CONTEXT ===================================================================================\n");
-    fprintf(stream, "| CTX-seg  (fs:) | %20p | xA (xmm0)      | %-20.14g | %-20.14g |\n", ctx, ctx->reg.xa.f64[1], ctx->reg.xa.f64[0]);
-    fprintf(stream, "| MCTX-seg (gs:) | %20p | xB (xmm1)      | %-20.14g | %-20.14g |\n", ctx->microcontext_stack, ctx->reg.xb.f64[1], ctx->reg.xb.f64[0]);
-    fprintf(stream, "| rTEMPA   (rax) |                  --- | xC (xmm2)      | %-20.14g | %-20.14g |\n", ctx->reg.xc.f64[1], ctx->reg.xc.f64[0]);
-    fprintf(stream, "| rTEMPC   (rcx) |                  --- | xD (xmm3)      | %-20.14g | %-20.14g |\n", ctx->reg.xd.f64[1], ctx->reg.xd.f64[0]);
-    fprintf(stream, "| rTEMPD   (rdx) |                  --- | xE (xmm4)      | %-20.14g | %-20.14g |\n", ctx->reg.xe.f64[1], ctx->reg.xe.f64[0]);
-    fprintf(stream, "| rLWCSI   (rbp) | %20jd | xF (xmm5)      | %-20.14g | %-20.14g |\n", ctx->reg.rLWCSI, ctx->reg.xf.f64[1], ctx->reg.xf.f64[0]);
-    fprintf(stream, "| rMSCI    (rsp) | %20jd | xG (xmm6)      | %-20.14g | %-20.14g |\n", ctx->reg.rMCSI, ctx->reg.xg.f64[1], ctx->reg.xg.f64[0]);
-    fprintf(stream, "| rTEMPS   (r12) | %20jd | xH (xmm7)      | %-20.14g | %-20.14g |\n", ctx->reg.rTEMPS, ctx->reg.xh.f64[1], ctx->reg.xh.f64[0]);
-    fprintf(stream, "| rADDR1   (r14) | %20p | xI (xmm8)      | %-20.14g | %-20.14g |\n", ctx->reg.rADDR1, ctx->reg.xi.f64[1], ctx->reg.xi.f64[0]);
-    fprintf(stream, "| rADDR2   (r15) | %20p | xJ (xmm9)      | %-20.14g | %-20.14g |\n", ctx->reg.rADDR2, ctx->reg.xj.f64[1], ctx->reg.xj.f64[0]);
-    fprintf(stream, "| rADDR3   (rbx) | %20p | xK (xmm10)     | %-20.14g | %-20.14g |\n", ctx->reg.rADDR3, ctx->reg.xk.f64[1], ctx->reg.xk.f64[0]);
-    fprintf(stream, "| rADDR4   (r10) | %20p | xL (xmm11)     | %-20.14g | %-20.14g |\n", ctx->reg.rADDR4, ctx->reg.xl.f64[1], ctx->reg.xl.f64[0]);
-    fprintf(stream, "| rA       (rdi) | %20jd | xM (xmm12)     | %-20.14g | %-20.14g |\n", ctx->reg.rA, ctx->reg.xm.f64[1], ctx->reg.xm.f64[0]);
-    fprintf(stream, "| rB       (rsi) | %20jd | xN (xmm13)     | %-20.14g | %-20.14g |\n", ctx->reg.rB, ctx->reg.xn.f64[1], ctx->reg.xn.f64[0]);
+    fprintf(stream, "| CTX-seg  (fs:) | %20p | xA (xmm0)      | %-20.14g | %-20.14g |\n", ctx, ctx->reg.xA.f64[1], ctx->reg.xA.f64[0]);
+    fprintf(stream, "| MCTX-seg (gs:) | %20p | xB (xmm1)      | %-20.14g | %-20.14g |\n", ctx->microcontext_stack, ctx->reg.xB.f64[1], ctx->reg.xB.f64[0]);
+    fprintf(stream, "| rTEMPA   (rax) |                  --- | xC (xmm2)      | %-20.14g | %-20.14g |\n", ctx->reg.xC.f64[1], ctx->reg.xC.f64[0]);
+    fprintf(stream, "| rTEMPC   (rcx) |                  --- | xD (xmm3)      | %-20.14g | %-20.14g |\n", ctx->reg.xD.f64[1], ctx->reg.xD.f64[0]);
+    fprintf(stream, "| rTEMPD   (rdx) |                  --- | xE (xmm4)      | %-20.14g | %-20.14g |\n", ctx->reg.xE.f64[1], ctx->reg.xE.f64[0]);
+    fprintf(stream, "| rLWCSI   (rbp) | %20jd | xF (xmm5)      | %-20.14g | %-20.14g |\n", ctx->reg.rLWCSI, ctx->reg.xF.f64[1], ctx->reg.xF.f64[0]);
+    fprintf(stream, "| rMSCI    (rsp) | %20jd | xG (xmm6)      | %-20.14g | %-20.14g |\n", ctx->reg.rMCSI, ctx->reg.xG.f64[1], ctx->reg.xG.f64[0]);
+    fprintf(stream, "| rTEMPS   (r12) | %20jd | xH (xmm7)      | %-20.14g | %-20.14g |\n", ctx->reg.rTEMPS, ctx->reg.xH.f64[1], ctx->reg.xH.f64[0]);
+    fprintf(stream, "| rADDR1   (r14) | %20p | xI (xmm8)      | %-20.14g | %-20.14g |\n", ctx->reg.rADDR1, ctx->reg.xI.f64[1], ctx->reg.xI.f64[0]);
+    fprintf(stream, "| rADDR2   (r15) | %20p | xJ (xmm9)      | %-20.14g | %-20.14g |\n", ctx->reg.rADDR2, ctx->reg.xJ.f64[1], ctx->reg.xJ.f64[0]);
+    fprintf(stream, "| rADDR3   (rbx) | %20p | xK (xmm10)     | %-20.14g | %-20.14g |\n", ctx->reg.rADDR3, ctx->reg.xK.f64[1], ctx->reg.xK.f64[0]);
+    fprintf(stream, "| rADDR4   (r10) | %20p | xL (xmm11)     | %-20.14g | %-20.14g |\n", ctx->reg.rADDR4, ctx->reg.xL.f64[1], ctx->reg.xL.f64[0]);
+    fprintf(stream, "| rA       (rdi) | %20jd | xM (xmm12)     | %-20.14g | %-20.14g |\n", ctx->reg.rA, ctx->reg.xM.f64[1], ctx->reg.xM.f64[0]);
+    fprintf(stream, "| rB       (rsi) | %20jd | xN (xmm13)     | %-20.14g | %-20.14g |\n", ctx->reg.rB, ctx->reg.xN.f64[1], ctx->reg.xN.f64[0]);
     fprintf(stream, "| rC       (r11) | %20jd | xTEMPA (xmm14) | %-20.14g | %-20.14g |\n", ctx->reg.rC, ctx->reg.xTEMPA.f64[1], ctx->reg.xTEMPA.f64[0]);
     fprintf(stream, "| rD       (r13) | %20jd | xTEMPB (xmm15) | %-20.14g | %-20.14g |\n", ctx->reg.rD, ctx->reg.xTEMPB.f64[1], ctx->reg.xTEMPB.f64[0]);
     fprintf(stream, "| rE       (r8)  | %20jd | ---            |                  --- |                  --- |\n", ctx->reg.rE);

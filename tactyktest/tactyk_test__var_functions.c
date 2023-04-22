@@ -704,73 +704,73 @@ bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struc
     }
     switch(entry->offset) {
         case 0: {
-            vmctx->reg.xa.f64[0] = fval;
-            shadow_vmctx->reg.xa.f64[0] = fval;
+            vmctx->reg.xA.f64[0] = fval;
+            shadow_vmctx->reg.xA.f64[0] = fval;
             break;
         }
         case 1: {
-            vmctx->reg.xb.f64[0] = fval;
-            shadow_vmctx->reg.xb.f64[0] = fval;
+            vmctx->reg.xB.f64[0] = fval;
+            shadow_vmctx->reg.xB.f64[0] = fval;
             break;
         }
         case 2: {
-            vmctx->reg.xc.f64[0] = fval;
-            shadow_vmctx->reg.xc.f64[0] = fval;
+            vmctx->reg.xC.f64[0] = fval;
+            shadow_vmctx->reg.xC.f64[0] = fval;
             break;
         }
         case 3: {
-            vmctx->reg.xd.f64[0] = fval;
-            shadow_vmctx->reg.xd.f64[0] = fval;
+            vmctx->reg.xD.f64[0] = fval;
+            shadow_vmctx->reg.xD.f64[0] = fval;
             break;
         }
         case 4: {
-            vmctx->reg.xe.f64[0] = fval;
-            shadow_vmctx->reg.xe.f64[0] = fval;
+            vmctx->reg.xE.f64[0] = fval;
+            shadow_vmctx->reg.xE.f64[0] = fval;
             break;
         }
         case 5: {
-            vmctx->reg.xf.f64[0] = fval;
-            shadow_vmctx->reg.xf.f64[0] = fval;
+            vmctx->reg.xF.f64[0] = fval;
+            shadow_vmctx->reg.xF.f64[0] = fval;
             break;
         }
         case 6: {
-            vmctx->reg.xg.f64[0] = fval;
-            shadow_vmctx->reg.xg.f64[0] = fval;
+            vmctx->reg.xG.f64[0] = fval;
+            shadow_vmctx->reg.xG.f64[0] = fval;
             break;
         }
         case 7: {
-            vmctx->reg.xh.f64[0] = fval;
-            shadow_vmctx->reg.xh.f64[0] = fval;
+            vmctx->reg.xH.f64[0] = fval;
+            shadow_vmctx->reg.xH.f64[0] = fval;
             break;
         }
         case 8: {
-            vmctx->reg.xi.f64[0] = fval;
-            shadow_vmctx->reg.xi.f64[0] = fval;
+            vmctx->reg.xI.f64[0] = fval;
+            shadow_vmctx->reg.xI.f64[0] = fval;
             break;
         }
         case 9: {
-            vmctx->reg.xj.f64[0] = fval;
-            shadow_vmctx->reg.xj.f64[0] = fval;
+            vmctx->reg.xJ.f64[0] = fval;
+            shadow_vmctx->reg.xJ.f64[0] = fval;
             break;
         }
         case 10: {
-            vmctx->reg.xk.f64[0] = fval;
-            shadow_vmctx->reg.xk.f64[0] = fval;
+            vmctx->reg.xK.f64[0] = fval;
+            shadow_vmctx->reg.xK.f64[0] = fval;
             break;
         }
         case 11: {
-            vmctx->reg.xl.f64[0] = fval;
-            shadow_vmctx->reg.xl.f64[0] = fval;
+            vmctx->reg.xL.f64[0] = fval;
+            shadow_vmctx->reg.xL.f64[0] = fval;
             break;
         }
         case 12: {
-            vmctx->reg.xm.f64[0] = fval;
-            shadow_vmctx->reg.xm.f64[0] = fval;
+            vmctx->reg.xM.f64[0] = fval;
+            shadow_vmctx->reg.xM.f64[0] = fval;
             break;
         }
         case 13: {
-            vmctx->reg.xn.f64[0] = fval;
-            shadow_vmctx->reg.xn.f64[0] = fval;
+            vmctx->reg.xN.f64[0] = fval;
+            shadow_vmctx->reg.xN.f64[0] = fval;
             break;
         }
         case 14: {
@@ -802,73 +802,73 @@ uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *valtest
     double stval = 0;
     switch(valtest_spec->offset) {
         case 0: {
-            stval = vmctx->reg.xa.f64[0];
-            shadow_vmctx->reg.xa.f64[0] = vmctx->reg.xa.f64[0];
+            stval = vmctx->reg.xA.f64[0];
+            shadow_vmctx->reg.xA.f64[0] = vmctx->reg.xA.f64[0];
             break;
         }
         case 1: {
-            stval = vmctx->reg.xb.f64[0];
-            shadow_vmctx->reg.xb.f64[0] = vmctx->reg.xb.f64[0];
+            stval = vmctx->reg.xB.f64[0];
+            shadow_vmctx->reg.xB.f64[0] = vmctx->reg.xB.f64[0];
             break;
         }
         case 2: {
-            stval = vmctx->reg.xc.f64[0];
-            shadow_vmctx->reg.xc.f64[0] = vmctx->reg.xc.f64[0];
+            stval = vmctx->reg.xC.f64[0];
+            shadow_vmctx->reg.xC.f64[0] = vmctx->reg.xC.f64[0];
             break;
         }
         case 3: {
-            stval = vmctx->reg.xd.f64[0];
-            shadow_vmctx->reg.xd.f64[0] = vmctx->reg.xd.f64[0];
+            stval = vmctx->reg.xD.f64[0];
+            shadow_vmctx->reg.xD.f64[0] = vmctx->reg.xD.f64[0];
             break;
         }
         case 4: {
-            stval = vmctx->reg.xe.f64[0];
-            shadow_vmctx->reg.xe.f64[0] = vmctx->reg.xe.f64[0];
+            stval = vmctx->reg.xE.f64[0];
+            shadow_vmctx->reg.xE.f64[0] = vmctx->reg.xE.f64[0];
             break;
         }
         case 5: {
-            stval = vmctx->reg.xf.f64[0];
-            shadow_vmctx->reg.xf.f64[0] = vmctx->reg.xf.f64[0];
+            stval = vmctx->reg.xF.f64[0];
+            shadow_vmctx->reg.xF.f64[0] = vmctx->reg.xF.f64[0];
             break;
         }
         case 6: {
-            stval = vmctx->reg.xg.f64[0];
-            shadow_vmctx->reg.xg.f64[0] = vmctx->reg.xg.f64[0];
+            stval = vmctx->reg.xG.f64[0];
+            shadow_vmctx->reg.xG.f64[0] = vmctx->reg.xG.f64[0];
             break;
         }
         case 7: {
-            stval = vmctx->reg.xh.f64[0];
-            shadow_vmctx->reg.xh.f64[0] = vmctx->reg.xh.f64[0];
+            stval = vmctx->reg.xH.f64[0];
+            shadow_vmctx->reg.xH.f64[0] = vmctx->reg.xH.f64[0];
             break;
         }
         case 8: {
-            stval = vmctx->reg.xi.f64[0];
-            shadow_vmctx->reg.xi.f64[0] = vmctx->reg.xi.f64[0];
+            stval = vmctx->reg.xI.f64[0];
+            shadow_vmctx->reg.xI.f64[0] = vmctx->reg.xI.f64[0];
             break;
         }
         case 9: {
-            stval = vmctx->reg.xj.f64[0];
-            shadow_vmctx->reg.xj.f64[0] = vmctx->reg.xj.f64[0];
+            stval = vmctx->reg.xJ.f64[0];
+            shadow_vmctx->reg.xJ.f64[0] = vmctx->reg.xJ.f64[0];
             break;
         }
         case 10: {
-            stval = vmctx->reg.xk.f64[0];
-            shadow_vmctx->reg.xk.f64[0] = vmctx->reg.xk.f64[0];
+            stval = vmctx->reg.xK.f64[0];
+            shadow_vmctx->reg.xK.f64[0] = vmctx->reg.xK.f64[0];
             break;
         }
         case 11: {
-            stval = vmctx->reg.xl.f64[0];
-            shadow_vmctx->reg.xl.f64[0] = vmctx->reg.xl.f64[0];
+            stval = vmctx->reg.xL.f64[0];
+            shadow_vmctx->reg.xL.f64[0] = vmctx->reg.xL.f64[0];
             break;
         }
         case 12: {
-            stval = vmctx->reg.xm.f64[0];
-            shadow_vmctx->reg.xm.f64[0] = vmctx->reg.xm.f64[0];
+            stval = vmctx->reg.xM.f64[0];
+            shadow_vmctx->reg.xM.f64[0] = vmctx->reg.xM.f64[0];
             break;
         }
         case 13: {
-            stval = vmctx->reg.xn.f64[0];
-            shadow_vmctx->reg.xn.f64[0] = vmctx->reg.xn.f64[0];
+            stval = vmctx->reg.xN.f64[0];
+            shadow_vmctx->reg.xN.f64[0] = vmctx->reg.xN.f64[0];
             break;
         }
         case 14: {

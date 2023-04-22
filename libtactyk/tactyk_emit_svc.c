@@ -192,7 +192,7 @@ void tactyk_emit_svc__int(struct tactyk_asmvm__Context *asmvm_ctx) {
     tactyk_emit_svc__append_token(tactyk_dblock__from_uint(asmvm_ctx->reg.rA));
 }
 void tactyk_emit_svc__float(struct tactyk_asmvm__Context *asmvm_ctx) {
-    tactyk_emit_svc__append_token(tactyk_dblock__from_float(asmvm_ctx->reg.xa.f64[0]));
+    tactyk_emit_svc__append_token(tactyk_dblock__from_float(asmvm_ctx->reg.xA.f64[0]));
 }
 void tactyk_emit_svc__end_cmd(struct tactyk_asmvm__Context *asmvm_ctx) {
     tactyk_emit__add_script_command(tactyk_emit_svc__emitctx, cmd->token, cmd);
