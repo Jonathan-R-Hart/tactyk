@@ -57,6 +57,7 @@ uint64_t tactyk_test__EXEC(struct tactyk_dblock__DBlock *spec) {
         tactyk_test__report("Program not built");
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
+
     if (func_name == NULL) {
         tactyk_asmvm__prepare_invoke(shadow_vmctx, tprg, "MAIN");
         tactyk_asmvm__call(vmctx, tprg, "MAIN");

@@ -12,6 +12,17 @@ Remove direct state adjustment functions from tactyk-test
 
 Add test functions for validating the primary stack (tvmcalls -- tactyk program callign into other tactyk programs)
 
+Corrected an inconsist state change in tvmpush.  This one arguably gets a bit pedantic...
+  It previously was writing a stack entry after validating the program handle, but prior to validating the function handle.
+  If the tactyk runtime is well-behaved, this isn't an issue, as it does correctly signal an error and terminate, 
+  However, if the runtime is poorly behaved (liek the current testing setup) and allows script re-entry after an error is signaled, 
+  then a subsequent attempt at performing a tvmjump results in a segmentation fault due to the use of improperly placed invalid data
+  on in the "stale" tvmjump.
+  The correction was to rearrange code and reallocate registers to perform the stack entry write after validating the function handle.
+  The odd handling of invalid data was a compromise to avoid having future constant/integer variant spill a register.
+    (An extra temp register was subsequently made available through a refactoring effort, so there is no need for any such compromise)
+  (NOTE:  fixes segfaults originating inside of tactyk under script control have a much higher priority than fixes for segfaults in the runtime).
+
 21 Apr 2023
 Add test coverage for instructions: stash, mctxpush, mctxpop, mctxjump
 
