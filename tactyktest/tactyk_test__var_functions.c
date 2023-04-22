@@ -7,17 +7,6 @@
 #include "ttest.h"
 #include "tactyk_dblock.h"
 
-bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
-    struct tactyk_dblock__DBlock *value = spec->token->next;
-    int64_t ival = 0;
-    if (!tactyk_dblock__try_parseint(&ival, value)) {
-        tactyk_test__report("Test value parameter is not an integer");
-        return false;
-    }
-    vmctx->STATUS= (uint64_t) ival;
-    shadow_vmctx->STATUS = (uint64_t) ival;
-    return true;
-}
 uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *expected_value = spec->token->next;
     int64_t ival = 0;
@@ -68,17 +57,6 @@ uint64_t tactyk_test__TEST_STACKPOSITION(struct tactyk_test_entry *entry, struct
     }
 }
 
-/*
-struct tactyk_asmvm__vm_stack_entry {
-    void *source_command_map;
-    uint64_t source_return_index;
-    uint32_t source_lwcallstack_floor;
-    uint32_t source_mctxstack_floor;
-    void *dest_command_map;
-    void *dest_function_map;
-    uint64_t dest_jump_index;
-};
-*/
 uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *index_param = spec->token->next;
     uint64_t idx = 0;
@@ -206,7 +184,6 @@ uint64_t tactyk_test__TEST_CALLBACK(struct tactyk_test_entry *entry, struct tact
         return TACTYK_TESTSTATE__FAIL;
     }
 }
-
 
 uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *name = spec->token->next;
@@ -343,76 +320,6 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
     }
 
     return TACTYK_TESTSTATE__PASS;
-}
-
-bool tactyk_test__SET_MEM(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
-    //struct tactyk_dblock__DBlock *value = spec->token->next;
-    return false;
-}
-
-
-
-bool tactyk_test__SET_ADDR (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
-    struct tactyk_dblock__DBlock *value = spec->token->next;
-
-    if (tactyk_dblock__count_peers(value) < 2) {
-        tactyk_test__report("Not enough arguments to specify a memory binding.");
-        return false;
-    }
-
-    struct tactyk_dblock__DBlock *name = value;
-    struct tactyk_dblock__DBlock *reg_ofs = value->next;
-
-    struct tactyk_asmvm__memblock_highlevel *mbhl = tactyk_dblock__get(vmctx->hl_program_ref->memory_layout_hl, name);
-    struct tactyk_asmvm__memblock_lowlevel *mbll = &vmctx->memblocks[mbhl->memblock_id];
-    struct tactyk_asmvm__memblock_lowlevel *shadow_mbll = &shadow_memblocks[mbhl->memblock_id];
-
-    struct tactyk_asmvm__memblock_lowlevel *target = NULL;
-    struct tactyk_asmvm__memblock_lowlevel *shadow_target = NULL;
-
-    int64_t ofs = 0;
-    uint64_t abound = mbll->array_bound;
-    uint64_t ebound = mbll->element_bound;
-    if (!tactyk_dblock__try_parseint(&ofs, reg_ofs)) {
-        char buf[64];
-        tactyk_dblock__export_cstring(buf, 64, reg_ofs);
-        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "address-offset '%s' is not an integer.", buf);
-        return false;
-    }
-    switch(entry->offset) {
-        case 1: {
-            vmctx->reg.rADDR1 = (uint64_t*) &mbll->base_address[ofs];
-            shadow_vmctx->reg.rADDR1 = (uint64_t*) &shadow_mbll->base_address[ofs];
-            break;
-        }
-        case 2: {
-            vmctx->reg.rADDR2 = (uint64_t*) &mbll->base_address[ofs];
-            shadow_vmctx->reg.rADDR2 = (uint64_t*) &shadow_mbll->base_address[ofs];
-            break;
-        }
-        case 3: {
-            vmctx->reg.rADDR3 = (uint64_t*) &mbll->base_address[ofs];
-            shadow_vmctx->reg.rADDR3 = (uint64_t*) &shadow_mbll->base_address[ofs];
-            break;
-        }
-        case 4: {
-            vmctx->reg.rADDR4 = (uint64_t*) &mbll->base_address[ofs];
-            shadow_vmctx->reg.rADDR4 = (uint64_t*) &shadow_mbll->base_address[ofs];
-            break;
-        }
-    }
-
-    target = &vmctx->memblocks[entry->offset];
-    target->base_address = mbll->base_address;
-    target->array_bound = abound;
-    target->element_bound = ebound;
-
-    shadow_target = &shadow_memblocks[entry->offset];
-    shadow_target->base_address = shadow_mbll->base_address;
-    shadow_target->array_bound = abound;
-    shadow_target->element_bound = ebound;
-
-    return true;
 }
 
 uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
@@ -573,62 +480,6 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
     return TACTYK_TESTSTATE__PASS;
 }
 
-bool tactyk_test__SET_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
-    struct tactyk_dblock__DBlock *value = spec->token->next;
-
-    int64_t ival = 0;
-    if (!tactyk_dblock__try_parseint(&ival, value)) {
-        tactyk_test__report("Test value parameter is not an integer");
-        return false;
-    }
-    switch(entry->offset) {
-        case 1: {
-            vmctx->reg.rLWCSI = (uint64_t) ival;
-            shadow_vmctx->reg.rLWCSI = (uint64_t) ival;
-            return true;
-        }
-        case 2: {
-            vmctx->reg.rMCSI = (uint64_t) ival;
-            shadow_vmctx->reg.rMCSI = (uint64_t) ival;
-            return true;
-        }
-        case 10: {
-            vmctx->reg.rA = (uint64_t) ival;
-            shadow_vmctx->reg.rA = (uint64_t) ival;
-            return true;
-        }
-        case 11: {
-            vmctx->reg.rB = (uint64_t) ival;
-            shadow_vmctx->reg.rB = (uint64_t) ival;
-            return true;
-        }
-        case 12: {
-            vmctx->reg.rC = (uint64_t) ival;
-            shadow_vmctx->reg.rC = (uint64_t) ival;
-            return true;
-        }
-        case 13: {
-            vmctx->reg.rD = (uint64_t) ival;
-            shadow_vmctx->reg.rD = (uint64_t) ival;
-            return true;
-        }
-        case 14: {
-            vmctx->reg.rE = (uint64_t) ival;
-            shadow_vmctx->reg.rE = (uint64_t) ival;
-            return true;
-        }
-        case 15: {
-            vmctx->reg.rF = (uint64_t) ival;
-            shadow_vmctx->reg.rF = (uint64_t) ival;
-            return true;
-        }
-        default: {
-            tactyk_test__report("Test element-offset is invalid");
-            return false;
-        }
-    }
-}
-
 uint64_t tactyk_test__TEST_REGISTER(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *expected_value = spec->token->next;
 
@@ -692,103 +543,6 @@ uint64_t tactyk_test__TEST_REGISTER(struct tactyk_test_entry *valtest_spec, stru
         sprintf(test_state->report, "deviation on register %s, expected:%jd observed:%jd", valtest_spec->name, ival, stval);
         return TACTYK_TESTSTATE__FAIL;
     }
-}
-
-bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
-    struct tactyk_dblock__DBlock *value = spec->token->next;
-
-    double fval = 0;
-    if (!tactyk_dblock__try_parsedouble(&fval, value)) {
-        tactyk_test__report("Test parameter is not a floating point number");
-        return false;
-    }
-    switch(entry->offset) {
-        case 0: {
-            vmctx->reg.xA.f64[0] = fval;
-            shadow_vmctx->reg.xA.f64[0] = fval;
-            break;
-        }
-        case 1: {
-            vmctx->reg.xB.f64[0] = fval;
-            shadow_vmctx->reg.xB.f64[0] = fval;
-            break;
-        }
-        case 2: {
-            vmctx->reg.xC.f64[0] = fval;
-            shadow_vmctx->reg.xC.f64[0] = fval;
-            break;
-        }
-        case 3: {
-            vmctx->reg.xD.f64[0] = fval;
-            shadow_vmctx->reg.xD.f64[0] = fval;
-            break;
-        }
-        case 4: {
-            vmctx->reg.xE.f64[0] = fval;
-            shadow_vmctx->reg.xE.f64[0] = fval;
-            break;
-        }
-        case 5: {
-            vmctx->reg.xF.f64[0] = fval;
-            shadow_vmctx->reg.xF.f64[0] = fval;
-            break;
-        }
-        case 6: {
-            vmctx->reg.xG.f64[0] = fval;
-            shadow_vmctx->reg.xG.f64[0] = fval;
-            break;
-        }
-        case 7: {
-            vmctx->reg.xH.f64[0] = fval;
-            shadow_vmctx->reg.xH.f64[0] = fval;
-            break;
-        }
-        case 8: {
-            vmctx->reg.xI.f64[0] = fval;
-            shadow_vmctx->reg.xI.f64[0] = fval;
-            break;
-        }
-        case 9: {
-            vmctx->reg.xJ.f64[0] = fval;
-            shadow_vmctx->reg.xJ.f64[0] = fval;
-            break;
-        }
-        case 10: {
-            vmctx->reg.xK.f64[0] = fval;
-            shadow_vmctx->reg.xK.f64[0] = fval;
-            break;
-        }
-        case 11: {
-            vmctx->reg.xL.f64[0] = fval;
-            shadow_vmctx->reg.xL.f64[0] = fval;
-            break;
-        }
-        case 12: {
-            vmctx->reg.xM.f64[0] = fval;
-            shadow_vmctx->reg.xM.f64[0] = fval;
-            break;
-        }
-        case 13: {
-            vmctx->reg.xN.f64[0] = fval;
-            shadow_vmctx->reg.xN.f64[0] = fval;
-            break;
-        }
-        case 14: {
-            vmctx->reg.xTEMPA.f64[0] = fval;
-            shadow_vmctx->reg.xTEMPA.f64[0] = fval;
-            break;
-        }
-        case 15: {
-            vmctx->reg.xTEMPB.f64[0] = fval;
-            shadow_vmctx->reg.xTEMPB.f64[0] = fval;
-            break;
-        }
-        default: {
-            tactyk_test__report("Test element-offset is invalid");
-            return TACTYK_TESTSTATE__TEST_ERROR;
-        }
-    }
-    return TACTYK_TESTSTATE__PASS;
 }
 
 uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {

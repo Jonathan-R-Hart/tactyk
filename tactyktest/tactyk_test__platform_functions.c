@@ -445,44 +445,6 @@ uint64_t tactyk_test__RETURN(struct tactyk_dblock__DBlock *spec) {
     }
     return TACTYK_TESTSTATE__PASS;
 }
-uint64_t tactyk_test__STATE(struct tactyk_dblock__DBlock *spec) {
-    if ( vmctx == NULL) {
-        tactyk_test__report("No asmvm context");
-        return TACTYK_TESTSTATE__TEST_ERROR;
-    }
-    struct tactyk_dblock__DBlock *td = spec->child;
-    while (td != NULL) {
-        struct tactyk_dblock__DBlock *item_name = td->token;
-        assert(item_name != NULL);
-        struct tactyk_dblock__DBlock *item_value = td->token->next;
-        if (item_value == NULL) {
-            tactyk_test__report("Unspecified item value");
-            return TACTYK_TESTSTATE__TEST_ERROR;
-        }
-
-        struct tactyk_test_entry *test = tactyk_dblock__get(base_tests, item_name);
-
-        if (test == NULL) {
-            char buf[256];
-            sprintf(buf, "No handler for test item: ");
-            tactyk_dblock__export_cstring(&buf[strlen(buf)], 256-strlen(buf), item_name );
-            tactyk_test__report(buf);
-            return TACTYK_TESTSTATE__TEST_ERROR;
-        }
-
-        if (test->adjust == NULL) {
-            tactyk_test__report("state adjustment function is undefined");
-            return TACTYK_TESTSTATE__TEST_ERROR;
-        }
-        if (!test->adjust(test, td)) {
-            tactyk_test__report("state adjustment rejected or not implemented");
-            return TACTYK_TESTSTATE__TEST_ERROR;
-        }
-
-        td = td->next;
-    }
-    return TACTYK_TESTSTATE__PASS;
-}
 uint64_t tactyk_test__DATA(struct tactyk_dblock__DBlock *spec) {
     //struct tactyk_dblock__DBlock *mem_target = spec->token->next;
     return TACTYK_TESTSTATE__PASS;

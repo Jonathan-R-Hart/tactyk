@@ -110,15 +110,13 @@ uint64_t read_spec__binary_data(struct tactyk_dblock__DBlock **out, struct tacty
 void tactyk_test__mk_ccallarg_test(char *name, uint64_t ofs) {
     struct tactyk_test_entry *entry = tactyk_dblock__new_managedobject(base_tests, name);
     entry->name = name;
-    entry->adjust = NULL;
     entry->test = tactyk_test__TEST_CCALL_ARGUMENT;
     entry->offset = ofs;
 }
 
-void tactyk_test__mk_var_test(char *name, tactyk_test__VALUE_ADJUSTER setter, tactyk_test__VALUE_TESTER *tester) {
+void tactyk_test__mk_var_test(char *name, tactyk_test__VALUE_TESTER *tester) {
     struct tactyk_test_entry *entry = tactyk_dblock__new_managedobject(base_tests, name);
     entry->name = name;
-    entry->adjust = setter;
     entry->test = tester;
     entry->offset = 0;
 }
@@ -126,14 +124,12 @@ void tactyk_test__mk_var_test(char *name, tactyk_test__VALUE_ADJUSTER setter, ta
 void tactyk_test__mk_register_test(char *name, uint64_t ofs) {
     struct tactyk_test_entry *entry = tactyk_dblock__new_managedobject(base_tests, name);
     entry->name = name;
-    entry->adjust = tactyk_test__SET_REGISTER;
     entry->test = tactyk_test__TEST_REGISTER;
     entry->offset = ofs;
 }
 void tactyk_test__mk_xmm_register_test(char *name, uint64_t ofs) {
     struct tactyk_test_entry *entry = tactyk_dblock__new_managedobject(base_tests, name);
     entry->name = name;
-    entry->adjust = tactyk_test__SET_XMM_REGISTER_FLOAT;
     entry->test = tactyk_test__TEST_XMM_REGISTER_FLOAT;
     entry->offset = ofs;
 }

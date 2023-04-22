@@ -25,7 +25,6 @@ struct tactyk_test_entry;
 
 typedef uint64_t (*tactyk_emit__test_func)(struct tactyk_dblock__DBlock *data);
 
-typedef bool (tactyk_test__VALUE_ADJUSTER) (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 typedef uint64_t (tactyk_test__VALUE_TESTER) (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 
 
@@ -74,7 +73,6 @@ extern struct tactyk_test__Status *test_state;
 // abstract test handler
 struct tactyk_test_entry {
     char *name;
-    tactyk_test__VALUE_ADJUSTER *adjust;        // Setter to use during STATE opreation
     tactyk_test__VALUE_TESTER *test;            // Test function to use for TEST operation
     uint64_t offset;    // object member to access
 };
@@ -126,11 +124,6 @@ uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *entry, struc
 uint64_t tactyk_test__TEST_STACKLOCK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_STACKPOSITION(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 
-bool tactyk_test__SET_REGISTER (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
-bool tactyk_test__SET_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
-bool tactyk_test__SET_ADDR (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
-bool tactyk_test__SET_MEM (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
-
 uint64_t tactyk_test__TEST_REGISTER(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
@@ -143,7 +136,7 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
 
 
 
-void tactyk_test__mk_var_test(char *name, tactyk_test__VALUE_ADJUSTER setter, tactyk_test__VALUE_TESTER *tester);
+void tactyk_test__mk_var_test(char *name, tactyk_test__VALUE_TESTER *tester);
 void tactyk_test__mk_register_test(char *name, uint64_t ofs);
 void tactyk_test__mk_xmm_register_test(char *name, uint64_t ofs);
 void tactyk_test__mk_ccallarg_test(char *name, uint64_t ofs);

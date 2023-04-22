@@ -173,7 +173,6 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_dblock__put(test_functions, "PROGRAM", tactyk_test__PROGRAM);
     tactyk_dblock__put(test_functions, "EXEC", tactyk_test__EXEC);
     tactyk_dblock__put(test_functions, "TEST", tactyk_test__TEST);
-    tactyk_dblock__put(test_functions, "STATE", tactyk_test__STATE);
     tactyk_dblock__put(test_functions, "ALLOC", tactyk_test__ALLOC);
     tactyk_dblock__put(test_functions, "DATA", tactyk_test__DATA);
     tactyk_dblock__put(test_functions, "REF", tactyk_test__REF);
@@ -182,54 +181,46 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_dblock__put(test_functions, "RESUME", tactyk_test__RESUME);
 
     base_tests = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_test_entry));
-    tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
-    tactyk_test__mk_var_test("stack-lock", NULL, tactyk_test__TEST_STACKLOCK);
-    tactyk_test__mk_var_test("stack-pos", NULL, tactyk_test__TEST_STACKPOSITION);
+    tactyk_test__mk_var_test("status", tactyk_test__TEST_CONTEXT_STATUS);
+    tactyk_test__mk_var_test("stack-lock", tactyk_test__TEST_STACKLOCK);
+    tactyk_test__mk_var_test("stack-pos", tactyk_test__TEST_STACKPOSITION);
 
-    tactyk_test__mk_var_test("stack-entry", NULL, tactyk_test__TEST_STACK__STACK_ENTRY);
+    tactyk_test__mk_var_test("stack-entry", tactyk_test__TEST_STACK__STACK_ENTRY);
 
     struct tactyk_test_entry *addr1_test = tactyk_dblock__new_managedobject(base_tests, "addr1");
     addr1_test->name = "addr1";
-    addr1_test->adjust = tactyk_test__SET_ADDR;
     addr1_test->test = tactyk_test__TEST_ADDR;
     addr1_test->offset = 1;
     struct tactyk_test_entry *addr2_test = tactyk_dblock__new_managedobject(base_tests, "addr2");
     addr2_test->name = "addr2";
-    addr2_test->adjust = tactyk_test__SET_ADDR;
     addr2_test->test = tactyk_test__TEST_ADDR;
     addr2_test->offset = 2;
     struct tactyk_test_entry *addr3_test = tactyk_dblock__new_managedobject(base_tests, "addr3");
     addr3_test->name = "addr3";
-    addr3_test->adjust = tactyk_test__SET_ADDR;
     addr3_test->test = tactyk_test__TEST_ADDR;
     addr3_test->offset = 3;
     struct tactyk_test_entry *addr4_test = tactyk_dblock__new_managedobject(base_tests, "addr4");
     addr4_test->name = "addr4";
-    addr4_test->adjust = tactyk_test__SET_ADDR;
     addr4_test->test = tactyk_test__TEST_ADDR;
     addr4_test->offset = 4;
 
     struct tactyk_test_entry *mem_test = tactyk_dblock__new_managedobject(base_tests, "mem");
     mem_test->name = "mem";
-    mem_test->adjust = tactyk_test__SET_MEM;
     mem_test->test = tactyk_test__TEST_MEM;
     mem_test->offset = 0;
 
     struct tactyk_test_entry *cb_test = tactyk_dblock__new_managedobject(base_tests, "callback");
     cb_test->name = "callback";
-    cb_test->adjust = NULL;
     cb_test->test = tactyk_test__TEST_CALLBACK;
     cb_test->offset = 0;
 
     struct tactyk_test_entry *stash_test = tactyk_dblock__new_managedobject(base_tests, "stash");
     stash_test->name = "stash";
-    stash_test->adjust = NULL;
     stash_test->test = tactyk_test__TEST_STASH;
     stash_test->offset = 0;
 
     struct tactyk_test_entry *lwcs_test = tactyk_dblock__new_managedobject(base_tests, "lwcstack");
     lwcs_test->name = "lwcstack";
-    lwcs_test->adjust = NULL;
     lwcs_test->test = tactyk_test__TEST_LWCALL_STACK;
     lwcs_test->offset = 0;
 

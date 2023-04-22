@@ -1,3 +1,11 @@
+22 Apr 2023
+tactyk-test refactoring
+  Improve descriptions when indicating where unexpected state transitions are observed.
+  Use a generic macro to checking for and describe unexpected state transtions
+
+Remove direct state adjustment functions from tactyk-test
+  tactyk is quite capable on its own state on its own.
+
 21 Apr 2023
 Add test coverage for instructions: stash, mctxpush, mctxpop, mctxjump
 
