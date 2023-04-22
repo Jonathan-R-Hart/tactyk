@@ -66,10 +66,10 @@ void tactyk_debug__write_mbind(struct tactyk_asmvm__Context *ctx, FILE *stream) 
     fprintf(stream, "| Offset         | %20d |\n", mbll->offset);
     fprintf(stream, "=========================================\n");
 }
-void tactyk_debug__write_vmstack(struct tactyk_asmvm__Context *ctx, FILE *stream) {
+void tactyk_debug__write_vmstack(struct tactyk_asmvm__Stack *stack, FILE *stream) {
     fprintf(stream, "===== TACTYK VM STACK =======================================================================================================\n");
     char *lockstate;
-    if (ctx->stack->stack_lock) {
+    if (stack->stack_lock) {
         lockstate = "LOCKED";
     }
     else {
@@ -79,8 +79,8 @@ void tactyk_debug__write_vmstack(struct tactyk_asmvm__Context *ctx, FILE *stream
     fprintf(stream, "|---------------------------------------------------------------------------------------------------------------------------|\n");
     fprintf(stream, "|   pos |    src-commands |   return-target |  lwc-floor | mctx-floor |   dest-commands |  dest-functions |     jump-target |\n");
     fprintf(stream, "|---------------------------------------------------------------------------------------------------------------------------|\n");
-    for (int64_t pos = 0; pos <= ctx->stack->stack_position; pos += 1) {
-        struct tactyk_asmvm__vm_stack_entry *entry = &ctx->stack->entries[pos];
+    for (int64_t pos = 0; pos <= stack->stack_position; pos += 1) {
+        struct tactyk_asmvm__vm_stack_entry *entry = &stack->entries[pos];
         fprintf(stream, "| %5ju | %15p | %15ju | %10u | %10u | %15p | %15p | %15ju |\n", pos, entry->source_command_map, entry->source_return_index, entry->source_lwcallstack_floor, entry->source_mctxstack_floor, entry->dest_command_map, entry->dest_function_map, entry->dest_jump_index);
     }
     fprintf(stream, "=============================================================================================================================\n");
@@ -100,7 +100,7 @@ void tactyk_debug__print_mbind(struct tactyk_asmvm__Context *ctx) {
 
 
 void tactyk_debug__print_vmstack(struct tactyk_asmvm__Context *ctx) {
-    tactyk_debug__write_vmstack(ctx, stdout);
+    tactyk_debug__write_vmstack(ctx->stack, stdout);
 }
 void tactyk_debug__print_vmprograms(struct tactyk_asmvm__Context *ctx) {
     tactyk_debug__write_vmprograms(ctx, stdout);

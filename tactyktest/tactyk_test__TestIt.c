@@ -183,10 +183,10 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
 
     base_tests = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_test_entry));
     tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
-    tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
-    tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
-    tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
-    tactyk_test__mk_var_test("status", tactyk_test__SET_CONTEXT_STATUS, tactyk_test__TEST_CONTEXT_STATUS);
+    tactyk_test__mk_var_test("stack-lock", NULL, tactyk_test__TEST_STACKLOCK);
+    tactyk_test__mk_var_test("stack-pos", NULL, tactyk_test__TEST_STACKPOSITION);
+
+    tactyk_test__mk_var_test("stack-entry", NULL, tactyk_test__TEST_STACK__STACK_ENTRY);
 
     struct tactyk_test_entry *addr1_test = tactyk_dblock__new_managedobject(base_tests, "addr1");
     addr1_test->name = "addr1";
@@ -345,12 +345,12 @@ void tactyk_test__exit(uint64_t test_result) {
         fclose(stream);
 
         stream = fmemopen(test_state->dump_stack_observed, TACTYK_TEST__DUMP_BUFSIZE, "w");
-        tactyk_debug__write_vmstack(vmctx, stream);
+        tactyk_debug__write_vmstack(vmctx->stack, stream);
         fflush(stream);
         fclose(stream);
 
         stream = fmemopen(test_state->dump_stack_expectation, TACTYK_TEST__DUMP_BUFSIZE, "w");
-        tactyk_debug__write_vmstack(shadow_vmctx, stream);
+        tactyk_debug__write_vmstack(shadow_ctx_stack, stream);
         fflush(stream);
         fclose(stream);
     }

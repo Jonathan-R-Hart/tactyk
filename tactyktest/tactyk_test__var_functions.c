@@ -35,6 +35,82 @@ uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec
     }
 }
 
+uint64_t tactyk_test__TEST_STACKLOCK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *expected_value = spec->token->next;
+    int64_t uival = 0;
+    if (!tactyk_dblock__try_parseuint(&uival, expected_value)) {
+        tactyk_test__report("Test value parameter is not an integer");
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+    shadow_ctx_stack->stack_lock = vmctx->stack->stack_lock;
+    if (vmctx->stack->stack_lock == uival) {
+        return TACTYK_TESTSTATE__PASS;
+    }
+    else {
+        sprintf(test_state->report, "stack lock deviation, expected:%ju observed:%ju", uival, vmctx->stack->stack_lock);
+        return TACTYK_TESTSTATE__FAIL;
+    }
+}
+uint64_t tactyk_test__TEST_STACKPOSITION(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *expected_value = spec->token->next;
+    int64_t ival = 0;
+    if (!tactyk_dblock__try_parseint(&ival, expected_value)) {
+        tactyk_test__report("Test value parameter is not an integer");
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+    shadow_ctx_stack->stack_position = vmctx->stack->stack_position;
+    if (vmctx->stack->stack_position == ival) {
+        return TACTYK_TESTSTATE__PASS;
+    }
+    else {
+        sprintf(test_state->report, "stack position deviation, expected:%jd observed:%jd", ival, vmctx->stack->stack_position);
+        return TACTYK_TESTSTATE__FAIL;
+    }
+}
+
+/*
+struct tactyk_asmvm__vm_stack_entry {
+    void *source_command_map;
+    uint64_t source_return_index;
+    uint32_t source_lwcallstack_floor;
+    uint32_t source_mctxstack_floor;
+    void *dest_command_map;
+    void *dest_function_map;
+    uint64_t dest_jump_index;
+};
+*/
+uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *index_param = spec->token->next;
+    uint64_t idx = 0;
+    if (!tactyk_dblock__try_parseuint(&idx, index_param)) {
+        tactyk_test__report("Test value parameter is not an integer");
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+
+    if (idx < 0) {
+        return TACTYK_TESTSTATE__PASS;
+    }
+
+    struct tactyk_asmvm__vm_stack_entry *ctx_st_entry = &vmctx->stack->entries[idx];
+    struct tactyk_asmvm__vm_stack_entry *shadow_st_entry = &shadow_ctx_stack->entries[idx];
+
+    bool permissive = false;
+
+    struct tactyk_dblock__DBlock *param = index_param->next;
+    while (param != NULL) {
+        if (tactyk_dblock__equals_c_string(param, "*")) {
+            permissive = true;
+        }
+        param = param->next;
+    }
+
+    if (permissive) {
+        memcpy(shadow_st_entry, ctx_st_entry, sizeof( struct tactyk_asmvm__vm_stack_entry));
+    }
+    return TACTYK_TESTSTATE__PASS;
+}
+
+
 uint64_t tactyk_test__TEST_CALLBACK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *expected_cbid = spec->token->next;
     uint64_t uival = 0;

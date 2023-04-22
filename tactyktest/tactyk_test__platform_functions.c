@@ -377,7 +377,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
     if (shadow_ctx_stack->stack_position != vmctx->stack->stack_position) {
         snprintf(
             test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-            "ctx-stack position deviation, expected:%ju observed:%ju",
+            "ctx-stack position deviation, expected:%jd observed:%jd",
             shadow_ctx_stack->stack_position, vmctx->stack->stack_position
         );
         return TACTYK_TESTSTATE__FAIL;
@@ -385,7 +385,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
 
     for (uint64_t i = 0; i < TACTYK_ASMVM__VM_STACK_SIZE; i += 1) {
         struct tactyk_asmvm__vm_stack_entry *se = &vmctx->stack->entries[i];
-        struct tactyk_asmvm__vm_stack_entry *shse = &vmctx->stack->entries[i];
+        struct tactyk_asmvm__vm_stack_entry *shse = &shadow_ctx_stack->entries[i];
         if (shse->dest_command_map != se->dest_command_map) {
             snprintf(
                 test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
