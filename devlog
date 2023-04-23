@@ -1,5 +1,6 @@
 22 Apr 2023
 Add test coverage for tvmcall instructions (tvmpush, tvmjump, tvmreturn)
+Add test coverage for load-xmmx instructions
 
 tactyk-test refactoring
   Improve descriptions when indicating where unexpected state transitions are observed.
