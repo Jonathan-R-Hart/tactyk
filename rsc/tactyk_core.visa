@@ -549,7 +549,7 @@ instruction load
         movq $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
-    case XXAI QXAC
+    case XXAI XXAC
       code
         $LD_OFFSET_IMMEDIATE
         
