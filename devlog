@@ -27,6 +27,8 @@ Corrected an inconsist state change in tvmpush.  This one arguably gets a bit pe
 
 Added variants of tvmcall isntruction which use integer/const arguments
 
+Add a templates for loading truncated floating point values onto data registers
+
 21 Apr 2023
 Add test coverage for instructions: stash, mctxpush, mctxpop, mctxjump
 

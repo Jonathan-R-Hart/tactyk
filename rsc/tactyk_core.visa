@@ -534,7 +534,7 @@ instruction load
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
-
+    
     case XXAD
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -565,6 +565,44 @@ instruction load
         movq $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case XDAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 7
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movq xTEMPA, [$ADDRESS_REGISTER+$OFFSET]
+        cvttsd2si $DEST__DATA_REG, xTEMPA
+        
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+
+    case XDAI XDAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 7
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movq xTEMPA, [$ADDRESS_REGISTER+rTEMPC]
+        cvttsd2si $DEST__DATA_REG, xTEMPA
+
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
 
 instruction store
