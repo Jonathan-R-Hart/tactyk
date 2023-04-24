@@ -225,12 +225,42 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
                 tactyk_dblock__export_cstring(buf, 256, token);
                 snprintf(
                     test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "invalid lw-callstack floor: %s\n",
+                    "invalid mctxstack floor: %s\n",
                     buf
                 );
                 return TACTYK_TESTSTATE__TEST_ERROR;
             }
             shadow_st_entry->source_mctxstack_floor = mctxfloor;
+        }
+        else if (tactyk_dblock__equals_c_string(token, "src-lwcspos")) {
+            token = token->next;
+            uint64_t lwcsposition = 0;
+            if (!tactyk_dblock__try_parseuint(&lwcsposition, token)) {
+                char buf[256];
+                tactyk_dblock__export_cstring(buf, 256, token);
+                snprintf(
+                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                    "invalid lw-callstack position: %s\n",
+                    buf
+                );
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
+            shadow_st_entry->source_lwcallstack_position = lwcsposition;
+        }
+        else if (tactyk_dblock__equals_c_string(token, "src-mctxpos")) {
+            token = token->next;
+            uint64_t mctxposition = 0;
+            if (!tactyk_dblock__try_parseuint(&mctxposition, token)) {
+                char buf[256];
+                tactyk_dblock__export_cstring(buf, 256, token);
+                snprintf(
+                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
+                    "invalid mctxstack position: %s\n",
+                    buf
+                );
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
+            shadow_st_entry->source_mctxstack_position = mctxposition;
         }
         handle_next_item:
         testitem = testitem->next;

@@ -2341,6 +2341,8 @@ instruction tvmjump
     
     $LD_CMDNEXT_IMMEDIATE
     mov [rTEMPC + tvmstackentry.source_return_index], rTEMPA_32
+    mov [rTEMPC + tvmstackentry.source_lwcallstack_position], rLWCSI_32
+    mov [rTEMPC + tvmstackentry.source_mctxstack_position], rMCSI_32
 
     ; load the target context
     mov rTEMPA, [rTEMPC + tvmstackentry.target_program]
@@ -2379,6 +2381,8 @@ instruction tvmreturn
     ; restore the caller context
     mov rTEMPD, [rTEMPC + tvmstackentry.source_stack_floor]
     mov fs:[context.floor + random_const_FS], rTEMPD
+    mov rLWCSI_32, [rTEMPC + tvmstackentry.source_lwcallstack_position]
+    mov rMCSI_32, [rTEMPC + tvmstackentry.source_mctxstack_position]
     mov rMAPPER, [rTEMPC + tvmstackentry.source_program]
     mov fs:[context.program_map + random_const_FS], rMAPPER
     mov rTEMPA_32, [rTEMPC + tvmstackentry.source_max_iptr]

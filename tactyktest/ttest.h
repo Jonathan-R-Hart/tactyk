@@ -20,13 +20,11 @@
 #define TACTYK_TESTSTATE__INACTIVE 7
 #define TACTYK_TESTSTATE__CONTINUE 8
 
-
 struct tactyk_test_entry;
 
 typedef uint64_t (*tactyk_emit__test_func)(struct tactyk_dblock__DBlock *data);
 
 typedef uint64_t (tactyk_test__VALUE_TESTER) (struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
-
 
 extern struct tactyk_asmvm__Program *tprg;
 extern struct tactyk_asmvm__Context *vmctx;
@@ -67,8 +65,6 @@ extern struct tactyk_dblock__DBlock *test_continuation;
 extern struct tactyk_dblock__DBlock *ERROR_TOKEN;
 extern struct tactyk_dblock__DBlock *WARNING_TOKEN;
 extern struct tactyk_test__Status *test_state;
-
-
 
 // abstract test handler
 struct tactyk_test_entry {
@@ -137,8 +133,6 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
 uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_CONTEXT_PROGRAM(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec);
 
-
-
 void tactyk_test__mk_var_test(char *name, tactyk_test__VALUE_TESTER *tester);
 void tactyk_test__mk_register_test(char *name, uint64_t ofs);
 void tactyk_test__mk_xmm_register_test(char *name, uint64_t ofs);
@@ -146,12 +140,10 @@ void tactyk_test__mk_ccallarg_test(char *name, uint64_t ofs);
 
 void tactyk_test__report(char *msg);
 
-
 void tactyk_test__prepare(struct tactyk_test__Status *tstate);
 void tactyk_test__run(struct tactyk_test__Status *tstate);
 void tactyk_test__reset_state(struct tactyk_test__Status *tstate);
 void tactyk_test__await_start(struct tactyk_test__Status *tstate);
-
 
 bool tactyk_test__approximately_eq(double a, double b);
 

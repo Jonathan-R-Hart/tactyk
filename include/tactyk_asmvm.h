@@ -149,6 +149,8 @@ struct tactyk_asmvm__vm_stack_entry {
     uint32_t source_max_iptr;
     uint32_t source_lwcallstack_floor;
     uint32_t source_mctxstack_floor;
+    uint32_t source_lwcallstack_position;
+    uint32_t source_mctxstack_position;
     void *dest_command_map;
     void *dest_function_map;
     uint32_t dest_jump_index;
