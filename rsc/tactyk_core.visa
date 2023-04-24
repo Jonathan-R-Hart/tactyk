@@ -92,10 +92,10 @@ typespec data
 
 typespec stackreg
   select-operand
-    case mctx mcxtstack
+    case mctx.pos mcxtstack.pos mctx.position mcxtstack.position
       value rMCSI
       $STACK_FLOOR context.microcontext_floor
-    case lwc lwcstack
+    case lwcs.pos lwcstack.pos lwcs.position lwcstack.position
       value rLWCSI
       $STACK_FLOOR context.lwcall_floor
   pick Sreg

@@ -120,6 +120,8 @@ uint64_t tactyk_test__RESUME(struct tactyk_dblock__DBlock *spec);
 
 bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__TEST_CONTEXT_MCTX_FLOOR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__TEST_CONTEXT_LWCS_FLOOR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 
 uint64_t tactyk_test__TEST_STACKLOCK(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_STACKPOSITION(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);

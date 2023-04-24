@@ -184,6 +184,8 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_test__mk_var_test("status", tactyk_test__TEST_CONTEXT_STATUS);
     tactyk_test__mk_var_test("stack-lock", tactyk_test__TEST_STACKLOCK);
     tactyk_test__mk_var_test("stack-pos", tactyk_test__TEST_STACKPOSITION);
+    tactyk_test__mk_var_test("mctx-floor", tactyk_test__TEST_CONTEXT_MCTX_FLOOR);
+    tactyk_test__mk_var_test("lwcs-floor", tactyk_test__TEST_CONTEXT_LWCS_FLOOR);
 
     tactyk_test__mk_var_test("stack-entry", tactyk_test__TEST_STACK__STACK_ENTRY);
 

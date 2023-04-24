@@ -17,6 +17,26 @@ uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *valtest_spec
     shadow_vmctx->STATUS = ival;
     return TACTYK_TESTSTATE__PASS;
 }
+uint64_t tactyk_test__TEST_CONTEXT_MCTX_FLOOR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *expected_value = spec->token->next;
+    int64_t ival = 0;
+    if (!tactyk_dblock__try_parseint(&ival, expected_value)) {
+        tactyk_test__report("Test value parameter is not an integer");
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+    shadow_vmctx->mctx_stack_floor = ival;
+    return TACTYK_TESTSTATE__PASS;
+}
+uint64_t tactyk_test__TEST_CONTEXT_LWCS_FLOOR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *expected_value = spec->token->next;
+    int64_t ival = 0;
+    if (!tactyk_dblock__try_parseint(&ival, expected_value)) {
+        tactyk_test__report("Test value parameter is not an integer");
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+    shadow_vmctx->lwcall_stack_floor = ival;
+    return TACTYK_TESTSTATE__PASS;
+}
 
 uint64_t tactyk_test__TEST_CONTEXT_PROGRAM(struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *expected_value = spec->token->next;

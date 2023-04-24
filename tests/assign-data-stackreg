@@ -6,43 +6,43 @@
 
 PROGRAM prg
   TEST_GET_MCTX:
-    assign a mctx
+    assign a mctx.position
     mctxpush
-    assign b mctx
+    assign b mctx.position
     mctxpush
-    assign c mctx
+    assign c mctx.position
     mctxjump 1234
-    assign d mctx
+    assign d mctx.position
     mctxpop
-    assign e mctx
+    assign e mctx.position
     mctxpop
-    assign f mctx
+    assign f mctx.position
     exit
   
   TEST_GET_LWCS:
-    assign f lwc
+    assign f lwcs.position
     lwcall LEVEL_1
     exit
   
   LEVEL_1:
-    assign e lwc
+    assign e lwcs.position
     lwcall LEVEL_2
     lwreturn
     
   LEVEL_2:
     lwcall LEVEL_3
-    assign a lwc
+    assign a lwcs.position
     lwreturn
   LEVEL_3:
-    assign d lwc
+    assign d lwcs.position
     lwcall LEVEL_4
     lwreturn
   LEVEL_4:
     lwcall LEVEL_5
-    assign b lwc
+    assign b lwcs.position
     lwreturn
   LEVEL_5:
-    assign c lwc
+    assign c lwcs.position
     lwreturn
     
 
