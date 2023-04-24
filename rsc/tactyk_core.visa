@@ -2025,11 +2025,13 @@ instruction mctxjump
   select-template
     case D
       code
-        movzx rTEMPA, %[$TARGET]_16
-        movzx rTEMPC, word fs:[context.microcontext_floor + random_const_FS]
-        add rTEMPA_16, rTEMPC_16    ; restrict to range 0-65535
+        mov rTEMPA, $TARGET
+        mov rTEMPC_32, dword fs:[context.microcontext_floor + random_const_FS]
+        add rTEMPA, rTEMPC
         cmp rTEMPA, rTEMPC
         errorlt STATUS_STACK_UNDERFLOW
+        cmp rTEMPA, microcontext_stack_size
+        errorgt STATUS_STACK_OVERFLOW
         mov rMCSI, rTEMPA
         shl rTEMPA, microcontext_size_bits
         add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
@@ -2041,10 +2043,12 @@ instruction mctxjump
     case I C
       code
         $LD_IMMEDIATE_TARGET
-        movzx rTEMPA, rTEMPA_16
-        add rTEMPA_16, rTEMPC_16    ; restrict to range 0-65535
+        mov rTEMPC_32, dword fs:[context.microcontext_floor + random_const_FS]
+        add rTEMPA, rTEMPC
         cmp rTEMPA, rTEMPC
         errorlt STATUS_STACK_UNDERFLOW
+        cmp rTEMPA, microcontext_stack_size
+        errorgt STATUS_STACK_OVERFLOW
         mov rMCSI, rTEMPA
         shl rTEMPA, microcontext_size_bits
         add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
