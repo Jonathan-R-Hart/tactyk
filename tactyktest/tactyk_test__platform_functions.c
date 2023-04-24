@@ -435,6 +435,8 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
         CHK(dest_max_iptr, "%u", "detination max instruction pointer");
         CHK(source_lwcallstack_floor, "%u", "source lwcall stack floor");
         CHK(source_mctxstack_floor, "%u", "source mctx stack floor");
+        CHK(source_lwcallstack_position, "%u", "source lwcall stack position");
+        CHK(source_mctxstack_position, "%u", "source mctx stack position");
         #undef SHADOW_OBJ
         #undef REAL_OBJ
         #undef DESCRIPTION_PREFIX
