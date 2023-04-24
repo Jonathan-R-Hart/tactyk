@@ -1,3 +1,6 @@
+24 Apr 2023
+Re-enable missing register checks (address and stack registers)
+
 22 Apr 2023
 Add test coverage for tvmcall instructions (tvmpush, tvmjump, tvmreturn)
 Add test coverage for load-xmmx instructions

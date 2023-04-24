@@ -184,6 +184,12 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
     CHK(reg.rD, "%jd", "Register rD");
     CHK(reg.rE, "%jd", "Register rE");
     CHK(reg.rF, "%jd", "Register rF");
+    CHK(reg.rLWCSI, "%ju", "Register rLWCSI");
+    CHK(reg.rMCSI, "%ju", "Register rMCSI");
+    CHK(reg.rADDR1, "%p", "Register rADDR1");
+    CHK(reg.rADDR2, "%p", "Register rADDR2");
+    CHK(reg.rADDR3, "%p", "Register rADDR3");
+    CHK(reg.rADDR4, "%p", "Register rADDR4");
 
     CHK(reg.xA.f64[0], "%f", "Register xA-low");
     CHK(reg.xA.f64[1], "%f", "Register xA-high");
