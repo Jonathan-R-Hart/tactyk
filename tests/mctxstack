@@ -14,6 +14,7 @@ PROGRAM prg
   
   const C50 50
   const C65537 65537
+  const CN100 -100
   
   TESTIT:
     assign a 12
@@ -57,23 +58,36 @@ PROGRAM prg
     stash sQh a
     exit
 
-  CLAMPED_INT_MCTX_JUMP:
+  OVERFLOW_INT_MCTX_JUMP:
     mctxjump 65540
     inc a
     stash sFl a
     exit
 
-  CLAMPED_CONST_MCTX_JUMP:
+  OVERFLOW_CONST_MCTX_JUMP:
     mctxjump C65537
     inc a
     stash sGh a
     exit
 
-  CLAMPED_REG_MCTX_JUMP:
+  OVERFLOW_REG_MCTX_JUMP:
     mul rA rA
     mul rA rA
     mctxjump rA
     stash sVh b
+    exit
+
+  UNDERFLOW_INT_MCTX_JUMP:
+    mctxjump -24
+    exit
+
+  UNDERFLOW_CONST_MCTX_JUMP:
+    mctxjump CN100
+    exit
+
+  UNDERFLOW_REG_MCTX_JUMP:
+    assign rA -1
+    mctxjump rA
     exit
 
 
@@ -115,22 +129,29 @@ TEST
   stash 35 qh 36
   rA 36
 
-EXEC CLAMPED_INT_MCTX_JUMP
+EXEC OVERFLOW_INT_MCTX_JUMP
 TEST
-  rMCSI 4
-  rA 37
-  stash 4 fl 37
+  status 103
 
-EXEC CLAMPED_CONST_MCTX_JUMP
+EXEC OVERFLOW_CONST_MCTX_JUMP
 TEST
-  rMCSI 1
-  rA 38
-  stash 1 gh 38
+  status 103
 
-EXEC CLAMPED_REG_MCTX_JUMP
+EXEC OVERFLOW_REG_MCTX_JUMP
 TEST
-  rMCSI 53520
-  rA 2085136
-  stash 53520 vh 23
+  status 103
+  rA 1679616
 
+EXEC UNDERFLOW_INT_MCTX_JUMP
+TEST
+  status 104
+
+EXEC UNDERFLOW_CONST_MCTX_JUMP
+TEST
+  status 104
+
+EXEC UNDERFLOW_REG_MCTX_JUMP
+TEST
+  status 104
+  rA -1
 
