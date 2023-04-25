@@ -437,6 +437,10 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
         CHK(source_mctxstack_floor, "%u", "source mctx stack floor");
         CHK(source_lwcallstack_position, "%u", "source lwcall stack position");
         CHK(source_mctxstack_position, "%u", "source mctx stack position");
+        CHK(source_memblocks, "%p", "source memblocks pointer");
+        CHK(source_memblock_count, "%ju", "source memblocks count");
+        CHK(dest_memblocks, "%p", "detination memblocks pointer");
+        CHK(dest_memblock_count, "%ju", "destination memblocks count");
         #undef SHADOW_OBJ
         #undef REAL_OBJ
         #undef DESCRIPTION_PREFIX
