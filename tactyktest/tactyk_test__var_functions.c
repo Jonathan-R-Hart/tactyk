@@ -56,6 +56,8 @@ uint64_t tactyk_test__TEST_CONTEXT_PROGRAM(struct tactyk_test_entry *valtest_spe
 
     shadow_vmctx->program_map = prog->command_map;
     shadow_vmctx->instruction_count = prog->length;
+    shadow_vmctx->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) prog->memory_layout_ll->data;
+    shadow_vmctx->memblock_count = prog->memory_layout_ll->element_count;
     return TACTYK_TESTSTATE__PASS;
 }
 
@@ -133,12 +135,16 @@ uint64_t tactyk_test__TEST_STACK__STACK_ENTRY(struct tactyk_test_entry *entry, s
             shadow_st_entry->dest_command_map = dest_program->command_map;
             shadow_st_entry->dest_function_map = dest_program->function_map;
             shadow_st_entry->dest_max_iptr = dest_program->length;
+            shadow_st_entry->dest_memblocks = (struct tactyk_asmvm__memblock_lowlevel*) dest_program->memory_layout_ll->data;
+            shadow_st_entry->dest_memblock_count = dest_program->memory_layout_ll->element_count;
         }
         else if (tactyk_dblock__equals_c_string(token, "src-program")) {
             token = token->next;
             source_program = tactyk_dblock__get(programs, token);
             shadow_st_entry->source_command_map = source_program->command_map;
             shadow_st_entry->source_max_iptr = source_program->length;
+            shadow_st_entry->source_memblocks = (struct tactyk_asmvm__memblock_lowlevel*) source_program->memory_layout_ll->data;
+            shadow_st_entry->source_memblock_count = source_program->memory_layout_ll->element_count;
         }
         else if (tactyk_dblock__equals_c_string(token, "jumptarget")) {
             token = token->next;
