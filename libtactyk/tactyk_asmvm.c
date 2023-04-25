@@ -58,6 +58,8 @@ void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tac
     context->vm->program_count += 1;
     dec->instruction_count = program->length;
     dec->instruction_jumptable = program->command_map;
+    dec->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) program->memory_layout_ll->data;
+    dec->memblock_count = program->memory_layout_ll->element_count;
     uint64_t num_funcs = program->functions->element_count;
     dec->function_count = num_funcs;
     #ifdef USE_TACTYK_ALLOCATOR

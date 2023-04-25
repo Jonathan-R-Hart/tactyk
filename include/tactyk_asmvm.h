@@ -145,6 +145,8 @@ struct tactyk_asmvm__memblock_highlevel {
 
 struct tactyk_asmvm__vm_stack_entry {
     void *source_command_map;
+    struct tactyk_asmvm__memblock_lowlevel *source_memblocks;
+    uint64_t source_memblock_count;
     uint32_t source_return_index;
     uint32_t source_max_iptr;
     uint32_t source_lwcallstack_floor;
@@ -152,6 +154,8 @@ struct tactyk_asmvm__vm_stack_entry {
     uint32_t source_lwcallstack_position;
     uint32_t source_mctxstack_position;
     void *dest_command_map;
+    struct tactyk_asmvm__memblock_lowlevel *dest_memblocks;
+    uint64_t dest_memblock_count;
     void *dest_function_map;
     uint32_t dest_jump_index;
     uint32_t dest_max_iptr;
@@ -168,6 +172,8 @@ struct tactyk_asmvm__program_declaration {
     tactyk_asmvm__op *instruction_jumptable;
     uint64_t function_count;
     tactyk_asmvm__op *function_jumptable;
+    struct tactyk_asmvm__memblock_lowlevel *memblocks;
+    uint64_t memblock_count;
 };
 
 struct tactyk_asmvm__VM {

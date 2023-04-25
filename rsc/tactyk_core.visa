@@ -2092,6 +2092,10 @@ instruction tvmpush
         mov [rTEMPC + tvmstackentry.source_stack_floor], rTEMPA
         mov rTEMPD_32, fs:[context.instruction_count + random_const_FS]
         mov [rTEMPC + tvmstackentry.source_max_iptr], rTEMPD_32
+        mov rTEMPD, fs:[context.memblocks + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_memblocks], rTEMPD
+        mov rTEMPD, fs:[context.memblocks_count + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_memblocks_count], rTEMPD
         
         mov rMAPPER, $PROG_HANDLE
         mov rTEMPA, $FUNC_HANDLE
@@ -2122,6 +2126,10 @@ instruction tvmpush
         mov [rTEMPC + tvmstackentry.target_function_jumptable], rMAPPER
         mov rTEMPA, [rTEMPD + program_dec.instruction_count]
         mov [rTEMPC + tvmstackentry.dest_max_iptr], rTEMPA_32
+        mov rTEMPA, [rTEMPD + program_dec.memblocks]
+        mov [rTEMPC + tvmstackentry.target_memblocks], rTEMPA
+        mov rTEMPA, [rTEMPD + program_dec.memblocks_count]
+        mov [rTEMPC + tvmstackentry.target_memblocks_count], rTEMPA
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -2155,6 +2163,10 @@ instruction tvmpush
         mov [rTEMPC + tvmstackentry.source_stack_floor], rTEMPA
         mov rTEMPD_32, fs:[context.instruction_count + random_const_FS]
         mov [rTEMPC + tvmstackentry.source_max_iptr], rTEMPD_32
+        mov rTEMPD, fs:[context.memblocks + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_memblocks], rTEMPD
+        mov rTEMPD, fs:[context.memblocks_count + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_memblocks_count], rTEMPD
         
         $LD_IMMEDIATE_PROG_HANDLE
         $LD_IMMEDIATE_FUNC_HANDLE
@@ -2185,6 +2197,10 @@ instruction tvmpush
         mov [rTEMPC + tvmstackentry.target_function_jumptable], rMAPPER
         mov rTEMPA, [rTEMPD + program_dec.instruction_count]
         mov [rTEMPC + tvmstackentry.dest_max_iptr], rTEMPA_32
+        mov rTEMPA, [rTEMPD + program_dec.memblocks]
+        mov [rTEMPC + tvmstackentry.target_memblocks], rTEMPA
+        mov rTEMPA, [rTEMPD + program_dec.memblocks_count]
+        mov [rTEMPC + tvmstackentry.target_memblocks_count], rTEMPA
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -2218,6 +2234,10 @@ instruction tvmpush
         mov [rTEMPC + tvmstackentry.source_stack_floor], rTEMPA
         mov rTEMPD_32, fs:[context.instruction_count + random_const_FS]
         mov [rTEMPC + tvmstackentry.source_max_iptr], rTEMPD_32
+        mov rTEMPD, fs:[context.memblocks + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_memblocks], rTEMPD
+        mov rTEMPD, fs:[context.memblocks_count + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_memblocks_count], rTEMPD
         
         $LD_IMMEDIATE_FUNC_HANDLE
         mov rMAPPER, $PROG_HANDLE
@@ -2248,6 +2268,10 @@ instruction tvmpush
         mov [rTEMPC + tvmstackentry.target_function_jumptable], rMAPPER
         mov rTEMPA, [rTEMPD + program_dec.instruction_count]
         mov [rTEMPC + tvmstackentry.dest_max_iptr], rTEMPA_32
+        mov rTEMPA, [rTEMPD + program_dec.memblocks]
+        mov [rTEMPC + tvmstackentry.target_memblocks], rTEMPA
+        mov rTEMPA, [rTEMPD + program_dec.memblocks_count]
+        mov [rTEMPC + tvmstackentry.target_memblocks_count], rTEMPA
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -2281,6 +2305,10 @@ instruction tvmpush
         mov [rTEMPC + tvmstackentry.source_stack_floor], rTEMPA
         mov rTEMPD_32, fs:[context.instruction_count + random_const_FS]
         mov [rTEMPC + tvmstackentry.source_max_iptr], rTEMPD_32
+        mov rTEMPD, fs:[context.memblocks + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_memblocks], rTEMPD
+        mov rTEMPD, fs:[context.memblocks_count + random_const_FS]
+        mov [rTEMPC + tvmstackentry.source_memblocks_count], rTEMPD
         
         $LD_IMMEDIATE_PROG_HANDLE
         mov rTEMPA, $FUNC_HANDLE
@@ -2311,6 +2339,10 @@ instruction tvmpush
         mov [rTEMPC + tvmstackentry.target_function_jumptable], rMAPPER
         mov rTEMPA, [rTEMPD + program_dec.instruction_count]
         mov [rTEMPC + tvmstackentry.dest_max_iptr], rTEMPA_32
+        mov rTEMPA, [rTEMPD + program_dec.memblocks]
+        mov [rTEMPC + tvmstackentry.target_memblocks], rTEMPA
+        mov rTEMPA, [rTEMPD + program_dec.memblocks_count]
+        mov [rTEMPC + tvmstackentry.target_memblocks_count], rTEMPA
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -2349,6 +2381,10 @@ instruction tvmjump
     mov fs:[context.program_map + random_const_FS], rTEMPA
     mov rTEMPA_32, [rTEMPC + tvmstackentry.dest_max_iptr]
     mov fs:[context.instruction_count + random_const_FS], rTEMPA
+    mov rTEMPA, [rTEMPC + tvmstackentry.target_memblocks]
+    mov fs:[context.memblocks + random_const_FS], rTEMPA
+    mov rTEMPA, [rTEMPC + tvmstackentry.target_memblocks_count]
+    mov fs:[context.memblocks_count + random_const_FS], rTEMPA
     
     ; prepare the jump
     mov rMAPPER_32, [rTEMPC + tvmstackentry.target_jump_index]
@@ -2387,6 +2423,10 @@ instruction tvmreturn
     mov fs:[context.program_map + random_const_FS], rMAPPER
     mov rTEMPA_32, [rTEMPC + tvmstackentry.source_max_iptr]
     mov fs:[context.instruction_count + random_const_FS], rTEMPA
+    mov rTEMPA, [rTEMPC + tvmstackentry.source_memblocks]
+    mov fs:[context.memblocks + random_const_FS], rTEMPA
+    mov rTEMPA, [rTEMPC + tvmstackentry.source_memblocks_count]
+    mov fs:[context.memblocks_count + random_const_FS], rTEMPA
     
     ; prepare a return jump
     mov rTEMPA_32, [rTEMPC + tvmstackentry.source_return_index]
