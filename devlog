@@ -1,5 +1,9 @@
 25 Apr 2023
 Test coverage for tvmcall interaction with the lwcall stack
+Test coverage for tvmcall interaction with memory bindings
+
+Expand tvmcall instruction to update references to program memory bindings when calling and restore it when returning.
+Add checks to the testing system to validate tvmcall interactions with memory bindings.
 
 24 Apr 2023
 Test coverage for tvmcall interaction with the mctx stack.
