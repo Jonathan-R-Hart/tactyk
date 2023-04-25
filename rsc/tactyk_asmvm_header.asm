@@ -263,11 +263,11 @@
     endstruc
 
     struc tvmstackentry
-      qwords  source_program
+      qwords  source_program, source_memblocks
               .source_exec_position: dwords source_return_index, source_max_iptr
               .source_stack_floor: dwords source_lwcallstack_floor, source_mctxstack_floor
               dwords source_lwcallstack_position, source_mctxstack_position
-      qwords  target_program, target_function_jumptable
+      qwords  target_program, target_memblocks, target_function_jumptable
               .target_exec_position: dwords target_jump_index, dest_max_iptr
     endstruc
 
@@ -279,7 +279,7 @@
     endstruc
     
     struc program_dec
-      qwords instruction_count, instruction_jumptable, function_count, function_jumptable
+      qwords instruction_count, instruction_jumptable, function_count, function_jumptable, memblocks
     endstruc
     
     struc tactyk_vm
