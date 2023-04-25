@@ -1,0 +1,452 @@
+# TEST:  tvmcall interactions with mctxstack
+#
+# This tests the lwcall and mctx stack management aspects of tvmcalls:  When returning from  a tvm call, the lwcall and mctx stack floor and position properties 
+# must be restored to their original states, regardless of what the callee does.
+#
+# Virtual-ISA: tactyk_core
+# Templates:  tvmpush
+# Templates:  tvmjump
+# Templates:  tvmreturn
+
+PROGRAM lib
+  
+  const CN1 -1
+  const C1 1
+  const C65534 65534
+
+  TRY_UNDERFLOW:
+    mctxpush
+    assign rA mctx.position
+    break
+    mctxpop
+    mctxpop
+    tvmreturn
+    
+  RESET:
+    tvmreturn
+
+  TRY_OVERFLOW:
+    mctxpush
+    mctxpush
+    mctxpush
+    assign rA mctx.position
+    break
+    GOGOGO:
+    mctxpush
+    assign rA mctx.position
+    if rA < 65533 GOGOGO
+    break
+    mctxpush
+    tvmreturn
+  
+  DO_MCTXJUMPS:
+    break
+    mctxjump 1
+    break
+    mctxjump -1
+    break
+    tvmreturn
+  
+  AND_TRY_AN_OVERFLOW:
+    mctxjump 65534
+    tvmreturn
+
+  DO_MCTXJUMPS_reg:
+    break
+    assign b 1
+    mctxjump b
+    break
+    assign b -1
+    mctxjump b
+    break
+    tvmreturn
+  
+  AND_TRY_AN_OVERFLOW_reg:
+    assign b 65534
+    mctxjump b
+    tvmreturn
+
+  IT_SHOULD_ALSO_UNWIND...TOO:
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    break
+    tvmreturn
+
+  DO_MCTXJUMPS_const:
+    break
+    mctxjump C1
+    break
+    mctxjump CN1
+    break
+    tvmreturn
+  
+  AND_TRY_AN_OVERFLOW_const:
+    mctxjump C65534
+    tvmreturn
+
+PROGRAM prg
+  STACK_INTERACT_UNDERFLOW:
+    assign e 0
+    assign f 0
+    mctxpush
+    mctxpush
+    assign rA mctx.position
+    break
+    tvmpush 0 f
+    tvmjump
+    break
+    mctxpop
+    mctxpop
+    exit
+
+  STACK_INTERACT_OVERFLOW:
+    assign e 0
+    assign f 2
+    assign a 0
+    break
+    mctxpush
+    mctxpush
+    assign rA mctx.position
+    break
+    tvmpush 0 f
+    tvmjump
+    break
+    mctxjump 0
+    exit
+
+  MCTXJUMP_TEST:
+    assign e 0
+    assign f 4
+    mctxjump 0
+    assign rA 0
+    break
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    assign rA mctx.position
+    break
+    tvmpush 0 f
+    tvmjump
+    mctxjump 0
+    exit
+
+  MCTXJUMP_TEST_reg:
+    assign e 0
+    assign f 6
+    mctxjump 0
+    assign rA 0
+    break
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    assign rA mctx.position
+    break
+    tvmpush 0 f
+    tvmjump
+    break
+    mctxjump 0
+    exit
+
+  MCTXJUMP_TEST_const:
+    assign e 0
+    assign f 9
+    mctxjump 0
+    assign rA 0
+    break
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    mctxpush
+    assign rA mctx.position
+    break
+    tvmpush 0 f
+    tvmjump
+    break
+    mctxjump 0
+    exit
+
+  UNWIND_MCTX_TEST:
+    assign e 0
+    assign f 8
+    mctxpush
+    tvmpush 0 f
+    tvmjump
+    break
+    exit
+    
+
+EXEC prg STACK_INTERACT_UNDERFLOW
+TEST
+  status 3
+  rMCSI 2
+  rA 2
+  rE 0
+  rF 0
+RESUME
+TEST
+  status 3
+  mctx-floor 2
+  # relative mctx stack position
+  rA 1
+  # actual mctx stack position
+  rMCSI 3
+  program lib
+  stack-lock 0
+  stack-pos 0
+  stack-entry 0
+    src-program prg
+    src-mctxpos 2
+    dest-program lib
+    jumptarget TRY_UNDERFLOW
+    returntarget STACK_INTERACT_UNDERFLOW +8
+RESUME
+TEST
+  # stack underflow due to collision with mctx floor (2 mctxpop commands, but only one mctxpush within a tvm call) 
+  status 104
+  rMCSI 2
+EXEC lib RESET
+TEST
+  status 3
+  program prg
+  stack-pos -1
+  mctx-floor 0
+  rMCSI 2
+RESUME
+TEST
+  status 4
+  program prg
+  stack-pos -1
+  mctx-floor 0
+  rMCSI 0
+
+
+EXEC prg STACK_INTERACT_OVERFLOW
+TEST
+  status 3
+  rA 0
+  rE 0
+  rF 2
+  rMCSI 0
+RESUME
+TEST
+  status 3
+  rMCSI 2
+  rA 2
+
+RESUME
+TEST
+  status 3
+  mctx-floor 2
+  # relative mctx stack position
+  rA 3
+  # actual mctx stack position
+  rMCSI 5
+  program lib
+  stack-lock 0
+  stack-pos 0
+  stack-entry 0
+    src-program prg
+    src-mctxpos 2
+    dest-program lib
+    jumptarget TRY_OVERFLOW
+    returntarget STACK_INTERACT_OVERFLOW +10
+RESUME
+TEST
+  # at the top of the mctx stack
+  status 3
+  rA 65533
+  rMCSI 65535
+EXEC lib RESET
+TEST
+  status 3
+  program prg
+  stack-pos -1
+  mctx-floor 0
+  rMCSI 2
+RESUME
+TEST
+  status 4
+  rMCSI 0
+
+EXEC prg MCTXJUMP_TEST
+TEST
+  status 3
+  rMCSI 0
+  rA 0
+  rE 0
+  rF 4
+RESUME
+TEST
+  status 3
+  rMCSI 4
+  rA 4
+RESUME
+TEST
+  status 3
+  program lib
+  mctx-floor 4
+  rMCSI 4
+  stack-pos 0
+  stack-entry 0
+    src-program prg
+    src-mctxpos 4
+    dest-program lib
+    jumptarget DO_MCTXJUMPS
+    returntarget MCTXJUMP_TEST +13
+RESUME
+TEST
+  status 3
+  rMCSI 5
+RESUME
+TEST
+  status 104
+EXEC lib AND_TRY_AN_OVERFLOW
+TEST
+  status 103
+
+EXEC lib RESET
+TEST
+  status 4
+  program prg
+  stack-pos -1
+  mctx-floor 0
+  rMCSI 0
+
+EXEC prg MCTXJUMP_TEST_reg
+TEST
+  status 3
+  rMCSI 0
+  rA 0
+  rE 0
+  rF 6
+RESUME
+TEST
+  status 3
+  rMCSI 4
+  rA 4
+RESUME
+TEST
+  status 3
+  program lib
+  mctx-floor 4
+  rMCSI 4
+  stack-pos 0
+  stack-entry 0
+    src-program prg
+    src-mctxpos 4
+    dest-program lib
+    jumptarget DO_MCTXJUMPS_reg
+    returntarget MCTXJUMP_TEST_reg +13
+RESUME
+TEST
+  status 3
+  rB 1
+  rMCSI 5
+RESUME
+TEST
+  status 104
+  rB -1
+EXEC lib AND_TRY_AN_OVERFLOW_reg
+TEST
+  status 103
+  rB 65534
+
+EXEC lib RESET
+TEST
+  status 3
+  program prg
+  stack-pos -1
+  mctx-floor 0
+  rMCSI 4
+RESUME
+TEST
+  status 4
+  rMCSI 0
+
+EXEC prg UNWIND_MCTX_TEST
+TEST
+  rE 0
+  rF 8
+  status 3
+  program lib
+  rMCSI 12
+  stack-pos 0
+  mctx-floor 1
+  stack-entry 0
+    src-program prg
+    src-mctxpos 1
+    dest-program lib
+    jumptarget IT_SHOULD_ALSO_UNWIND...TOO
+    returntarget UNWIND_MCTX_TEST +5
+RESUME
+TEST
+  status 3
+  program prg
+  rMCSI 1
+  stack-pos -1
+  mctx-floor 0
+
+
+
+EXEC prg MCTXJUMP_TEST_const
+TEST
+  status 3
+  rMCSI 0
+  rA 0
+  rE 0
+  rF 9
+RESUME
+TEST
+  status 3
+  rMCSI 7
+  rA 7
+RESUME
+TEST
+  status 3
+  program lib
+  mctx-floor 7
+  rMCSI 7
+  stack-pos 0
+  stack-entry 0
+    src-program prg
+    src-mctxpos 7
+    dest-program lib
+    jumptarget DO_MCTXJUMPS_const
+    returntarget MCTXJUMP_TEST_const +16
+RESUME
+TEST
+  status 3
+  rMCSI 8
+RESUME
+TEST
+  status 104
+EXEC lib AND_TRY_AN_OVERFLOW_const
+TEST
+  status 103
+
+EXEC lib RESET
+TEST
+  status 3
+  program prg
+  stack-pos -1
+  mctx-floor 0
+  rMCSI 7
+RESUME
+TEST
+  status 4
+  rMCSI 0
+
