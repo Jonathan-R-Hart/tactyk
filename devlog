@@ -1,5 +1,8 @@
+25 Apr 2023
+Test coverage for tvmcall interaction with the lwcall stack
+
 24 Apr 2023
-Test coverage for tvmcall interaction with mctx stack.
+Test coverage for tvmcall interaction with the mctx stack.
 
 Re-enable missing register checks (address and stack registers)
 Replace mctx clamping with overflow and underflow errors

@@ -1,0 +1,267 @@
+# TEST:  tvmcall interaction with lwcall stack
+#
+# Virtual-ISA: tactyk_core
+
+PROGRAM lib
+  WIND_AND_UNWIND:
+    dec rB
+    if rB == 0 EXIT_LP_WAW
+    lwcall WIND_AND_UNWIND
+    lwreturn
+    EXIT_LP_WAW:
+    break
+    lwreturn
+  
+  TVM_LWC_INTERACT_NORMAL:
+    assign rB 5
+    break
+    lwcall WIND_AND_UNWIND
+    break
+    tvmreturn
+    
+  WIND_AND_RET:
+    dec rB
+    if rB == 0 EXIT_LP_WAR
+    lwcall WIND_AND_RET
+    EXIT_LP_WAR:
+    break
+    tvmreturn
+
+  TVM_LWC_INTERACT_FORCED_UNWIND:
+    assign rB 5
+    break
+    lwcall WIND_AND_RET
+    exit
+
+  TVM_LWC_INTERACT_BCHK:
+    break
+    lwreturn
+  TVM_LWC_INTERACT_BCHK_continue:
+    assign rA 65532
+  TVM_LWC_INTERACT_BCHK_fillit:
+    dec rA
+    if rA == 0 TVM_LWC_INTERACT_BCHK_proceed
+    lwcall TVM_LWC_INTERACT_BCHK_fillit
+  TVM_LWC_INTERACT_BCHK_proceed:
+    break
+  lwcall TVM_LWC_INTERACT_BCHK_overflowit
+  TVM_LWC_INTERACT_BCHK_overflowit:
+    tvmreturn
+    exit
+
+PROGRAM prg
+
+  const C0 0
+  const C2 2
+  const C5 5
+  const C6 6
+
+  WIND_AND_GO:
+    dec rA
+    if rA == 0 EXIT_LP
+    lwcall WIND_AND_GO
+    lwreturn
+    EXIT_LP:
+    break
+    tvmjump
+    break
+    lwreturn
+  
+  SIMPLE_TEST:
+    assign rE 0
+    assign rF 2
+    assign rA 3
+    break
+    tvmpush C0 C2
+    lwcall WIND_AND_GO
+    break
+    exit
+
+  FORCED_UNWIND_TEST:
+    assign rE 0
+    assign rF 5
+    assign rA 7
+    break
+    tvmpush C0 C5
+    lwcall WIND_AND_GO
+    break
+    exit
+  
+  BOUNDS_CHECK_TEST:
+    assign rE 0
+    assign rF 6
+    assign rA 4
+    break
+    tvmpush C0 C6
+    lwcall WIND_AND_GO
+    break
+    exit
+
+# Perform some lwcalls, then a tvmjump, then more lwcalls, then unwind it naturally (through return statements)
+EXEC prg SIMPLE_TEST
+TEST
+  status 3
+  rA 3
+  rE 0
+  rF 2
+RESUME
+TEST
+  status 3
+  rA 0
+  rLWCSI 3
+  lwcstack 0 14
+  lwcstack 1 3
+  lwcstack 2 3
+  stack-lock 1
+  stack-pos 0
+  stack-entry 0
+    src-program prg
+    dest-program lib
+    jumptarget TVM_LWC_INTERACT_NORMAL
+RESUME
+TEST
+  status 3
+  rB 5
+  program lib
+  lwcs-floor 3
+  stack-lock 0
+  stack-entry 0
+    src-program prg
+    src-lwcsfloor 0
+    src-lwcspos 3
+    dest-program lib
+    jumptarget TVM_LWC_INTERACT_NORMAL
+    returntarget WIND_AND_GO +6
+RESUME
+TEST
+  status 3
+  rB 0
+  rLWCSI 8
+  lwcstack 3 9
+  lwcstack 4 3
+  lwcstack 5 3
+  lwcstack 6 3
+  lwcstack 7 3
+RESUME
+TEST
+  status 3
+  rLWCSI 3
+RESUME
+TEST
+  status 3
+  program prg
+  stack-pos -1
+  lwcs-floor 0
+RESUME
+TEST
+  status 3
+  rLWCSI 0
+
+
+
+# Perform some lwcalls, then a tvmjump, then more lwcalls, 
+# and unwind the outer lwcalls by tvmreturn (similar to return from a nested loop), but otherwise behave normally
+EXEC prg FORCED_UNWIND_TEST
+TEST
+  status 3
+  rA 7
+  rE 0
+  rF 5
+RESUME
+TEST
+  status 3
+  rA 0
+  rLWCSI 7
+  lwcstack 0 22
+  lwcstack 1 3
+  lwcstack 2 3
+  lwcstack 3 3
+  lwcstack 4 3
+  lwcstack 5 3
+  lwcstack 6 3
+  stack-lock 1
+  stack-pos 0
+  stack-entry 0
+    src-program prg
+    dest-program lib
+    jumptarget TVM_LWC_INTERACT_FORCED_UNWIND
+RESUME
+TEST
+  status 3
+  rB 5
+  program lib
+  lwcs-floor 7
+  stack-lock 0
+  stack-entry 0
+    src-program prg
+    src-lwcsfloor 0
+    src-lwcspos 7
+    dest-program lib
+    jumptarget TVM_LWC_INTERACT_FORCED_UNWIND
+    returntarget WIND_AND_GO +6
+RESUME
+TEST
+  status 3
+  rB 0
+  rLWCSI 12
+  lwcstack 7 19
+  lwcstack 8 14
+  lwcstack 9 14
+  lwcstack 10 14
+  lwcstack 11 14
+RESUME
+TEST
+  status 3
+  program prg
+  stack-pos -1
+  lwcs-floor 0
+  rLWCSI 7
+RESUME
+TEST
+  status 3
+  rLWCSI 0
+
+#
+EXEC prg BOUNDS_CHECK_TEST
+TEST
+  status 3
+  rA 4
+  rE 0
+  rF 6
+RESUME
+TEST
+  status 3
+  rA 0
+  rLWCSI 4
+  lwcstack 0 30
+  lwcstack 1 3
+  lwcstack 2 3
+  lwcstack 3 3
+  stack-lock 1
+  stack-pos 0
+  stack-entry 0
+    src-program prg
+    dest-program lib
+    jumptarget TVM_LWC_INTERACT_BCHK
+RESUME
+TEST
+  status 3
+  program lib
+  lwcs-floor 4
+  stack-pos 0
+  stack-lock 0
+  stack-entry 0
+    src-lwcsfloor 0
+    src-lwcspos 4
+RESUME
+TEST
+  status 104
+EXEC lib TVM_LWC_INTERACT_BCHK_continue
+TEST
+  status 3
+  rLWCSI 65535
+  lwcstack 4 26 65531
+RESUME
+TEST
+  status 103
+
