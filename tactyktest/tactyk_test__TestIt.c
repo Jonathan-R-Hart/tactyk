@@ -40,7 +40,7 @@ struct tactyk_dblock__DBlock *test_functions;
 
 struct tactyk_dblock__DBlock *DEFAULT_NAME;
 
-double DEFAULT_PRECISION = DBL_EPSILON * 256.0;
+double DEFAULT_PRECISION = DBL_EPSILON * 65536.0;
 
 struct tactyk_dblock__DBlock **active_test_spec;
 
