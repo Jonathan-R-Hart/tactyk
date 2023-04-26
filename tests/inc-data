@@ -1,0 +1,30 @@
+# TEST:  increment
+# 
+# Virtual-ISA: tactykcore
+# Templates:  inc data (D)
+
+PROGRAM  
+  MAIN:
+    assign a 0   
+    assign b 1234567890123456789
+    assign c 1000000
+    assign d -1
+    assign e -1234567890123456789
+    assign f -1000000
+    inc a
+    inc b    
+    inc c
+    inc d
+    inc e
+    inc f
+    exit
+  
+EXEC MAIN
+
+TEST
+  rA 1
+  rB 1234567890123456790
+  rC 1000001
+  rD 0
+  rE -1234567890123456788
+  rF -999999

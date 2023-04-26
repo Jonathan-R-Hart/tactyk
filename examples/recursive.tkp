@@ -119,7 +119,7 @@ MAIN:
   lwcall CHK_UI_STATE
   
   mctxpush
-  stash b1c1e1
+  stash sB b sC c sE e
   ccall a rand
   and a 3
   if a == 0 NORTH
@@ -169,16 +169,16 @@ MAIN:
 
   lwcall RANDDRAW
 
-  unstash b1c1e1
+  stash b sB c sC e sE
   lwcall RANDDRAW
 
-  unstash b1c1e1
+  stash b sB c sC e sE
   lwcall RANDDRAW
 
-  unstash b1c1e1
+  stash b sB c sC e sE
   lwcall RANDDRAW
 
-  unstash b1c1e1
+  stash b sB c sC e sE
   lwcall RANDDRAW
   
   SKIPIT:

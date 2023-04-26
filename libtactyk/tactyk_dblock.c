@@ -14,10 +14,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <errno.h>
 
 #include "tactyk.h"
 #include "tactyk_dblock.h"
 #include "tactyk_util.h"
+#include "tactyk_alloc.h"
 
 #define TACTYK_DBLOCK__PRINT_MAX_INDENT 32
 #define DBLOCKS_CAPACITY (1<<20)
@@ -70,7 +72,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new(uint64_t capacity) {
     db->type = tactyk_dblock__STRING;
     db->length = 0;
     db->capacity = capacity;
-    db->data = talloc(capacity, 1);
+    db->data = tactyk_alloc__allocate(capacity, 1);
     db->self_managed = true;
     db->child = NULL;
     db->next = NULL;
@@ -91,7 +93,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__shallow_copy(struct tactyk_dblock__
     struct tactyk_dblock__DBlock *db = tactyk_dblock__alloc();
     memcpy(db, src, sizeof(struct tactyk_dblock__DBlock));
     db->self_managed = true;
-    db->data = talloc(db->capacity, 1);
+    db->data = tactyk_alloc__allocate(db->capacity, 1);
     memcpy(db->data, src->data, db->length);
     db->persistence_code = 0;
     return db;
@@ -136,7 +138,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_c_string(char *data) {
     db->stride = 1;
     db->fixed = false;
     db->self_managed = true;
-    db->data = talloc(db->length, 1);
+    db->data = tactyk_alloc__allocate(db->length, 1);
     memcpy(db->data, data, db->length);
     tactyk_dblock__update_hash(db);
     db->persistence_code = 0;
@@ -200,7 +202,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__from_bytes(struct tactyk_dblock__DB
     else {
         out->type = tactyk_dblock__STRING;
         out->self_managed = true;
-        out->data = talloc(length, 1);
+        out->data = tactyk_alloc__allocate(length, 1);
         memcpy(out->data, &data[start_index], length);
     }
     tactyk_dblock__update_hash(out);
@@ -217,9 +219,9 @@ bool tactyk_dblock__is_dblock(void *ptr) {
 
 void tactyk_dblock__set_content(struct tactyk_dblock__DBlock *dest, struct tactyk_dblock__DBlock *source) {
     if (dest->self_managed == true) {
-        tfree(dest->data);
+        tactyk_alloc__free(dest->data);
     }
-    uint8_t *data = talloc(1, source->length);
+    uint8_t *data = tactyk_alloc__allocate(1, source->length);
     memcpy(data, source->data, source->length);
     dest->data = data;
     dest->length = source->length;
@@ -253,7 +255,33 @@ void tactyk_dblock__dispose(struct tactyk_dblock__DBlock *dblock) {
     }
     if (dblock->self_managed) {
         if (dblock->data != NULL) {
-            tfree(dblock->data);
+            tactyk_alloc__free(dblock->data);
+            dblock->data = NULL;
+        }
+    }
+    memset(dblock, 0, sizeof(struct tactyk_dblock__DBlock));
+
+    if (tactyk_dblock__is_dblock(dblock)) {
+        dblocks_stack_idx += 1;
+        dblocks_stack[dblocks_stack_idx] = dblock;
+    }
+    else {
+        warn("DBLOCK -- Unrecognized/Unmanaged tactyk_dblock disposed", NULL);
+    }
+}
+
+void tactyk_dblock__weak_dispose(struct tactyk_dblock__DBlock *dblock) {
+    if (dblock == NULL) {
+        return;
+    }
+    if (dblock->type == tactyk_dblock__NONE) {
+        return;
+    }
+
+    if (dblock->self_managed) {
+        if (dblock->data != NULL) {
+            tactyk_alloc__free(dblock->data);
+            dblock->data = NULL;
         }
     }
     memset(dblock, 0, sizeof(struct tactyk_dblock__DBlock));
@@ -268,7 +296,11 @@ void tactyk_dblock__dispose(struct tactyk_dblock__DBlock *dblock) {
 }
 
 void tactyk_dblock__set_persistence_code(struct tactyk_dblock__DBlock *dblock, uint64_t persist_code) {
+    if (persist_code <= dblock->persistence_code) {
+        return;
+    }
     dblock->persistence_code = persist_code;
+
     if (dblock->child != NULL) {
         tactyk_dblock__set_persistence_code(dblock->child, persist_code);
     }
@@ -293,14 +325,12 @@ void tactyk_dblock__set_persistence_code(struct tactyk_dblock__DBlock *dblock, u
     }
 }
 void tactyk_dblock__cull(uint64_t persist_code) {
-    /*
     for (uint64_t i = 0; i < DBLOCKS_CAPACITY; i += 1) {
         struct tactyk_dblock__DBlock *db = &dblocks[i];
         if (db->persistence_code == persist_code) {
-            tactyk_dblock__dispose(db);
+            tactyk_dblock__weak_dispose(db);
         }
     }
-    */
 }
 
 
@@ -318,7 +348,7 @@ void tactyk_dblock__break(struct tactyk_dblock__DBlock *dblock) {
         dblock->fixed = false;
         if (!dblock->self_managed) {
             dblock->self_managed = true;
-            uint8_t* ndata = talloc(dblock->capacity, 1);
+            uint8_t* ndata = tactyk_alloc__allocate(dblock->capacity, 1);
             memcpy(ndata, dblock->data, dblock->length);
             dblock->data = ndata;
         }
@@ -452,6 +482,36 @@ void tactyk_dblock__append_char(struct tactyk_dblock__DBlock *dblock, uint8_t ch
     dblock->length = tlen;
     tactyk_dblock__update_hash(dblock);
 }
+void tactyk_dblock__append_byte(struct tactyk_dblock__DBlock *dblock, uint8_t val) {
+    tactyk_dblock__append_char(dblock, val);
+}
+void tactyk_dblock__append_word(struct tactyk_dblock__DBlock *dblock, uint16_t val) {
+    assert(dblock->fixed == false);
+    int64_t tlen = dblock->length + 2;
+    tactyk_dblock__expand(dblock, tlen);
+    *(uint16_t*)(dblock->data+dblock->length) = val;
+    dblock->length += 1;
+    dblock->length = tlen;
+    tactyk_dblock__update_hash(dblock);
+}
+void tactyk_dblock__append_dword(struct tactyk_dblock__DBlock *dblock, uint32_t val) {
+    assert(dblock->fixed == false);
+    int64_t tlen = dblock->length + 4;
+    tactyk_dblock__expand(dblock, tlen);
+    *(uint32_t*)(dblock->data+dblock->length) = val;
+    dblock->length += 1;
+    dblock->length = tlen;
+    tactyk_dblock__update_hash(dblock);
+}
+void tactyk_dblock__append_qword(struct tactyk_dblock__DBlock *dblock, uint64_t val) {
+    assert(dblock->fixed == false);
+    int64_t tlen = dblock->length + 8;
+    tactyk_dblock__expand(dblock, tlen);
+    *(uint64_t*)(dblock->data+dblock->length) = val;
+    dblock->length += 1;
+    dblock->length = tlen;
+    tactyk_dblock__update_hash(dblock);
+}
 
 void tactyk_dblock__append_substring(struct tactyk_dblock__DBlock *dblock_a, struct tactyk_dblock__DBlock *dblock_b, uint64_t start, uint64_t amount) {
     assert(dblock_a->fixed == false);
@@ -474,42 +534,155 @@ bool tactyk_dblock__try_parseint(int64_t *out, struct tactyk_dblock__DBlock *dbl
     if (dblock->length == 0) {
         return false;
     }
+
     int64_t result = 0;
     int64_t sign = 1;
     int64_t i = 0;
+    uint64_t radix = 10;
     char *str = (char*)dblock->data;
-    if (str[0] == '-') {
-        sign = -1;
-        i += 1;
+    switch(str[0]) {
+        case '-': {
+            sign = -1;
+            i += 1;
+            break;
+        }
+        case '+': {
+            i += 1;
+            break;
+        }
+    }
+    switch(str[i]) {
+        case 'H':
+        case 'h': {
+            if (str[i+1] != '.') {
+                return false;
+            }
+            i += 2;
+            radix = 16;
+            break;
+        }
+        case 'B':
+        case 'b': {
+            if (str[i+1] != '.') {
+                return false;
+            }
+            i += 2;
+            radix = 2;
+            break;
+        }
     }
     for (; i < (int64_t)dblock->length; i++) {
         char c = str[i];
-        if (c < '0' || c > '9') {
+        uint64_t v = 0;
+        switch(c) {
+            case '0': { v=0; break; }
+            case '1': { v=1; break; }
+            case '2': { v=2; break; }
+            case '3': { v=3; break; }
+            case '4': { v=4; break; }
+            case '5': { v=5; break; }
+            case '6': { v=6; break; }
+            case '7': { v=7; break; }
+            case '8': { v=8; break; }
+            case '9': { v=9; break; }
+
+            case 'a': { v=10; break; }
+            case 'b': { v=11; break; }
+            case 'c': { v=12; break; }
+            case 'd': { v=13; break; }
+            case 'e': { v=14; break; }
+            case 'f': { v=15; break; }
+
+            case 'A': { v=10; break; }
+            case 'B': { v=11; break; }
+            case 'C': { v=12; break; }
+            case 'D': { v=13; break; }
+            case 'E': { v=14; break; }
+            case 'F': { v=15; break; }
+            case '_': { continue; }
+            default: { return false; }
+        }
+        if (v >= radix) {
             return false;
         }
-        int64_t v = c - (int64_t)'0';
-        result *= 10;
+        result *= radix;
         result += v;
     }
-
     *out = result * sign;
     return true;
+
 }
 bool tactyk_dblock__try_parseuint(uint64_t *out, struct tactyk_dblock__DBlock *dblock) {
 
     if (dblock->length == 0) {
         return false;
     }
-    char *str = (char*)dblock->data;
     int64_t result = 0;
+    int64_t sign = 1;
     int64_t i = 0;
+    uint64_t radix = 10;
+    char *str = (char*)dblock->data;
+    switch(str[0]) {
+        case '+': {
+            i += 1;
+            break;
+        }
+    }
+    switch(str[i]) {
+        case 'H':
+        case 'h': {
+            if (str[i+1] != '.') {
+                return false;
+            }
+            i += 2;
+            radix = 16;
+            break;
+        }
+        case 'B':
+        case 'b': {
+            if (str[i+1] != '.') {
+                return false;
+            }
+            i += 2;
+            radix = 2;
+            break;
+        }
+    }
     for (; i < (int64_t)dblock->length; i++) {
         char c = str[i];
-        if (c < '0' || c > '9') {
+        uint64_t v = 0;
+        switch(c) {
+            case '0': { v=0; break; }
+            case '1': { v=1; break; }
+            case '2': { v=2; break; }
+            case '3': { v=3; break; }
+            case '4': { v=4; break; }
+            case '5': { v=5; break; }
+            case '6': { v=6; break; }
+            case '7': { v=7; break; }
+            case '8': { v=8; break; }
+            case '9': { v=9; break; }
+
+            case 'a': { v=10; break; }
+            case 'b': { v=11; break; }
+            case 'c': { v=12; break; }
+            case 'd': { v=13; break; }
+            case 'e': { v=14; break; }
+            case 'f': { v=15; break; }
+
+            case 'A': { v=10; break; }
+            case 'B': { v=11; break; }
+            case 'C': { v=12; break; }
+            case 'D': { v=13; break; }
+            case 'E': { v=14; break; }
+            case 'F': { v=15; break; }
+            case '_': { continue; }
+            default: { return false; }
+        }
+        if (v >= radix) {
             return false;
         }
-        int64_t v = c - (int64_t)'0';
-        result *= 10;
+        result *= radix;
         result += v;
     }
 
@@ -520,10 +693,10 @@ bool tactyk_dblock__try_parsedouble(double *out, struct tactyk_dblock__DBlock *d
     if (dblock->length == 0) {
         return false;
     }
-    char *buf = talloc(dblock->length+1, 1);
+    char *buf = tactyk_alloc__allocate(dblock->length+1, 1);
     memcpy(buf, dblock->data, dblock->length);
     bool result = tactyk_util__try_parsedouble(out, buf, dblock->length);
-    tfree(buf);
+    tactyk_alloc__free(buf);
     return result;
 }
 
@@ -539,15 +712,18 @@ void tactyk_dblock__expand(struct tactyk_dblock__DBlock *dblock, uint64_t min_le
     else {
         dblock->self_managed = true;
     }
+    if (dblock->capacity == 0) {
+        dblock->capacity = min_length;
+    }
     while (dblock->capacity < min_length) {
         dblock->capacity *= 2;
     }
 
     uint8_t *data = (uint8_t*) dblock->data;
-    uint8_t *ndata = talloc(dblock->capacity, 1);
+    uint8_t *ndata = tactyk_alloc__allocate(dblock->capacity, 1);
     memcpy(ndata, &data[0], dblock->length);
     if (was_self_managed == true) {
-        tfree(data);
+        tactyk_alloc__free(data);
     }
     dblock->data = ndata;
 }
@@ -559,8 +735,8 @@ void tactyk_dblock__reallocate(struct tactyk_dblock__DBlock *dblock, uint64_t mi
             dblock->capacity *= 2;
             dblock->element_capacity *= 2;
         }
-        uint8_t *ndata = talloc(dblock->capacity, 1);
-        tfree(dblock->data);
+        uint8_t *ndata = tactyk_alloc__allocate(dblock->capacity, 1);
+        tactyk_alloc__free(dblock->data);
 
         dblock->self_managed = true;
         dblock->data = ndata;
@@ -907,6 +1083,13 @@ bool tactyk_dblock__equals(struct tactyk_dblock__DBlock *dblock_a, struct tactyk
     return true;
 }
 
+bool tactyk_dblock__equals_c_string(struct tactyk_dblock__DBlock *dblock_a, char *b) {
+    if (dblock_a == NULL) {
+        return false;
+    }
+    return (strncmp(dblock_a->data, b, dblock_a->length) == 0);
+}
+
 bool tactyk_dblock__contains(struct tactyk_dblock__DBlock *dblock_a, struct tactyk_dblock__DBlock *dblock_b) {
     int64_t limit = dblock_a->length-dblock_b->length;
 
@@ -942,12 +1125,12 @@ void tactyk_dblock__print_indented(struct tactyk_dblock__DBlock *dblock, char *i
         printf("%s%s", indent, printbuf);
     }
     else {
-        char *cpy = talloc(dblock->length+1,1);
+        char *cpy = tactyk_alloc__allocate(dblock->length+1,1);
         //printf("?printit? %ju\n", len);
         memcpy(cpy, dblock->data, len);
         cpy[len] = 0;
         printf("%s%s", indent, cpy);
-        tfree(cpy);
+        tactyk_alloc__free(cpy);
     }
 }
 void tactyk_dblock__print(void *ptr) {
@@ -973,7 +1156,7 @@ void tactyk_dblock__print_structure(struct tactyk_dblock__DBlock *dblock, bool c
         indent_level = TACTYK_DBLOCK__PRINT_MAX_INDENT;
     }
 
-    char *indent = talloc(indent_level*2+1,1);
+    char *indent = tactyk_alloc__allocate(indent_level*2+1,1);
     for (uint64_t i = 0; i < indent_level; i += 1) {
         indent[i*2+0] = ' ';
         indent[i*2+1] = ' ';
@@ -1048,7 +1231,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new_container(uint64_t element_capa
     db->element_count = 0;
     db->length = 0;
     db->capacity = element_capacity*stride;
-    db->data = talloc(element_capacity, stride);
+    db->data = tactyk_alloc__allocate(element_capacity, stride);
     db->self_managed = true;
     db->child = NULL;
     db->next = NULL;
@@ -1089,6 +1272,16 @@ void* tactyk_dblock__index(struct tactyk_dblock__DBlock *container, uint64_t ind
         return tactyk_dblock__index(container->store, index);
     }
     if (index >= container->element_count) {
+        error("DBLOCK-CONTAINER index out of bounds", NULL);
+    }
+    uint8_t *data = (uint8_t*)container->data;
+    return &data[index * container->stride];
+}
+void* tactyk_dblock__index_allocated(struct tactyk_dblock__DBlock *container, uint64_t index) {
+    if (container->store != NULL) {
+        return tactyk_dblock__index(container->store, index);
+    }
+    if (index >= container->element_capacity) {
         error("DBLOCK-CONTAINER index out of bounds", NULL);
     }
     uint8_t *data = (uint8_t*)container->data;
@@ -1162,7 +1355,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new_table(uint64_t element_capacity
     db->element_count = 0;
     db->length = 0;
     db->capacity = element_capacity*stride*2;
-    db->data = talloc(element_capacity, stride*2);
+    db->data = tactyk_alloc__allocate(element_capacity, stride*2);
     db->self_managed = true;
     db->child = NULL;
     db->next = NULL;
@@ -1235,7 +1428,7 @@ void tactyk_dblock__rebuild_table(struct tactyk_dblock__DBlock *table, uint64_t 
 
     if (table->capacity < min_length) {
         table->capacity = min_length;
-        table->data = talloc(min_length, 1);
+        table->data = tactyk_alloc__allocate(min_length, 1);
     }
     table->element_count = 0;
     for (uint64_t i = 0; i < prev_element_capacity; i += 1) {
@@ -1248,12 +1441,14 @@ void tactyk_dblock__rebuild_table(struct tactyk_dblock__DBlock *table, uint64_t 
             tactyk_dblock__put(table, key, value);
         }
     }
-    tfree(fields);
+    tactyk_alloc__free(fields);
 }
 
 
 void tactyk_dblock__put(struct tactyk_dblock__DBlock *table, void *key, void *value) {
-
+    if (tactyk_dblock__is_dblock(value)) {
+        tactyk_dblock__set_persistence_code((struct tactyk_dblock__DBlock*)value, table->persistence_code);
+    }
     assert(table->element_count <= table->element_capacity);
 
     if ((table->element_count) == table->element_capacity) {
@@ -1284,7 +1479,9 @@ void tactyk_dblock__put(struct tactyk_dblock__DBlock *table, void *key, void *va
 
         // if using a dynamic key, put a copy into the table
         else if (tmp_key->self_managed) {
-            fields[offset] = tactyk_dblock__shallow_copy(tmp_key);
+            struct tactyk_dblock__DBlock *cpy_key = tactyk_dblock__shallow_copy(tmp_key);
+            tactyk_dblock__set_persistence_code(cpy_key, table->persistence_code);
+            fields[offset] = cpy_key;
             fields[offset+1] = value;
             table->element_count += 1;
             return;
@@ -1292,6 +1489,7 @@ void tactyk_dblock__put(struct tactyk_dblock__DBlock *table, void *key, void *va
 
         // if using a persistent key (externally managed), use the key directly.
         else {
+            tactyk_dblock__set_persistence_code(tmp_key, table->persistence_code);
             fields[offset] = tmp_key;
             fields[offset+1] = value;
             table->element_count += 1;
@@ -1299,19 +1497,9 @@ void tactyk_dblock__put(struct tactyk_dblock__DBlock *table, void *key, void *va
         }
     }
     else if ( (value == NULL) && (tbl_value != NULL) ) {
-        //if (tactyk_dblock__is_dblock(tbl_value)) {
-        //    struct tactyk_dblock__DBlock *tblv = (struct tactyk_dblock__DBlock*)tbl_value;
-        //}
         fields[offset+1] = TACTYK_PSEUDONULL;
-
     }
     else if ( (value != NULL) && (tbl_value != NULL) ) {
-        //if (tactyk_dblock__is_dblock(tbl_value)) {
-        //    struct tactyk_dblock__DBlock *tblv = (struct tactyk_dblock__DBlock*)tbl_value;
-        //    if (tblv->self_managed == true) {
-        //        tactyk_dblock__dispose(tblv);
-        //    }
-        //}
         fields[offset+1] = value;
     }
 
@@ -1332,7 +1520,7 @@ void* tactyk_dblock__get(struct tactyk_dblock__DBlock *table, void *key) {
     void **fields = (void**)table->data;
 
     uint64_t offset = (uint64_t)idx*2;
-    //struct tactyk_dblock__DBlock *tbl_key = fields[offset];
+    struct tactyk_dblock__DBlock *tbl_key = fields[offset];
     void *tbl_value = fields[offset+1];
 
     if (tmp_key != key) {
@@ -1354,12 +1542,14 @@ void* tactyk_dblock__release(struct tactyk_dblock__DBlock *dblock) {
     if (dblock->store != NULL) {
          dblock->store->self_managed = false;
          void *data = dblock->store->data;
+         dblock->store->data = NULL;
          tactyk_dblock__dispose(dblock);
          return data;
     }
     else {
         dblock->self_managed = false;
         void *data = dblock->data;
+        dblock->data = NULL;
         tactyk_dblock__dispose(dblock);
         return data;
 

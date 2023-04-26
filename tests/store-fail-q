@@ -1,0 +1,217 @@
+# TEST:  Bounds checking for store instructions (qword)
+#
+# This verifies that tactyk halts when out-of-bounds offsets are used in store instructions
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   store qword-addr-data-data    (QADD)
+#   store qword-addr-integer-data (QAID)
+#   store qword-addr-const-data   (QACD)
+
+PROGRAM
+  struct st
+    1 i0
+    1 i1
+    1 i2
+    1 i3
+    1 i4
+    1 i5
+    1 i6
+    1 i7
+    1 i8
+    1 i9
+  
+  const CN1 -1
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C5 5
+  const C6 6
+  const C7 7
+  const C8 8
+  const C9 9
+  const C10 10
+  
+  mem mm st 1
+  
+  INIT:
+    bind addr1 mm
+    assign a 1000000000000000
+    exit
+  
+  st_QADD_neg:
+    inc a
+    assign b -1
+    store qword addr1 b a
+    exit
+  st_QADD_zero:
+    inc a
+    assign b 0
+    store qword addr1 b a
+    exit
+  st_QADD_edge:
+    inc a
+    assign b 2
+    store qword addr1 b a
+    exit
+  st_QADD_cross:
+    inc a
+    assign b 3
+    store qword addr1 b a
+    exit
+  st_QADD_far:
+    inc a
+    assign b 9
+    store qword addr1 b a
+    exit
+  st_QADD_beyond:
+    inc a
+    assign b 10
+    store qword addr1 b a
+    exit
+  
+  st_QAID_neg:
+    inc a
+    store qword addr1 -1 a
+    exit
+  st_QAID_zero:
+    inc a
+    store qword addr1 0 a
+    exit
+  st_QAID_edge:
+    inc a
+    store qword addr1 2 a
+    exit
+  st_QAID_cross:
+    inc a
+    store qword addr1 3 a
+    exit
+  st_QAID_far:
+    inc a
+    store qword addr1 9 a
+    exit
+  st_QAID_beyond:
+    inc a
+    store qword addr1 10 a
+    exit
+  
+  st_QACD_neg:
+    inc a
+    store qword addr1 CN1 a
+    exit
+  st_QACD_zero:
+    inc a
+    store qword addr1 C0 a
+    exit
+  st_QACD_edge:
+    inc a
+    store qword addr1 C2 a
+    exit
+  st_QACD_cross:
+    inc a
+    store qword addr1 C3 a
+    exit
+  st_QACD_far:
+    inc a
+    store qword addr1 C9 a
+    exit
+  st_QACD_beyond:
+    inc a
+    store qword addr1 C10 a
+    exit
+
+EXEC INIT
+TEST
+  addr1 mm 0
+  rA 1000000000000000
+
+EXEC st_QADD_neg
+TEST
+  status 101
+  rA 1000000000000001
+  rB -1
+EXEC st_QADD_zero
+TEST
+  status 4
+  rA 1000000000000002
+  rB 0
+  mem mm 0 qword 1000000000000002
+EXEC st_QADD_edge
+TEST
+  status 4
+  rA 1000000000000003
+  rB 2
+  mem mm 2 qword 1000000000000003
+EXEC st_QADD_cross
+TEST
+  status 101
+  rA 1000000000000004
+  rB 3
+EXEC st_QADD_far
+TEST
+  status 101
+  rA 1000000000000005
+  rB 9
+EXEC st_QADD_beyond
+TEST
+  status 101
+  rA 1000000000000006
+  rB 10
+
+
+EXEC st_QAID_neg
+TEST
+  status 101
+  rA 1000000000000007
+EXEC st_QAID_zero
+TEST
+  status 4
+  rA 1000000000000008
+  mem mm 0 qword 1000000000000008
+EXEC st_QAID_edge
+TEST
+  status 4
+  rA 1000000000000009
+  mem mm 2 qword 1000000000000009
+EXEC st_QAID_cross
+TEST
+  status 101
+  rA 1000000000000010
+EXEC st_QAID_far
+TEST
+  status 101
+  rA 1000000000000011
+EXEC st_QAID_beyond
+TEST
+  status 101
+  rA 1000000000000012
+
+EXEC st_QACD_neg
+TEST
+  status 101
+  rA 1000000000000013
+EXEC st_QACD_zero
+TEST
+  status 4
+  rA 1000000000000014
+  mem mm 0 qword 1000000000000014
+EXEC st_QACD_edge
+TEST
+  status 4
+  rA 1000000000000015
+  mem mm 2 qword 1000000000000015
+EXEC st_QACD_cross
+TEST
+  status 101
+  rA 1000000000000016
+EXEC st_QACD_far
+TEST
+  status 101
+  rA 1000000000000017
+EXEC st_QACD_beyond
+TEST
+  status 101
+  rA 1000000000000018

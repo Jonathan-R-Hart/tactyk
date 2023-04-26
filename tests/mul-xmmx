@@ -1,0 +1,249 @@
+# TEST:  multiplication instructions involving xmmx registers
+#
+#       
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   mul data-float (DF)
+#   mul data-fconst (DCf)
+#   mul data-xmmx (DX)
+#   mul xmmx-data (XD)
+#   mul xmmx-integer (XI)
+#   mul xmmx-float (XF)
+#   mul xmmx-fconst (XCf)
+#   mul xmmx-const (XC)
+#   mul xmmx-xmmx (XX)
+
+PROGRAM
+  
+  const CN10 -10
+  const CN5 -5
+  const C0 0
+  const C5 5
+  const C10 10
+  const C15 15
+  
+  const Cf1.1 1.1
+  const Cf3.333 3.333
+  const Cf10.75 10.75
+  const CfN10.75 -10.75
+  const CfN3.333 -3.333
+  const CfN1.1 -1.1
+  
+  
+  INIT:
+    assign rA -10
+    assign rB -5
+    assign rC 0
+    assign rD 5
+    assign rE 10
+    assign rF 15
+    assign xA 1000
+    assign xB 1000.11
+    assign xC -1000.22
+    assign xD 1000.33
+    assign xE -1000.44
+    assign xF 1000.55
+    assign xG -1000.66
+    assign xH 1000.77
+    assign xI -1000.88
+    assign xJ 1000.99
+    assign xK 100
+    assign xL 10
+    assign xM 1
+    exit
+  
+  DI:
+    mul rA 1.1
+    mul rB 3.333
+    mul rC 10.75
+    mul rD -10.75
+    mul rE -3.333
+    mul rF -1.1
+    exit
+  
+  DC:
+    mul rA Cf1.1
+    mul rB Cf3.333
+    mul rC Cf10.75
+    mul rD CfN10.75
+    mul rE CfN3.333
+    mul rF CfN1.1
+    exit
+
+  DX:
+    mul rA xB
+    mul rB xC
+    mul rC xD
+    mul rD xE
+    mul rE xF
+    mul rF xG
+    exit
+  
+  XD:
+    mul xB rA
+    mul xC rB
+    mul xD rC
+    mul xE rD
+    mul xF rE
+    mul xG rF
+    exit
+  
+  XI:
+    mul xB -10
+    mul xC -5
+    mul xD 0
+    mul xE 5
+    mul xF 10
+    mul xG 15
+    exit
+  
+  XC:
+    mul xB CN10
+    mul xC CN5
+    mul xD C0
+    mul xE C5
+    mul xF C10
+    mul xG C15
+    exit
+
+  XF:
+    mul xB 1.1
+    mul xC 3.333
+    mul xD 10.75
+    mul xE -10.75
+    mul xF -3.333
+    mul xG -1.1
+    exit
+
+  XCf:
+    mul xB Cf1.1
+    mul xC Cf3.333
+    mul xD Cf10.75
+    mul xE CfN10.75
+    mul xF CfN3.333
+    mul xG CfN1.1
+    exit
+  
+  XX:
+    mul xA xM
+    mul xB xL
+    mul xC xK
+    mul xD xJ
+    mul xE xI
+    mul xF xF
+    exit
+
+EXEC INIT
+TEST
+  rA -10
+  rB -5
+  rC 0
+  rD 5
+  rE 10
+  rF 15
+  xA 1000
+  xB 1000.11
+  xC -1000.22
+  xD 1000.33
+  xE -1000.44
+  xF 1000.55
+  xG -1000.66
+  xH 1000.77
+  xI -1000.88
+  xJ 1000.99
+  xK 100
+  xL 10
+  xM 1
+
+EXEC DI
+TEST
+  rA -11
+  rB -16
+  rC 0
+  rD -53
+  rE -33
+  rF -16
+
+EXEC INIT
+EXEC DC
+TEST
+  rA -11
+  rB -16
+  rC 0
+  rD -53
+  rE -33
+  rF -16
+
+EXEC INIT
+EXEC DX
+TEST
+  rA -10001
+  rB 5001
+  rC 0
+  rD -5002
+  rE 10005
+  rF -15009
+
+EXEC INIT
+EXEC XD
+TEST
+  xB -10001.1
+  xC 5001.1
+  xD 0
+  xE -5002.2
+  xF 10005.5
+  xG -15009.9
+
+EXEC INIT
+EXEC XI
+TEST
+  xB -10001.1
+  xC 5001.1
+  xD 0
+  xE -5002.2
+  xF 10005.5
+  xG -15009.9
+
+EXEC INIT
+EXEC XC
+TEST
+  xB -10001.1
+  xC 5001.1
+  xD 0
+  xE -5002.2
+  xF 10005.5
+  xG -15009.9
+
+EXEC INIT
+EXEC XF
+TEST
+  xB 1100.121
+  xC -3333.73326
+  xD 10753.5475
+  xE 10754.73
+  xF -3334.83315
+  xG 1100.726
+
+EXEC INIT
+EXEC XCf
+TEST
+  xB 1100.121
+  xC -3333.73326
+  xD 10753.5475
+  xE 10754.73
+  xF -3334.83315
+  xG 1100.726
+
+EXEC INIT
+EXEC XX
+TEST
+  xA 1000
+  xB 10001.1
+  xC -100022
+  xD 1001320.3267
+  xE 1001320.3872 
+  xF 1001100.3025
+
+
+

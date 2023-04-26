@@ -1,0 +1,30 @@
+# TEST:  goto
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  add data-data (DD), add data-integer (AI) add data-const (AC)
+
+PROGRAM
+  CCC:
+    goto DDD
+    assign a 23454
+  SPHAGETTOMAX:
+    assign a 1
+    goto BBB
+    assign a 1234
+  EEE:
+    goto DONE
+    bind addr1 99999
+  BBB:
+    goto CCC
+    assign a 4321
+  DDD:
+    goto EEE
+    exit
+  DONE:
+    inc a
+    exit
+
+EXEC SPHAGETTOMAX
+
+TEST
+  rA 2

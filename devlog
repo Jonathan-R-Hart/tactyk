@@ -1,3 +1,227 @@
+26 Apr 2023 -- VERSION 0.7.0
+Test coverage for add, mul, sub, and div instruction involving xmm registers
+Test coverage for assign instructions involving the xmm registers
+Test coverage for stash operations involving extended fields (16-bytes / full xmm register)
+
+Fix divsion, addition, and subtraction instruction templates
+
+Reduce precision for floating point comparisons
+  (current test is (abs(A/B)-1.0) < PRECISION, and 256*epsilon was too low)
+
+tactyk-test: add alternative xmm register display modes:  int32, int64, float32, float64, and string
+tactyk-debug: add alternative xmm register display modes:  int64, float64, and string
+
+tactyk-test:  rename the xmm register test and add a string literal test to it
+
+25 Apr 2023
+Test coverage for tvmcall interaction with the lwcall stack
+Test coverage for tvmcall interaction with memory bindings
+Test coverage for store-xxmx templates
+Test coverage for bounds checking in load/store operations using xmm registers
+Test coverage for swap instructions involving xmm registers
+
+Expand tvmcall instruction to update references to program memory bindings when calling and restore it when returning.
+Add checks to tactyk-test to validate tvmcall interactions with memory bindings.
+
+Add floating point value handling to tactyk-test memory validator
+
+fix template swap xmmx-xmmx
+
+remove vectorized instruction stub code
+
+24 Apr 2023
+Test coverage for tvmcall interaction with the mctx stack.
+
+Re-enable missing register checks (address and stack registers)
+Replace mctx clamping with overflow and underflow errors
+Unwind mctx and lwcall stacks [to original positions] when returning from a tvmcall
+
+22 Apr 2023
+Add test coverage for tvmcall instructions (tvmpush, tvmjump, tvmreturn)
+Add test coverage for load-xmmx instructions
+
+tactyk-test refactoring
+  Improve descriptions when indicating where unexpected state transitions are observed.
+  Use a generic macro to checking for and describe unexpected state transtions
+  Remove most pass/fail testing from individual property tests
+    For the most part, these functions now just write the expected state change to the relevant shadow object.
+    Responsibility for recognizing unexpected state changes now mostly belongs to the general-purpose state transition recognition function.
+      (where specialized handling is needed, the individual test functions can still do it)
+
+Remove direct state adjustment functions from tactyk-test
+  tactyk is quite capable on its own state on its own.
+
+Add test functions for validating the primary stack (tvmcalls -- tactyk program callign into other tactyk programs)
+
+Corrected an inconsist state change in tvmpush.  This one arguably gets a bit pedantic...
+  It previously was writing a stack entry after validating the program handle, but prior to validating the function handle.
+  If the tactyk runtime is well-behaved, this isn't an issue, as it does correctly signal an error and terminate, 
+  However, if the runtime is poorly behaved (liek the current testing setup) and allows script re-entry after an error is signaled, 
+  then a subsequent attempt at performing a tvmjump results in a segmentation fault due to the use of improperly placed invalid data
+  on in the "stale" tvmjump.
+  The correction was to rearrange code and reallocate registers to perform the stack entry write after validating the function handle.
+  The odd handling of invalid data was a compromise to avoid having future constant/integer variant spill a register.
+    (An extra temp register was subsequently made available through a refactoring effort, so there is no need for any such compromise)
+  (NOTE:  fixes segfaults originating inside of tactyk under script control have a much higher priority than fixes for segfaults in the runtime).
+
+Added variants of tvmcall isntruction which use integer/const arguments
+
+Add a templates for loading truncated floating point values onto data registers
+
+21 Apr 2023
+Add test coverage for instructions: stash, mctxpush, mctxpop, mctxjump
+
+Repurposed "type" field from memory block specification.  
+  It is Renamed to "offset" and is now intended solely for storing the address offset while stashed.
+  (and will only be updated when stashing memory bindings)
+
+Micrcontext stash redesign
+  Most of stash memory is now general-purpose
+    All data, xmm, and unused slots in the stash have been combined into a general-purpose stash 
+      Ttotal of 52 8-byte slots, or 26 16-byte slots (if/when large vectorized/SSE2 operations get more than a few bits of stub code)
+    All data and xmm stash operators can now read from or write to any part of general-purpose stash (no more shadowing).
+  Stashed memory bindings still use a reserved portion of the stash (same size)
+    (the reservation is to help avoid having to re-apply memory safety checks)
+  The stash and unstash instructions have been merged.
+  Stash arguments have been broken up and are now a sequence of destination-source token pairs
+  The stash command is now a composite operation which can perform any combination of load, store, and swap (maximum of 16 operations).
+    Conflicting load/store/swap sequences is undefiend behavior (the result of which is non-deterministic on account of internal randomization).
+    Exact duplicate operations are not permitted (duplicate operations will be silently culled prior to assembly)
+
+Add "mctxjump" instruction
+  This allows programs to bind any stash in the microcontext stack (above the "floor")
+  This is intended to allow support the use of the microcontext stack as script-local storage.
+
+Extend assign instruction to read stack registers (rLWSCI and rMSCI)
+  The value obtained is relative to the stack floor
+
+New security feature:  Random address displacement
+  Two random 30-bit constants are generated and used for address displacement.
+  These are generated during initialization and apply to all programs using the same context
+    (different contexts may use different displacements, but support for mutliple contexts is not [yet] a part of tactyk).
+  These are are applied to the context data structure (which uses the fs segment register) and the microcontext stash (which uses the gs segment register).
+  The displacement value is subtracted from the pointers prior to writing to the segment register, and added as a constant displacement to each address referencing them.
+  The primary interest is to fortify the stash operation
+    (it allows scripts to specify a multiple immediately adjacent instructions and can achieve only a moderate level of randomization without resorting to arbitrarilly inserted nops)
+
+Restructured tactyk-test
+
+Add state change tracking for the main stack to the test system.
+
+20 Apr 2023
+Add instructions:  not, negate (tactyk_core.visa)
+Add test coverage for and, or, xor, not, negate, inc, dec instructions  (tactyk_core.visa)
+Add test coverage for shift operations (shift-left, shift-right, rotate-left, rotate-right)
+Add test coverage for goto instruction
+Add test coverage for tcall and ccall instructions
+Add test coverage for if instruction
+Add test coverage for lwcall
+
+Add template for using integers or constants to offset an address.
+
+Correct and expand address offsetting through the assign instruction.
+  the instruction now accepts a data register, a hard-coded integer, or a constant.
+  Also added test coverage for it
+
+Correct register usage for shift instruction (which taking the shift parameter from a data register)
+
+Correct the microcontext stash layout
+
+Expand the testing system to accept and validate callbacks from tactyk.
+Expand the testing system to validate microcontext stack and lwcall stack state transitions.
+
+Remove all constant to constant conditional jump templates
+  (get your own preprocessor!)
+
+Add break .. resume, with test coverage
+  The "break" instruction places the vm in a suspended state.
+  A subsequent "resume" operation causes the execution to continue where it left off.
+
+19 Apr 2023
+Use mkstemps() to generate unique temporary filenames when building assembly intermediates.
+  (Fixes automated tests failures when using multiple processes)
+Test coverage for load instruction bounds checking
+Test coverage for store instruction (and bounds checking)
+Expand bind instruction coverage to include failures
+Test coverage for push and pop instructions
+Test coverage for swap instruction
+Test coverage for add, sub, mul, and div instructions
+
+Prevent binding of uninitailized memblocks
+  (It was probably harmless, but I'd rather not write tests for it, and it has to bounds-check memblock IDs anyway).
+
+Revise stack operations (lwcall/lwreturn, push/pop)
+  Stack pointers (or indices) now start at the base address and point at the next entry
+  lwcall now uses the whole register and uses proper bounds checking
+
+Append a string terminator to all files read into a buffer.
+
+Fix memblock offset derviation in testing system
+
+Add two methods for handling integer division by zero:
+  Exit tactyk with a status code.
+  Jump if the denominator is zero.
+
+Add binary and hexadecimal integer format parsing
+  bin:  b.0010101110101
+  hex:  h.afd2131231aee
+
+17-18 Apr 2023
+Add memory and memory binding to the testing system
+  It gets a bit complex because memory bindings don't always have a convenient origin.
+Test coverage for the bind instruction
+Test coverage for load instruction (data register only)
+
+Implement tactyk_pl data directive
+  This defines and initializes a memblock containing formatted binary data
+  The format of the binary data is provided by a struct (use the "struct" directive and reference it by name)
+Add tactyk_pl flat-data directive
+  This defines and initializes a single-element memblock consisting of a flat list of values of one data type.
+
+element_bound properties now are an alias for stride/element-size
+  Bounds checks are now handled in ASM by offsetting element_bound as to fit the word size
+  (bytes can now be written and up to the high edge of an element, while still preventing large words from spilling)
+
+Added a function which invokes tactyk and returns false if it ends in an invalid state instead of throwing an exception.
+
+13-17 Apr 2023
+Added an automated testing system
+  This was primarilly motivated by the ever-increasing tediousness of manual testing.
+  The test program is focused on covering virtual ISA operations.  Another system may be needed for covering supporting components (libtactyk).
+  The test program accepts a list of files through command-line input
+  Each input file is regarded as one test (though it may test any number of things)
+  The test program spawns one process per test (limited by the "--jobs" argument)
+  Each child process sets up a complete tactyk context and runs a test script
+  The test script is a series of commands (in the same format as virtual ISA configuration and tactyk_pl).
+  The commands are high-level controls -- generally compile a program, manipulate tactyk context state, call a tactyk function, and compare expected results with observed results.
+  The test process maintains both a real tactyk context and a "shadow" context.  The shadow context is a duplicate of the real one and is used to track unexpected state transitions
+    with byte for byte comparison.
+  The test gives one of three results:  Pass, Fail, or Test-Error.
+    Pass indicates that the following have occured:
+      All test functions ran without error
+      All test functions that report pass/fail/error reported a pass.
+      The tactyk program and all supporting functions operated without error.
+      All test checks passed
+      The tactyk context state did not perform any unexpected state transitions (all changes accounted for).
+    Fail indicates one the follwoing conditions:
+      Any test function reported a "fail" result.
+      The test process was terminated for exceeding the maximum specified run time (defualt is 4 seconds).
+      The test process was terminated by a signal (usually segmentation fault).
+        NOTE:  Process termination is presumed to be a problem in tactyk, but it also can be a problem in the test program.
+    "Test Error" indicates that the test program identified an error in the test script.
+  The test program halts on the first error or failure.
+  Additionally, the test program logs errors and text condition failures
+
+Test coverage for handling of integer immediate operands
+
+13 Apr 2023
+Fix and enable the garbage collector
+
+Reworked the way tactyk uses jump tables:
+  The "rPROG" register (rdi) is renamed to rMAPPER and is primarilly used for completing jumps which involve jump tables, and secondarilly as a 4th temp register.
+  Use read-only access for jump table memory
+  The pointer to the active program's jump table now belongs to the context data structure (due to rMAPPER being made volatile)
+
 11-12 Apr 2023
 Add support for dynamic compilation.
   This is intended to allow for the use of high-level languages in tactyk - with a toolchain which is to run entirely within the sandbox.
@@ -35,6 +259,17 @@ Add tactyk-vm calls
     Microcontext and lwcall stacks are restricted to prevent the callee from popping entries the the caller's stack entries)
 NOTE:  There is a lot of pointer chasing in tactyk-vm calls as-written, so it may be appropriate to add a limited variant which uses pre-fetched data
        to speed things up a bit.  This might not be worthwhile as the critical path doesn't seem to be very long.
+
+Added a "string" type specification
+  strings are a sequence of up to 8 or 16 bytes which may be concatenated, converted into an integer, and loaded onto a register.
+  String formats supported:
+    'string   - single apostrophe followed by any text
+    "string"  - text surrounded by quote marks
+    `$VAR`    - perform string interpolation on the contained text and use the result
+  The "assign" instruction now accepts strings.
+    If assigning to a regular register, a maximum of 8 chars may be used.
+    If assigning to an xmm register, chars 0-7 will be loaded onto the lower portion of the register, and chars 8-15 will be loaded onto the upper portion
+  Space chars (' ') are not supported and will terminate the string (due to a decision to use a simple and strict syntax).
 
 10 Apr 2023
 Completed the Julia Fractal example.  It in real-time at 128 max iterations.

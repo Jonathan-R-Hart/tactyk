@@ -117,6 +117,10 @@ struct tactyk_dblock__DBlock* tactyk_dblock__concat(struct tactyk_dblock__DBlock
 void tactyk_dblock__append(struct tactyk_dblock__DBlock *out, void *dblock);
 // append a single byte to a dblock
 void tactyk_dblock__append_char(struct tactyk_dblock__DBlock *dblock, uint8_t ch);
+void tactyk_dblock__append_byte(struct tactyk_dblock__DBlock *dblock, uint8_t val);
+void tactyk_dblock__append_word(struct tactyk_dblock__DBlock *dblock, uint16_t val);
+void tactyk_dblock__append_dword(struct tactyk_dblock__DBlock *dblock, uint32_t val);
+void tactyk_dblock__append_qword(struct tactyk_dblock__DBlock *dblock, uint64_t val);
 // append a substring of one dblock to another dblock
 void tactyk_dblock__append_substring(struct tactyk_dblock__DBlock *out, struct tactyk_dblock__DBlock *dblock, uint64_t start, uint64_t amount);
 // attempt to parse the dblock's content as a signed integer.  if it succeeds, export the result via pointer and return true, otherwise return false
@@ -148,6 +152,7 @@ void tactyk_dblock__trim(struct tactyk_dblock__DBlock *dblock);
 //  this compares each byte up to the dblock->length (any trailing data in the buffer is ignored) and returns true if all bytes match
 //  If the dblocks have mismatched hashcodes then it will return false without comparing the buffers
 bool tactyk_dblock__equals(struct tactyk_dblock__DBlock *dblock_a, struct tactyk_dblock__DBlock *dblock_b);
+bool tactyk_dblock__equals_c_string(struct tactyk_dblock__DBlock *dblock_a, char *b);
 
 // seach a dblock's internal buffer for a copy of the content of another dblock and return true if the search succeeds.
 bool tactyk_dblock__contains(struct tactyk_dblock__DBlock *dblock_a, struct tactyk_dblock__DBlock *dblock_b);
@@ -184,6 +189,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__new_allocated_container(uint64_t ca
 void* tactyk_dblock__new_object(struct tactyk_dblock__DBlock *container);
 // return a pointer to a specific container entry
 void* tactyk_dblock__index(struct tactyk_dblock__DBlock *container, uint64_t index);
+void* tactyk_dblock__index_allocated(struct tactyk_dblock__DBlock *container, uint64_t index);
 
 // Use string interpolation to transform a template into a product.
 // "var_indicator" is a sigil char that indicates the presence of an identifier

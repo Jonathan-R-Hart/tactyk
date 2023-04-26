@@ -1,0 +1,84 @@
+# TEST:  tvmcall interactions with memory bindings
+#
+# This verifies that tvmcalls update the context memblocks pointer and memblocks count to refer to to the memory layout
+# specified by the program being called into.(and that those properties are correctly restored when returning)
+#
+# This also verifies that an "active" memory binding is valid on both sides of a tvmcall
+#   tvmcalls don't affect address registers or the "active" memory binding properties, so this isn't a particularly
+#   difficult test to setup (though it isn't quite so simple within the test framework)
+#
+# Virtual-ISA: tactyk_core
+
+PROGRAM lib
+  
+  struct s1
+    8 va
+    4 vb
+    2 vc
+  
+  data d1 s1 8
+    1234567890000
+    1234555
+    12
+  
+  mem m2 s1 12
+  
+  libFUNC_1:
+    bind addr2 d1
+    load qword rC addr1 s1.va
+    div rC 1000
+    store dword addr2 s1.vb rC
+    load qword rB addr2 s1.va
+    bind addr3 1
+    tvmreturn
+
+PROGRAM prg
+    
+  struct s1
+    8 va
+    4 vb
+    2 vc
+  
+  mem m1 s1 8
+  
+  prgFUNC:
+    bind addr1 m1
+    assign rA 5000000000
+    store qword addr1 s1.va rA
+    assign rA 1234
+    store dword addr1 s1.vb rA
+    assign rA 0
+    assign rE 0
+    assign rF 0
+    break
+    tvmpush 0 rF
+    tvmjump
+    load dword rD addr1 s1.vb
+    break
+    bind addr4 1
+    exit
+
+EXEC prg prgFUNC
+TEST
+  status 3
+  addr1 prg m1 0
+  mem prg m1 0 qword 5000000000
+  mem prg m1 8 qword 1234
+RESUME
+TEST
+  status 3
+  rB 1234567890000
+  rC 5000000
+  rD 1234
+  mem lib d1 8 dword 5000000
+  addr2 lib d1 0
+  addr3 lib m2 0
+  stack-entry 0
+    src-program prg
+    dest-program lib
+    returntarget 11
+RESUME
+TEST
+  status 101
+
+

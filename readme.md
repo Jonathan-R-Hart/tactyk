@@ -6,13 +6,13 @@ At present, TACTYK is a personal project.  Though this is a security project, th
 
 Should the project gain attention and a reasonable level of backing (and presumably accountability), the intent will be grow into a serious security role.
 
-## Platform:
+## Platform
 Linux/Unix on amd64 (x86-64) architecture
 
-## Features:
-- Small codebase 
-  The main program has ~3000 lines of C which are specific to TACTYK (counting only components that would be included in a library)
-  Default setup uses ~1250 lines of configuration (specification for each scriptable function) and a 600 line assembly header (mostly definitions)
+## Features
+- Small codebase
+  The main program has ~4500 lines of C which are specific to TACTYK (counting only components that would be included in a library)
+  Default setup uses ~2500 lines of configuration (specification for each scriptable function) and a 700 line assembly header (mostly definitions)
 - Total specification of low-level behavior through a "Virtual Instruction Set Architecture"
 
 ## Experimental Security Features
@@ -38,11 +38,25 @@ Linux/Unix on amd64 (x86-64) architecture
   More broadly, there also is no generally accessible local context (implicit data structure which can be addressed through unchecked array access).  "local" data
   is stored either in statically allocated slots with rigid accessors or in managed memory blocks (the memory blocks also must be bound to rigid accessors).
 
-## Auditability Focus
-TACTYK is intended to be auditable under a very strict standard:  A competent individual or a small team should be able to conduct the audit (or verify the results of a professional audit).  The amount of code in the project is to be kept low.  Dependencies are to be kept to a minimum.  When there is a choice between a complex and 
-broadly capable function and a simple and narrowly defined function, the simple function should win out (unless there is an actual need for the additional features from
-the complex one).  
+- Address Space Layout Randomization
+  TACTYK includes an optional memory allocator which calls mmap for most dynamic memory allocation and requests pages with randomly generated 48-bit base addresses.
+  I do not know if it is an appropriate way to allocate memory (it does cause rapid allocatation and de-allocation of many memory pages udner the current design), 
+  so this is disabled by default (add #define USE_TACTYK_ALLOCATOR to enable it).
+  Addendum:  I've thought this through a bit more.  The largest problem with the TACTYK approach seems to be simply that it results in a very large number of system 
+  calls.  This case would probably better be handled by a Kernel function which performs batched memory allocation and randomization (and presumbly an alternative
+  allocator which uses a kernel-provided address space layout for servicing application memory allocations instead of a conventional heap).
+  A quick Internet search for "batched memory allocation" did not yield a meaningful result, so this one might have to start with a proposal.
 
+- Exopointers
+  Registers which reference common statically allocated [from script perspective] data structures are offset significantly from the actual address of the data structure.
+  The offsets are random 30-bit integers generated during tactyk initialization.  These values are inserted as displacement constants in all operations which access
+  the relevant data structures.  The main intent of this is to force extra random bytes into executable code which are not under the control of adversarial content.
+  Secondarilly, this also somewhat improves ASLR, as randomly selected displacement constants might be harder to obtain through exploits than raw pointers.
+
+## Auditability Focus
+TACTYK is intended to be auditable under an alternative standard:  A competent individual or a small team should be able to conduct the audit (or verify the results of a professional audit).  The amount of code in the project is to be kept low.  Dependencies are to be kept to a minimum.  When there is a choice between a complex and 
+broadly capable function and a simple and narrowly defined function, the simple function should win out (unless there is an actual need for the additional features from
+the complex one).
 
 ## Dependencies:
 C Standard library
@@ -55,38 +69,50 @@ Netwide Assembler is technically a large dependency, but the assembly-language t
 
 SDL2
 
+## News
+### Verison 0.7.0 
+  TACTYK now has a semi-automated testing system: tactyk-test.
+  Tactyk-test tests the Virtual Instruction Set Architecture.
+  Tactyk-test runs a series of test scripts.
+  Each test script provides program code, a series of functions to call, and expected state transitions to check for.
+  A test passes if it completes a script without unexpected errors, accounts for all state transitions, and finds no unexpected state transitions.
+  Each test script is run under its own process.
+  Tactyk-test is able to run tests in parallel.
+  
+  A suite of tests have been created covering all of the builtin/example virtual ISA (tactyk_core.visa)
+  
+  Many defects have been identified and corrected as a result of the new testing system (mostly in code which was not used by tactyk examples and not covered by manual testing).  
+  
+  The production of the test suite also led to a variety of improvements to stacks, memory management, and state management.
+
 ## Getting Started
-
+```
+OBTAIN PROJECT DEPENDENCIES:
 Install Cmake
-
 Install Netwide-Assembler (NASM)
-
 Install SDL2
 
+CLONE THE PROJECT
 download/unpack OR git-clone
-
 navigate to the project directory
 
+BUILD THE PROJECT
 mkdir build
-
 cmake -B build .
-
 cd build
-
 cmake --build .
 
+RUNNING EXAMPLES:
 ./tdemo examples/julia.tkp
-
 ./tdemo examples/emit.tkp
-
 ./tdemo examples/fib.tkp
-
 ./tdemo examples/lazy_quine.tkp
-
 ./tdemo examples/hello_sdl.tkp
-
 ./tdemo examples/recursive.tkp
 
+RUNNING TACTYK TESTS:
+./ttest tests/*
+```
 
 ## History
 I considered embedding a scripting engine, attempted to examine its source code, noticed that it was beyond 20000 lines of C, and that the C code contains non-trivial 
@@ -94,7 +120,3 @@ macros (on top of comments from the Internet suggesting that it was not a secure
 more to my liking.  As was the case with every other attempt, the result was yet another under-performing script engine.  Then I decided to try defining a few Assembly Language functions and have them transfer control to each other through a jump table, then only build the jump table with C.  This resulted in scriptable activity taking place at about half my system clock rate (with some clear assistance from speculative execution), thereby initiating project TACTYK.  
 
 (*) WebAssembly with a compiler in the sandbox would have satisfied the requirement for a minimalist and auditable scripting engine, but I didn't think to do that until development of TACTYK was well underway.  And by then, TACTYK was already getting seemingly novel experimental security features.
-
-
-
-

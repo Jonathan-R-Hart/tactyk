@@ -73,7 +73,7 @@ MAIN:
   assign c 2
   assign d 1
   assign e 3
-  stash a1
+  stash sA a
   lwcall DESCRIBE_POLYNOMIAL
   lwcall EVAL_POLYNOMIAL
   
@@ -87,7 +87,7 @@ MAIN:
   exit
 
 DESCRIBE_POLYNOMIAL:
-  stash a1
+  stash sA a
 
   ccall printint
   assign a ch_x
@@ -148,12 +148,12 @@ DESCRIBE_POLYNOMIAL:
   assign a ch_sp
   ccall printchar
   
-  unstash a1
+  stash a sA
   lwreturn
 
 EVAL_POLYNOMIAL:
   assign f 0
-  stash a1b1c1d1
+  stash sA a sB b sC c sD d
   
   # result = d
   assign f d
@@ -190,7 +190,7 @@ EVAL_POLYNOMIAL:
   load byte b addr2 calc.multiply
   tvmpush a b
   assign a d
-  unstash b1
+  stash b sB
   tvmjump
   assign c a
   
@@ -216,7 +216,7 @@ EVAL_POLYNOMIAL:
   load byte a addr2 calc.program
   load byte b addr2 calc.multiply
   tvmpush a b
-  unstash a1
+  stash a sA
   assign b d
   tvmjump
   assign c a
@@ -247,9 +247,9 @@ PRINTIT:
 
 MAKE_CALCULATOR:
   tcall emit-new
-  
   assign a 0
   tcall emit-intlabel
+  ccall printint
   store byte addr2 calc.multiply a
   assign a .mul
   tcall emit-cmd

@@ -1,0 +1,97 @@
+# TEST:  multiplication
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  mul data-data (DD), mul data-integer (AI) mul data-const (AC)
+
+PROGRAM
+  const C10 10
+  const CN20 -20
+  const C30 30
+  const CN40 -40
+  const C50 50
+  const CN60 -60
+
+  DO_INTS:
+    assign a 1
+    mul a 2
+    mul a 3
+    mul a 4
+    mul a 5
+    mul a 6
+    mul a 7
+    mul a 8
+    mul a 9
+    mul a 10
+    assign b a
+    mul b -100
+    exit
+  
+  DO_CONSTS:
+    assign a 1
+    assign b 2
+    assign c 3
+    assign d 4
+    assign e 5
+    assign f 6
+    mul a C10
+    mul b CN20
+    mul c C30
+    mul d CN40
+    mul e C50
+    mul f CN60
+    exit
+  
+  DO_REGS:
+    mul a f
+    mul b e
+    mul c d
+    mul d a
+    mul e b
+    mul f c
+    exit
+
+  SQUARES:
+    mul a a
+    mul b b
+    mul c c
+    mul d d
+    mul e e
+    mul f f
+    exit
+
+EXEC DO_INTS
+
+TEST
+  rA 3628800
+  rB -362880000
+
+EXEC DO_CONSTS
+TEST
+  rA 10
+  rB -40
+  rC 90
+  rD -160
+  rE 250
+  rF -360
+
+EXEC DO_REGS
+TEST
+  rA -3600
+  rB -10000
+  rC -14400
+  rD 576000
+  rE -2500000
+  rF 5184000
+
+EXEC SQUARES
+TEST
+  rA 12960000
+  rB 100000000
+  rC 207360000
+  rD 331776000000
+  rE 6250000000000
+  rF 26873856000000
+
+
+
+

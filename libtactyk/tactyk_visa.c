@@ -80,9 +80,12 @@ void tactyk_visa__init(char *fname) {
     //
     // Afterward, apply the configuration by invoking the handler for component top-level item in the data structure
     FILE *f = fopen(fname, "r");
+    if (f == NULL) {
+        error("VIRTUAL-ISA -- specification file not found", NULL);
+    }
     fseek(f, 0, SEEK_END);
     int64_t len = ftell(f);
-    uint8_t *fbytes = calloc(len, sizeof(uint8_t));
+    uint8_t *fbytes = calloc(len+1, sizeof(uint8_t));
     fseek(f,0, SEEK_SET);
     fread(fbytes, len, 1, f);
     fclose(f);
@@ -96,7 +99,7 @@ void tactyk_visa__init(char *fname) {
     tactyk_dblock__trim(tactyk_visa_spec);
     tactyk_dblock__tokenize(tactyk_visa_spec, ' ', true);
 
-    tactyk_dblock__set_persistence_code(tactyk_visa_spec, 1);
+    tactyk_dblock__set_persistence_code(tactyk_visa_spec, 100);
 }
 
 void tactyk_visa__init_emit(struct tactyk_emit__Context *ctx) {
@@ -174,6 +177,7 @@ bool tactyk_visa__mk_typespec(struct tactyk_emit__Context *ctx, struct tactyk_db
 
     extract_tokens:
     struct tactyk_dblock__DBlock *specifier = tlist->child;
+
     while (specifier != NULL) {
         uint64_t index = ctx->token_handle_count;
         ctx->token_handle_count += 1;
@@ -207,7 +211,7 @@ bool tactyk_visa__ld_header(struct tactyk_emit__Context *ctx, struct tactyk_dblo
     FILE *f = fopen(buf, "r");
     fseek(f, 0, SEEK_END);
     int64_t len = ftell(f);
-    ctx->asm_header = calloc(len, sizeof(char));
+    ctx->asm_header = calloc(len, sizeof(char)+1);
     fseek(f,0, SEEK_SET);
     fread(ctx->asm_header, len, 1, f);
     fclose(f);

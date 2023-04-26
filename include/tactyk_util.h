@@ -30,6 +30,7 @@ bool tactyk_util__try_parseuint(uint64_t *out, char *str, bool permissive);
 bool tactyk_util__try_parsedouble(double *out, char *str, uint64_t max_len);
 void tactyk_util__lcase(char *txt, int32_t max_length);
 void tactyk_util__ucase(char *txt, int32_t max_length);
+uint64_t tactyk_util__rand_range(uint64_t range);
 
 #endif // TACTYK_UTIL__INCLUDE_GUARD
 

@@ -24,11 +24,6 @@ char* tactyk_qsort_program_ctl = R"""(
 
     mem args qs_args 1
 
-    var stored_bounds
-        get
-            unstash e1f1
-        set
-            stash e1f1
     REDIR2:
         lwcall DO_QSORT
         lwreturn
@@ -42,17 +37,17 @@ char* tactyk_qsort_program_ctl = R"""(
         assign d 45
         assign e 56
         assign f 67
-        stash a1b1c1d1e1f1
+        stash sA a sB b sC c sD d sE e sF f
         assign a 0
         assign b 0
         assign c 0
         assign d 0
         assign e 0
         assign f 0
-        mctxpop
+        # mctxpop
         lwcall REDIR1
-        mctxpush
-        unstash a1b1c1d1e1f1
+        # mctxpush
+        stash a sa b sb c sc d sd e se f sf
         exit
 )""";
 
@@ -81,8 +76,8 @@ char* tactyk_qsort_program_qs = R"""(
 
         # copy the bounds into context local storage so they can be recovered after partition
 
-        stash e1f1
-        # set stored_bounds
+        # set stored bounds
+        stash sE e sF f
 
         goto QSORT_PARTITION
     QSORT_SKIP:
@@ -95,8 +90,8 @@ char* tactyk_qsort_program_qs = R"""(
         # move the new partition point out of the way and recover the original bounds
         assign d f
 
-        unstash e1f1
-        # get stored_bounds
+        # get stored bounds
+        stash e sE f sF
 
         # defer partition e->d.
         push addr4 e

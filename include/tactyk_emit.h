@@ -140,6 +140,10 @@ struct tactyk_emit__Context {
 
     uint64_t token_handle_count;
     bool has_visa_constants;
+
+    uint64_t random_const_fs;
+    uint64_t random_const_gs;
+
 };
 
 struct tactyk_emit__Context* tactyk_emit__init();
@@ -188,6 +192,7 @@ bool tactyk_emit__Symbol(struct tactyk_emit__Context *ctx, struct tactyk_dblock_
 bool tactyk_emit__SelectOp(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__SelectTemplate(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__SelectKeyword(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+bool tactyk_emit__SelectKeyword2(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Flags(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Case(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Contains(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
@@ -199,12 +204,14 @@ bool tactyk_emit__Pick(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
 //bool tactyk_emit__Assign(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__OptionalOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Type(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Args(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__IntOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__FloatOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+bool tactyk_emit__StringOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__NullArg(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 
 bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);

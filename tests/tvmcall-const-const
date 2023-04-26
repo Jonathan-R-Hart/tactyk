@@ -1,0 +1,254 @@
+# TEST:  tvmcall
+#
+# Virtual-ISA: tactyk_core
+# Templates:  tvmpush const-const (CC)
+# Templates:  tvmjump
+# Templates:  tvmreturn
+
+PROGRAM lib_this
+  LIBTHIS_FUNC_0:
+    assign a 1234
+    tvmreturn
+  LIBTHIS_FUNC_1:
+    assign a 2345
+    tvmreturn
+
+PROGRAM lib_that
+  LIBTHAT_FUNC_0:
+    assign a 3456
+    tvmreturn
+  LIBTHAT_FUNC_1:
+    assign a 456700
+    tvmreturn
+  LIBTHAT_FUNC_2:
+    assign a 45670000
+    break
+    tvmreturn
+  LIBTHAT_FUNC_3:
+    assign a 4567000000
+    break
+    tvmreturn
+
+PROGRAM lib_ththeother
+  LIBTHEOTHER_FUNC_0:
+    assign a 5678
+    tvmreturn
+  LIBTHEOTHER_FUNC_1:
+    assign a 6789
+    tvmreturn
+
+PROGRAM prg
+  const CN2 -1
+  const CN1 -1
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C11 11
+
+  TVMTEST:
+    break
+    tvmpush C1 C2
+    break
+    tvmjump
+    prg_RET_HERE:
+    exit
+  
+  # stack underflow caused by attempting tvmreturn when at stack position -1
+  TVMTEST_FAIL_underflow:
+    tvmreturn
+  
+  # invalid jump because program id is negative
+  TVMTEST_FAIL_invalidjump_negative:
+    tvmpush CN1 C2
+    exit
+  
+  # tvm stack lockout caused by tvmpush in TVMTEST_FAIL_invalidjump
+  TVMTEST_FAIL_lockedout:
+    tvmpush C1 C2
+    assign f 999
+    exit
+  
+  # the lockout did at least result in the stack pointer advancing one position
+  #   (it can't go further doe to stack locking)
+  # TACTYK does not deliberarly provide  recovery mechanism (as it is intended that an
+  #   invalid state means the system probably should spew up an error message and shut down).
+  # However, if the runtime ignores tactyk status signal and allows re-entry, and if there 
+  # just happens to be a stale jump target on the stack (from a previous tvmcall),
+  # then performing a tvmjump to it will reset the lock, at the cost of having to execute the
+  # function referenced by the stale stack entry.
+  #   (If this turns out to be an exploitable hazard, it will be necessesary to put some
+  #    additional mitigations into tvmcall code  -- but for the time being, it doesn't appear 
+  #    to do anything which can not be accomplished through ordinary means)
+  TVMTEST_TRYRECOVER:
+    tvmjump
+    SUCCESS:
+    exit
+
+  # invalid jump because branch target is negative
+  TVMTEST_FAILAGAIN_invalidjump_negative:
+    tvmpush C1 CN2
+    exit
+  
+  # invalid jump because program id is too high
+  TVMTEST_FAIL_invalidjump_positive:
+    tvmpush C4 C2
+    exit
+  
+  # invalid jump because branch target id is too high
+  # and while at it, use a different target program to fail against
+  TVMTEST_FAILAGAIN_invalidjump_positive:
+    tvmpush C0 C2
+    exit
+  
+  TVMTEST__BUT_DOES_IT_OVERFLOW:
+    assign d 0
+    LETSTRY:
+    if d >= 1024 ESCAPE
+    inc d
+    tvmpush C3 C11
+    tvmjump
+    ESCAPE:
+    break
+    tvmpush C3 C11
+    tvmjump
+    exit
+
+# state of tvm callstack after preparing the jump
+EXEC TVMTEST
+TEST
+  status 3
+  rA 0
+RESUME
+TEST
+  status 3
+  stack-lock 1
+  stack-pos 0
+  stack-entry 0
+    src-program prg
+    dest-program lib_that
+    jumptarget LIBTHAT_FUNC_2
+RESUME
+TEST
+  status 3
+  rA 45670000
+  stack-lock 0
+  stack-pos 0
+  program lib_that
+  stack-entry 0
+    src-program prg
+    returntarget prg_RET_HERE
+RESUME
+TEST
+  stack-lock 0
+  stack-pos -1
+  program prg
+
+EXEC TVMTEST_FAIL_underflow
+TEST
+  status 104
+
+EXEC TVMTEST_FAIL_invalidjump_negative
+TEST
+  status 108
+  stack-lock 1
+  stack-pos 0
+  stack-entry 0
+    src-program prg
+
+EXEC TVMTEST_FAIL_lockedout
+TEST
+  status 109
+
+EXEC TVMTEST_TRYRECOVER
+TEST
+  status 3
+  stack-lock 0
+  program lib_that
+  stack-entry 0
+    src-program prg
+    returntarget SUCCESS
+
+RESUME
+TEST
+  status 4
+  stack-pos -1
+  program prg
+
+EXEC TVMTEST_FAILAGAIN_invalidjump_negative
+TEST
+  status 108
+  stack-lock 1
+  stack-pos 0
+
+EXEC TVMTEST_TRYRECOVER
+TEST
+  status 3
+  stack-lock 0
+  program lib_that
+  stack-entry 0
+    src-program prg
+    returntarget SUCCESS
+RESUME
+TEST
+  status 4
+  stack-pos -1
+  program prg
+
+EXEC TVMTEST_FAIL_invalidjump_positive
+TEST
+  status 108
+  stack-lock 1
+  stack-pos 0
+
+EXEC TVMTEST_TRYRECOVER
+TEST
+  status 3
+  stack-lock 0
+  program lib_that
+  stack-entry 0
+    src-program prg
+    returntarget SUCCESS
+RESUME
+TEST
+  status 4
+  stack-pos -1
+  program prg
+
+EXEC TVMTEST_FAILAGAIN_invalidjump_positive
+TEST
+  status 108
+  stack-lock 1
+  stack-pos 0
+  stack-entry 0
+    #dest-program lib_this
+EXEC TVMTEST_TRYRECOVER
+TEST
+  status 3
+  stack-lock 0
+  program lib_that
+  stack-entry 0
+    src-program prg
+    returntarget SUCCESS
+RESUME
+TEST
+  status 4
+  stack-pos -1
+  program prg
+
+EXEC TVMTEST__BUT_DOES_IT_OVERFLOW
+TEST
+  status 3
+  stack-pos 1023
+  rD 1024
+  program prg
+  stack-entry 0 1024
+    src-program prg
+    dest-program prg
+    jumptarget LETSTRY
+    returntarget ESCAPE
+RESUME
+TEST
+  status 103
+  stack-lock 1

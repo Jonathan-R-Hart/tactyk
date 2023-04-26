@@ -34,6 +34,7 @@ char *fibtest_src = {
             add a b
             dec c
             if c > 0 FIBLOOP
+            assign d "tactyk"
             tcall dump-ctx
             exit
         DIAG:
@@ -66,7 +67,6 @@ struct tactyk_asmvm__Program* run_fib_test(struct tactyk_emit__Context *emitctx,
     struct tactyk_asmvm__Program *prg = tactyk_pl__build(plctx);
     tactyk_asmvm__add_program(ctx, prg);
     struct tactyk_asmvm__memblock_highlevel *mblk = tactyk_dblock__get(prg->memory_layout_hl, "args");
-
     uint64_t *data = (uint64_t*) mblk->data;
 
     data[0] = amount;

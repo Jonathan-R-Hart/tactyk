@@ -1,0 +1,145 @@
+# TEST:  lwcall
+#
+# 
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  lwcall branch (L)
+
+PROGRAM prg
+  LW_FUNC_5:
+    break
+    assign a 1234
+    break
+    lwreturn
+  LW_FUNC_4:
+    break
+    lwcall LW_FUNC_5
+    break
+    lwreturn
+  LW_FUNC_3:
+    break
+    lwcall LW_FUNC_4
+    break
+    lwreturn
+  LW_FUNC_2:
+    break
+    lwcall LW_FUNC_3
+    break
+    lwreturn
+  LW_FUNC_1:
+    break
+    lwcall LW_FUNC_2
+    break
+    lwreturn
+  FETCH_THE_THING:
+    lwcall LW_FUNC_1
+    mul a 2
+    exit
+  
+  WRONG_WAY_ROCKET:
+    lwreturn
+  
+  OTHER_WAY:
+  assign b 0
+  TRY_HARDER:
+    if b == 65535 BAILOUT!!
+    inc b
+    lwcall TRY_HARDER
+  BAILOUT!!:
+    break
+    lwcall KEEP_GOING
+  KEEP_GOING:
+    assign a 99999999
+    exit
+
+EXEC FETCH_THE_THING
+
+TEST
+  status 3
+  rLWCSI 1
+  lwcstack 0 21
+
+RESUME
+
+TEST
+  status 3
+  rLWCSI 2
+  lwcstack 1 18
+
+RESUME
+
+TEST
+  status 3
+  rLWCSI 3
+  lwcstack 2 14
+
+RESUME
+
+TEST
+  status 3
+  rLWCSI 4
+  lwcstack 3 10
+
+RESUME
+
+TEST
+  status 3
+  rLWCSI 5
+  lwcstack 4 6
+
+RESUME
+
+TEST
+  status 3
+  rA 1234
+
+RESUME
+
+TEST
+  status 3
+  rLWCSI 4
+
+RESUME
+
+TEST
+  status 3
+  rLWCSI 3
+
+RESUME
+
+TEST
+  status 3
+  rLWCSI 2
+
+RESUME
+
+TEST
+  status 3
+  rLWCSI 1
+
+RESUME
+
+TEST
+  status 4
+  rLWCSI 0
+  rA 2468
+
+EXEC WRONG_WAY_ROCKET
+TEST
+  status 104 # stack underflow
+
+EXEC OTHER_WAY
+TEST
+  status 3
+  rLWCSI 65535
+  rB 65535
+  
+  # the repetition qualifier causes it to check the stack for many instances of the indicated value (to help with recursive functions)
+  lwcstack 0 28 65535
+
+RESUME
+
+TEST
+  status 103 # stack overflow
+
+

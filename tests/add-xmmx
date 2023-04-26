@@ -1,0 +1,247 @@
+# TEST:  addition instructions involving xmmx registers
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   add data-float (DF)
+#   add data-fconst (DCf)
+#   add data-xmmx (DX)
+#   add xmmx-data (XD)
+#   add xmmx-integer (XI)
+#   add xmmx-float (XF)
+#   add xmmx-fconst (XCf)
+#   add xmmx-const (XC)
+#   add xmmx-xmmx (XX)
+
+PROGRAM
+  
+  const CN10 -10
+  const CN5 -5
+  const C0 0
+  const C5 5
+  const C10 10
+  const C15 15
+  
+  const Cf1.1 1.1
+  const Cf3.333 3.333
+  const Cf10.75 10.75
+  const CfN10.75 -10.75
+  const CfN3.333 -3.333
+  const CfN1.1 -1.1
+  
+  
+  INIT:
+    assign rA -10
+    assign rB -5
+    assign rC 0
+    assign rD 5
+    assign rE 10
+    assign rF 15
+    assign xA 1000
+    assign xB 1000.11
+    assign xC -1000.22
+    assign xD 1000.33
+    assign xE -1000.44
+    assign xF 1000.55
+    assign xG -1000.66
+    assign xH 1000.77
+    assign xI -1000.88
+    assign xJ 1000.99
+    assign xK 100
+    assign xL 10
+    assign xM 1
+    exit
+  
+  DF:
+    add rA 1.1
+    add rB 3.333
+    add rC 10.75
+    add rD -10.75
+    add rE -3.333
+    add rF -1.1
+    exit
+  
+  DCf:
+    add rA Cf1.1
+    add rB Cf3.333
+    add rC Cf10.75
+    add rD CfN10.75
+    add rE CfN3.333
+    add rF CfN1.1
+    exit
+
+  DX:
+    add rA xB
+    add rB xC
+    add rC xD
+    add rD xE
+    add rE xF
+    add rF xG
+    exit
+  
+  XD:
+    add xB rA
+    add xC rB
+    add xD rC
+    add xE rD
+    add xF rE
+    add xG rF
+    exit
+  
+  XI:
+    add xB -10
+    add xC -5
+    add xD 0
+    add xE 5
+    add xF 10
+    add xG 15
+    exit
+  
+  XC:
+    add xB CN10
+    add xC CN5
+    add xD C0
+    add xE C5
+    add xF C10
+    add xG C15
+    exit
+
+  XF:
+    add xB 1.1
+    add xC 3.333
+    add xD 10.75
+    add xE -10.75
+    add xF -3.333
+    add xG -1.1
+    exit
+
+  XCf:
+    add xB Cf1.1
+    add xC Cf3.333
+    add xD Cf10.75
+    add xE CfN10.75
+    add xF CfN3.333
+    add xG CfN1.1
+    exit
+  
+  XX:
+    add xA xM
+    add xB xL
+    add xC xK
+    add xD xJ
+    add xE xI
+    add xF xF
+    exit
+
+EXEC INIT
+TEST
+  rA -10
+  rB -5
+  rC 0
+  rD 5
+  rE 10
+  rF 15
+  xA 1000
+  xB 1000.11
+  xC -1000.22
+  xD 1000.33
+  xE -1000.44
+  xF 1000.55
+  xG -1000.66
+  xH 1000.77
+  xI -1000.88
+  xJ 1000.99
+  xK 100
+  xL 10
+  xM 1
+
+EXEC DF
+TEST
+  rA -8
+  rB -1
+  rC 10
+  rD -5
+  rE 6
+  rF 13
+
+EXEC INIT
+EXEC DCf
+TEST
+  rA -8
+  rB -1
+  rC 10
+  rD -5
+  rE 6
+  rF 13
+
+EXEC INIT
+EXEC DX
+TEST
+  rA 990
+  rB -1005
+  rC 1000
+  rD -995
+  rE 1010
+  rF -985
+
+EXEC INIT
+EXEC XD
+TEST
+  xB 990.11
+  xC -1005.22
+  xD 1000.33
+  xE -995.44
+  xF 1010.55
+  xG -985.66
+
+EXEC INIT
+EXEC XI
+TEST
+  xB 990.11
+  xC -1005.22
+  xD 1000.33
+  xE -995.44
+  xF 1010.55
+  xG -985.66
+
+EXEC INIT
+EXEC XC
+TEST
+  xB 990.11
+  xC -1005.22
+  xD 1000.33
+  xE -995.44
+  xF 1010.55
+  xG -985.66
+
+EXEC INIT
+EXEC XF
+TEST
+  xB 1001.21
+  xC -996.887
+  xD 1011.08
+  xE -1011.19
+  xF 997.217
+  xG -1001.76
+
+EXEC INIT
+EXEC XCf
+TEST
+  xB 1001.21
+  xC -996.887
+  xD 1011.08
+  xE -1011.19
+  xF 997.217
+  xG -1001.76
+
+EXEC INIT
+EXEC XX
+TEST
+  xA 1001
+  xB 1010.11
+  xC -900.22
+  xD 2001.32
+  xE -2001.32
+  xF 2001.1
+
+
+

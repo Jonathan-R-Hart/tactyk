@@ -1,0 +1,40 @@
+# TEST:  tcall
+#
+# tcall is a call into a c function which operates directly on a tactyk context for input and output.
+# 
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  tcall (Tfunc)
+
+PROGRAM
+  MAIN:
+    assign a 1
+    inc a
+    tcall tfunc-7
+    tcall tfunc-5
+    tcall tfunc-6
+    tcall tfunc-8
+    assign a 4
+    exit
+
+EXEC MAIN
+  TEST
+    status 1
+    rA 2
+    callback 7
+  CONTINUE
+  TEST
+    status 1
+    callback 5
+  CONTINUE
+  TEST
+    status 1
+    callback 6
+  CONTINUE
+  TEST
+    status 1
+    callback 8
+  CONTINUE
+
+TEST
+  rA 4

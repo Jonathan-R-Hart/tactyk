@@ -7,26 +7,32 @@
 //  You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+#include <sys/mman.h>
+#include <stdint.h>
+
 #include "tactyk.h"
 #include "tactyk_asmvm.h"
 #include "tactyk_dblock.h"
+#include "tactyk_alloc.h"
+
+
 
 struct tactyk_asmvm__VM* tactyk_asmvm__new_vm() {
-    struct tactyk_asmvm__VM *vm = talloc(1, sizeof(struct tactyk_asmvm__VM));
+    struct tactyk_asmvm__VM *vm = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__VM));
     vm->program_count = 0;
-    vm->program_list = talloc(TACTYK_ASMVM__PROGRAM_CAPACITY, sizeof(struct tactyk_asmvm__program_declaration));
+    vm->program_list = tactyk_alloc__allocate(TACTYK_ASMVM__PROGRAM_CAPACITY, sizeof(struct tactyk_asmvm__program_declaration));
     return vm;
 }
 
 struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM *vm) {
-    struct tactyk_asmvm__Context *ctx = talloc(1, sizeof(struct tactyk_asmvm__Context));
-    ctx->microcontext_stack = talloc(TACTYK_ASMVM__MCTX_STACK_SIZE*TACTYK_ASMVM__MCTX_ENTRY_SIZE, sizeof(uint64_t));
+    struct tactyk_asmvm__Context *ctx = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__Context));
+    ctx->microcontext_stack = (struct tactyk_asmvm__MicrocontextStash*) tactyk_alloc__allocate(TACTYK_ASMVM__MCTX_STACK_SIZE, sizeof(struct tactyk_asmvm__MicrocontextStash));
     ctx->microcontext_stack_offset = 0;
     ctx->lwcall_stack_floor = 0;
     ctx->mctx_stack_floor = 0;
-    ctx->lwcall_stack = talloc(TACTYK_ASMVM__LWCALL_STACK_SIZE, sizeof(uint32_t));
+    ctx->lwcall_stack = (uint32_t*) tactyk_alloc__allocate(TACTYK_ASMVM__LWCALL_STACK_SIZE, sizeof(uint32_t));
 
-    ctx->stack = talloc(1, sizeof(struct tactyk_asmvm__Stack));
+    ctx->stack = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__Stack));
     ctx->stack->stack_lock = 0;
     ctx->stack->stack_position = -1;
     // tactyk signature
@@ -41,6 +47,7 @@ struct tactyk_asmvm__Context* tactyk_asmvm__new_context(struct tactyk_asmvm__VM 
     return ctx;
 }
 void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *program) {
+;
     if (context->vm->program_count >= TACTYK_ASMVM__PROGRAM_CAPACITY) {
         error("ASMVM -- Too many loaded programs", NULL);
     }
@@ -51,9 +58,18 @@ void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tac
     context->vm->program_count += 1;
     dec->instruction_count = program->length;
     dec->instruction_jumptable = program->command_map;
+    dec->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) program->memory_layout_ll->data;
+    dec->memblock_count = program->memory_layout_ll->element_count;
     uint64_t num_funcs = program->functions->element_count;
     dec->function_count = num_funcs;
-    tactyk_asmvm__op *fjumptable = talloc(num_funcs, sizeof(tactyk_asmvm__op));
+    #ifdef USE_TACTYK_ALLOCATOR
+    void* target_address = tactyk__mk_random_base_address();
+    #else
+    void* target_address = NULL;
+    #endif // USE_TACTYK_ALLOCATOR
+    uint64_t fjt_size = num_funcs * sizeof(void*);
+    tactyk_asmvm__op * fjumptable = mmap(target_address, fjt_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    //tactyk_asmvm__op *fjumptable = tactyk_alloc__allocate(num_funcs, sizeof(tactyk_asmvm__op));
     for (uint64_t i = 0; i < num_funcs; i += 1) {
         struct tactyk_asmvm__identifier *id = tactyk_dblock__index(program->functions->store, i);
         #ifdef TACTYK_DEBUG
@@ -61,7 +77,9 @@ void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tac
         #endif // TACTYK_DEBUG
         fjumptable[i] = program->command_map[id->value];
     }
+    mprotect(fjumptable, fjt_size, PROT_READ );
     dec->function_jumptable = fjumptable;
+    program->function_map = fjumptable;
 }
 
 /*
@@ -76,17 +94,39 @@ void tactyk_asmvm__set(struct tactyk_asmvm__Program *prog, void* data, char* var
     ((uint64_t*)data)[index] = value;
 }
 */
-void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname) {
+bool tactyk_asmvm__prepare_invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname) {
     struct tactyk_asmvm__identifier *identifier = tactyk_dblock__get(prog->functions, funcname);
+    if (identifier == NULL) {
+        return false;
+    }
     int64_t iptr = identifier->value;
-    context->hl_program_ref = prog;
-    if (iptr < prog->length) {
-        context->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) prog->memory_layout_ll->data;
-        context->memblock_count = TACTYK_ASMVM__MEMBLOCK_CAPACITY;
-        context->max_instruction_pointer = prog->length-1;
-        context->reg.rPROG = prog->command_map;
-        context->instruction_index = iptr;
 
+    context->hl_program_ref = prog;
+    context->memblocks = (struct tactyk_asmvm__memblock_lowlevel*) prog->memory_layout_ll->data;
+    context->memblock_count = prog->memory_layout_ll->element_count;
+    context->instruction_count = prog->length;
+    context->program_map = prog->command_map;
+    context->instruction_index = iptr;
+
+    return (iptr < prog->length);
+}
+
+bool tactyk_asmvm__call(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname) {
+    if (tactyk_asmvm__prepare_invoke(context, prog, funcname)) {
+        uint64_t result = prog->run(context);
+        if (result < 100) {
+            result = context->STATUS;
+        }
+
+        // indicate if the machine is in a valid state
+        return (result == 2) || (result == 3) || (result == 4);
+    }
+    else {
+        return false;
+    }
+}
+void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname) {
+    if (tactyk_asmvm__prepare_invoke(context, prog, funcname)) {
         uint64_t result = prog->run(context);
         if (result < 100) {
             result = context->STATUS;
@@ -97,6 +137,27 @@ void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_a
             error(msg, NULL);
         }
     }
+}
+
+bool tactyk_asmvm__resume(struct tactyk_asmvm__Context *context) {
+    if (context->instruction_index >= context->instruction_count) {
+        error("ASMVM -- Can not resume: invalid instruction pointer", NULL);
+    }
+    if (context->STATUS != 3) {
+        error("ASMVM -- Can not resume: not in 'suspended' state", NULL);
+    }
+    // probably an effectively redundant check
+    if (context->hl_program_ref == NULL) {
+        error("ASMVM -- Can not resume: no program attached", NULL);
+    }
+
+    uint64_t result = context->hl_program_ref->run(context);
+    if (result < 100) {
+        result = context->STATUS;
+    }
+
+    // indicate if the machine is in a valid state
+    return (result == 2) || (result == 3) || (result == 4);
 }
 
 /*

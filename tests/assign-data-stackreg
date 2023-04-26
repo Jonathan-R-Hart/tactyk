@@ -1,0 +1,72 @@
+# TEST:  read stack registers
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   assign data-stackreg (DSreg)
+
+PROGRAM prg
+  TEST_GET_MCTX:
+    assign a mctx.position
+    mctxpush
+    assign b mctx.position
+    mctxpush
+    assign c mctx.position
+    mctxjump 1234
+    assign d mctx.position
+    mctxpop
+    assign e mctx.position
+    mctxpop
+    assign f mctx.position
+    exit
+  
+  TEST_GET_LWCS:
+    assign f lwcs.position
+    lwcall LEVEL_1
+    exit
+  
+  LEVEL_1:
+    assign e lwcs.position
+    lwcall LEVEL_2
+    lwreturn
+    
+  LEVEL_2:
+    lwcall LEVEL_3
+    assign a lwcs.position
+    lwreturn
+  LEVEL_3:
+    assign d lwcs.position
+    lwcall LEVEL_4
+    lwreturn
+  LEVEL_4:
+    lwcall LEVEL_5
+    assign b lwcs.position
+    lwreturn
+  LEVEL_5:
+    assign c lwcs.position
+    lwreturn
+    
+
+EXEC TEST_GET_MCTX
+TEST
+  rMCSI 1232
+  rA 0
+  rB 1
+  rC 2
+  rD 1234
+  rE 1233
+  rF 1232
+
+
+EXEC TEST_GET_LWCS
+TEST
+  rA 2
+  rB 4
+  rC 5
+  rD 3
+  rE 1
+  rF 0
+  lwcstack 0 14
+  lwcstack 1 17
+  lwcstack 2 19
+  lwcstack 3 23
+  lwcstack 4 25

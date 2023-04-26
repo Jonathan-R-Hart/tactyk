@@ -1,0 +1,120 @@
+# TEST:  Assign value of immediate operand to data register
+#
+# This tests basic integer assignment operations, immediate operand scrambling (all classes), resolution of defined constants, and
+# interpretation of strings as sequences of bytes.
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  assign data-const (DC), assign-data-integer (DI), assign-data-string (DS)
+# 
+
+PROGRAM
+  const cnst_byte 101
+  const cnst_word 2000
+  const cnst_dword 789000000
+  const cnst_qword 9223372036854775808
+  
+  ZERO:
+    assign a 0
+    assign b 0
+    assign c 0
+    assign d 0
+    assign e 0
+    assign f 0
+    exit
+  
+  BYTES:
+    assign a 1
+    assign b '@
+    assign c 40
+    assign d 60
+    assign e cnst_byte
+    assign f 255
+    exit
+  
+  WORDS:
+    assign a 256
+    assign b 12345
+    assign c 54321
+    assign d cnst_word
+    assign e 'oK
+    assign f 65535
+    exit
+  
+  DWORDS:
+    assign a 'Hi!
+    assign b 65536
+    assign c 99999999
+    assign d 123456
+    assign e cnst_dword
+    assign f 4294967295
+    exit
+  
+  QWORDS:
+    assign a -9000000000000
+    assign b -123123123123
+    assign c "tactyk"
+    assign d 4294967296
+    assign e -1
+    assign f cnst_qword
+    exit
+
+EXEC BYTES
+
+TEST
+  rA 1
+  rB 64
+  rC 40
+  rD 60
+  rE 101
+  rF 255
+
+EXEC ZERO
+
+TEST
+  rA 0
+  rB 0
+  rC 0
+  rD 0
+  rE 0
+  rF 0
+
+EXEC WORDS
+
+TEST
+  rA 256
+  rB 12345
+  rC 54321
+  rD 2000
+  rE 19311
+  rF 65535
+
+EXEC DWORDS
+
+TEST
+  rA 2189640
+  rB 65536
+  rC 99999999
+  rD 123456
+  rE 789000000
+  rF 4294967295
+
+EXEC QWORDS
+
+TEST
+  rA -9000000000000
+  rB -123123123123
+  rC 118169387884916
+  rD 4294967296
+  rE -1
+  rF 9223372036854775808
+  
+
+
+
+
+
+
+
+
+
+

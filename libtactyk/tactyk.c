@@ -1,4 +1,3 @@
-#include <sys/mman.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -6,8 +5,7 @@
 #include <stdlib.h>
 
 #include "tactyk.h"
-
-#define TACTYK_M_CAPACITY 65536
+#include "tactyk_alloc.h"
 
 // simple and safe random number generator
 //          -- safe if safe means favoring a secure PRNG over something one has personally invented.
@@ -25,14 +23,6 @@ uint64_t tactyk__rand_uint64() {
     return rand;
 }
 
-struct tactyk_m_entry {
-    void *ptr;
-    uint64_t sz;
-};
-
-uint64_t tactyk_m_count;
-struct tactyk_m_entry *tactyk_m_tbl;
-
 // overridable error handler
 tactyk__error_handler error;
 tactyk__error_handler warn;
@@ -48,7 +38,6 @@ void tactyk__default_warning_handler(char *msg, void *data) {
     }
 }
 
-
 void tactyk__default_error_handler(char *msg, void *data) {
     if (data == NULL) {
         printf("ERROR -- %s\n", msg);
@@ -60,17 +49,6 @@ void tactyk__default_error_handler(char *msg, void *data) {
     longjmp(tactyk_err_jbuf, 1);
 }
 
-// generate and return a pointer to a random address within the "tactyk" subset of user space
-//      (address range 0x0000000100000000 to 0x00007fff00000000)
-// The lower 4 GB of user space is clipped to avoid mapping address values which tactyk might place on stack registers
-// The upper 4 GB is clipped to avoid potentially colliding with the top of user space.
-void* tactyk__mk_random_base_address() {
-    uint64_t addr = 0;
-    do {
-        addr = tactyk__rand_uint64() & 0x00007fffffffffff;
-    } while ((addr <= 0xffffffff) || (addr >= 0x00007fff00000000));
-    return (void*) addr;
-}
 
 void tactyk_init() {
     error = tactyk__default_error_handler;
@@ -89,66 +67,7 @@ void tactyk_init() {
     tactyk_dblock__init();
 
     #ifdef USE_TACTYK_ALLOCATOR
-    tactyk_m_count = 0;
-    void* t_addr = tactyk__mk_random_base_address();
-    tactyk_m_tbl = (struct tactyk_m_entry*) mmap(t_addr, sizeof(struct tactyk_m_entry) * TACTYK_M_CAPACITY, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+    tactyk_alloc__init();
     #endif // USE_TACTYK_ALLOCATOR
 }
 
-void* talloc(uint64_t num, uint64_t sz) {
-    #ifdef USE_TACTYK_ALLOCATOR
-    if ( (((num>>1) + (sz>>1)) >> 63 ) != 0) {
-        error("TACTYK-talloc -- integer overflow detected", NULL);
-    }
-    uint64_t m_size = num*sz;
-    void* t_addr = tactyk__mk_random_base_address();
-    void *ptr = mmap(t_addr, m_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
-    uint64_t pivot = (((uint64_t)ptr)>>16) & (TACTYK_M_CAPACITY-1);
-
-    for (int64_t i = pivot; i < TACTYK_M_CAPACITY; i += 1) {
-        struct tactyk_m_entry *entry = &tactyk_m_tbl[i];
-        if ((entry->ptr) == NULL) {
-            entry->ptr = ptr;
-            entry->sz = m_size;
-            return ptr;
-        }
-    }
-    for (int64_t i = 0; i < pivot; i += 1) {
-        struct tactyk_m_entry *entry = &tactyk_m_tbl[i];
-        if ((entry->ptr) == NULL) {
-            entry->ptr = ptr;
-            entry->sz = m_size;
-            return ptr;
-        }
-    }
-    return NULL;
-    #else
-    return calloc(num, sz);
-    #endif // USE_TACTYK_ALLOCATOR
-}
-void tfree(void *ptr) {
-    #ifdef USE_TACTYK_ALLOCATOR
-    uint64_t pivot = (((uint64_t)ptr)>>16) & (TACTYK_M_CAPACITY-1);
-    for (int64_t i = pivot; i < TACTYK_M_CAPACITY; i += 1) {
-        struct tactyk_m_entry *entry = &tactyk_m_tbl[i];
-        if ((entry->ptr) == ptr) {
-            entry->ptr = NULL;
-            munmap(ptr, entry->sz);
-            entry->sz = 0;
-            return;
-        }
-    }
-    for (int64_t i = 0; i < pivot; i += 1) {
-        struct tactyk_m_entry *entry = &tactyk_m_tbl[i];
-        if ((entry->ptr) == ptr) {
-            entry->ptr = NULL;
-            munmap(ptr, entry->sz);
-            entry->sz = 0;
-            return;
-        }
-    }
-    #else
-    free(ptr);
-    #endif // USE_TACTYK_ALLOCATOR
-    //printf("tfree.done\n");
-}

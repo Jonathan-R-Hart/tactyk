@@ -1,0 +1,98 @@
+# TEST:  Bind memory blocks
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  bind-data (AD) bind-memblock (AM) bind-integer (AI)
+
+PROGRAM
+  struct mdef
+    1 va
+    1 vb
+    8 vc
+    8 vd
+    4 ve
+    2 vf
+    8 vg
+  
+  text txt
+    qzaxswcdervfbtgyhnmju,kio.lp/;
+  
+  mem mm mdef 100
+  
+  extmem em
+  
+  DO_SYMBOLIC_BIND:
+    bind addr1 mm
+    bind addr3 txt
+    bind addr4 em
+    exit
+
+  DO_INTREF_BIND:
+    bind addr2 0
+    bind addr4 1
+    bind addr3 2
+    exit
+
+  DO_DYNAMICREF_BIND:
+    assign a 0
+    assign b 1
+    assign c 2
+    bind addr1 a
+    bind addr2 b
+    bind addr4 c
+    exit
+  
+  DO_INVALID_INTREF_BIND:
+    bind addr1 1234
+    exit
+  DO_INVALID_DYNAMICREF_BIND:
+    assign a 3456
+    bind addr1 a
+    exit
+
+ALLOC em
+  byte 213
+  byte 12
+  qword 543211234599999
+  qword 999995432112345
+  dword 100000000
+  word 1000
+  qword -100
+
+EXEC DO_SYMBOLIC_BIND
+
+TEST
+  addr1 mm +0 3169 32
+  addr3 txt +0 1 30
+  addr4 em +0 1 32
+  mem txt *
+  mem mm *
+
+EXEC DO_INTREF_BIND
+TEST
+  addr2 txt 0
+  addr3 em 0
+  addr4 mm 0
+
+EXEC DO_DYNAMICREF_BIND
+TEST
+  status 4
+  rA 0
+  rB 1
+  rC 2
+  addr1 txt 0
+  addr2 mm 0
+  addr4 em 0
+
+EXEC DO_INVALID_INTREF_BIND
+TEST
+  status 101
+
+EXEC DO_INVALID_DYNAMICREF_BIND
+TEST
+  status 101
+  rA 3456
+
+
+
+
+

@@ -1,0 +1,194 @@
+# TEST:  Bounds checking for load instructions (float64)
+#
+# This verifies that tactyk halts when out-of-bounds offsets are used in load instructions
+#
+#   NOTE:  The specific values tested for have not been verified as of the writing of this test, but have simply been copied from test log.
+#          These are assumed to be the correct floating point values interpreting the sequence of bytes specified in data array "mm" as an
+#          IEEE-754 floating point number.
+#          This test is more focused on the bounds checking than the literal values.
+#          Floating point handling elsewhere has conistantly given expected results.
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   load float-data-addr-data (XXAD)
+#   load float-data-addr-integer (XXAI)
+#   load float-data-addr-const (XXAC)
+
+PROGRAM
+  struct st
+    1 i0
+    1 i1
+    1 i2
+    1 i3
+    1 i4
+    1 i5
+    1 i6
+    1 i7
+    1 i8
+    1 i9
+
+  const CN1 -1
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C5 5
+  const C6 6
+  const C7 7
+  const C8 8
+  const C9 9
+  const C10 10
+  
+  data mm st 1
+    100 101 102 103 104 105 106 107 108 109
+  
+  INIT:
+    bind addr1 mm
+    exit
+  
+  ld_XXAD_neg:
+    assign b -1
+    load float xA addr1 b
+    exit
+  ld_XXAD_zero:
+    assign b 0
+    load float xA addr1 b
+    exit
+  ld_XXAD_edge:
+    assign b 2
+    load float xA addr1 b
+    exit
+  ld_XXAD_cross:
+    assign b 3
+    load float xA addr1 b
+    exit
+  ld_XXAD_far:
+    assign b 9
+    load float xA addr1 b
+    exit
+  ld_XXAD_beyond:
+    assign b 10
+    load float xA addr1 b
+    exit
+  
+  ld_XXAI_neg:
+    load float xA addr1 -1
+    exit
+  ld_XXAI_zero:
+    load float xA addr1 0
+    exit
+  ld_XXAI_edge:
+    load float xA addr1 2
+    exit
+  ld_XXAI_cross:
+    load float xA addr1 3
+    exit
+  ld_XXAI_far:
+    load float xA addr1 9
+    exit
+  ld_XXAI_beyond:
+    load float xA addr1 10
+    exit
+  
+  ld_XXAC_neg:
+    load float xA addr1 CN1
+    exit
+  ld_XXAC_zero:
+    load float xA addr1 C0
+    exit
+  ld_XXAC_edge:
+    load float xA addr1 C2
+    exit
+  ld_XXAC_cross:
+    load float xA addr1 C3
+    exit
+  ld_XXAC_far:
+    load float xA addr1 C9
+    exit
+  ld_XXAC_beyond:
+    load float xA addr1 C10
+    exit
+
+EXEC INIT
+TEST
+  addr1 mm 0
+
+EXEC ld_XXAD_neg
+TEST
+  status 101
+  rB -1
+EXEC ld_XXAD_zero
+TEST
+  status 4
+  rB 0
+  xA 2.7134646652071e+209
+EXEC ld_XXAD_edge
+TEST
+  status 4
+  rB 2
+  xA 1.2540207159433e+219
+EXEC ld_XXAD_cross
+TEST
+  status 101
+  rB 3
+EXEC ld_XXAD_far
+TEST
+  status 101
+  rB 9
+EXEC ld_XXAD_beyond
+TEST
+  status 101
+  rB 10
+
+EXEC ld_XXAI_neg
+TEST
+  status 101
+EXEC ld_XXAI_zero
+TEST
+  status 4
+  xA 2.7134646652071e+209
+EXEC ld_XXAI_edge
+TEST
+  status 4
+  xA 1.2540207159433e+219
+EXEC ld_XXAI_cross
+TEST
+  status 101
+EXEC ld_XXAI_far
+TEST
+  status 101
+EXEC ld_XXAI_beyond
+TEST
+  status 101
+
+EXEC ld_XXAC_neg
+TEST
+  status 101
+EXEC ld_XXAC_zero
+TEST
+  status 4
+  xA 2.7134646652071e+209
+EXEC ld_XXAC_edge
+TEST
+  status 4
+  xA 1.2540207159433e+219
+EXEC ld_XXAC_cross
+TEST
+  status 101
+EXEC ld_XXAC_far
+TEST
+  status 101
+EXEC ld_XXAC_beyond
+TEST
+  status 101
+
+    
+  
+  
+
+
+
+
+

@@ -1,0 +1,156 @@
+# TEST:  division
+# 
+# This tests divisions opreations, exit with status code on divide by zero, and jump on divide by zero
+#
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   div data-data     (DDN)
+#   div data-integer  (AIN)
+#   div data-const    (ACN)
+#   div data-data-branch    (DDL)
+#   div data-integer-branch (AIL)
+#   div data-const-branch   (ACL)
+
+PROGRAM
+  const C10 10
+  const CN20 -20
+  const C30 30
+  const CN40 -40
+  const C50 50
+  const CN60 -60
+  const C0 0
+
+  DO_INTS:
+    assign a 999999999999999999
+    div a 2
+    div a 3
+    div a 4
+    div a 5
+    div a 6
+    div a 7
+    div a 8
+    div a 9
+    div a 10
+    assign b a
+    div b -100
+    exit
+  
+  DO_CONSTS:
+    assign a 100000000
+    assign b 200000000
+    assign c 300000000
+    assign d 400000000
+    assign e 500000000
+    assign f 600000000
+    div a C10
+    div b CN20
+    div c C30
+    div d CN40
+    div e C50
+    div f CN60
+    exit
+  
+  DO_REGS:
+    assign f 10
+    div a f
+    sub f 1
+    div b f
+    sub f 1
+    div c f
+    sub f 1
+    div d f
+    sub f 1
+    div e f
+    exit
+
+  ONE:
+    div a a
+    div b b
+    div c c
+    div d d
+    div e e
+    div f f
+    exit
+  
+  ZERO_int:
+    div a 0
+    exit
+  ZERO_const:
+    div a C0
+    exit
+  ZERO_reg:
+    assign b 0
+    div a b
+    exit
+  
+  ZERO_ESCAPE:
+    add c 1000
+    exit
+
+  ZERO_ESCAPED_int:
+    div a 0 ZERO_ESCAPE
+    exit
+  ZERO_ESCAPED_const:
+    div a C0 ZERO_ESCAPE
+    exit
+  ZERO_ESCAPED_reg:
+    div a b ZERO_ESCAPE
+    exit
+
+EXEC DO_INTS
+
+TEST
+  rA 275573192239
+  rB -2755731922
+
+EXEC DO_CONSTS
+TEST
+  rA 10000000
+  rB -10000000
+  rC 10000000
+  rD -10000000
+  rE 10000000
+  rF -10000000
+
+EXEC DO_REGS
+TEST
+  rA 1000000
+  rB -1111111
+  rC 1250000
+  rD -1428571
+  rE 1666666
+  rF 6
+
+EXEC ONE
+TEST
+  rA 1
+  rB 1
+  rC 1
+  rD 1
+  rE 1
+  rF 1
+
+EXEC ZERO_int
+TEST
+  status 110
+EXEC ZERO_const
+
+TEST
+  status 110
+
+EXEC ZERO_reg
+TEST
+  status 110
+  rB 0
+
+EXEC ZERO_ESCAPED_int
+TEST
+  rC 1001
+
+EXEC ZERO_ESCAPED_const
+TEST
+  rC 2001
+
+EXEC ZERO_ESCAPED_reg
+TEST
+  rC 3001

@@ -1,0 +1,132 @@
+# TEST:  Load data from memory 
+#
+# This tests loading reading data from memblocks and transferring it to data registers.  Load operation reads 1,2,4, or 8 bytes from from a memory block bound to an address register
+# at a specified offset (must be lower than element_bound), and writes it to a register.
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   load qword-data-addr-data (QDAD)
+#   load qword-data-addr-integer (QDAI)
+#   load qword-data-addr-const (QDAC)
+#   load dword-data-addr-data (DDAD)
+#   load dword-data-addr-integer (DDAI)
+#   load dword-data-addr-const (DDAC)
+#   load word-data-addr-data (WDAD)
+#   load word-data-addr-integer (WDAI)
+#   load word-data-addr-const (WDAC)
+#   load byte-data-addr-data (BDAD)
+#   load byte-data-addr-integer (BDAI)
+#   load byte-data-addr-const (BDAC)
+
+PROGRAM
+  struct s1
+    8 va
+    4 vb
+    8 vc
+    2 vd
+    2 ve
+    1 vf
+  
+  data d1 s1 16
+    1000000000000000
+    100000000
+    1000000000012345
+    1000
+    1111
+    10
+    0
+  
+  # load values from a memblock using constant offsets
+  # The constants are provided by the tactyk_pl struct directive
+  DO_CONSTS:
+    bind addr1 d1
+    load qword a addr1 s1.vc
+    load word b addr1 s1.ve
+    load dword c addr1 s1.vb
+    load qword d addr1 s1.va
+    load byte e addr1 s1.vf
+    load word f addr1 s1.vd
+    exit
+  
+  flat d2 byte
+    1 2 3 4 5 6 7 8
+    9 10 11 12 13 14 15 16
+    17 18 19 20 21 22 23 24
+    25 26 27 28 29 30 31 32
+  
+  # load values from a memblock using integer offsets (these are internally handled like constants)
+  DO_INTS:
+    bind addr2 d2
+    load byte a addr2 10
+    load byte b addr2 17
+    load word c addr2 4
+    load word d addr2 22
+    load dword e addr2 13
+    load qword f addr2 0
+    exit
+  
+  flat d3 word
+    1 3 5 7 9 11 13 15 17 19
+    21 23 25 27 29 31 33 35
+  
+  # load values from a memblock using dynamic offsets from a register
+  DO_REGS:
+    bind addr4 d3
+    
+    assign c 16
+    assign d 6
+    load byte c addr4 c
+    load byte d addr4 d
+    sub c d
+    assign a 0
+    
+    THE_BEST_MULTIPLIER__itsayssoonthelabel:
+    load word b addr4 c
+    add a b
+    add c 2
+    dec d
+    if d != 0 THE_BEST_MULTIPLIER__itsayssoonthelabel
+    
+    load dword e addr4 c
+    load qword f addr4 b
+    
+    exit
+
+EXEC DO_CONSTS
+
+TEST
+  addr1 d1 0
+  rA 1000000000012345
+  rB 1111
+  rC 100000000
+  rD 1000000000000000
+  rE 10
+  rF 1000
+
+EXEC DO_INTS
+
+TEST
+  addr2 d2 0
+  rA 11
+  rB 18
+  rC 1541
+  rD 6167
+  rE 286265102
+  rF 578437695752307201
+
+EXEC DO_REGS
+
+TEST
+  addr4 d3 0
+  rA 119
+  rB 23
+  rC 24
+  rD 0
+  rE 1769497
+  rF 2233817301465962752
+
+
+
+
+

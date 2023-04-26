@@ -61,12 +61,15 @@ union tactyk_asmvm__reg128 {
     uint64_t u64[2];
     uint32_t u32[4];
     uint16_t u16[8];
+    int64_t i64[2];
+    int32_t i32[4];
+    int16_t i16[8];
     double f64[2];
     float f32[4];
 };
 
 struct tactyk_asmvm__register_bank {
-    tactyk_asmvm__op *rPROG;
+    uint64_t rTEMPS;
     uint64_t rLWCSI;
     uint64_t rMCSI;
     uint64_t rTEMPA;
@@ -83,23 +86,23 @@ struct tactyk_asmvm__register_bank {
     uint64_t rE;
     uint64_t rF;
 
-    union tactyk_asmvm__reg128 xa;
-    union tactyk_asmvm__reg128 xb;
-    union tactyk_asmvm__reg128 xc;
-    union tactyk_asmvm__reg128 xd;
+    union tactyk_asmvm__reg128 xA;
+    union tactyk_asmvm__reg128 xB;
+    union tactyk_asmvm__reg128 xC;
+    union tactyk_asmvm__reg128 xD;
 
-    union tactyk_asmvm__reg128 xe;
-    union tactyk_asmvm__reg128 xf;
-    union tactyk_asmvm__reg128 xg;
-    union tactyk_asmvm__reg128 xh;
+    union tactyk_asmvm__reg128 xE;
+    union tactyk_asmvm__reg128 xF;
+    union tactyk_asmvm__reg128 xG;
+    union tactyk_asmvm__reg128 xH;
 
-    union tactyk_asmvm__reg128 xi;
-    union tactyk_asmvm__reg128 xj;
-    union tactyk_asmvm__reg128 xk;
-    union tactyk_asmvm__reg128 xl;
+    union tactyk_asmvm__reg128 xI;
+    union tactyk_asmvm__reg128 xJ;
+    union tactyk_asmvm__reg128 xK;
+    union tactyk_asmvm__reg128 xL;
 
-    union tactyk_asmvm__reg128 xm;
-    union tactyk_asmvm__reg128 xn;
+    union tactyk_asmvm__reg128 xM;
+    union tactyk_asmvm__reg128 xN;
     union tactyk_asmvm__reg128 xTEMPA;
     union tactyk_asmvm__reg128 xTEMPB;
 
@@ -127,7 +130,7 @@ struct tactyk_asmvm__memblock_lowlevel {
     uint32_t element_bound;
     uint32_t array_bound;
     uint32_t memblock_index;
-    uint32_t type;
+    uint32_t offset;
 };
 // memory layout specification used outside of the virtual machine
 //      (a pointer to the allocated memory plus information about each property)
@@ -142,11 +145,20 @@ struct tactyk_asmvm__memblock_highlevel {
 
 struct tactyk_asmvm__vm_stack_entry {
     void *source_command_map;
-    void *source_return_target;
+    struct tactyk_asmvm__memblock_lowlevel *source_memblocks;
+    uint64_t source_memblock_count;
+    uint32_t source_return_index;
+    uint32_t source_max_iptr;
     uint32_t source_lwcallstack_floor;
     uint32_t source_mctxstack_floor;
+    uint32_t source_lwcallstack_position;
+    uint32_t source_mctxstack_position;
     void *dest_command_map;
-    void *dest_jump_target;
+    struct tactyk_asmvm__memblock_lowlevel *dest_memblocks;
+    uint64_t dest_memblock_count;
+    void *dest_function_map;
+    uint32_t dest_jump_index;
+    uint32_t dest_max_iptr;
 };
 
 struct tactyk_asmvm__Stack {
@@ -160,6 +172,8 @@ struct tactyk_asmvm__program_declaration {
     tactyk_asmvm__op *instruction_jumptable;
     uint64_t function_count;
     tactyk_asmvm__op *function_jumptable;
+    struct tactyk_asmvm__memblock_lowlevel *memblocks;
+    uint64_t memblock_count;
 };
 
 struct tactyk_asmvm__VM {
@@ -169,10 +183,15 @@ struct tactyk_asmvm__VM {
 
 struct tactyk_asmvm__Program;
 
+struct tactyk_asmvm__MicrocontextStash {
+    struct tactyk_asmvm__memblock_lowlevel memblocks[4];
+    union tactyk_asmvm__reg128 a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z;
+};
+
 // would prefer an explicit struct memory layout here, since this represents a low-level data structure
 struct tactyk_asmvm__Context {
 
-    uint64_t max_instruction_pointer;
+    uint64_t instruction_count;
     struct tactyk_asmvm__Context *subcontext;
 
     // program memory
@@ -180,17 +199,20 @@ struct tactyk_asmvm__Context {
     struct tactyk_asmvm__memblock_lowlevel *memblocks;
     uint64_t memblock_count;
 
+    // dword #4
     struct tactyk_asmvm__memblock_lowlevel active_memblocks[4];
 
-    void *lwcall_stack;
-    void *microcontext_stack;
+    // dword #16
+    uint32_t *lwcall_stack;
+    struct tactyk_asmvm__MicrocontextStash *microcontext_stack;
     uint64_t microcontext_stack_offset;
     uint32_t lwcall_stack_floor;
     uint32_t mctx_stack_floor;
 
+    // dword #20
     struct tactyk_asmvm__VM *vm;
     struct tactyk_asmvm__Stack *stack;
-    tactyk_asmvm__op *program;
+    tactyk_asmvm__op *program_map;
     struct tactyk_asmvm__Program *hl_program_ref;      // a pointer to help high-level code access representative data structures.
 
     uint64_t instruction_index;     //tactyk function to call into.
@@ -201,6 +223,7 @@ struct tactyk_asmvm__Context {
     uint64_t signature;
     uint64_t extra;         // register spills
 
+    // dword #28
     struct tactyk_asmvm__register_bank reg;                     // tactyk context register content
     struct tactyk_asmvm__register_bank runtime_registers;       // native context register content
 
@@ -233,6 +256,7 @@ struct tactyk_asmvm__Program {
     //void* vmbin;
     //void* immediates;
     tactyk_asmvm__op *command_map;
+    tactyk_asmvm__op *function_map;
     void* executable;
     tactyk_asmvm__runnable run;
     tactyk_asmvm__show_indicator debug_func;
@@ -256,7 +280,11 @@ void tactyk_asmvm__add_program(struct tactyk_asmvm__Context *context, struct tac
 
 uint64_t tactyk_asmvm__get(struct tactyk_asmvm__Program *tactyk_pl__prog, void* data, char* varname);
 void tactyk_asmvm__set(struct tactyk_asmvm__Program *tactyk_pl__prog, void* data, char* varname, uint64_t value);
+
+bool tactyk_asmvm__prepare_invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *prog, char* funcname);
 void tactyk_asmvm__invoke(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *tactyk_pl__prog, char* funcname);
+bool tactyk_asmvm__call(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *tactyk_pl__prog, char* funcname);
+bool tactyk_asmvm__resume(struct tactyk_asmvm__Context *context);
 
 typedef void (*tactyk_asmvm__debug_callback)(struct tactyk_asmvm__Context *ctx);
 void tactyk_asmvm__invoke_debug(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *tactyk_pl__prog, char* funcname, tactyk_asmvm__debug_callback dbg_callback);

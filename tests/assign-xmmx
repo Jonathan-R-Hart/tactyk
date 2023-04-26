@@ -1,0 +1,228 @@
+# TEST:  Assign value of immediate operand to xmm register
+#
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   assign data-xmmx (DX)
+#   assign data-float (DF)
+#   assign data-fconst (DCf)
+#   assign xmmx-data (XD)
+#   assign xmmx-int (XI)
+#   assign xmmx-const (XC)
+#   assign xmmx-float (XF)
+#   assign xmmx-fconst (XCf)
+#   assign xmmx-fconst (XX)
+#   assign xmmx-string (XS)
+
+PROGRAM
+  const Cf1.234567 1.234567
+  const Cf12.34567 12.34567
+  const Cf123.4567 123.4567
+  const Cf1234.567 1234.567
+  const Cf12345.67 12345.67
+  const Cf123456.7 123456.7
+
+  const Ci123 123
+  const Ci456 456
+  const Ci789 789
+  const Ci135 135
+  const Ci246 246
+  const Ci357 357
+  
+  DF:
+    assign rA 1.234567
+    assign rB 12.34567
+    assign rC 123.4567
+    assign rD 1234.567
+    assign rE 12345.67
+    assign rF 123456.7
+    exit
+  
+  DCf:
+    assign rA Cf123456.7
+    assign rB Cf12345.67
+    assign rC Cf1234.567
+    assign rD Cf123.4567
+    assign rE Cf12.34567
+    assign rF Cf1.234567
+    exit
+  
+  XD:
+    assign xI rA
+    assign xJ rB
+    assign xK rC
+    assign xL rD
+    assign xM rE
+    assign xN rF
+    exit
+  
+  XI:
+    assign xB 123
+    assign xC 456
+    assign xD 789
+    assign xE 135
+    assign xF 246
+    assign xG 357
+    exit
+  
+  XC:
+    assign xH Ci123
+    assign xI Ci456
+    assign xJ Ci789
+    assign xK Ci135
+    assign xL Ci246
+    assign xM Ci357
+    exit
+  
+  XF:
+    assign xA 1.234567
+    assign xB 12.34567
+    assign xC 123.4567
+    assign xD 1234.567
+    assign xE 12345.67
+    assign xF 123456.7
+    exit
+  
+  XCf:
+    assign xH Cf123456.7
+    assign xI Cf12345.67
+    assign xJ Cf1234.567
+    assign xK Cf123.4567
+    assign xL Cf12.34567
+    assign xM Cf1.234567
+    exit
+  
+  DX:
+    assign rA xB
+    assign rB xD
+    assign rC xF
+    assign rD xH
+    assign rE xJ
+    assign rF xL
+    exit
+  
+  XX:
+    assign xA xG
+    assign xB xH
+    assign xC xI
+    assign xD xJ
+    assign xE xK
+    assign xF xL
+    exit
+
+  XS:
+    assign xA "Hello,_World!"
+    assign xB "=-=-=-=--=-=-=-="
+    assign xC "`1234567890-="
+    assign xD "qwertyuiop[]"
+    assign xE "asdfghjkl;'"
+    assign xF "zxcvbnm,./"
+    assign xG "~!@#$%^&*()_+"
+    assign xH "QWERTYUIOP{}"
+    assign xI "ASDFGHJKL:"
+    assign xJ "ZXCVBNM<>?"
+    assign xK "This is text..."
+    assign xL "useful useful"
+    assign xM "text."
+    assign xN "You agree yes?"
+    exit
+
+EXEC DF
+TEST
+  rA 1
+  rB 12
+  rC 123
+  rD 1234
+  rE 12345
+  rF 123456
+
+EXEC DCf
+TEST
+  rA 123456
+  rB 12345
+  rC 1234
+  rD 123
+  rE 12
+  rF 1
+
+EXEC XD
+TEST
+  xI 123456
+  xJ 12345
+  xK 1234
+  xL 123
+  xM 12
+  xN 1
+
+EXEC XI
+TEST
+  xB 123
+  xC 456
+  xD 789
+  xE 135
+  xF 246
+  xG 357
+
+EXEC XC
+TEST
+  xH 123
+  xI 456
+  xJ 789
+  xK 135
+  xL 246
+  xM 357
+
+EXEC XF
+TEST
+  xA 1.234567
+  xB 12.34567
+  xC 123.4567
+  xD 1234.567
+  xE 12345.67
+  xF 123456.7
+
+EXEC XCf
+TEST
+  xH 123456.7
+  xI 12345.67
+  xJ 1234.567
+  xK 123.4567
+  xL 12.34567
+  xM 1.234567
+
+EXEC DX
+TEST
+  rA 12
+  rB 1234
+  rC 123456
+  rD 123456
+  rE 1234
+  rF 12
+
+EXEC XX
+TEST
+  xA 357
+  xB 123456.7
+  xC 12345.67
+  xD 1234.567
+  xE 123.4567
+  xF 12.34567
+
+XMM-DISPLAYMODE string
+EXEC XS
+TEST
+  xA 'Hello,_World!
+  xB '=-=-=-=--=-=-=-=
+  xC '`1234567890-=
+  xD 'qwertyuiop[]
+  xE 'asdfghjkl;'
+  xF 'zxcvbnm,./
+  xG '~!@#$%^&*()_+
+  xH 'QWERTYUIOP{}
+  xI 'ASDFGHJKL:
+  xJ 'ZXCVBNM<>?
+  xK 'This is text...
+  xL 'useful useful
+  xM 'text.
+  xN 'You agree yes?
+
+

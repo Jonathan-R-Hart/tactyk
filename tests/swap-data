@@ -1,0 +1,44 @@
+# TEST:  swap register contents
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  swap data-data (DD)
+
+PROGRAM
+  MAIN:
+    assign a 1
+    assign b 2
+    assign c 3
+    assign d 4
+    assign e 5
+    assign f 6
+    swap a b
+    swap b c
+    swap c d
+    swap d e
+    swap e f
+    swap b a
+    swap c b
+    swap d c
+    swap e d
+    swap a b
+    swap b c
+    swap c d
+    swap b a
+    swap c b
+    swap a b
+    exit
+
+EXEC MAIN
+
+TEST
+  rA 6
+  rB 5
+  rC 4
+  rD 3
+  rE 2
+  rF 1
+
+
+
+
+

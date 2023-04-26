@@ -1,0 +1,168 @@
+# TEST:  Bounds checking for load instructions (word)
+#
+# This verifies that tactyk halts when out-of-bounds offsets are used in load instructions
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   load word-data-addr-data (DDAD)
+#   load word-data-addr-integer (DDAI)
+#   load word-data-addr-const (DDAC)
+
+PROGRAM
+  struct st
+    1 i0
+    1 i1
+    1 i2
+    1 i3
+    1 i4
+    1 i5
+    1 i6
+    1 i7
+    1 i8
+    1 i9
+
+  const CN1 -1
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C5 5
+  const C6 6
+  const C7 7
+  const C8 8
+  const C9 9
+  const C10 10
+  
+  data mm st 1
+    100 101 102 103 104 105 106 107 108 109
+  
+  INIT:
+    bind addr1 mm
+    exit
+  
+  ld_WDAD_neg:
+    assign b -1
+    load word a addr1 b
+    exit
+  ld_WDAD_zero:
+    assign b 0
+    load word a addr1 b
+    exit
+  ld_WDAD_edge:
+    assign b 8
+    load word a addr1 b
+    exit
+  ld_WDAD_cross:
+    assign b 9
+    load word a addr1 b
+    exit
+  ld_WDAD_beyond:
+    assign b 10
+    load word a addr1 b
+    exit
+  
+  ld_WDAI_neg:
+    load word a addr1 -1
+    exit
+  ld_WDAI_zero:
+    load word a addr1 0
+    exit
+  ld_WDAI_edge:
+    load word a addr1 8
+    exit
+  ld_WDAI_cross:
+    load word a addr1 9
+    exit
+  ld_WDAI_beyond:
+    load word a addr1 10
+    exit
+  
+  ld_WDAC_neg:
+    load word a addr1 CN1
+    exit
+  ld_WDAC_zero:
+    load word a addr1 C0
+    exit
+  ld_WDAC_edge:
+    load word a addr1 C8
+    exit
+  ld_WDAC_cross:
+    load word a addr1 C9
+    exit
+  ld_WDAC_beyond:
+    load word a addr1 C10
+    exit
+
+EXEC INIT
+TEST
+  addr1 mm 0
+
+EXEC ld_WDAD_neg
+TEST
+  status 101
+  rB -1
+EXEC ld_WDAD_zero
+TEST
+  status 4
+  rB 0
+  rA 25956
+EXEC ld_WDAD_edge
+TEST
+  status 4
+  rB 8
+  rA 28012
+EXEC ld_WDAD_cross
+TEST
+  status 101
+  rB 9
+EXEC ld_WDAD_beyond
+TEST
+  status 101
+  rB 10
+
+EXEC ld_WDAI_neg
+TEST
+  status 101
+EXEC ld_WDAI_zero
+TEST
+  status 4
+  rA 25956
+EXEC ld_WDAI_edge
+TEST
+  status 4
+  rA 28012
+EXEC ld_WDAI_cross
+TEST
+  status 101
+EXEC ld_WDAI_beyond
+TEST
+  status 101
+
+EXEC ld_WDAC_neg
+TEST
+  status 101
+EXEC ld_WDAC_zero
+TEST
+  status 4
+  rA 25956
+EXEC ld_WDAC_edge
+TEST
+  status 4
+  rA 28012
+EXEC ld_WDAC_cross
+TEST
+  status 101
+EXEC ld_WDAC_beyond
+TEST
+  status 101
+
+    
+  
+  
+
+
+
+
+

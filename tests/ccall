@@ -1,0 +1,115 @@
+# TEST:  ccall
+#
+# ccall is a call into a c function which operates on integer arguments (and which may return an integer).
+#   (At some point, this may be expanded to cover function calls more broadly - floating point numbers on xmm registers,
+#    large floating point numbers on the x87 FPU, and excess values on the stack)
+#
+# Virtual-ISA: tactyk_core
+# Templates:  tcall (Cfunc)
+
+PROGRAM
+  MAIN:
+    assign a 6
+    assign b 5
+    assign c 4
+    assign d 3
+    assign e 2
+    assign f 1
+    ccall cfunc-1
+    assign a 100
+    ccall cfunc-2
+    ccall cfunc-4
+    ccall cfunc-3
+    exit
+  
+  GETSTUFF:
+    ccall a cfunc-1
+    ccall b cfunc-4
+    ccall c cfunc-2
+    ccall d cfunc-3
+    ccall e cfunc-3
+    ccall f cfunc-1
+    add e f
+    add d e
+    add c d
+    add b c
+    add a b
+    exit
+
+EXEC MAIN
+  TEST
+    callback 1
+    status 1
+    rA 6
+    rB 5
+    rC 4
+    rD 3
+    rE 2
+    rF 1
+    arg0 6
+    arg1 5
+    arg2 4
+    arg3 3
+    arg4 2
+    arg5 1
+  CONTINUE
+  TEST
+    callback 2
+    status 1
+    rA 100
+    arg0 100
+  CONTINUE
+  TEST
+    callback 4
+    status 1
+  CONTINUE
+  TEST
+    status 1
+    callback 3
+  CONTINUE
+
+EXEC GETSTUFF
+  TEST
+    status 1
+    callback 1
+  RETURN 10
+  CONTINUE
+  TEST
+    status 1
+    callback 4
+    rA 10
+  RETURN 30
+  CONTINUE
+  TEST
+    status 1
+    callback 2
+    rB 30
+  RETURN 50
+  CONTINUE
+  TEST
+    status 1
+    callback 3
+    rC 50
+  RETURN 70
+  CONTINUE
+  TEST
+    status 1
+    callback 3
+    rD 70
+  RETURN 90
+  CONTINUE
+  TEST
+    status 1
+    callback 1
+    rE 90
+  RETURN 110
+  CONTINUE
+
+TEST
+  rF 110
+  rE 200
+  rD 270
+  rC 320
+  rB 350
+  rA 360
+

@@ -13,13 +13,16 @@
 
 #define TACTYK__TITLE_SHORT "TACTYK"
 #define TACTYK_SE__SUBTITLE_SHORT "SE"
+#define TACTYK_TEST__SUBTITLE_SHORT "TF"
 #define TACTYK__TITLE_LONG "TACTYK (should) Affix Captions To Your Kitten"
 #define TACTYK_SE__SUBTITLE "Scripting Engine"
+#define TACTYK_TEST__SUBTITLE "Testing Framework"
 #ifndef TACTYK__VERSION
     #define TACTYK__VERSION "9999"
 #endif // TACTYK__VERSION
 
 #define TACTYK_SE__DESCRIPTION (TACTYK__TITLE_LONG" - "TACTYK_SE__SUBTITLE" ["TACTYK__TITLE_SHORT"-"TACTYK_SE__SUBTITLE_SHORT"], VERSION "TACTYK__VERSION)
+#define TACTYK_TEST__DESCRIPTION (TACTYK__TITLE_LONG" - "TACTYK_TEST__SUBTITLE" ["TACTYK__TITLE_SHORT"-"TACTYK_TEST__SUBTITLE_SHORT"], VERSION "TACTYK__VERSION)
 
 #include <stdint.h>
 
@@ -42,9 +45,6 @@ extern tactyk__error_handler warn;
 uint64_t tactyk__rand_uint64();
 
 void tactyk_init();
-void* tactyk__mk_random_base_address();
-void* talloc(uint64_t num, uint64_t sz);
-void tfree(void* ptr);
 
 #endif  // TACTYK_H
 

@@ -1,0 +1,148 @@
+# TEST:  Bounds checking for load operations (byte)
+#
+# This verifies that tactyk halts when out-of-bounds offsets are used in load instructions
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   load byte-data-addr-data (BDAD)
+#   load byte-data-addr-integer (BDAI)
+#   load byte-data-addr-const (BDAC)
+
+PROGRAM
+  struct st
+    1 i0
+    1 i1
+    1 i2
+    1 i3
+    1 i4
+    1 i5
+    1 i6
+    1 i7
+    1 i8
+    1 i9
+
+  const CN1 -1
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C5 5
+  const C6 6
+  const C7 7
+  const C8 8
+  const C9 9
+  const C10 10
+  
+  data mm st 1
+    100 101 102 103 104 105 106 107 108 109
+  
+  INIT:
+    bind addr1 mm
+    exit
+  
+  ld_BDAD_neg:
+    assign b -1
+    load byte a addr1 b
+    exit
+  ld_BDAD_zero:
+    assign b 0
+    load byte a addr1 b
+    exit
+  ld_BDAD_edge:
+    assign b 9
+    load byte a addr1 b
+    exit
+  ld_BDAD_beyond:
+    assign b 10
+    load byte a addr1 b
+    exit
+  
+  ld_BDAI_neg:
+    load byte a addr1 -1
+    exit
+  ld_BDAI_zero:
+    load byte a addr1 0
+    exit
+  ld_BDAI_edge:
+    load byte a addr1 9
+    exit
+  ld_BDAI_beyond:
+    load byte a addr1 10
+    exit
+  
+  ld_BDAC_neg:
+    load byte a addr1 CN1
+    exit
+  ld_BDAC_zero:
+    load byte a addr1 C0
+    exit
+  ld_BDAC_edge:
+    load byte a addr1 C9
+    exit
+  ld_BDAC_beyond:
+    load byte a addr1 C10
+    exit
+
+EXEC INIT
+TEST
+  addr1 mm 0
+
+EXEC ld_BDAD_neg
+TEST
+  status 101
+  rB -1
+EXEC ld_BDAD_zero
+TEST
+  status 4
+  rB 0
+  rA 100
+EXEC ld_BDAD_edge
+TEST
+  status 4
+  rB 9
+  rA 109
+EXEC ld_BDAD_beyond
+TEST
+  status 101
+  rB 10
+
+EXEC ld_BDAI_neg
+TEST
+  status 101
+EXEC ld_BDAI_zero
+TEST
+  status 4
+  rA 100
+EXEC ld_BDAI_edge
+TEST
+  status 4
+  rA 109
+EXEC ld_BDAI_beyond
+TEST
+  status 101
+
+EXEC ld_BDAC_neg
+TEST
+  status 101
+EXEC ld_BDAC_zero
+TEST
+  status 4
+  rA 100
+EXEC ld_BDAC_edge
+TEST
+  status 4
+  rA 109
+EXEC ld_BDAC_beyond
+TEST
+  status 101
+
+    
+  
+  
+
+
+
+
+

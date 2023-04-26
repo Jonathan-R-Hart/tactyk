@@ -1,0 +1,54 @@
+# TEST:  break
+#
+# Break places the VM in a suspended state.  When the suspended state is reusmed, execution continues at instruction
+# immediately following the break statement.
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  break
+
+PROGRAM prg
+  MAIN:
+    assign a 5
+    break
+    inc a
+    break 
+    inc a
+    break 
+    inc a
+    break
+    inc a
+    inc a
+    exit
+
+EXEC MAIN
+
+TEST
+  status 3
+  rA 5
+
+RESUME
+
+TEST
+  status 3
+  rA 6
+
+RESUME
+
+TEST
+  status 3
+  rA 7
+
+RESUME
+
+TEST
+  status 3
+  rA 8
+
+RESUME
+
+TEST
+  status 4
+  rA 10
+
+RESUME
+ERROR

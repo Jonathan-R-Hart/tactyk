@@ -1,0 +1,139 @@
+# TEST:  Write contents of data registers to memory 
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   store qword-addr-data-data    (QADD)
+#   store qword-addr-integer-data (QAID)
+#   store qword-addr-const-data   (QACD)
+#   store dword-addr-data-data    (DADD)
+#   store dword-addr-integer-data (DAID)
+#   store dword-addr-const-data   (DACD)
+#   store word-addr-data-data     (WADD)
+#   store word-addr-integer-data  (WAID)
+#   store word-addr-const-data    (WACD)
+#   store byte-addr-data-data     (BADD)
+#   store byte-addr-integer-data  (BAID)
+#   store byte-addr-const-data    (BACD)
+
+PROGRAM
+  struct s1
+    1024 data
+  
+  mem m1 s1 1024
+  
+  const C70 70
+  const C72 72
+  const C74 74
+  const C76 76
+  const C80 80
+  const C88 88
+
+  DO_INT_OFFSETS:
+    bind addr1 m1
+    assign a 100
+    assign b 200
+    assign c 1000
+    assign d 2000
+    assign e 1000000
+    assign f 1000000000000000
+    store byte addr1 0 a
+    store byte addr1 1 b
+    store word addr1 4 c
+    store word addr1 6 d
+    store dword addr1 16 e
+    store qword addr1 32 f
+    exit
+  
+  DO_CONST_OFFSETS:
+    assign a 50
+    assign b 100
+    assign c 500
+    assign d 1000
+    assign e 500000
+    assign f 500000000000000
+    store byte addr1 C70 a
+    store byte addr1 C72 b
+    store word addr1 C74 c
+    store word addr1 C76 d
+    store dword addr1 C80 e
+    store qword addr1 C88 f
+    exit
+  
+  DO_REG_OFFSETS:
+  assign a 100
+  assign b 75
+  store byte addr1 a b
+  assign a 102
+  assign b 175
+  store byte addr1 a b
+  assign a 104
+  assign b 1175
+  store word addr1 a b
+  assign a 106
+  assign b 11175
+  store word addr1 a b
+  
+  assign a 110
+  assign b 111175
+  store dword addr1 a b
+  assign a 114
+  assign b 1111175
+  store dword addr1 a b
+
+  assign a 120
+  assign b 111175111175
+  store qword addr1 a b
+  assign a 128
+  assign b 11111751111175
+  store qword addr1 a b
+  exit
+  
+EXEC DO_INT_OFFSETS
+  
+
+TEST
+  addr1 m1 0
+  rA 100
+  rB 200
+  rC 1000
+  rD 2000
+  rE 1000000
+  rF 1000000000000000
+  mem m1 0 byte 100
+  mem m1 1 byte 200
+  mem m1 4 word 1000
+  mem m1 6 word 2000
+  mem m1 16 dword 1000000
+  mem m1 32 qword 1000000000000000
+
+EXEC DO_CONST_OFFSETS
+TEST
+  rA 50
+  rB 100
+  rC 500
+  rD 1000
+  rE 500000
+  rF 500000000000000
+  mem m1 70 byte 50
+  mem m1 72 byte 100
+  mem m1 74 word 500
+  mem m1 76 word 1000
+  mem m1 80 dword 500000
+  mem m1 88 qword 500000000000000
+
+EXEC DO_REG_OFFSETS
+TEST
+  rA 128
+  rB 11111751111175
+  mem m1 100 byte 75
+  mem m1 102 byte 175
+  mem m1 104 word 1175
+  mem m1 106 word 11175
+  mem m1 110 dword 111175
+  mem m1 114 dword 1111175
+  mem m1 120 qword 111175111175
+  mem m1 128 qword 11111751111175
+  
+
+
