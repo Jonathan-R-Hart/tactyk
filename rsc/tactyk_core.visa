@@ -884,7 +884,7 @@ subroutine binary_instruction
   operand
     type data xmmx const fconst integer float
     $B $VALUE
-    scramble rTEMPA $LD_B_IMMEDIATE
+    scramble rTEMPC $LD_B_IMMEDIATE
   select-template
     case DD
       code
@@ -906,12 +906,13 @@ subroutine binary_instruction
     case DF DCf
       code
         $LD_B_IMMEDIATE
-        cvtsi2sd xTEMPB, rTEMPA
+        movq xTEMPB, rTEMPC
         cvtsi2sd xTEMPA, $A
-        %[$INSTRUCTION]sd xTEMPA, $B
+        %[$INSTRUCTION]sd xTEMPA, xTEMPB
         cvttsd2si $A, xTEMPA
-        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
         pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
         jmp $NEXT_INSTRUCTION
     case XX
       code
@@ -926,17 +927,17 @@ subroutine binary_instruction
     case XI XC
       code
         $LD_B_IMMEDIATE
-        cvtsi2sd xTEMPA, rTEMPA
+        cvtsi2sd xTEMPA, rTEMPC
         %[$INSTRUCTION]sd $A, xTEMPA
-        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
     case XCf XF
       code
         $LD_B_IMMEDIATE
-        movq xTEMPA, rTEMPA
+        movq xTEMPA, rTEMPC
         %[$INSTRUCTION]sd $A, xTEMPA
-        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
 
