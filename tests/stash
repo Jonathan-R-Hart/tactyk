@@ -136,6 +136,61 @@ PROGRAM prg
     stash swap sAl sZh swap sAh sZl swap sBl sYl swap sBh sYh
     stash sCl sDh  sEl sFl  sGh sHl  sIh sJh
     exit
+  
+  STASH_TEST_STRINGS:
+    assign xA "Hello,_World!"
+    assign xB "=-=-=-=--=-=-=-="
+    assign xC "`1234567890-="
+    assign xD "qwertyuiop[]"
+    assign xE "asdfghjkl;'"
+    assign xF "zxcvbnm,./"
+    assign xG "~!@#$%^&*()_+"
+    assign xH "QWERTYUIOP{}"
+    assign xI "ASDFGHJKL:"
+    assign xJ "ZXCVBNM<>?"
+    assign xK "This_is_text..."
+    assign xL "useful_useful"
+    assign xM "text."
+    assign xN "You_agree_yes?"
+    stash sA xA
+    stash sB xB
+    stash sC xC
+    stash sD xD
+    stash sE xE
+    stash sF xF
+    stash sG xG
+    stash sH xH
+    stash sI xI
+    stash sJ xJ
+    stash sK xK
+    stash sL xL
+    stash sM xM
+    stash sN xN
+    stash sO xA
+    stash sP xB
+    stash sQ xC
+    stash sR xD
+    stash sS xE
+    stash sT xF
+    stash sU xG
+    stash sV xH
+    stash sW xI
+    stash sX xJ
+    stash sY xK
+    stash sZ xL
+    exit
+
+  STASH_TEST_STRINGS_2:
+    stash swap sA sZ  swap sB sY  swap sC sX  swap sD sW  swap sE sV  swap sF sU  swap sG sT  swap sH sS  swap sI sR
+    stash swap sJ sQ  swap sK sP  swap sL sO  swap sM sN
+    exit
+  STASH_TEST_STRINGS_3:
+    stash sA sB sC sD sF sE sH sG sI sJ sK sL sN sM sP sO
+    stash sQ sR sS sT sV sU sX sW sY sY sZ sZ
+    exit
+  STASH_TEST_STRINGS_4:
+    stash xA sA xB sB xC sC xD sD xE sE xF sF xG sG xH sH xI sI xJ sJ xK sK xL sL xM sM xN sN
+    exit
 
 EXEC STASH_TEST_1
 TEST
@@ -345,3 +400,130 @@ TEST
   stash el 6
   stash gh 31
   stash ih 10
+
+XMM-DISPLAYMODE string
+
+EXEC STASH_TEST_STRINGS
+TEST
+  xA 'Hello,_World!
+  xB '=-=-=-=--=-=-=-=
+  xC '`1234567890-=
+  xD 'qwertyuiop[]
+  xE 'asdfghjkl;'
+  xF 'zxcvbnm,./
+  xG '~!@#$%^&*()_+
+  xH 'QWERTYUIOP{}
+  xI 'ASDFGHJKL:
+  xJ 'ZXCVBNM<>?
+  xK 'This_is_text...
+  xL 'useful_useful
+  xM 'text.
+  xN 'You_agree_yes?
+  stash a 'Hello,_World!
+  stash b '=-=-=-=--=-=-=-=
+  stash c '`1234567890-=
+  stash d 'qwertyuiop[]
+  stash e 'asdfghjkl;'
+  stash f 'zxcvbnm,./
+  stash g '~!@#$%^&*()_+
+  stash h 'QWERTYUIOP{}
+  stash i 'ASDFGHJKL:
+  stash j 'ZXCVBNM<>?
+  stash k 'This_is_text...
+  stash l 'useful_useful
+  stash m 'text.
+  stash n 'You_agree_yes?
+  stash o 'Hello,_World!
+  stash p '=-=-=-=--=-=-=-=
+  stash q '`1234567890-=
+  stash r 'qwertyuiop[]
+  stash s 'asdfghjkl;'
+  stash t 'zxcvbnm,./
+  stash u '~!@#$%^&*()_+
+  stash v 'QWERTYUIOP{}
+  stash w 'ASDFGHJKL:
+  stash x 'ZXCVBNM<>?
+  stash y 'This_is_text...
+  stash z 'useful_useful
+
+EXEC STASH_TEST_STRINGS_2
+TEST
+  stash a 'useful_useful
+  stash b 'This_is_text...
+  stash c 'ZXCVBNM<>?
+  stash d 'ASDFGHJKL:
+  stash e 'QWERTYUIOP{}
+  stash f '~!@#$%^&*()_+
+  stash g 'zxcvbnm,./
+  stash h 'asdfghjkl;'
+  stash i 'qwertyuiop[]
+  stash j '`1234567890-=
+  stash k '=-=-=-=--=-=-=-=
+  stash l 'Hello,_World!
+  stash m 'You_agree_yes?
+  stash n 'text.
+  stash o 'useful_useful
+  stash p 'This_is_text...
+  stash q 'ZXCVBNM<>?
+  stash r 'ASDFGHJKL:
+  stash s 'QWERTYUIOP{}
+  stash t '~!@#$%^&*()_+
+  stash u 'zxcvbnm,./
+  stash v 'asdfghjkl;'
+  stash w 'qwertyuiop[]
+  stash x '`1234567890-=
+  stash y '=-=-=-=--=-=-=-=
+  stash z 'Hello,_World!
+
+EXEC STASH_TEST_STRINGS_3
+TEST
+  stash a 'This_is_text...
+  stash b 'This_is_text...
+  stash c 'ASDFGHJKL:
+  stash d 'ASDFGHJKL:
+  stash e 'QWERTYUIOP{}
+  stash f 'QWERTYUIOP{}
+  stash g 'zxcvbnm,./
+  stash h 'zxcvbnm,./
+  stash i '`1234567890-=
+  stash j '`1234567890-=
+  stash k 'Hello,_World!
+  stash l 'Hello,_World!
+  stash m 'You_agree_yes?
+  stash n 'You_agree_yes?
+  stash o 'useful_useful
+  stash p 'useful_useful
+  stash q 'ASDFGHJKL:
+  stash r 'ASDFGHJKL:
+  stash s '~!@#$%^&*()_+
+  stash t '~!@#$%^&*()_+
+  stash u 'zxcvbnm,./
+  stash v 'zxcvbnm,./
+  stash w 'qwertyuiop[]
+  stash x 'qwertyuiop[]
+  stash y '=-=-=-=--=-=-=-=
+  stash z 'Hello,_World!
+
+EXEC STASH_TEST_STRINGS_4
+TEST
+  xA 'This_is_text...
+  xB 'This_is_text...
+  xC 'ASDFGHJKL:
+  xD 'ASDFGHJKL:
+  xE 'QWERTYUIOP{}
+  xF 'QWERTYUIOP{}
+  xG 'zxcvbnm,./
+  xH 'zxcvbnm,./
+  xI '`1234567890-=
+  xJ '`1234567890-=
+  xK 'Hello,_World!
+  xL 'Hello,_World!
+  xM 'You_agree_yes?
+  xN 'You_agree_yes?
+
+
+
+
+
+
+

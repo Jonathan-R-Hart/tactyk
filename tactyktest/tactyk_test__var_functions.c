@@ -897,13 +897,20 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
     char fn[64];
     tactyk_dblock__export_cstring(fn, 64, fieldname_token);
 
-    double f64val = 0;
     int64_t ival = 0;
+    int64_t ival2 = 0;
 
     bool field_matched = false;
 
-    tactyk_dblock__try_parsedouble(&f64val, val_token);
-    tactyk_dblock__try_parseint(&ival, val_token);
+    if (tactyk_dblock__getchar(val_token, 0) == '\'') {
+        char buf[256];
+        tactyk_dblock__export_cstring(buf, 256, val_token);
+        memcpy(&ival, &buf[1], 8);
+        memcpy(&ival2, &buf[9], 8);
+    }
+    else {
+        tactyk_dblock__try_parseint(&ival, val_token);
+    }
 
     #define STASH_TEST(NAME, FIELD) \
     else if (strncmp(fn, #NAME, 64) == 0) { \
@@ -915,6 +922,14 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
         shstash->FIELD = (TYPE)ival; \
         field_matched = true; \
     }
+
+    #define STASH_BTEST(NAME) \
+    else if (strncmp(fn, #NAME, 64) == 0) { \
+        shstash->NAME.i64[0] = ival; \
+        shstash->NAME.i64[1] = ival2; \
+        field_matched = true; \
+    }
+
     if ( (strncmp(fn, "addr", 4) == 0) && (strlen(fn) == 5) ) {
         uint64_t aofs = fn[4] - '1';
         //struct tactyk_asmvm__memblock_lowlevel *mbll = &stash->memblocks[aofs];
@@ -1020,8 +1035,37 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
 
     STASH_TEST(zl, z.i64[0])
     STASH_TEST(zh, z.i64[1])
+
+    STASH_BTEST(a)
+    STASH_BTEST(b)
+    STASH_BTEST(c)
+    STASH_BTEST(d)
+    STASH_BTEST(e)
+    STASH_BTEST(f)
+    STASH_BTEST(g)
+    STASH_BTEST(h)
+    STASH_BTEST(i)
+    STASH_BTEST(j)
+    STASH_BTEST(k)
+    STASH_BTEST(l)
+    STASH_BTEST(m)
+    STASH_BTEST(n)
+    STASH_BTEST(o)
+    STASH_BTEST(p)
+    STASH_BTEST(q)
+    STASH_BTEST(r)
+    STASH_BTEST(s)
+    STASH_BTEST(t)
+    STASH_BTEST(u)
+    STASH_BTEST(v)
+    STASH_BTEST(w)
+    STASH_BTEST(x)
+    STASH_BTEST(y)
+    STASH_BTEST(z)
+
     #undef STASH_TEST
     #undef STASH_ATEST
+    #undef STASH_BTEST
 
     if (!field_matched) {
         sprintf(test_state->report, "unrecognized mctx field: '%s'", fn);

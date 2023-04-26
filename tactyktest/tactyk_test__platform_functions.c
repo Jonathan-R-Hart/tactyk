@@ -386,7 +386,7 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
             char shadow_buf[64];
             char real_buf[64];
             #define SCHK(ACCESSOR, DESCRIPTION) \
-                if (SHADOW_OBJ->reg.ACCESSOR.i64[0] != REAL_OBJ->reg.ACCESSOR.i64[0]) { \
+                if ( (SHADOW_OBJ->reg.ACCESSOR.i64[0] != REAL_OBJ->reg.ACCESSOR.i64[0]) || (SHADOW_OBJ->reg.ACCESSOR.i64[1] != REAL_OBJ->reg.ACCESSOR.i64[1]) ) { \
                     memset(shadow_buf, 0, 64); \
                     memcpy(shadow_buf, &SHADOW_OBJ->reg.ACCESSOR, 16); \
                     memset(real_buf, 0, 64); \
