@@ -893,8 +893,8 @@ subroutine binary_instruction
     case DI DC
       code
         $LD_B_IMMEDIATE
-        $INSTRUCTION $A, rTEMPA
-        xor rTEMPA, rTEMPA
+        $INSTRUCTION $A, rTEMPC
+        xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
     case DX
       code
