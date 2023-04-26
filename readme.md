@@ -6,13 +6,13 @@ At present, TACTYK is a personal project.  Though this is a security project, th
 
 Should the project gain attention and a reasonable level of backing (and presumably accountability), the intent will be grow into a serious security role.
 
-## Platform:
+## Platform
 Linux/Unix on amd64 (x86-64) architecture
 
-## Features:
-- Small codebase 
-  The main program has ~3000 lines of C which are specific to TACTYK (counting only components that would be included in a library)
-  Default setup uses ~1250 lines of configuration (specification for each scriptable function) and a 600 line assembly header (mostly definitions)
+## Features
+- Small codebase
+  The main program has ~4500 lines of C which are specific to TACTYK (counting only components that would be included in a library)
+  Default setup uses ~2500 lines of configuration (specification for each scriptable function) and a 700 line assembly header (mostly definitions)
 - Total specification of low-level behavior through a "Virtual Instruction Set Architecture"
 
 ## Experimental Security Features
@@ -58,7 +58,6 @@ TACTYK is intended to be auditable under an alternative standard:  A competent i
 broadly capable function and a simple and narrowly defined function, the simple function should win out (unless there is an actual need for the additional features from
 the complex one).
 
-
 ## Dependencies:
 C Standard library
 POSIX interface (mainly mmap.h for obtaining executable memory)
@@ -70,38 +69,50 @@ Netwide Assembler is technically a large dependency, but the assembly-language t
 
 SDL2
 
+## News
+### Verison 0.7.0 
+  TACTYK now has a semi-automated testing system: tactyk-test.  
+  The test system runs a series of test scripts.
+  Each test script provides program code, a series of functions to call, and expected state transitions to check for.
+  A test passes if it completes a script without unexpected errors, accounts for all state transitions, and finds no unexpected state transitions.
+  Each test script is run under its own process.
+  The testing system is able to run tests in parallel.
+  
+  A suite of tests have been created covering all of the builtin/example virtual ISA (tactyk_core.visa)
+  
+  Many defects have been identified and corrected as a result of the new testing system (mostly in code which was not used by tactyk examples and not covered by manual testing).  
+  
+  The production of the test suite also led to a variety of improvements to stacks, memory management, and state management.
+
+
 ## Getting Started
-
+```
+OBTAIN PROJECT DEPENDENCIES:
 Install Cmake
-
 Install Netwide-Assembler (NASM)
-
 Install SDL2
 
+CLONE THE PROJECT
 download/unpack OR git-clone
-
 navigate to the project directory
 
+BUILD THE PROJECT
 mkdir build
-
 cmake -B build .
-
 cd build
-
 cmake --build .
 
+RUNNING EXAMPLES:
 ./tdemo examples/julia.tkp
-
 ./tdemo examples/emit.tkp
-
 ./tdemo examples/fib.tkp
-
 ./tdemo examples/lazy_quine.tkp
-
 ./tdemo examples/hello_sdl.tkp
-
 ./tdemo examples/recursive.tkp
 
+RUNNING TACTYK TESTS:
+./ttest tests/*
+```
 
 ## History
 I considered embedding a scripting engine, attempted to examine its source code, noticed that it was beyond 20000 lines of C, and that the C code contains non-trivial 
