@@ -340,6 +340,8 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
 
     struct tactyk_dblock__DBlock *iindex = name->next;
     if (iindex != NULL) {
+        struct tactyk_dblock__DBlock *item_type = NULL;
+        struct tactyk_dblock__DBlock *expected_value = NULL;
         if (tactyk_dblock__equals_c_string(iindex, "*")) {
             // arbitrarilly accept the entire memblock
             for (uint64_t i = 0; i < len; i += 1) {
@@ -354,47 +356,98 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
                 snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "'%s' is not an integer", buf);
                 return TACTYK_TESTSTATE__TEST_ERROR;
             }
-            struct tactyk_dblock__DBlock *item_type = iindex->next;
-            struct tactyk_dblock__DBlock *expected_value = item_type->next;
+            item_type = iindex->next;
+            expected_value = item_type->next;
             if (expected_value == NULL) {
                 expected_value = item_type;
                 item_type = NULL;
             }
             int64_t ival = 0;
-            if (!tactyk_dblock__try_parseint(&ival, expected_value)) {
-                char buf[64];
-                tactyk_dblock__export_cstring(buf, 64, expected_value);
-                snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "'%s' is not an integer", buf);
-                return TACTYK_TESTSTATE__TEST_ERROR;
+            double fval = 0;
+            bool int_success = false;
+            double dbl_success = false;
+
+            if (tactyk_dblock__try_parsedouble(&fval, expected_value)) {
+                dbl_success = true;
             }
-            if ( (item_type == NULL) || tactyk_dblock__equals_c_string(item_type, "byte") ) {
+            if (tactyk_dblock__try_parseint(&ival, expected_value)) {
+                int_success = true;
+            }
+
+            if ( tactyk_dblock__equals_c_string(item_type, "float") || tactyk_dblock__equals_c_string(item_type, "float64")) {
+                if (!dbl_success) { goto ERR_FLOAT; }
+                double observed_val = *((double*)&mbll->base_address[idx]);
+                if (tactyk_test__approximately_eq(fval, observed_val)) {
+                    *((double*)&shadow_mbll->base_address[idx]) = observed_val;
+                    return TACTYK_TESTSTATE__PASS;
+                }
+                else {
+                    *((double*)&shadow_mbll->base_address[idx]) = fval;
+                    sprintf(test_state->report, "deviation: Register %s, expected:%f observed:%f", entry->name, fval, observed_val);
+                    return TACTYK_TESTSTATE__FAIL;
+                }
+            }
+            if ( tactyk_dblock__equals_c_string(item_type, "float32") ) {
+                if (!dbl_success) { goto ERR_FLOAT; }
+                float observed_val = *((float*)&mbll->base_address[idx]);
+                double f64v = (double)observed_val;
+                if (tactyk_test__approximately_eq(fval, f64v)) {
+                    *((float*)&shadow_mbll->base_address[idx]) = observed_val;
+                    return TACTYK_TESTSTATE__PASS;
+                }
+                else {
+                    *((float*)&shadow_mbll->base_address[idx]) = fval;
+                    sprintf(test_state->report, "deviation: Register %s, expected:%f observed:%f", entry->name, fval, f64v);
+                    return TACTYK_TESTSTATE__FAIL;
+                }
+            }
+            if ( tactyk_dblock__equals_c_string(item_type, "byte") ) {
+                if (!int_success) { goto ERR_INTEGER; }
                 shadow_mbll->base_address[idx] = (uint8_t)ival;
             }
             else if ( tactyk_dblock__equals_c_string(item_type, "word") ) {
+                if (!int_success) { goto ERR_INTEGER; }
                *((uint16_t*) &shadow_mbll->base_address[idx]) = (uint16_t)ival;
             }
 
             else if ( tactyk_dblock__equals_c_string(item_type, "dword") ) {
+                if (!int_success) { goto ERR_INTEGER; }
                *((uint32_t*) &shadow_mbll->base_address[idx]) = (uint32_t)ival;
             }
             else if ( tactyk_dblock__equals_c_string(item_type, "qword") ) {
+                if (!int_success) { goto ERR_INTEGER; }
                *((uint64_t*) &shadow_mbll->base_address[idx]) = (uint64_t)ival;
             }
             else {
-                char buf[64];
-                tactyk_dblock__export_cstring(buf, 64, item_type);
-                snprintf(
-                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "Unrecognized data type: %s",
-                    buf
-                );
-
-                return TACTYK_TESTSTATE__TEST_ERROR;
+                goto ERR_OTHER;
             }
+        }
+        return TACTYK_TESTSTATE__PASS;
 
+        ERR_FLOAT: {
+            char buf[64];
+            tactyk_dblock__export_cstring(buf, 64, expected_value);
+            snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "'%s' is not a floating point number", buf);
+            return TACTYK_TESTSTATE__TEST_ERROR;
+        }
+
+        ERR_INTEGER: {
+            char buf[64];
+            tactyk_dblock__export_cstring(buf, 64, expected_value);
+            snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "'%s' is not an integer", buf);
+            return TACTYK_TESTSTATE__TEST_ERROR;
+        }
+
+        ERR_OTHER: {
+            char buf[64];
+            tactyk_dblock__export_cstring(buf, 64, item_type);
+            snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "Unrecognized data type: %s", buf );
+            return TACTYK_TESTSTATE__TEST_ERROR;
         }
     }
     return TACTYK_TESTSTATE__PASS;
+
+
 }
 
 uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {

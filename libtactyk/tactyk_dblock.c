@@ -1084,6 +1084,9 @@ bool tactyk_dblock__equals(struct tactyk_dblock__DBlock *dblock_a, struct tactyk
 }
 
 bool tactyk_dblock__equals_c_string(struct tactyk_dblock__DBlock *dblock_a, char *b) {
+    if (dblock_a == NULL) {
+        return false;
+    }
     return (strncmp(dblock_a->data, b, dblock_a->length) == 0);
 }
 
