@@ -1,4 +1,4 @@
-26 Apr 2023
+26 Apr 2023 -- VERSION 0.7.0
 Test coverage for add, mul, sub, and div instruction involving xmm registers
 Test coverage for assign instructions involving the xmm registers
 Test coverage for stash operations involving extended fields (16-bytes / full xmm register)
