@@ -9,6 +9,8 @@ Add checks to tactyk-test to validate tvmcall interactions with memory bindings.
 
 Add floating point value handling to tactyk-test memory validator
 
+fix template swap xmmx-xmmx
+
 24 Apr 2023
 Test coverage for tvmcall interaction with the mctx stack.
 

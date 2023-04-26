@@ -844,8 +844,8 @@ instruction swap
     case XX
       code
         movq xTEMPA, $A
-        movq $B, $A
-        movq $A, xTEMPA
+        movq $A, $B
+        movq $B, xTEMPA
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
 
