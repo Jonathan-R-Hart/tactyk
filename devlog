@@ -1,5 +1,6 @@
 26 Apr 2023
 Test coverage for add, mul, sub, and div instruction involving xmm registers
+Test coverage for assign instructions involving the xmm registers
 
 Fix divsion, addition, and subtraction instruction templates
 
