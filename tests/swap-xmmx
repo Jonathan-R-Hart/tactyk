@@ -1,0 +1,160 @@
+# TEST:  Swap operations involvig xmm registers
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   swap xmmx-xmmx (XX)
+#   swap xmmx-data (XD)
+#   swap data-xmmx (DX)
+
+PROGRAM
+  INIT:
+    assign xA 1.23
+    assign xB 2.34
+    assign xC 3.45
+    assign xD 4.56
+    assign xE 5.67
+    assign xF 6.78
+    assign xG 7.89
+    assign xH 8.90
+    assign xI 9.01
+    assign xJ 10.98
+    assign xK 11.99
+    assign xL 12.00
+    assign xM 13.01
+    assign rA 14
+    assign rB 15
+    assign rC 16
+    assign rD 17
+    assign rE 18
+    assign rF 19
+    exit
+
+  SWAP_xmmx_xmmx:
+    swap xA xB
+    swap xB xC
+    swap xC xD
+    swap xD xE
+    swap xE xF
+    swap xF xG
+    swap xG xH
+    swap xH xI
+    swap xI xJ
+    swap xJ xK
+    swap xK xL
+    swap xL xM
+    exit
+  SWAP_xmmx_xmmx_MORE:
+    swap xA xM
+    swap xB xL
+    swap xC xK
+    swap xD xJ
+    swap xE xI
+    swap xF xH
+    swap xG xG
+    exit
+
+  SWAP_xmmx_data:
+    swap xA rA
+    swap xB rB
+    swap xC rC
+    swap xD rD
+    swap xE rE
+    swap xF rF
+    exit
+
+  SWAP_data_xmmx:
+    swap rA xG
+    swap rB xH
+    swap rC xI
+    swap rD xJ
+    swap rE xK
+    swap rF xL
+    exit
+
+EXEC INIT
+TEST
+  xA 1.23
+  xB 2.34
+  xC 3.45
+  xD 4.56
+  xE 5.67
+  xF 6.78
+  xG 7.89
+  xH 8.90
+  xI 9.01
+  xJ 10.98
+  xK 11.99
+  xL 12.00
+  xM 13.01
+  rA 14
+  rB 15
+  rC 16
+  rD 17
+  rE 18
+  rF 19
+
+EXEC SWAP_xmmx_xmmx
+TEST
+  xA 2.34
+  xB 3.45
+  xC 4.56
+  xD 5.67
+  xE 6.78
+  xF 7.89
+  xG 8.90
+  xH 9.01
+  xI 10.98
+  xJ 11.99
+  xK 12.00
+  xL 13.01
+  xM 1.23
+
+EXEC SWAP_xmmx_xmmx_MORE
+TEST
+  xA 1.23
+  xB 13.01
+  xC 12.00
+  xD 11.99
+  xE 10.98
+  xF 9.01
+  xG 8.90
+  xH 7.89
+  xI 6.78
+  xJ 5.67
+  xK 4.56
+  xL 3.45
+  xM 2.34
+
+EXEC SWAP_xmmx_data
+TEST
+  rA 1
+  rB 13
+  rC 12
+  rD 11
+  rE 10
+  rF 9
+  xA 14
+  xB 15
+  xC 16
+  xD 17
+  xE 18
+  xF 19
+
+EXEC SWAP_data_xmmx
+TEST
+  rA 8
+  rB 7
+  rC 6
+  rD 5
+  rE 4
+  rF 3
+  xG 1
+  xH 13
+  xI 12
+  xJ 11
+  xK 10
+  xL 9
+
+
+  
