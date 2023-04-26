@@ -27,6 +27,8 @@ Add floating point value handling to tactyk-test memory validator
 
 fix template swap xmmx-xmmx
 
+remove vectorized instruction stub code
+
 24 Apr 2023
 Test coverage for tvmcall interaction with the mctx stack.
 
