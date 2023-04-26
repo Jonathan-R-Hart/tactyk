@@ -9,7 +9,7 @@ Reduce precision for floating point comparisons
 tactyk-test: add alternative xmm register display modes:  int32, int64, float32, float64, and string
 tactyk-debug: add alternative xmm register display modes:  int64, float64, and string
 
-
+tactyk-test:  rename the xmm register test and add a string literal test to it
 
 25 Apr 2023
 Test coverage for tvmcall interaction with the lwcall stack

@@ -130,6 +130,6 @@ void tactyk_test__mk_register_test(char *name, uint64_t ofs) {
 void tactyk_test__mk_xmm_register_test(char *name, uint64_t ofs) {
     struct tactyk_test_entry *entry = tactyk_dblock__new_managedobject(base_tests, name);
     entry->name = name;
-    entry->test = tactyk_test__TEST_XMM_REGISTER_FLOAT;
+    entry->test = tactyk_test__TEST_XMM_REGISTER;
     entry->offset = ofs;
 }

@@ -622,107 +622,213 @@ uint64_t tactyk_test__TEST_REGISTER(struct tactyk_test_entry *valtest_spec, stru
 //      Due to floating point rounding errors, this directly copies actual state into the shadow state,
 //      then performs its own state transition check using a floating point comparison with error tolerance.
 //      If the comparison test fails, this will pre-empt the general-purpose state transition tracker by returning a failure.
-uint64_t tactyk_test__TEST_XMM_REGISTER_FLOAT (struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
+uint64_t tactyk_test__TEST_XMM_REGISTER (struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *expected_value = spec->token->next;
 
     double fval = 0;
-    if (!tactyk_dblock__try_parsedouble(&fval, expected_value)) {
-        tactyk_test__report("Test parameter is not a floating point number");
-        return TACTYK_TESTSTATE__TEST_ERROR;
-    }
-    double stval = 0;
-    switch(valtest_spec->offset) {
-        case 0: {
-            stval = vmctx->reg.xA.f64[0];
-            shadow_vmctx->reg.xA.f64[0] = vmctx->reg.xA.f64[0];
-            break;
+    if (tactyk_dblock__try_parsedouble(&fval, expected_value)) {
+        double stval = 0;
+        switch(valtest_spec->offset) {
+            case 0: {
+                stval = vmctx->reg.xA.f64[0];
+                shadow_vmctx->reg.xA.f64[0] = vmctx->reg.xA.f64[0];
+                break;
+            }
+            case 1: {
+                stval = vmctx->reg.xB.f64[0];
+                shadow_vmctx->reg.xB.f64[0] = vmctx->reg.xB.f64[0];
+                break;
+            }
+            case 2: {
+                stval = vmctx->reg.xC.f64[0];
+                shadow_vmctx->reg.xC.f64[0] = vmctx->reg.xC.f64[0];
+                break;
+            }
+            case 3: {
+                stval = vmctx->reg.xD.f64[0];
+                shadow_vmctx->reg.xD.f64[0] = vmctx->reg.xD.f64[0];
+                break;
+            }
+            case 4: {
+                stval = vmctx->reg.xE.f64[0];
+                shadow_vmctx->reg.xE.f64[0] = vmctx->reg.xE.f64[0];
+                break;
+            }
+            case 5: {
+                stval = vmctx->reg.xF.f64[0];
+                shadow_vmctx->reg.xF.f64[0] = vmctx->reg.xF.f64[0];
+                break;
+            }
+            case 6: {
+                stval = vmctx->reg.xG.f64[0];
+                shadow_vmctx->reg.xG.f64[0] = vmctx->reg.xG.f64[0];
+                break;
+            }
+            case 7: {
+                stval = vmctx->reg.xH.f64[0];
+                shadow_vmctx->reg.xH.f64[0] = vmctx->reg.xH.f64[0];
+                break;
+            }
+            case 8: {
+                stval = vmctx->reg.xI.f64[0];
+                shadow_vmctx->reg.xI.f64[0] = vmctx->reg.xI.f64[0];
+                break;
+            }
+            case 9: {
+                stval = vmctx->reg.xJ.f64[0];
+                shadow_vmctx->reg.xJ.f64[0] = vmctx->reg.xJ.f64[0];
+                break;
+            }
+            case 10: {
+                stval = vmctx->reg.xK.f64[0];
+                shadow_vmctx->reg.xK.f64[0] = vmctx->reg.xK.f64[0];
+                break;
+            }
+            case 11: {
+                stval = vmctx->reg.xL.f64[0];
+                shadow_vmctx->reg.xL.f64[0] = vmctx->reg.xL.f64[0];
+                break;
+            }
+            case 12: {
+                stval = vmctx->reg.xM.f64[0];
+                shadow_vmctx->reg.xM.f64[0] = vmctx->reg.xM.f64[0];
+                break;
+            }
+            case 13: {
+                stval = vmctx->reg.xN.f64[0];
+                shadow_vmctx->reg.xN.f64[0] = vmctx->reg.xN.f64[0];
+                break;
+            }
+            case 14: {
+                stval = vmctx->reg.xTEMPA.f64[0];
+                shadow_vmctx->reg.xTEMPA.f64[0] = vmctx->reg.xTEMPA.f64[0];
+                break;
+            }
+            case 15: {
+                stval = vmctx->reg.xTEMPB.f64[0];
+                shadow_vmctx->reg.xTEMPB.f64[0] = vmctx->reg.xTEMPB.f64[0];
+                break;
+            }
+            default: {
+                tactyk_test__report("Test element-offset is invalid");
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
         }
-        case 1: {
-            stval = vmctx->reg.xB.f64[0];
-            shadow_vmctx->reg.xB.f64[0] = vmctx->reg.xB.f64[0];
-            break;
+        if (tactyk_test__approximately_eq(stval, fval)) {
+            return TACTYK_TESTSTATE__PASS;
         }
-        case 2: {
-            stval = vmctx->reg.xC.f64[0];
-            shadow_vmctx->reg.xC.f64[0] = vmctx->reg.xC.f64[0];
-            break;
+        else {
+            sprintf(test_state->report, "deviation: Register %s, expected:%f observed:%f", valtest_spec->name, fval, stval);
+            return TACTYK_TESTSTATE__FAIL;
         }
-        case 3: {
-            stval = vmctx->reg.xD.f64[0];
-            shadow_vmctx->reg.xD.f64[0] = vmctx->reg.xD.f64[0];
-            break;
-        }
-        case 4: {
-            stval = vmctx->reg.xE.f64[0];
-            shadow_vmctx->reg.xE.f64[0] = vmctx->reg.xE.f64[0];
-            break;
-        }
-        case 5: {
-            stval = vmctx->reg.xF.f64[0];
-            shadow_vmctx->reg.xF.f64[0] = vmctx->reg.xF.f64[0];
-            break;
-        }
-        case 6: {
-            stval = vmctx->reg.xG.f64[0];
-            shadow_vmctx->reg.xG.f64[0] = vmctx->reg.xG.f64[0];
-            break;
-        }
-        case 7: {
-            stval = vmctx->reg.xH.f64[0];
-            shadow_vmctx->reg.xH.f64[0] = vmctx->reg.xH.f64[0];
-            break;
-        }
-        case 8: {
-            stval = vmctx->reg.xI.f64[0];
-            shadow_vmctx->reg.xI.f64[0] = vmctx->reg.xI.f64[0];
-            break;
-        }
-        case 9: {
-            stval = vmctx->reg.xJ.f64[0];
-            shadow_vmctx->reg.xJ.f64[0] = vmctx->reg.xJ.f64[0];
-            break;
-        }
-        case 10: {
-            stval = vmctx->reg.xK.f64[0];
-            shadow_vmctx->reg.xK.f64[0] = vmctx->reg.xK.f64[0];
-            break;
-        }
-        case 11: {
-            stval = vmctx->reg.xL.f64[0];
-            shadow_vmctx->reg.xL.f64[0] = vmctx->reg.xL.f64[0];
-            break;
-        }
-        case 12: {
-            stval = vmctx->reg.xM.f64[0];
-            shadow_vmctx->reg.xM.f64[0] = vmctx->reg.xM.f64[0];
-            break;
-        }
-        case 13: {
-            stval = vmctx->reg.xN.f64[0];
-            shadow_vmctx->reg.xN.f64[0] = vmctx->reg.xN.f64[0];
-            break;
-        }
-        case 14: {
-            stval = vmctx->reg.xTEMPA.f64[0];
-            shadow_vmctx->reg.xTEMPA.f64[0] = vmctx->reg.xTEMPA.f64[0];
-            break;
-        }
-        case 15: {
-            stval = vmctx->reg.xTEMPB.f64[0];
-            shadow_vmctx->reg.xTEMPB.f64[0] = vmctx->reg.xTEMPB.f64[0];
-            break;
-        }
-        default: {
-            tactyk_test__report("Test element-offset is invalid");
-            return TACTYK_TESTSTATE__TEST_ERROR;
-        }
-    }
-    if (tactyk_test__approximately_eq(stval, fval)) {
-        return TACTYK_TESTSTATE__PASS;
     }
     else {
-        sprintf(test_state->report, "deviation: Register %s, expected:%f observed:%f", valtest_spec->name, fval, stval);
-        return TACTYK_TESTSTATE__FAIL;
+
+        int64_t ival = 0;
+        uint64_t uival1 = 0;
+        uint64_t uival2 = 0;
+
+        if (expected_value == NULL) {
+            tactyk_test__report("XMM-register-test: No value specified.");
+            return TACTYK_TESTSTATE__TEST_ERROR;
+        }
+
+        if (tactyk_dblock__try_parseint(&ival, expected_value)) {
+            uival1 = (uint64_t)ival;
+        }
+        else if ( (expected_value->length > 0) && (tactyk_dblock__getchar(expected_value, 0) == '\'') ) {
+            // setup string test by copying raw bytes onto integer variables (which are then written to shadow context register content)
+            // This assumes tactyk_dblock__export_cstring zero-fills the buffer
+            char buf[256];
+            tactyk_dblock__export_cstring(buf, 256, expected_value);
+            memcpy(&uival1, &buf[1], 8);
+            memcpy(&uival2, &buf[9], 8);
+        }
+
+        switch(valtest_spec->offset) {
+            case 0: {
+                shadow_vmctx->reg.xA.i64[0] = uival1;
+                shadow_vmctx->reg.xA.i64[1] = uival2;
+                break;
+            }
+            case 1: {
+                shadow_vmctx->reg.xB.i64[0] = uival1;
+                shadow_vmctx->reg.xB.i64[1] = uival2;
+                break;
+            }
+            case 2: {
+                shadow_vmctx->reg.xC.i64[0] = uival1;
+                shadow_vmctx->reg.xC.i64[1] = uival2;
+                break;
+            }
+            case 3: {
+                shadow_vmctx->reg.xD.i64[0] = uival1;
+                shadow_vmctx->reg.xD.i64[1] = uival2;
+                break;
+            }
+            case 4: {
+                shadow_vmctx->reg.xE.i64[0] = uival1;
+                shadow_vmctx->reg.xE.i64[1] = uival2;
+                break;
+            }
+            case 5: {
+                shadow_vmctx->reg.xF.i64[0] = uival1;
+                shadow_vmctx->reg.xF.i64[1] = uival2;
+                break;
+            }
+            case 6: {
+                shadow_vmctx->reg.xG.i64[0] = uival1;
+                shadow_vmctx->reg.xG.i64[1] = uival2;
+                break;
+            }
+            case 7: {
+                shadow_vmctx->reg.xH.i64[0] = uival1;
+                shadow_vmctx->reg.xH.i64[1] = uival2;
+                break;
+            }
+            case 8: {
+                shadow_vmctx->reg.xI.i64[0] = uival1;
+                shadow_vmctx->reg.xI.i64[1] = uival2;
+                break;
+            }
+            case 9: {
+                shadow_vmctx->reg.xJ.i64[0] = uival1;
+                shadow_vmctx->reg.xJ.i64[1] = uival2;
+                break;
+            }
+            case 10: {
+                shadow_vmctx->reg.xK.i64[0] = uival1;
+                shadow_vmctx->reg.xK.i64[1] = uival2;
+                break;
+            }
+            case 11: {
+                shadow_vmctx->reg.xL.i64[0] = uival1;
+                shadow_vmctx->reg.xL.i64[1] = uival2;
+                break;
+            }
+            case 12: {
+                shadow_vmctx->reg.xM.i64[0] = uival1;
+                shadow_vmctx->reg.xM.i64[1] = uival2;
+                break;
+            }
+            case 13: {
+                shadow_vmctx->reg.xN.i64[0] = uival1;
+                shadow_vmctx->reg.xN.i64[1] = uival2;
+                break;
+            }
+            case 14: {
+                shadow_vmctx->reg.xTEMPA.i64[0] = uival1;
+                shadow_vmctx->reg.xTEMPA.i64[1] = uival2;
+                break;
+            }
+            case 15: {
+                shadow_vmctx->reg.xTEMPB.i64[0] = uival1;
+                shadow_vmctx->reg.xTEMPB.i64[1] = uival2;
+                break;
+            }
+        }
+
+        return TACTYK_TESTSTATE__PASS;
     }
 }
 
