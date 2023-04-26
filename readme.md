@@ -71,19 +71,19 @@ SDL2
 
 ## News
 ### Verison 0.7.0 
-  TACTYK now has a semi-automated testing system: tactyk-test.  
-  The test system runs a series of test scripts.
+  TACTYK now has a semi-automated testing system: tactyk-test.
+  Tactyk-test tests the Virtual Instruction Set Architecture.
+  Tactyk-test runs a series of test scripts.
   Each test script provides program code, a series of functions to call, and expected state transitions to check for.
   A test passes if it completes a script without unexpected errors, accounts for all state transitions, and finds no unexpected state transitions.
   Each test script is run under its own process.
-  The testing system is able to run tests in parallel.
+  Tactyk-test is able to run tests in parallel.
   
   A suite of tests have been created covering all of the builtin/example virtual ISA (tactyk_core.visa)
   
   Many defects have been identified and corrected as a result of the new testing system (mostly in code which was not used by tactyk examples and not covered by manual testing).  
   
   The production of the test suite also led to a variety of improvements to stacks, memory management, and state management.
-
 
 ## Getting Started
 ```
@@ -120,7 +120,3 @@ macros (on top of comments from the Internet suggesting that it was not a secure
 more to my liking.  As was the case with every other attempt, the result was yet another under-performing script engine.  Then I decided to try defining a few Assembly Language functions and have them transfer control to each other through a jump table, then only build the jump table with C.  This resulted in scriptable activity taking place at about half my system clock rate (with some clear assistance from speculative execution), thereby initiating project TACTYK.  
 
 (*) WebAssembly with a compiler in the sandbox would have satisfied the requirement for a minimalist and auditable scripting engine, but I didn't think to do that until development of TACTYK was well underway.  And by then, TACTYK was already getting seemingly novel experimental security features.
-
-
-
-
