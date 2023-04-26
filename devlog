@@ -1,6 +1,8 @@
 25 Apr 2023
 Test coverage for tvmcall interaction with the lwcall stack
 Test coverage for tvmcall interaction with memory bindings
+Test coverage for store-xxmx templates
+Test coverage for bounds checking in load/store operations using xmm registers
 
 Expand tvmcall instruction to update references to program memory bindings when calling and restore it when returning.
 Add checks to tactyk-test to validate tvmcall interactions with memory bindings.
