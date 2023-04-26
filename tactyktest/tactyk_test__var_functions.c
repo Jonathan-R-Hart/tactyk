@@ -383,7 +383,7 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
                 }
                 else {
                     *((double*)&shadow_mbll->base_address[idx]) = fval;
-                    sprintf(test_state->report, "deviation: Register %s, expected:%f observed:%f", entry->name, fval, observed_val);
+                    sprintf(test_state->report, "deviation: memblock #%ju at offset %ju, expected:%f observed:%f", mbhl->memblock_id, idx, fval, observed_val);
                     return TACTYK_TESTSTATE__FAIL;
                 }
             }
@@ -397,7 +397,7 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
                 }
                 else {
                     *((float*)&shadow_mbll->base_address[idx]) = fval;
-                    sprintf(test_state->report, "deviation: Register %s, expected:%f observed:%f", entry->name, fval, f64v);
+                    sprintf(test_state->report, "deviation: memblock #%ju at offset %ju, expected:%f observed:%f", mbhl->memblock_id, idx, fval, f64v);
                     return TACTYK_TESTSTATE__FAIL;
                 }
             }
