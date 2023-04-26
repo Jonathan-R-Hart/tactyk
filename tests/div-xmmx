@@ -1,0 +1,247 @@
+# TEST:  division instructions involving xmmx registers
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   div data-float (DF)
+#   div data-fconst (DCf)
+#   div data-xmmx (DX)
+#   div xmmx-data (XD)
+#   div xmmx-integer (XI)
+#   div xmmx-float (XF)
+#   div xmmx-fconst (XCf)
+#   div xmmx-const (XC)
+#   div xmmx-xmmx (XX)
+
+PROGRAM
+  
+  const CN10000000 -10000000
+  const CN5000000 -5000000
+  const C0 0
+  const C5000000 5000000
+  const C10000000 10000000
+  const C15000000 15000000
+  
+  const Cf1.1 1.1
+  const Cf3.333 3.333
+  const Cf10.75 10.75
+  const CfN10.75 -10.75
+  const CfN3.333 -3.333
+  const CfN1.1 -1.1
+  
+  
+  INIT:
+    assign rA -10000000
+    assign rB -5000000
+    assign rC 0
+    assign rD 5000000
+    assign rE 10000000
+    assign rF 15000000
+    assign xA 1000
+    assign xB 1000.11
+    assign xC -1000.22
+    assign xD 1000.33
+    assign xE -1000.44
+    assign xF 1000.55
+    assign xG -1000.66
+    assign xH 1000.77
+    assign xI -1000.88
+    assign xJ 1000.99
+    assign xK 100
+    assign xL 10
+    assign xM 1
+    exit
+  
+  DF:
+    div rA 1.1
+    div rB 3.333
+    div rC 10.75
+    div rD -10.75
+    div rE -3.333
+    div rF -1.1
+    exit
+  
+  DCf:
+    div rA Cf1.1
+    div rB Cf3.333
+    div rC Cf10.75
+    div rD CfN10.75
+    div rE CfN3.333
+    div rF CfN1.1
+    exit
+
+  DX:
+    div rA xB
+    div rB xC
+    div rC xD
+    div rD xE
+    div rE xF
+    div rF xG
+    exit
+  
+  XD:
+    div xB rA
+    div xC rB
+    div xD rC
+    div xE rD
+    div xF rE
+    div xG rF
+    exit
+  
+  XI:
+    div xB -10000000
+    div xC -5000000
+    div xD 0
+    div xE 5000000
+    div xF 10000000
+    div xG 15000000
+    exit
+  
+  XC:
+    div xB CN10000000
+    div xC CN5000000
+    div xD C0
+    div xE C5000000
+    div xF C10000000
+    div xG C15000000
+    exit
+
+  XF:
+    div xB 1.1
+    div xC 3.333
+    div xD 10.75
+    div xE -10.75
+    div xF -3.333
+    div xG -1.1
+    exit
+
+  XCf:
+    div xB Cf1.1
+    div xC Cf3.333
+    div xD Cf10.75
+    div xE CfN10.75
+    div xF CfN3.333
+    div xG CfN1.1
+    exit
+  
+  XX:
+    div xA xM
+    div xB xL
+    div xC xK
+    div xD xJ
+    div xE xI
+    div xF xF
+    exit
+
+EXEC INIT
+TEST
+  rA -10000000
+  rB -5000000
+  rC 0
+  rD 5000000
+  rE 10000000
+  rF 15000000
+  xA 1000
+  xB 1000.11
+  xC -1000.22
+  xD 1000.33
+  xE -1000.44
+  xF 1000.55
+  xG -1000.66
+  xH 1000.77
+  xI -1000.88
+  xJ 1000.99
+  xK 100
+  xL 10
+  xM 1
+
+EXEC DF
+TEST
+  rA -9090909
+  rB -1500150
+  rC 0
+  rD -465116
+  rE -3000300
+  rF -13636363
+
+EXEC INIT
+EXEC DCf
+TEST
+  rA -9090909
+  rB -1500150
+  rC 0
+  rD -465116
+  rE -3000300
+  rF -13636363
+
+EXEC INIT
+EXEC DX
+TEST
+  rA -9998
+  rB 4998
+  rC 0
+  rD -4997
+  rE 9994
+  rF -14990
+
+EXEC INIT
+EXEC XD
+TEST
+  xB -0.000100011
+  xC 0.000200044
+  xD infinity
+  xE -0.000200088
+  xF 0.000100055
+  xG -0.000066710666666666667
+
+EXEC INIT
+EXEC XI
+TEST
+  xB -0.000100011
+  xC 0.000200044
+  xD infinity
+  xE -0.000200088
+  xF 0.000100055
+  xG -0.000066710666666666667
+
+EXEC INIT
+EXEC XC
+TEST
+  xB -0.000100011
+  xC 0.000200044
+  xD infinity
+  xE -0.000200088
+  xF 0.000100055
+  xG -0.000066710666666666667
+
+EXEC INIT
+EXEC XF
+TEST
+  xB 909.19090909091
+  xC -300.09600960096
+  xD 93.053953488372
+  xE 93.064186046512
+  xF -300.19501950195
+  xG 909.69090909091
+
+EXEC INIT
+EXEC XCf
+TEST
+  xB 909.19090909091
+  xC -300.09600960096
+  xD 93.053953488372
+  xE 93.064186046512
+  xF -300.19501950195
+  xG 909.69090909091
+
+EXEC INIT
+EXEC XX
+TEST
+  xA 1000
+  xB 100.011
+  xC -10.0022
+  xD 0.99934065275377
+  xE 0.99956038685956
+  xF 1
+
+
+
