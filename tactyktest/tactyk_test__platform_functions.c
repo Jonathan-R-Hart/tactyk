@@ -6,6 +6,7 @@
 #include "tactyk_pl.h"
 #include "tactyk_dblock.h"
 #include "tactyk_asmvm.h"
+#include "tactyk_debug.h"
 
 uint64_t tactyk_test__PROGRAM(struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *name = spec->token->next;
@@ -191,36 +192,230 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
     CHK(reg.rADDR3, "%p", "Register rADDR3");
     CHK(reg.rADDR4, "%p", "Register rADDR4");
 
-    CHK(reg.xA.f64[0], "%f", "Register xA-low");
-    CHK(reg.xA.f64[1], "%f", "Register xA-high");
-    CHK(reg.xB.f64[0], "%f", "Register xB-low");
-    CHK(reg.xB.f64[1], "%f", "Register xB-high");
-    CHK(reg.xC.f64[0], "%f", "Register xC-low");
-    CHK(reg.xC.f64[1], "%f", "Register xC-high");
-    CHK(reg.xD.f64[0], "%f", "Register xD-low");
-    CHK(reg.xD.f64[1], "%f", "Register xD-high");
-    CHK(reg.xE.f64[0], "%f", "Register xE-low");
-    CHK(reg.xE.f64[1], "%f", "Register xE-high");
+    switch(tactyk_test__xmm_display_mode) {
+        case TACTYK_DEBUG__XMM_DISPLAYMODE__FLOAT64: {
+            CHK(reg.xA.f64[0], "%f", "Register xA-low");
+            CHK(reg.xA.f64[1], "%f", "Register xA-high");
+            CHK(reg.xB.f64[0], "%f", "Register xB-low");
+            CHK(reg.xB.f64[1], "%f", "Register xB-high");
+            CHK(reg.xC.f64[0], "%f", "Register xC-low");
+            CHK(reg.xC.f64[1], "%f", "Register xC-high");
+            CHK(reg.xD.f64[0], "%f", "Register xD-low");
+            CHK(reg.xD.f64[1], "%f", "Register xD-high");
+            CHK(reg.xE.f64[0], "%f", "Register xE-low");
+            CHK(reg.xE.f64[1], "%f", "Register xE-high");
 
-    CHK(reg.xF.f64[0], "%f", "Register xF-low");
-    CHK(reg.xF.f64[1], "%f", "Register xF-high");
-    CHK(reg.xG.f64[0], "%f", "Register xG-low");
-    CHK(reg.xG.f64[1], "%f", "Register xG-high");
-    CHK(reg.xH.f64[0], "%f", "Register xH-low");
-    CHK(reg.xH.f64[1], "%f", "Register xH-high");
-    CHK(reg.xI.f64[0], "%f", "Register xI-low");
-    CHK(reg.xI.f64[1], "%f", "Register xI-high");
-    CHK(reg.xJ.f64[0], "%f", "Register xJ-low");
-    CHK(reg.xJ.f64[1], "%f", "Register xJ-high");
+            CHK(reg.xF.f64[0], "%f", "Register xF-low");
+            CHK(reg.xF.f64[1], "%f", "Register xF-high");
+            CHK(reg.xG.f64[0], "%f", "Register xG-low");
+            CHK(reg.xG.f64[1], "%f", "Register xG-high");
+            CHK(reg.xH.f64[0], "%f", "Register xH-low");
+            CHK(reg.xH.f64[1], "%f", "Register xH-high");
+            CHK(reg.xI.f64[0], "%f", "Register xI-low");
+            CHK(reg.xI.f64[1], "%f", "Register xI-high");
+            CHK(reg.xJ.f64[0], "%f", "Register xJ-low");
+            CHK(reg.xJ.f64[1], "%f", "Register xJ-high");
 
-    CHK(reg.xK.f64[0], "%f", "Register xK-low");
-    CHK(reg.xK.f64[1], "%f", "Register xK-high");
-    CHK(reg.xL.f64[0], "%f", "Register xL-low");
-    CHK(reg.xL.f64[1], "%f", "Register xL-high");
-    CHK(reg.xM.f64[0], "%f", "Register xM-low");
-    CHK(reg.xM.f64[1], "%f", "Register xM-high");
-    CHK(reg.xN.f64[0], "%f", "Register xN-low");
-    CHK(reg.xN.f64[1], "%f", "Register xN-high");
+            CHK(reg.xK.f64[0], "%f", "Register xK-low");
+            CHK(reg.xK.f64[1], "%f", "Register xK-high");
+            CHK(reg.xL.f64[0], "%f", "Register xL-low");
+            CHK(reg.xL.f64[1], "%f", "Register xL-high");
+            CHK(reg.xM.f64[0], "%f", "Register xM-low");
+            CHK(reg.xM.f64[1], "%f", "Register xM-high");
+            CHK(reg.xN.f64[0], "%f", "Register xN-low");
+            CHK(reg.xN.f64[1], "%f", "Register xN-high");
+            break;
+        }
+        case TACTYK_DEBUG__XMM_DISPLAYMODE__FLOAT32: {
+            CHK(reg.xA.f32[0], "%f", "Register xA-f32.0");
+            CHK(reg.xA.f32[1], "%f", "Register xA-f32.1");
+            CHK(reg.xA.f32[2], "%f", "Register xA-f32.2");
+            CHK(reg.xA.f32[3], "%f", "Register xA-f32.3");
+            CHK(reg.xB.f32[0], "%f", "Register xB-f32.0");
+            CHK(reg.xB.f32[1], "%f", "Register xB-f32.1");
+            CHK(reg.xB.f32[2], "%f", "Register xB-f32.2");
+            CHK(reg.xB.f32[3], "%f", "Register xB-f32.3");
+            CHK(reg.xC.f32[0], "%f", "Register xC-f32.0");
+            CHK(reg.xC.f32[1], "%f", "Register xC-f32.1");
+            CHK(reg.xC.f32[2], "%f", "Register xC-f32.2");
+            CHK(reg.xC.f32[3], "%f", "Register xC-f32.3");
+            CHK(reg.xD.f32[0], "%f", "Register xD-f32.0");
+            CHK(reg.xD.f32[1], "%f", "Register xD-f32.1");
+            CHK(reg.xD.f32[2], "%f", "Register xD-f32.2");
+            CHK(reg.xD.f32[3], "%f", "Register xD-f32.3");
+            CHK(reg.xE.f32[0], "%f", "Register xE-f32.0");
+            CHK(reg.xE.f32[1], "%f", "Register xE-f32.1");
+            CHK(reg.xE.f32[2], "%f", "Register xE-f32.2");
+            CHK(reg.xE.f32[3], "%f", "Register xE-f32.3");
+
+            CHK(reg.xF.f32[0], "%f", "Register xF-f32.0");
+            CHK(reg.xF.f32[1], "%f", "Register xF-f32.1");
+            CHK(reg.xF.f32[2], "%f", "Register xF-f32.2");
+            CHK(reg.xF.f32[3], "%f", "Register xF-f32.3");
+            CHK(reg.xG.f32[0], "%f", "Register xG-f32.0");
+            CHK(reg.xG.f32[1], "%f", "Register xG-f32.1");
+            CHK(reg.xG.f32[2], "%f", "Register xG-f32.2");
+            CHK(reg.xG.f32[3], "%f", "Register xG-f32.3");
+            CHK(reg.xH.f32[0], "%f", "Register xH-f32.0");
+            CHK(reg.xH.f32[1], "%f", "Register xH-f32.1");
+            CHK(reg.xH.f32[2], "%f", "Register xH-f32.2");
+            CHK(reg.xH.f32[3], "%f", "Register xH-f32.3");
+            CHK(reg.xI.f32[0], "%f", "Register xI-f32.0");
+            CHK(reg.xI.f32[1], "%f", "Register xI-f32.1");
+            CHK(reg.xI.f32[2], "%f", "Register xI-f32.2");
+            CHK(reg.xI.f32[3], "%f", "Register xI-f32.3");
+            CHK(reg.xJ.f32[0], "%f", "Register xJ-f32.0");
+            CHK(reg.xJ.f32[1], "%f", "Register xJ-f32.1");
+            CHK(reg.xJ.f32[2], "%f", "Register xJ-f32.2");
+            CHK(reg.xJ.f32[3], "%f", "Register xJ-f32.3");
+
+            CHK(reg.xK.f32[0], "%f", "Register xK-f32.0");
+            CHK(reg.xK.f32[1], "%f", "Register xK-f32.1");
+            CHK(reg.xK.f32[2], "%f", "Register xK-f32.2");
+            CHK(reg.xK.f32[3], "%f", "Register xK-f32.3");
+            CHK(reg.xL.f32[0], "%f", "Register xL-f32.0");
+            CHK(reg.xL.f32[1], "%f", "Register xL-f32.1");
+            CHK(reg.xL.f32[2], "%f", "Register xL-f32.2");
+            CHK(reg.xL.f32[3], "%f", "Register xL-f32.3");
+            CHK(reg.xM.f32[0], "%f", "Register xM-f32.0");
+            CHK(reg.xM.f32[1], "%f", "Register xM-f32.1");
+            CHK(reg.xM.f32[2], "%f", "Register xM-f32.2");
+            CHK(reg.xM.f32[3], "%f", "Register xM-f32.3");
+            CHK(reg.xN.f32[0], "%f", "Register xN-f32.0");
+            CHK(reg.xN.f32[1], "%f", "Register xN-f32.1");
+            CHK(reg.xN.f32[2], "%f", "Register xN-f32.2");
+            CHK(reg.xN.f32[3], "%f", "Register xN-f32.3");
+            break;
+        }
+        case TACTYK_DEBUG__XMM_DISPLAYMODE__INT64: {
+            CHK(reg.xA.i64[0], "%jd", "Register xA-low");
+            CHK(reg.xA.i64[1], "%jd", "Register xA-high");
+            CHK(reg.xB.i64[0], "%jd", "Register xB-low");
+            CHK(reg.xB.i64[1], "%jd", "Register xB-high");
+            CHK(reg.xC.i64[0], "%jd", "Register xC-low");
+            CHK(reg.xC.i64[1], "%jd", "Register xC-high");
+            CHK(reg.xD.i64[0], "%jd", "Register xD-low");
+            CHK(reg.xD.i64[1], "%jd", "Register xD-high");
+            CHK(reg.xE.i64[0], "%jd", "Register xE-low");
+            CHK(reg.xE.i64[1], "%jd", "Register xE-high");
+
+            CHK(reg.xF.i64[0], "%jd", "Register xF-low");
+            CHK(reg.xF.i64[1], "%jd", "Register xF-high");
+            CHK(reg.xG.i64[0], "%jd", "Register xG-low");
+            CHK(reg.xG.i64[1], "%jd", "Register xG-high");
+            CHK(reg.xH.i64[0], "%jd", "Register xH-low");
+            CHK(reg.xH.i64[1], "%jd", "Register xH-high");
+            CHK(reg.xI.i64[0], "%jd", "Register xI-low");
+            CHK(reg.xI.i64[1], "%jd", "Register xI-high");
+            CHK(reg.xJ.i64[0], "%jd", "Register xJ-low");
+            CHK(reg.xJ.i64[1], "%jd", "Register xJ-high");
+
+            CHK(reg.xK.i64[0], "%jd", "Register xK-low");
+            CHK(reg.xK.i64[1], "%jd", "Register xK-high");
+            CHK(reg.xL.i64[0], "%jd", "Register xL-low");
+            CHK(reg.xL.i64[1], "%jd", "Register xL-high");
+            CHK(reg.xM.i64[0], "%jd", "Register xM-low");
+            CHK(reg.xM.i64[1], "%jd", "Register xM-high");
+            CHK(reg.xN.i64[0], "%jd", "Register xN-low");
+            CHK(reg.xN.i64[1], "%jd", "Register xN-high");
+            break;
+        }
+        case TACTYK_DEBUG__XMM_DISPLAYMODE__INT32: {
+            CHK(reg.xA.i32[0], "%d", "Register xA-i32.0");
+            CHK(reg.xA.i32[1], "%d", "Register xA-i32.1");
+            CHK(reg.xA.i32[2], "%d", "Register xA-i32.2");
+            CHK(reg.xA.i32[3], "%d", "Register xA-i32.3");
+            CHK(reg.xB.i32[0], "%d", "Register xB-i32.0");
+            CHK(reg.xB.i32[1], "%d", "Register xB-i32.1");
+            CHK(reg.xB.i32[2], "%d", "Register xB-i32.2");
+            CHK(reg.xB.i32[3], "%d", "Register xB-i32.3");
+            CHK(reg.xC.i32[0], "%d", "Register xC-i32.0");
+            CHK(reg.xC.i32[1], "%d", "Register xC-i32.1");
+            CHK(reg.xC.i32[2], "%d", "Register xC-i32.2");
+            CHK(reg.xC.i32[3], "%d", "Register xC-i32.3");
+            CHK(reg.xD.i32[0], "%d", "Register xD-i32.0");
+            CHK(reg.xD.i32[1], "%d", "Register xD-i32.1");
+            CHK(reg.xD.i32[2], "%d", "Register xD-i32.2");
+            CHK(reg.xD.i32[3], "%d", "Register xD-i32.3");
+            CHK(reg.xE.i32[0], "%d", "Register xE-i32.0");
+            CHK(reg.xE.i32[1], "%d", "Register xE-i32.1");
+            CHK(reg.xE.i32[2], "%d", "Register xE-i32.2");
+            CHK(reg.xE.i32[3], "%d", "Register xE-i32.3");
+
+            CHK(reg.xF.i32[0], "%d", "Register xF-i32.0");
+            CHK(reg.xF.i32[1], "%d", "Register xF-i32.1");
+            CHK(reg.xF.i32[2], "%d", "Register xF-i32.2");
+            CHK(reg.xF.i32[3], "%d", "Register xF-i32.3");
+            CHK(reg.xG.i32[0], "%d", "Register xG-i32.0");
+            CHK(reg.xG.i32[1], "%d", "Register xG-i32.1");
+            CHK(reg.xG.i32[2], "%d", "Register xG-i32.2");
+            CHK(reg.xG.i32[3], "%d", "Register xG-i32.3");
+            CHK(reg.xH.i32[0], "%d", "Register xH-i32.0");
+            CHK(reg.xH.i32[1], "%d", "Register xH-i32.1");
+            CHK(reg.xH.i32[2], "%d", "Register xH-i32.2");
+            CHK(reg.xH.i32[3], "%d", "Register xH-i32.3");
+            CHK(reg.xI.i32[0], "%d", "Register xI-i32.0");
+            CHK(reg.xI.i32[1], "%d", "Register xI-i32.1");
+            CHK(reg.xI.i32[2], "%d", "Register xI-i32.2");
+            CHK(reg.xI.i32[3], "%d", "Register xI-i32.3");
+            CHK(reg.xJ.i32[0], "%d", "Register xJ-i32.0");
+            CHK(reg.xJ.i32[1], "%d", "Register xJ-i32.1");
+            CHK(reg.xJ.i32[2], "%d", "Register xJ-i32.2");
+            CHK(reg.xJ.i32[3], "%d", "Register xJ-i32.3");
+
+            CHK(reg.xK.i32[0], "%d", "Register xK-i32.0");
+            CHK(reg.xK.i32[1], "%d", "Register xK-i32.1");
+            CHK(reg.xK.i32[2], "%d", "Register xK-i32.2");
+            CHK(reg.xK.i32[3], "%d", "Register xK-i32.3");
+            CHK(reg.xL.i32[0], "%d", "Register xL-i32.0");
+            CHK(reg.xL.i32[1], "%d", "Register xL-i32.1");
+            CHK(reg.xL.i32[2], "%d", "Register xL-i32.2");
+            CHK(reg.xL.i32[3], "%d", "Register xL-i32.3");
+            CHK(reg.xM.i32[0], "%d", "Register xM-i32.0");
+            CHK(reg.xM.i32[1], "%d", "Register xM-i32.1");
+            CHK(reg.xM.i32[2], "%d", "Register xM-i32.2");
+            CHK(reg.xM.i32[3], "%d", "Register xM-i32.3");
+            CHK(reg.xN.i32[0], "%d", "Register xN-i32.0");
+            CHK(reg.xN.i32[1], "%d", "Register xN-i32.1");
+            CHK(reg.xN.i32[2], "%d", "Register xN-i32.2");
+            CHK(reg.xN.i32[3], "%d", "Register xN-i32.3");
+            break;
+        }
+
+        case TACTYK_DEBUG__XMM_DISPLAYMODE__STRING: {
+            char shadow_buf[64];
+            char real_buf[64];
+            #define SCHK(ACCESSOR, DESCRIPTION) \
+                if (SHADOW_OBJ->reg.ACCESSOR.i64[0] != REAL_OBJ->reg.ACCESSOR.i64[0]) { \
+                    memset(shadow_buf, 0, 64); \
+                    memcpy(shadow_buf, &SHADOW_OBJ->reg.ACCESSOR, 16); \
+                    memset(real_buf, 0, 64); \
+                    memcpy(real_buf, &REAL_OBJ->reg.ACCESSOR, 16); \
+                    snprintf( \
+                        test_state->report, TACTYK_TEST__REPORT_BUFSIZE, \
+                        "deviation: %s%s, expected: %s, observed: %s", \
+                        prefix, DESCRIPTION, shadow_buf, real_buf \
+                    ); \
+                    return TACTYK_TESTSTATE__FAIL; \
+                }
+            SCHK(xA, "Register xA");
+            SCHK(xB, "Register xB");
+            SCHK(xC, "Register xC");
+            SCHK(xD, "Register xD");
+            SCHK(xE, "Register xE");
+            SCHK(xF, "Register xF");
+            SCHK(xG, "Register xG");
+            SCHK(xH, "Register xH");
+            SCHK(xI, "Register xI");
+            SCHK(xJ, "Register xJ");
+            SCHK(xK, "Register xK");
+            SCHK(xL, "Register xL");
+            SCHK(xM, "Register xM");
+            SCHK(xN, "Register xN");
+            #undef SCHK
+            break;
+        }
+    }
 
     CHK(reg.xTEMPA.f64[0], "%f", "Register xTEMPA-low");
     CHK(reg.xTEMPA.f64[1], "%f", "Register xTEMPA-high");
@@ -478,7 +673,32 @@ uint64_t tactyk_test__ERROR(struct tactyk_dblock__DBlock *spec) {
     return TACTYK_TESTSTATE__FAIL;
 }
 
-
+uint64_t tactyk_test__XMM_DISPLAYMODE(struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *token = spec->token->next;
+    if (tactyk_dblock__equals_c_string(token, "string")) {
+        tactyk_test__xmm_display_mode = TACTYK_DEBUG__XMM_DISPLAYMODE__STRING;
+    }
+    else if (tactyk_dblock__equals_c_string(token, "int32")) {
+        tactyk_test__xmm_display_mode = TACTYK_DEBUG__XMM_DISPLAYMODE__INT32;
+    }
+    else if (tactyk_dblock__equals_c_string(token, "int64")) {
+        tactyk_test__xmm_display_mode = TACTYK_DEBUG__XMM_DISPLAYMODE__INT64;
+    }
+    else if (tactyk_dblock__equals_c_string(token, "float32")) {
+        tactyk_test__xmm_display_mode = TACTYK_DEBUG__XMM_DISPLAYMODE__FLOAT32;
+    }
+    else if (tactyk_dblock__equals_c_string(token, "float64")) {
+        tactyk_test__xmm_display_mode = TACTYK_DEBUG__XMM_DISPLAYMODE__FLOAT64;
+    }
+    else {
+        char buf[256];
+        tactyk_dblock__export_cstring(buf, 256, token);
+        snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "Invalid xmm display mode: '%s'", buf);
+        return TACTYK_TESTSTATE__TEST_ERROR;
+    }
+    tactyk_debug__xmm_display_mode = tactyk_test__xmm_display_mode;
+    return TACTYK_TESTSTATE__PASS;
+}
 
 uint64_t tactyk_test__ALLOC(struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *name = spec->token->next;

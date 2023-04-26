@@ -6,6 +6,11 @@ Fix divsion, addition, and subtraction instruction templates
 Reduce precision for floating point comparisons
   (current test is (abs(A/B)-1.0) < PRECISION, and 256*epsilon was too low)
 
+tactyk-test: add alternative xmm register display modes:  int32, int64, float32, float64, and string
+tactyk-debug: add alternative xmm register display modes:  int64, float64, and string
+
+
+
 25 Apr 2023
 Test coverage for tvmcall interaction with the lwcall stack
 Test coverage for tvmcall interaction with memory bindings

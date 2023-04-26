@@ -54,6 +54,8 @@ struct tactyk_dblock__DBlock *ERROR_TOKEN;
 struct tactyk_dblock__DBlock *WARNING_TOKEN;
 struct tactyk_test__Status *test_state;
 
+uint64_t tactyk_test__xmm_display_mode = TACTYK_DEBUG__XMM_DISPLAYMODE__FLOAT64;
+
 void tactyk_test__warning_handler(char *msg, void *data) {
     memset(test_state->warning, 0, TACTYK_TEST__REPORT_BUFSIZE);
     strncpy(test_state->warning, msg, TACTYK_TEST__REPORT_BUFSIZE);
@@ -179,6 +181,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_dblock__put(test_functions, "CONTINUE", tactyk_test__CONTINUE);
     tactyk_dblock__put(test_functions, "RETURN", tactyk_test__RETURN);
     tactyk_dblock__put(test_functions, "RESUME", tactyk_test__RESUME);
+    tactyk_dblock__put(test_functions, "XMM-DISPLAYMODE", tactyk_test__XMM_DISPLAYMODE);
 
     base_tests = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_test_entry));
     tactyk_test__mk_var_test("status", tactyk_test__TEST_CONTEXT_STATUS);

@@ -66,6 +66,8 @@ extern struct tactyk_dblock__DBlock *ERROR_TOKEN;
 extern struct tactyk_dblock__DBlock *WARNING_TOKEN;
 extern struct tactyk_test__Status *test_state;
 
+extern uint64_t tactyk_test__xmm_display_mode;
+
 // abstract test handler
 struct tactyk_test_entry {
     char *name;
@@ -113,6 +115,7 @@ uint64_t tactyk_test__ERROR(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__CONTINUE(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__RETURN(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__RESUME(struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__XMM_DISPLAYMODE(struct tactyk_dblock__DBlock *spec);
 
 bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__TEST_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
