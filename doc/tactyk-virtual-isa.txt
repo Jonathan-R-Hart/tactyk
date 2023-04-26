@@ -1,0 +1,3 @@
+TACTYK Virtual Instruction Set Architecture
+
+This document covers tactyk virtual instruction set architectures (how program code is transformed into machine code)... Or it will when it gets written...

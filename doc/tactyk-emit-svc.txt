@@ -1,0 +1,3 @@
+TACTYK_EMIT_SVC (emit service) - dynamic compilation interface
+
+This document covers the builtin tactyk dynamic compilation interface (mechanism for scripts to compile more scipts, without leaving the sandbox)...  Or it will when it gets written...

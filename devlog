@@ -29,6 +29,8 @@ fix template swap xmmx-xmmx
 
 remove vectorized instruction stub code
 
+Begin [re-]writing tactyk documentation.
+
 24 Apr 2023
 Test coverage for tvmcall interaction with the mctx stack.
 

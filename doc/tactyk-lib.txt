@@ -1,0 +1,3 @@
+LIBTACTYK Tactyk interface for host applications
+
+This document covers the tactyk API [for host applications]... Or it will when it gets written...
