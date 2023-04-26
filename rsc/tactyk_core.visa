@@ -1048,7 +1048,9 @@ instruction assign
       code
         $LD_B_IMMEDIATE
         movq xTEMPA, rTEMPA
-        cvttsd2si, $A, xTEMPA
+        cvttsd2si $A, xTEMPA
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
     case XX
       code
