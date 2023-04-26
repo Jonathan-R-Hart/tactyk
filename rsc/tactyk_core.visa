@@ -1212,14 +1212,10 @@ instruction div
         jmp $NEXT_INSTRUCTION
     case DXN
       code
-        $LD_B_IMMEDIATE
         cvtsi2sd xTEMPA, $A
-        cvtsi2sd xTEMPB, rTEMPC
-        divsd xTEMPA, xTEMPB
+        divsd xTEMPA, $B
         cvttsd2si $A, xTEMPA
         pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
-        pxor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
     case DFN DCfN
       code
@@ -1231,7 +1227,7 @@ instruction div
         xor rTEMPA, rTEMPA
         pxor xTEMPA, xTEMPA
         pxor xTEMPB, xTEMPB
-        pxor rTEMPC, rTEMPC
+        xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
     case XXN
       code
@@ -1254,7 +1250,7 @@ instruction div
     case XCfN XFN
       code
         $LD_B_IMMEDIATE
-        movq xTEMPA, rTEMPA
+        movq xTEMPA, rTEMPC
         divsd $A, xTEMPA
         xor rTEMPA, rTEMPA
         pxor xTEMPA, xTEMPA

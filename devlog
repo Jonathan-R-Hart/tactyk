@@ -1,3 +1,6 @@
+26 Apr 2023
+Fix divsion instruction templates
+
 25 Apr 2023
 Test coverage for tvmcall interaction with the lwcall stack
 Test coverage for tvmcall interaction with memory bindings
