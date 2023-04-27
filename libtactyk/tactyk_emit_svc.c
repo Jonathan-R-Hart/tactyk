@@ -1,14 +1,13 @@
 #include <stdint.h>
 #include <assert.h>
+#include <string.h>
 
 #include "tactyk.h"
 #include "tactyk_asmvm.h"
 #include "tactyk_emit.h"
 #include "tactyk_emit_svc.h"
-#include "tactyk_pl.h"
 #include "tactyk_alloc.h"
 
-struct tactyk_pl__Context *tactyk_emit_svc__plctx;
 struct tactyk_emit__Context *tactyk_emit_svc__emitctx;
 struct tactyk_dblock__DBlock *cmd;
 struct tactyk_dblock__DBlock *cmd_lasttoken;
@@ -63,11 +62,14 @@ void tactyk_emit_svc__disconfigure(struct tactyk_emit__Context *emit_context) {
 }
 
 void tactyk_emit_svc__new(struct tactyk_asmvm__Context *asmvm_ctx) {
-    tactyk_emit_svc__plctx = tactyk_pl__new(tactyk_emit_svc__emitctx);
+    tactyk_emit__reset(tactyk_emit_svc__emitctx);
+    tactyk_emit__init_program(tactyk_emit_svc__emitctx);
 }
 
 void tactyk_emit_svc__build(struct tactyk_asmvm__Context *asmvm_ctx) {
-    struct tactyk_asmvm__Program *program = tactyk_pl__build(tactyk_emit_svc__plctx);
+    tactyk_emit__compile(tactyk_emit_svc__emitctx);
+    struct tactyk_asmvm__Program *program = tactyk_emit_svc__emitctx->program;
+    tactyk_dblock__cull(0);
     asmvm_ctx->reg.rA = asmvm_ctx->vm->program_count;
     tactyk_asmvm__add_program(asmvm_ctx, program);
 }
@@ -252,12 +254,12 @@ struct tactyk_dblock__DBlock* tactyk_emit_svc__get_token(uint64_t handle) {
 
 void tactyk_emit_svc__declare_memblock(struct tactyk_asmvm__Context *asmvm_ctx, struct tactyk_asmvm__memblock_lowlevel **m_ll, struct tactyk_asmvm__memblock_highlevel **m_hl) {
     struct tactyk_dblock__DBlock *mem_name = tactyk_emit_svc__get_text(asmvm_ctx, 0);
-    int64_t id = tactyk_emit_svc__plctx->memspec_highlevel_table->element_count;
+    int64_t id = tactyk_emit_svc__emitctx->program->memory_layout_hl->element_count;
 
-    assert(tactyk_emit_svc__plctx->memspec_lowlevel_buffer->element_count == tactyk_emit_svc__plctx->memspec_highlevel_table->element_count);
+    assert(tactyk_emit_svc__emitctx->program->memory_layout_ll->element_count == tactyk_emit_svc__emitctx->program->memory_layout_hl->element_count);
 
-    *m_ll = (struct tactyk_asmvm__memblock_lowlevel*) tactyk_dblock__new_object(tactyk_emit_svc__plctx->memspec_lowlevel_buffer);
-    *m_hl = (struct tactyk_asmvm__memblock_highlevel*) tactyk_dblock__new_managedobject(tactyk_emit_svc__plctx->memspec_highlevel_table, mem_name);
+    *m_ll = (struct tactyk_asmvm__memblock_lowlevel*) tactyk_dblock__new_object(tactyk_emit_svc__emitctx->program->memory_layout_ll);
+    *m_hl = (struct tactyk_asmvm__memblock_highlevel*) tactyk_dblock__new_managedobject(tactyk_emit_svc__emitctx->program->memory_layout_hl, mem_name);
 
     struct tactyk_asmvm__memblock_lowlevel *mem_ll = *m_ll;
     struct tactyk_asmvm__memblock_highlevel *mem_hl = *m_hl;
