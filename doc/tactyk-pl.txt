@@ -1,0 +1,106 @@
+TACTYK-PL Tactyk Programming Language
+
+TACTYK-PL is the assembly-like language used as the primary mechanism for loading code into TACTYK.  
+
+TACTYK-PL is a structured text document whichuses three element types:  directives, labels, and code.
+
+DIRECTIVES
+
+struct <structname>
+  <opt-adjustment> <fieldsize> <fieldname>
+  ...
+Defines a data structure.  The resulting data structure may be used either to define a memory layout for other tactyk-pl directives, or as a set of constants to use in tactyk programs as memory offsets.
+Each subordinate line within the struct directive defines one struct field.
+The "fieldsize" paramter specifies the size in bytes of a field.
+The "fieldname" parameter specifies the name of the field.
+The optional "adjustment" parameter specifies how the field affects struct layout.
+  By default, fields are laid out sequentially with no overlapping and with gaps between.
+  '.' - Causes the field to be placed at the same offset as the immediately preceding field (subsequent entries overlap the preceding entry if the field is smaller).
+  '>' - Causes the field to be placed at offset zero (subsequent entries overlap any preceding entries)
+The struct directive produces a set of constants which are accessible in program code.  Offset constants use "<structname>.<fieldname>" as a format.  A size constant with the format "<structname>_size" is also provided which gives the amount of bytes needed to contain the struct.
+
+mem <memname> <opt-layoutstructname> <size>
+Defines a zero-filled block of memory which will be linked to the program.
+The "memname" parameter specifies the name of the memory block (and is used to reference the memory block when accessing it)
+The optional "layoutstructname" specifies a struct to use as the memory layout (basically just the number of bytes to scale the memory block by).
+The "size" parameter specifies the number of objects to allocate memory for.
+If a layout struct is not provided, this assumes 8 bytes per object (and thus the default is an array of 64-bit integers).
+The layout is represented internally with internal array-bound and an element-bound properties.
+  The array-bound property is the maximum offset which may be applied to the memory block.
+  The element-bound property is the size of a single object (and is the maximum offset usable for directly reading data from the memory block.
+    (The size of the memory block in bytes is  array-bound + element-bound - 1, and the reason for using two variables to represent a memory boundary is to more easily handle object-oriented programming ).
+
+extmem <memname> <opt-layoutstructname> <size>
+Defines a memory block which is provided and managed by the host application.
+This uses the same parameters as the "mem" directive.
+While a layout is provided for in the extmem directive, the host application is free to use a memory block of any size - just assign appropriate values to the element-bound and array-bound properties.
+
+data <memname> <opt-layoutstructname> <size>
+  <item> <item> ...
+Defines a memory block which is to be initialized with data.
+This uses the same parameters as the "mem" directive.
+The data is read from subordinate content:
+  Each token of each line is parsed and written to the memory block.  
+  Field size to use is determined by iterating through struct fields (repeating when the last struct field is reached).
+  This accepts either floating point values or integers.
+  For the time being, struct does not define field type, so type is determined implicitly based on parse results.
+  If the field successfully is parsed as an integer, then the integer value will be written to memory.
+  If integer parsing fails, but floating point parsing succeeds, then a floating point value will be written to memory.
+    (to force a floating point value, either include a decimal point or include an exponent)
+
+flat <name> <type>
+  <item> <item>...
+Defines a memory block which is to be initialized with data of a specified type.
+Types supported:
+  byte - 8-bit integers
+  word - 16 bit integers
+  dword - 32-bit integers
+  qword - 64-bit integers
+  float32 - 32-bit floating point numbers
+  float64 - 64-bit floating point numbers
+The memory layout uses a single-object format (one element sized large enough to fit all values).
+
+text
+  <line>
+  <line>
+  ...
+Defines a memory block which is initialized with the raw text content of subordinate lines.
+Tokenization is ignored, so the line will appear with spaces in-tact.
+Multiple lines are combined by [re-]inserting newline chars between each.
+Per tactyk-structured-text parsing rules, Leading and trailing spaces are trimmed, and comments are ignored.
+The memory layout uses a single-object format which is large enough to fit the text content (plus newline chars and minus leading & trailing spaces).
+
+const <name> <value>
+Defines a constant and inserts it into a constant symbol table.
+The constant must be either an integer or a floating point value.
+If the constant is successfully parsed as an integer, it goes into the "const" symbol table.
+If integer parsing fails but floating point parsing succeeds, it foes into the "fconst" symbol table.
+
+use_vconstants
+If this directive is present in a file, then integer handles for all tokens recognized by the Virtual Instruction Set Architecture will be placed into the "const" symbol table.
+The name for each handle is ".<token>"
+Each integer handle is unique within the set of inserted handles.
+This is intended to support dynamic compilation (by allowing a compiler writtein in tactyk-pl to reference V-ISA tokens by name without having to include its own mapping of names to V-ISA tokens).
+This has no known purpose outside of dynamic compilation, and so is gated behind a compiler directive.
+
+
+LABELS
+
+<label>:
+A label line of code containing one token which ends in a colon.  
+Each label defines a branch target.
+Labels are referenced by name (without the colon) in instructions which affect control flow.
+
+
+COMMANDS
+
+<instruction-name> <arg> <arg> ...
+Any line of tactyk-pl which is not a directive or a label or a comment is interpreted as a script-command.
+A command is a Virtual ISA instruction name, followed by a list of arguments.
+Command interpretation is handled by the emit interface (and defined by the Virtual ISA).
+
+
+CODE-DOCUMENT STRUCTURE (or lack thereof):
+
+TACTYK-PL unwinds all unrecognized heirarchical arrangements (anything not in a directive) and treats them as a flat list of lines of code.  
+This is intended to allow commands and labels to be written with a flexible indentation style.  
