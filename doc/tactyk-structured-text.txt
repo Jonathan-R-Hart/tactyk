@@ -8,7 +8,7 @@ Input data is represented internally with a 3-ary tree structure (three branches
   The "child" branch represents hierarchical relationships between distinct elements.
   The "token" branch is used for the tokenized representation of an element.
 
-Input files are broken up into a series of lines.  Newline characters are the delimiter used to break files into a series of lines.  All empty lines are removed from the resulting structure.
+Input files are broken up into a series of lines.  Newline characters are the delimiter used to break files into a series of lines.  All empty lines are removed from the resulting structure.  Lines which start with '#' are comments and are also removed.
 
 Each line is arranged into a hierarchical structure based on the number of leading space characters (' ').  Misaligned lines are considered a fatal error (lines which can not be objectively placed in a child or sibling relationship).
 
