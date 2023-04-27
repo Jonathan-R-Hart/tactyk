@@ -273,6 +273,7 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
     ctx->fconst_table = tactyk_dblock__new_table(64);
     ctx->memblock_table = tactyk_dblock__new_table(64);
 
+    ctx->program = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__Program));
     ctx->program->functions = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_asmvm__identifier));
     tactyk_dblock__set_persistence_code(ctx->program->functions, 10);
 
@@ -282,6 +283,14 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
     tactyk_dblock__put(ctx->symbol_tables, "mem", ctx->memblock_table);
     tactyk_dblock__put(ctx->symbol_tables, "capi", ctx->c_api_table);
     tactyk_dblock__put(ctx->symbol_tables, "tapi", ctx->api_table);
+
+    ctx->program->memory_layout_ll = tactyk_dblock__new_container(TACTYK_ASMVM__MEMBLOCK_CAPACITY, sizeof(struct tactyk_asmvm__memblock_lowlevel));
+    tactyk_dblock__fix(ctx->program->memory_layout_ll);
+    tactyk_dblock__make_pseudosafe(ctx->program->memory_layout_ll);
+    ctx->program->memory_layout_hl = tactyk_dblock__new_managedobject_table(TACTYK_ASMVM__MEMBLOCK_CAPACITY, sizeof(struct tactyk_asmvm__memblock_highlevel));
+
+    tactyk_dblock__set_persistence_code(ctx->program->memory_layout_ll, 10);
+    tactyk_dblock__set_persistence_code(ctx->program->memory_layout_hl, 10);
 }
 
 bool tactyk_emit__Type(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {

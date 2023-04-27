@@ -7,6 +7,8 @@ Marked the old overview document as obsolete (current subproject is to rewrite i
 Remove effectively duplicate V-ISA operator "label"
   The "symbol" operator is quite sufficient for this purpose.
 
+Transfer responsibility of instantiating the tactyk program data structure form tactyk_pl to tactyk_emit
+
 26 Apr 2023 -- VERSION 0.7.0
 Test coverage for add, mul, sub, and div instruction involving xmm registers
 Test coverage for assign instructions involving the xmm registers
