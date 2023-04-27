@@ -1,3 +1,0 @@
-TACTYK_PL Tactyk Programming Language
-
-This document covers the main tactyk programming language (or what little there is to it)... Or it will when it gets written...

@@ -2,7 +2,7 @@ TACTYK-PL Tactyk Programming Language
 
 TACTYK-PL is the assembly-like language used as the primary mechanism for loading code into TACTYK.  
 
-TACTYK-PL is a structured text document whichuses three element types:  directives, labels, and code.
+TACTYK-PL is a structured text document which uses three element types:  directives, labels, and code.
 
 DIRECTIVES
 
@@ -11,7 +11,7 @@ struct <structname>
   ...
 Defines a data structure.  The resulting data structure may be used either to define a memory layout for other tactyk-pl directives, or as a set of constants to use in tactyk programs as memory offsets.
 Each subordinate line within the struct directive defines one struct field.
-The "fieldsize" paramter specifies the size in bytes of a field.
+The "fieldsize" parameter specifies the size in bytes of a field.
 The "fieldname" parameter specifies the name of the field.
 The optional "adjustment" parameter specifies how the field affects struct layout.
   By default, fields are laid out sequentially with no overlapping and with gaps between.
@@ -80,7 +80,7 @@ use_vconstants
 If this directive is present in a file, then integer handles for all tokens recognized by the Virtual Instruction Set Architecture will be placed into the "const" symbol table.
 The name for each handle is ".<token>"
 Each integer handle is unique within the set of inserted handles.
-This is intended to support dynamic compilation (by allowing a compiler writtein in tactyk-pl to reference V-ISA tokens by name without having to include its own mapping of names to V-ISA tokens).
+This is intended to support dynamic compilation (by allowing a compiler written in tactyk-pl to reference V-ISA tokens by name without having to include its own mapping of names to V-ISA tokens).
 This has no known purpose outside of dynamic compilation, and so is gated behind a compiler directive.
 
 
@@ -102,5 +102,5 @@ Command interpretation is handled by the emit interface (and defined by the Virt
 
 CODE-DOCUMENT STRUCTURE (or lack thereof):
 
-TACTYK-PL unwinds all unrecognized heirarchical arrangements (anything not in a directive) and treats them as a flat list of lines of code.  
+TACTYK-PL unwinds all unrecognized hierarchical arrangements (anything not in a directive) and treats them as a flat list of lines of code.  
 This is intended to allow commands and labels to be written with a flexible indentation style.  
