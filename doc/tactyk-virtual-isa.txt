@@ -1,3 +1,181 @@
-TACTYK Virtual Instruction Set Architecture
+TACTYK VIRTUAL INSTRUCTION SET ARCHITECTURE
 
-This document covers tactyk virtual instruction set architectures (how program code is transformed into machine code)... Or it will when it gets written...
+The Virtual Instruction Architecture (V-ISA) is a domain-specific language which defines each instruction available to a TACTYK script:  What the arguments are, what may be used for each argument, and what machine code is to be written.
+
+V-ISA is the privileged part of the emit interface.  A V-ISA Configuration is provided at runtime by the host application.  A predefined/default configuration is available ("TACTYK_core.visa").
+
+At present, V-ISA handling assumes/requires program components to be laid out with a predefined data structure (TACTYK_asmvm data structures).  If it is determined that it would be appropriate to make the internal structure configurable, then the V-ISA will have to be extended to include it.  (A predefined base structure for programs was used primarily to ease implementation and allow it to be coded directly for in C, though it does seem that a strong case can be made for requiring a fixed structure).
+
+
+V-ISA COMPONENTS
+
+V-ISA configuration is the set of top-level components defined within a configuration file.  There are presently just 5 top-level commands used to build a V-ISA configuration:  "instruction", "typespec", "subroutine", "settings", and "header"
+
+header::
+Specified an assembly language file containing a header to write directly into the output [prior to anything else].
+
+settings::
+A table of values to use as global variables.  (When fetching variables, the global variables are used if no local variable is found).
+
+At present, TACTYK does not use global variables (though it will if it is determined that the assembly language header should be removed).
+
+instruction::
+The instruction command specifies the subroutine which interprets a script command.
+
+typespec::
+The typespec command defines a type specification.  The term, "type" is used loosely here.  The concept of type within V-ISA only refers to how a command argument is interpreted.  In many cases, it reflects the typing systems from high-level languages.  However, V-ISA may use it merely to pick a few fragments of text to insert into code, or even reduce it to a fragment to be placed into a code template selector.
+
+Internally, typespecs are implemented as a set of named subroutines which are invoked by the "type" operator as part of argument interpretation.
+
+subroutine::
+A named subroutine which may be freely called by other subroutines.
+
+
+SUBROUTINES
+Virtually everything in V-ISA configuration is a subroutine.  Most operators within a V-ISA simply perform a builtin function, then invoke a subroutine or collection of subroutines.  A named subroutine is invoked to interpret a command, and each aspect of the command interpreter is handled by a hierarchy of subordinate subroutines.  Production of code within the local namespace (of all subroutines) is a side-effect of the invocation of these subroutines.
+
+
+OPERATORS
+An operator is a builtin emit interface function which performs a specialized operation, then [maybe] invokes one or more subordinate or named subroutines.  Operators have parameters and subordinate subroutines.  The parameters appear in configuration file as a sequence of tokens following the operator name.  The subordinate name is all nested code (anything more deeply indented).  The operators available in TACTYK are: "select-operand", "select-template", "select-kw", "select-kw2", "case", "flags", "contains", "pick", "operand", "opt-operand", "composite", "type", "value", "scramble", "code", "int-operand", "float-operand", "string-operand", "symbol", "sub", and "nullarg"
+
+select-operand::
+perform a switch-like operation using the raw script-command argument (literal token) as a switch parameter.
+This does not use any parameters.
+Treat each subordinate element as a distinct subroutine and run them in series.  If any subroutine reports a failure, proceed.  If one of these subroutines reports a success, do not invoke further subroutines and report success.  If all subroutines fail, report a failure.
+The "case" operator is intended for use as all subordinate subroutines within "select-*" operators.
+This typically is used to handle enumerated types.
+
+select-template::
+Perform a switch-like operation using the accumulated set of "pick" tokens as a switch parameter.
+This does not use any parameters.
+Treat each subordinate element as a distinct subroutine and run them in series.  If any subroutine reports a failure, proceed.  If one of these subroutines reports a success, do not invoke further subroutines and report success.  If all subroutines fail, report a failure.
+The "case" operator is intended for use as all subordinate subroutines within "select-*" operators.
+This typically is used for selecting a code template to export.
+
+select-kw::
+Perform a switch-like operation using the $KW variable as a switch parameter.
+This does not use any parameters.
+Treat each subordinate element as a distinct subroutine and run them in series.  If any subroutine reports a failure, proceed.  If one of these subroutines reports a success, do not invoke further subroutines and report success.  If all subroutines fail, report a failure.
+The "case" operator is intended for use as all subordinate subroutines within "select-*" operators.
+This typically is used for behavior which varies based on argument word size (number of bytes needed to represent an argument).
+
+select-kw2::
+Perform a switch-like operation using the $KW2 variable as a switch parameter.
+This does not use any parameters.
+Treat each subordinate element as a distinct subroutine and run them in series.  If any subroutine reports a failure, proceed.  If one of these subroutines reports a success, do not invoke further subroutines and report success.  If all subroutines fail, report a failure.
+The "case" operator is intended for use as all subordinate subroutines within "select-*" operators.
+This is basically a hack to prevent interference between the immediate operand scrambling system and other things which also need a word size (an argument for consolidating all select-* operators into a generic switch operator with a variable name as a parameter)
+
+case <params ...>::
+Perform an operation if the switch parameter matches a case-parameter.
+This requires at least one case parameter, and may accept any number of additional case parameters.
+Report success if the switch parameter is matched by anything.  Report failure if the switch parameter is not matched by anything.  It may be necessary to modify the case/select relationship to pass the result of the subordinate subroutine which matched the case label (present behavior is to ignore it).
+This is intended for use with all "select-*" operators.
+
+flags::
+Use a script-command argument as the flags parameter and perform a series of subroutines based [presumably] on matched selectors..
+This does not use any parameters.
+Treat each subordinate element as a distinct subroutine and run them in series.  If any subroutine reports a failure, proceed.  If one of these subroutines reports a success, proceed.  This reports success regardless of the outcome.  If no subroutines report success, this emits a compiler warning.
+The "match" operator is intended for use as all subordinate subroutines within the "flags" operator.
+This is not currently in use within TACTYK (was completely supplanted by the "composite" operator).
+
+contains <params ...>::
+Perform an operation if the flags parameter contains any text fragment specified by the contains-parameter.
+This requires at least one contains parameter, and may accept any number of additional contains parameters.
+Report success if the switch parameter is matched by anything.  Report failure if the switch parameter is not matched by anything.  It may be necessary to modify the case/select relationship to pass the result of the subordinate subroutine which matched the case label (present behavior is to ignore it).
+This is intended for use with the "flags" operator.
+
+pick <token>::
+Append a the token parameter to the code-template selector.
+The pick operator typically is typically the last statement in a typespec subroutine (where it will be run only if the typespec subroutine recognizes and accepts its input).
+The combined result of all pick operators is used by the select-template operator to select an interpretation-specific subroutine to run.  Typically, this subroutine will write the code intended to handle the set of operators which generated the template selector.
+
+operand::
+Advance to the next script-command argument [and consume it], run the variable resolution function against the operand and make it available to other subroutines as the resolved argument, reset per-operand local variables ($KW, $VALUE, and $VALUE_UPPER), and run the subordinate subroutine.
+This reads a single "alt" parameter, but does not use it for anything.
+
+opt-operand::
+An optional operand.
+This does the same operation as operand, but if the subordinate subroutine fails, it will not consume the script-command argument and will not report a failure.
+
+composite::
+Repeatedly perform the subordinate subroutine until either all script-command arguments are consumed or until a preset limit is reached.
+This is intended for commands which have variable-length argument lists, yielding variable amounts of code.
+
+type <typespecs ...>
+Interpret a script-command argument.
+This runs a series of typespec subroutines using the script-command argument as the typespec argument.  if a typespec subroutine fails, then it moves on to the next typespec subroutine.  If a typespec subroutine passes, then the type operator passes, the side-effects of the typespec subroutine are accepted, and further typespec subroutines are not performed.
+Typical typespec subroutine side-effects are the $VALUE variable set, any number of other variables set, and a text fragment appended to the code-template selector.
+In most cases, "type" effectively handles a typed field, but it is not restricted to it and may instead set variables or modify the code-template selector.  (So far as TACTYK is concerned, it's all the same).
+
+value <param>
+Resolve the value parameter and assign it to the $VALUE variable.
+If the value looks like an integer, this also determines the minimum word size needed to hold it and assigns it to the $KW variable.  (word sizes are "byte" for 8-bit fields, "word" for 16-bit fields, "dword" for 32-bit fields, and "qword" for 64-bit fields).
+
+scramble <register codevar opt-inputvar>
+Apply immediate operand scrambling to the script-command argument or to an arbitrary variable.
+This prepares a code fragment which places an integer value onto a register.  The code transforms the integer such that the resulting executable memory will contain a scrambled value not under control of adversarial content (rand and rand^value).
+the generated code is assigned to the variable specified by the "codevar" parameter (and is inserted into code where needed by referencing the variable in the code template).
+The "register" parameter specifies which register the unscrambled value should be written to by the de-scrambling code.
+The optional "inputvar" parameter specifies which variable to take the input value from (if not provided, this defaults to $VALUE).
+This requires a "scramble" subroutine in the V-ISA to generate the descrambling code (must be defined with the "subroutine" V-ISA command).
+
+code <opt-outputvar>
+This reads each line from the subordinate data, performs string interpolation against local variables and global variables (search for variable names and replace with variable values), and appends it to a code block.
+If the "outputvar" parameter is specified, this will use the named variable as the code block to append to.  If not, this defaults to the primary code block (what the instruction yields).
+
+int-operand
+Attempt to parse the resolved script-command argument as an integer.
+This does not use any parameters.
+If the parsing succeeds, the value will be assigned to the $VALUE variable.  This will also determine the minimum word size needed to hold it and assigns it to the $KW variable.  (word sizes are "byte" for 8-bit fields, "word" for 16-bit fields, "dword" for 32-bit fields, and "qword" for 64-bit fields).
+If the parsing fails, this reports a failure.
+
+float-operand
+Attempt to parse the resolved script-command argument as a floating point number.
+This does not use any parameters.
+If it succeeds, this converts the value into a 64-bit floating point number, re-encodes the bytes as a 64-bit integer, assigns the encoded value to the $VALUE variable, and assigns "qword" to $KW.  (raw binary encoding is used to enable immediate operand scrambling for floating point values).
+If the parsing fails, this reports a failure.
+
+string-operand
+Take up to 16 bytes from either the argument or resolved argument and encode it as one or two integers.
+The first char of the unresolved argument is used as a sigil:
+  ' - starting from the second byte of the unresolved argument, take up to 16 bytes.
+  ` - starting from the second byte of the resolved argument, take up to 16 bytes
+  " - starting form the seconds byte of the unresolved argument, take up to 16 bytes, and avoid using the last byte.  (dubious feature - probably should remove it)
+If there are 8 or less bytes, then interprets treats it as an integer and will write a minimal word size to $KW
+If there are more than 8 bytes, this interprets it as two 8-byte fields.  The first 8 bytes will be assigned to $VALUE, and the upper 8 bytes will be assigned to $VALUE_UPPER.
+If no sigil is present, the operator reports a failure.  Otherwise, it reports success (even if there is nothing after the sigil).
+If the string operand is more than 16 bytes long, it will terminate at the 16th byte.
+Per TACTYK syntax rules, spaces in string operands are prohibited (Even if it would make sense to permit it) - Any space within the intended string will simply cut the result short.
+If greater flexibility is needed, write raw data to memory and have your program use memory operations to fetch the intended data.
+
+symbol <table>
+This reads an entry from a symbol table and assigns it to the $VALUE variable.
+The "table" parameter specifies which symbol table to read (and is a mandatory parameter).
+If the value looks like an integer, this also determines the minimum word size needed to hold it and assigns it to the $KW variable.  (word sizes are "byte" for 8-bit fields, "word" for 16-bit fields, "dword" for 32-bit fields, and "qword" for 64-bit fields).
+Symbol tables are populated by various software components in the TACTYK runtime and/or host application
+The defined symbol tables are as follows:
+  label - branch targets - All script-provided labels are placed in this table by the emit interface.  This is used as a list of branch targets which are guaranteed to be valid and safe to use.
+  const - integer constants - These are specified either by script or by the host application
+  fconst - floating point constants - These are specified either by script or by the host application
+  mem - memory blocks - memory which is provided to and accessible by TACTYK scripts.
+        These are either declared by scripts and allocated by the script interpreter, or declared as external memory and
+        provided by the host application.
+  capi - C API functions - C functions callable from TACTYK scripts with simple integer or floating point arguments
+        This is populated by the host application and is the API provided to scripts.  It is expected that these functions will be kept simple.
+  tapi - TACTYK API functions - C functions callable from TACTYK scripts which take a pointer to TACTYK context as the sole argument
+        This is populated by the host application and is the API provided to scripts.  This is intended as the primary interface between TACTYK scripts and the host application.
+        T-API functions must take their arguments by reading them from the TACTYK context (which directly exposes all memory and registers used by a script).
+
+sub <subname>
+Invoke a named subroutine (specified with the "subroutine" V-ISA command).
+The "subname" parameter specifies which subroutine to invoke (and is a mandatory parameter).
+This is intended to be used for generic re-usable V-ISA subroutines.  (it's also required for specialized uses like immediate operand scrambling).
+
+nullarg
+Operator which passes if all script-command arguments have been consumed.
+This predates the "opt-operand" operator and may be removed in a future revision.
+
+
+
+
