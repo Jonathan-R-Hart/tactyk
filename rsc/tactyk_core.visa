@@ -112,7 +112,7 @@ typespec float
 
 # symbolic fields are handled by looking them up in symbol tables.
 typespec branch
-  label
+  symbol label
   pick L
 
 typespec const

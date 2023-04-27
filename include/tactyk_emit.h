@@ -216,7 +216,6 @@ bool tactyk_emit__NullArg(struct tactyk_emit__Context *ctx, struct tactyk_dblock
 
 bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__DoSub(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
-bool tactyk_emit__CheckedLabel(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Exit(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 //bool tactyk_emit__Subroutine(struct tactyk_emit_new__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 
