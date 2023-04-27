@@ -1,6 +1,8 @@
 27 Apr 2023
 Wrote documentation for the general-purpose structured text used for all TACTYK code and configuration inputs.
 
+Marked the old overview document as obsolete (current subproject is to rewrite it).
+
 26 Apr 2023 -- VERSION 0.7.0
 Test coverage for add, mul, sub, and div instruction involving xmm registers
 Test coverage for assign instructions involving the xmm registers
