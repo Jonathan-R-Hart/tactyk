@@ -1,0 +1,3 @@
+TACTYK-TEST - Semi-automated test system for tactyk Virtual ISAs
+
+This document covers the testing interface for validating virtual ISAs (and general regression testing)...  Or it will when it gets written...

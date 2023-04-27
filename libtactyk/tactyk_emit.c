@@ -129,7 +129,6 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__put(ctx->operator_table, "string-operand", tactyk_emit__StringOperand);
 
     tactyk_dblock__put(ctx->operator_table, "sub", tactyk_emit__DoSub);
-    tactyk_dblock__put(ctx->operator_table, "label", tactyk_emit__CheckedLabel);
     tactyk_dblock__put(ctx->operator_table, "nullarg", tactyk_emit__NullArg);
 
     ctx->active_labels = NULL;
@@ -796,13 +795,6 @@ bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
         tactyk_dblock__append_char(code, '\n');
     }
     return true;
-}
-
-
-bool tactyk_emit__CheckedLabel(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
-    struct tactyk_dblock__DBlock *lbl = tactyk_dblock__get(ctx->label_table, ctx->pl_operand_resolved);
-    tactyk_dblock__put(ctx->local_vars, "$VALUE", lbl);
-    return lbl != NULL;
 }
 
 void tactyk_emit__sanitize_identifier(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *out, struct tactyk_dblock__DBlock* id) {
