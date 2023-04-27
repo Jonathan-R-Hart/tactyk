@@ -49,33 +49,23 @@ void tactyk_pl__init() {
 struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx) {
     tactyk_emit__reset(emitctx);
     struct tactyk_pl__Context *ctx = tactyk_alloc__allocate(1, sizeof(struct tactyk_pl__Context));
-    ctx->program = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__Program));
-    emitctx->program = ctx->program;
     ctx->emitctx = emitctx;
 
     ctx->struct_table = tactyk_dblock__new_managedobject_table(64, sizeof(struct tactyk_asmvm__struct));
     ctx->getters = tactyk_dblock__new_table(64);
     ctx->setters = tactyk_dblock__new_table(64);
 
-    {
-        uint64_t ln = TACTYK_ASMVM__MEMBLOCK_CAPACITY;
-        ctx->memspec_lowlevel_buffer = tactyk_dblock__new_container(ln, sizeof(struct tactyk_asmvm__memblock_lowlevel));
-        tactyk_dblock__fix(ctx->memspec_lowlevel_buffer);
-        tactyk_dblock__make_pseudosafe(ctx->memspec_lowlevel_buffer);
-        ctx->memspec_highlevel_table = tactyk_dblock__new_managedobject_table(ln, sizeof(struct tactyk_asmvm__memblock_highlevel));
-    }
-
     // the struct table gets to survive garbage collection!  barely ... (the only real purpose of it is reflection)
     tactyk_dblock__set_persistence_code(ctx->struct_table, 10);
     //tactyk_dblock__set_persistence_code(ctx->getters, 10);
     //tactyk_dblock__set_persistence_code(ctx->setters, 10);
-    tactyk_dblock__set_persistence_code(ctx->memspec_lowlevel_buffer, 10);
-    tactyk_dblock__set_persistence_code(ctx->memspec_highlevel_table, 10);
-
-    ctx->program->memory_layout_hl = ctx->memspec_highlevel_table;
-    ctx->program->memory_layout_ll = ctx->memspec_lowlevel_buffer;
 
     tactyk_emit__init_program(emitctx);
+
+    ctx->program = emitctx->program;
+    ctx->memspec_highlevel_table = ctx->program->memory_layout_hl;
+    ctx->memspec_lowlevel_buffer = ctx->program->memory_layout_ll;
+
     return ctx;
 }
 

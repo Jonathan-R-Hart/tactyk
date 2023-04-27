@@ -1,11 +1,16 @@
 27 Apr 2023
 Wrote documentation for the general-purpose structured text used for all TACTYK code and configuration inputs.
 Write new documentation covering TACTYK Virtual Instruction Set Architecture.
+Write new documentation covering the [native] TACTYK Programming Language.
 
 Marked the old overview document as obsolete (current subproject is to rewrite it).
 
 Remove effectively duplicate V-ISA operator "label"
   The "symbol" operator is quite sufficient for this purpose.
+
+Design corrections
+  Transfer responsibility of instantiating the tactyk program data structure form tactyk_pl to tactyk_emit
+  Remove spurious tactyk_emit_svc dependency on tactyk_pl
 
 26 Apr 2023 -- VERSION 0.7.0
 Test coverage for add, mul, sub, and div instruction involving xmm registers
