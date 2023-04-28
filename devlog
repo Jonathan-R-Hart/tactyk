@@ -1,5 +1,6 @@
 28 Apr 2023
 Wrote the instruction section for the new documentation of the tactyk_core Virtual ISA.
+Wrote the new documentation for basic usage of libtactyk by host applications.
 
 Move word size type specification used in load and store operations to a named typespec
 
