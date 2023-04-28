@@ -1,3 +1,260 @@
-TACTYK_CORE (rsc/tactyk_core.txt)
+TACTYK_CORE Virtual Instructon Set Architecture
 
-This document covers the builtin tactyk builtin instruction set... Or it will when it gets written...
+This document covers the main TACTYK Virtual ISA (rsc/tactyk_core.txt).
+
+
+TYPE SPECIFICATIONS
+
+address
+  Select an address register
+  Additionally obtains references to related context fields
+Accepted values:
+  @1 addr1 rADDR1
+  @2 addr2 rADDR2
+  @3 addr3 rADDR3
+  @4 addr4 rADDR4
+Assigned variables:
+  $VALUE                address register name
+  $CTX_ADDR             context field (base address)
+  $CTX_ARRAY_BOUND      context field
+  $CTX_ELEMENT_BOUND    context field
+  $CTX_MEMBLOCK_INDEX   context field (integer handle)
+template-selector:  'A'
+
+data
+  Select a data register
+Accepted values:
+  a ra rA
+  b rb rB
+  c rc rC
+  d rd rD
+  e re rE
+  f rf rF
+Assigned variables:
+  $VALUE                data register name
+template-selector:  'D'
+
+xmmx
+  Select an xmm register
+Accpeted values:
+  x0 xmm0 xa xA
+  x1 xmm1 xb xB
+  x2 xmm2 xc xC
+  x3 xmm3 xd xD
+  x4 xmm4 xe xE
+  x5 xmm5 xf xF
+  x6 xmm6 xg xG
+  x7 xmm7 xh xH
+  x8 xmm8 xi xI
+  x9 xmm9 xj xJ
+  x10 xmm10 xk xK
+  x11 xmm11 xl xL
+  x12 xmm12 xm xM
+  x13 xmm13 xn xN
+Assigned variables:
+  $VALUE                xmm register name
+template-selector:  'X'
+
+stackreg
+  Select a stack register
+  Additionally obtains a reference to the stack floor context field
+Accpeted values:
+  mctx.pos mcxtstack.pos mctx.position mcxtstack.position
+  lwcs.pos lwcstack.pos lwcs.position lwcstack.position
+Assigned variables:
+  $VALUE                stack register name
+  $STACK_FLOOR          context field (minimum stack register value)
+
+integer
+  parse an argument as an integer
+Accpeted values:
+  radix-10 integers without any prefix (integer decimal)
+  radix-16 (hexadecimal) integers prefixed by "h." (hexadecimal literal)
+  radix-2 integers prefixed by "b." (binary literal)
+Assigned variables:
+  $VALUE                integer value
+template-selector:  'I'
+
+float
+  parse an argument as a floating point number
+Accpeted values:
+  Anything the C standard library function "strtod" can successfully interpret as a floating point value.
+Assigned variables:
+  $VALUE                floating point value
+template-selector:  'F'
+
+branch
+  fetch a named label from the "label" symbol table
+Accpeted values:
+  The text value of any script-defined label
+Assigned variables:
+  $VALUE                An internal [sanitized] label name
+template-selector:  'L'
+
+const
+  fetch a named integer constant from the "const" symbol table
+Accpeted values:
+  The text value of a defined constant
+Assigned variables:
+  $VALUE                The value of the named constant
+template-selector:  'C'
+
+fconst
+  fetch a named floating point constant from the "fconst" symbol table
+Accpeted values:
+  The text value of a defined constant
+Assigned variables:
+  $VALUE                The value of the named constant
+template-selector:  'Cf'
+
+capi
+  fetch a reference to a C function from the "capi" symbol table
+    (NOTE:  These are supposed to be functions with simple function signatures that are easy to invoke from Assembly Language)
+Accpeted values:
+  The name of a defined C-API function
+Assigned variables:
+  $VALUE                The integer value of a pointer to the function.
+template-selector:  'Cfunc'
+
+tapi
+  fetch a reference to a Tactyk-API function from the "tapi" symbol table
+    (NOTE:  These are supposed to be functions which directly interact with tactyk contexts to obtain arguments and return results)
+Accpeted values:
+  The name of a defined T-API function
+Assigned variables:
+  $VALUE                The integer value of a pointer to the function.
+template-selector:  'Tfunc'
+
+string
+  convert raw bytes into one or two integers
+Accpeted values:
+  Anythign prefixes with ', ", or ` (see string-operand in the Virtual-ISA documentation for details)
+Assigned variables:
+  $VALUE                lower 8 bytes
+  $VALUE_UPPER          upper 8 bytes (if more than 8 bytes)
+template-selector:  'S'
+
+nullarg
+  verify that the script-command argument is NULL
+Accpeted values:
+  Nothing!
+Assigned variables:
+  Nothing!
+template-selector: 'N'
+
+context-property
+  select a context field
+Accepted Values:
+  addr1.array_bound
+  addr1.element_bound
+  addr1.memblock_index
+  addr1.offset
+  addr2.array_bound
+  addr2.element_bound
+  addr2.memblock_index
+  addr2.offset
+  addr3.array_bound
+  addr3.element_bound
+  addr3.memblock_index
+  addr3.offset
+  addr4.array_bound
+  addr4.element_bound
+  addr4.memblock_index
+  addr4.offset
+Assigned variables:
+  $VALUE                reference to the associated context field
+  $KW                   word size of the context field.
+template-selector: 'Ctx'
+
+comparator
+  selects a comparison operation to insert into assembly code
+    NOTE:  This specific typespec is the main reason for referring to "type specification" as a loosely defined in tactyk.
+Accpeted values:
+  < lt
+  <= le
+  == eq
+  >= ge
+  > gt
+  ~= != neq
+Assigned variables:
+  $VALUE                Assembly langauge instruction which performs the comparison [for conventional registers]
+  $VPRED                Comparison predicate to use for SSE2-based comparison operations
+  $VPREDCOMPLEMENT      Complementary comparison predicate to use for SSE2-based comparison operations when a reversed operand order is more conveinent/efficient
+template-selector: 'T'
+
+address-offset
+  A pseudo-property used to obtain or manipulate offset addresses [in the assign instruction].
+    Technically, the address typespec could be used for this, but any code using it would likely create confusion.
+Accpeted values:
+  addr1.offset
+  addr2.offset
+  addr3.offset
+  addr4.offset
+Assigned variables:
+  $ADDRESS_REGISTER     name of address register
+  $CTX_ADDRESS          context field (base address)
+  $CTX_ADDRESS_BOUND    context field
+template-selector: 'O'
+
+stash-addr
+  Select a reference to an address field in the microcontext stash
+Accpeted values:
+  s-addr1 stash-addr1
+  s-addr2 stash-addr2
+  s-addr3 stash-addr3
+  s-addr4 stash-addr4
+Assigned variables:
+  $VALUE                reference to a microcontext stash address field
+template-selector: 'Sa'
+
+stash-item
+  Select a 16-byte general-purpose field from the microcontext stash.
+Accepted values:
+  sa sA sb sB sc sC sd sD se sE sf sF
+  sg sG sh sH si sI sj sJ sk sK sl sL
+  sm sM sn sN so sO sp sP sq sQ sr sR
+  ss sS st sT su sU sv sV sw sW sx sX
+  sy sY sz sZ
+Assigned variables:
+  $VALUE                name of a microcontext stash general-purpose field
+template-selector: 'Si'
+
+stash-item-low
+  Select a low-positioned 8-byte general-purpose field from the microcontext stash (lower 8 bytes of the like-named 16 byte field)
+Accepted values:
+  sal sAl sbl sBl scl sCl sdl sDl sel sEl sfl sFl
+  sgl sGl shl sHl sil sIl sjl sJl skl sKl sll sLl
+  sml sMl snl sNl sol sOl spl sPl sql sQl srl sRl
+  ssl sSl stl sTl sul sUl svl sVl swl sWl sxl sXl
+  syl sYl szl sZl
+Assigned variables:
+  $VALUE                name of a microcontext stash general-purpose field
+template-selector: 'Sil'
+
+stash-item-high
+  Select a high-positioned 8-byte general-purpose field from the microcontext stash (upper 8 bytes of the like-named 16 byte field)
+Accepted values:
+  sah sAh sbh sBh sch sCh sdh sDh seh sEh sfh sFh
+  sgh sGh shh sHh sih sIh sjh sJh skh sKh slh sLh
+  smh sMh snh sNh soh sOh sph sPh sqh sQh srh sRh
+  ssh sSh sth sTh suh sUh svh sVh swh sWh sxh sXh
+  syh sYh szh sZh
+Assigned variables:
+  $VALUE                name of a microcontext stash general-purpose field
+template-selector: 'Sih'
+
+vec-float-format
+  Select a suffix for vectorized [SSE2] instructions.
+Accepted values:
+  pd PD
+  ps PS
+  sd SD
+  ss SS
+Assigned variables:
+  $VECFMT               vector format (the suffix to attach to said vectorized isntructions)
+template-selector: N/A  (no need for one)
+
+
+INSTRUCTIONS
+
+

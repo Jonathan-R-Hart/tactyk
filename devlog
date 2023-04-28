@@ -1,7 +1,8 @@
 27 Apr 2023
 Wrote documentation for the general-purpose structured text used for all TACTYK code and configuration inputs.
-Write new documentation covering TACTYK Virtual Instruction Set Architecture.
-Write new documentation covering the [native] TACTYK Programming Language.
+Wrote new documentation covering TACTYK Virtual Instruction Set Architecture.
+Wrote new documentation covering the [native] TACTYK Programming Language.
+Wrote the typespec section for the new documentation of the tactyk_core Virtual ISA.
 
 Marked the old overview document as obsolete (current subproject is to rewrite it).
 
