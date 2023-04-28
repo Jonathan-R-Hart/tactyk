@@ -1,3 +1,0 @@
-TACTYK_CORE (rsc/tactyk_core.txt)
-
-This document covers the builtin tactyk builtin instruction set... Or it will when it gets written...

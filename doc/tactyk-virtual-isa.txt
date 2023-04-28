@@ -35,6 +35,13 @@ SUBROUTINES
 Virtually everything in V-ISA configuration is a subroutine.  Most operators within a V-ISA simply perform a builtin function, then invoke a subroutine or collection of subroutines.  A named subroutine is invoked to interpret a command, and each aspect of the command interpreter is handled by a hierarchy of subordinate subroutines.  Production of code within the local namespace (of all subroutines) is a side-effect of the invocation of these subroutines.
 
 
+VARIABLES
+A variable name is a '$' character followed by any sequence of alphanumeric chars, underscores ('_'), and periods ('.').
+When assigning to variables, variable names are used directly as parameters.
+When resolving variables, string interpolation is used to give it a bit more flexibility (leading and trailing text which is objectively not part of a variable name is left in place, the variable name is replaced with the variable value, and the reconstructed text is used as the resolved value).
+If a variable name appears as the first token in subroutine statement, then the statement is handled as an assignment of the resolved value of the 2nd token to the variable named by the first token.
+
+
 OPERATORS
 An operator is a builtin emit interface function which performs a specialized operation, then [maybe] invokes one or more subordinate or named subroutines.  Operators have parameters and subordinate subroutines.  The parameters appear in configuration file as a sequence of tokens following the operator name.  The subordinate name is all nested code (anything more deeply indented).  The operators available in TACTYK are: "select-operand", "select-template", "select-kw", "select-kw2", "case", "flags", "contains", "pick", "operand", "opt-operand", "composite", "type", "value", "scramble", "code", "int-operand", "float-operand", "string-operand", "symbol", "sub", and "nullarg"
 
@@ -91,8 +98,7 @@ The pick operator typically is typically the last statement in a typespec subrou
 The combined result of all pick operators is used by the select-template operator to select an interpretation-specific subroutine to run.  Typically, this subroutine will write the code intended to handle the set of operators which generated the template selector.
 
 operand::
-Advance to the next script-command argument [and consume it], run the variable resolution function against the operand and make it available to other subroutines as the resolved argument, reset per-operand local variables ($KW, $VALUE, and $VALUE_UPPER), and run the subordinate subroutine.
-This reads a single "alt" parameter, but does not use it for anything.
+Advance to the next script-command argument [and consume it], run the variable resolution function against the operand and make it available to other subroutines as the resolved argument, reset per-operand local variables ($KW, $VALUE, and $VALUE_UPPER), and run the subordinate subroutine.  The subordinate subroutine is expected to capture any generated local variables that are needed and assign them to unique varaible names.
 
 opt-operand::
 An optional operand.

@@ -1,7 +1,13 @@
+28 Apr 2023
+Wrote the instruction section for the new documentation of the tactyk_core Virtual ISA.
+
+Move word size type specification used in load and store operations to a named typespec
+
 27 Apr 2023
 Wrote documentation for the general-purpose structured text used for all TACTYK code and configuration inputs.
-Write new documentation covering TACTYK Virtual Instruction Set Architecture.
-Write new documentation covering the [native] TACTYK Programming Language.
+Wrote new documentation covering TACTYK Virtual Instruction Set Architecture.
+Wrote new documentation covering the [native] TACTYK Programming Language.
+Wrote the typespec section for the new documentation of the tactyk_core Virtual ISA.
 
 Marked the old overview document as obsolete (current subproject is to rewrite it).
 
@@ -11,6 +17,9 @@ Remove effectively duplicate V-ISA operator "label"
 Design corrections
   Transfer responsibility of instantiating the tactyk program data structure form tactyk_pl to tactyk_emit
   Remove spurious tactyk_emit_svc dependency on tactyk_pl
+  Remove unused Variable $CTX_MEMBLOCK_TYPE from tactyk_core.visa "address" type specifciation
+
+Fixed a vectorizd opreation format specifier in tactyk_core.visa
 
 26 Apr 2023 -- VERSION 0.7.0
 Test coverage for add, mul, sub, and div instruction involving xmm registers

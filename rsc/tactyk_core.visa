@@ -50,28 +50,24 @@ typespec address
       $CTX_ARRAY_BOUND context.addr1_array_bound
       $CTX_ELEMENT_BOUND context.addr1_element_bound
       $CTX_MEMBLOCK_INDEX context.addr1_memblock_index
-      $CTX_MEMBLOCK_TYPE context.addr1_type
     case @2 addr2 rADDR2
       value rADDR2
       $CTX_ADDR context.addr2
       $CTX_ARRAY_BOUND context.addr2_array_bound
       $CTX_ELEMENT_BOUND context.addr2_element_bound
       $CTX_MEMBLOCK_INDEX context.addr2_memblock_index
-      $CTX_MEMBLOCK_TYPE context.addr2_type
     case @3 addr3 rADDR3
       value rADDR3
       $CTX_ADDR context.addr3
       $CTX_ARRAY_BOUND context.addr3_array_bound
       $CTX_ELEMENT_BOUND context.addr3_element_bound
       $CTX_MEMBLOCK_INDEX context.addr3_memblock_index
-      $CTX_MEMBLOCK_TYPE context.addr3_type
     case @4 addr4 rADDR4
       value rADDR4
       $CTX_ADDR context.addr4
       $CTX_ARRAY_BOUND context.addr4_array_bound
       $CTX_ELEMENT_BOUND context.addr4_element_bound
       $CTX_MEMBLOCK_INDEX context.addr4_memblock_index
-      $CTX_MEMBLOCK_TYPE context.addr4_type
   pick A
 
 typespec data
@@ -89,6 +85,19 @@ typespec data
     case f rf rF
       value rF
   pick D
+
+typespec word
+  select-operand
+    case byte i8
+      pick B
+    case word i16
+      pick W
+    case dword i32
+      pick D
+    case qword i64
+      pick Q
+    case float
+      pick X
 
 typespec stackreg
   select-operand
@@ -392,17 +401,7 @@ instruction bind
 #          anything but data reguisters and the data content of listed memory blocks.))
 instruction load
   operand
-    select-operand
-      case byte i8
-        pick B
-      case word i16
-        pick W
-      case dword i32
-        pick D
-      case qword i64
-        pick Q
-      case float
-        pick X
+    type word
   operand
     type data xmmx
     $DEST__DATA_REG $VALUE
@@ -607,17 +606,7 @@ instruction load
 
 instruction store
   operand
-    select-operand
-      case byte i8
-        pick B
-      case word i16
-        pick W
-      case dword i32
-        pick D
-      case qword i64
-        pick Q
-      case float
-        pick X
+    type word
   operand
     type address
     $ADDRESS_REGISTER $VALUE
@@ -1493,7 +1482,6 @@ instruction if
     # Comparisons of xmmx register with data register assumes that the xmmx register is a float and the data register
     # is an integer
     # Floating point comparisons wherein neither operand is stored on an xmmx register are unspported
-    #   (due to only one xmmx temp register reserved)
     case XTXL
       code
         mov$VECFMT xTEMPA, $A
@@ -2453,9 +2441,9 @@ typespec vec-float-format
       $VECFMT pd
     case ps PS
       $VECFMT ps
-    case pd SD
+    case sd SD
       $VECFMT sd
-    case ps SS
+    case ss SS
       $VECFMT ss
 
 typespec xmmx
