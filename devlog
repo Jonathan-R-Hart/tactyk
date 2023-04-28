@@ -11,6 +11,7 @@ Remove effectively duplicate V-ISA operator "label"
 Design corrections
   Transfer responsibility of instantiating the tactyk program data structure form tactyk_pl to tactyk_emit
   Remove spurious tactyk_emit_svc dependency on tactyk_pl
+  Remove unused Variable $CTX_MEMBLOCK_TYPE from tactyk_core.visa "address" type specifciation
 
 26 Apr 2023 -- VERSION 0.7.0
 Test coverage for add, mul, sub, and div instruction involving xmm registers
