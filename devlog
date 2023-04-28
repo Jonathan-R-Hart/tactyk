@@ -1,4 +1,5 @@
 28 Apr 2023
+Wrote the instruction section for the new documentation of the tactyk_core Virtual ISA.
 
 Move word size type specification used in load and store operations to a named typespec
 

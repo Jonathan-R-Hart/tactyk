@@ -57,6 +57,23 @@ Assigned variables:
   $VALUE                xmm register name
 template-selector:  'X'
 
+word
+  select a word size
+Accepted values:
+  byte i8
+  word i16
+  dword i32
+  qword i64
+  float
+Assigned variables:
+  Nothing!
+template-selector:
+  byte i8     'B'
+  word i16    'W'
+  dword i32   'D'
+  qword i64   'Q'
+  float       'X'
+
 stackreg
   Select a stack register
   Additionally obtains a reference to the stack floor context field
@@ -66,6 +83,7 @@ Accpeted values:
 Assigned variables:
   $VALUE                stack register name
   $STACK_FLOOR          context field (minimum stack register value)
+template-selector:  'Sreg'
 
 integer
   parse an argument as an integer
@@ -259,4 +277,554 @@ template-selector: N/A  (no need for one)
 
 INSTRUCTIONS
 
+Instructions are overloaded and vary based on which type specification matches each argument.  The format used to describe an instruction is as follows:
+<instruction> <typespec> <typespec> ...
+(refer to the "TYPE SPECTICATIONS" section for a description of what each opreand is)
 
+run
+TACTYK entry point
+  store the native context
+  load the tactyk context, set tactyk status to "RUN"
+  and jump to the instruction indicated by context.instruction_index
+NOTE:  This is called from the runtime, and not accessible to scripts
+
+exit
+Exit tactyk and return
+  Set tactyk status to "HALT"
+  store the current context
+  restore the native context
+  return to the caller
+
+break
+Place tactyk in a suspended/resumable state and return
+  Set tactyk status to "SUSPEND"
+  update context.instruction_index with the index of the next instruction
+  store the current context
+  restore the native context
+  return to the caller
+
+
+bind address-register memblock-ref
+Bind a memory block to an address register
+This also copies the memblock specification into context local storage.
+Typespecs:
+  address-register:       address
+  memblock-ref:           data integer memblock
+    This is an integer index into the program's memblock array.
+Variants:
+  bind address data
+  bind address integer
+  bind address memblock
+
+load word-size destination-register address-register element-offset
+Fetch data from a memblock and load it onto a register
+Typespecs:
+  word-size:              word
+  destination-register:   data xmmx
+  address-register:       addr
+  element-offset:         data integer const
+    This is comparable to an object member accessor
+Variants:
+  load qword data addr data
+  load qword data addr integer
+  load qword data addr const
+  load dword data addr data
+  load dword data addr integer
+  load dword data addr const
+  load word data addr data
+  load word data addr integer
+  load word data addr const
+  load byte data addr data
+  load byte data addr integer
+  load byte data addr const
+  load float data addr data
+  load float data addr integer
+  load float data addr const
+
+store word-size address-register element-offset source-register
+Take a value form a register and store it into a memblock.
+Typespecs:
+  word-size:              word
+  address-register:       addr
+  element-offset:         data integer const
+    This is comparable to an object member accessor
+  source-register:        data xmmx
+Variants:
+  store qword addr data
+  store qword addr integer
+  store qword addr const
+  store dword addr data
+  store dword addr integer
+  store dword addr const
+  store word addr data
+  store word addr integer
+  store word addr const
+  store byte addr data
+  store byte addr integer
+  store byte addr const
+  store float addr data
+  store float addr integer
+  store float addr const
+
+pop destination-register address-register
+Treating a memblock as a stack, pop a value off a stack and load it onto a data register.
+An 8-byte word size is assumed.
+Typespecs:
+  destination-register:   data
+  address-register:       addr
+Variants:
+  pop data addr
+
+push address-register source
+Treating a memblock as a stack, push a value onto the stack.
+An 8-byte word size is assumed.
+Typespecs:
+  address-register:       addr
+  source:                 data integer const
+Variants:
+  push addr data
+  push addr integer
+  push addr const
+
+swap a b
+Swap the contents of two registers.
+If swapping between data and xmmx registers, this assumes the data register contains an integer and the xmmx register
+contains a floating point number, and will cast both values.
+Typespecs:
+  a:                      data xmmx
+  b:                      data xmmx
+Variants:
+  swap data data
+  swap xmmx xmmx
+  swap data xmmx
+  swap xmmx data
+
+add a b
+Add the value b or value of register b onto the value of register a
+If either operand is a floating point nubmer, the operation will be performed using xmm registers
+Typespecs:
+  a:                      data xmmx
+  b:                      data xmmx const fconst integer float
+Variants:
+  add data data
+  add data integer
+  add data const
+  add data float
+  add data fconst
+  add data xmmx
+  add xmmx xmmx
+  add xmmx data
+  add xmmx integer
+  add xmmx const
+  add xmmx float
+  add xmmx fconst
+
+sub a b
+Subtract the value b or value of register b from value of register a
+If either operand is a floating point nubmer, the operation will be performed using xmm registers
+Typespecs:
+  a:                      data xmmx
+  b:                      data xmmx const fconst integer float
+Variants:
+  sub data data
+  sub data integer
+  sub data const
+  sub data float
+  sub data fconst
+  sub data xmmx
+  sub xmmx xmmx
+  sub xmmx data
+  sub xmmx integer
+  sub xmmx const
+  sub xmmx float
+  sub xmmx fconst
+
+mul a b
+Multiply the value of register a by value b or value of register b
+If either operand is a floating point nubmer, the operation will be performed using xmm registers
+Typespecs:
+  a:                      data xmmx
+  b:                      data xmmx const fconst integer float
+Variants:
+  mul data data
+  mul data integer
+  mul data const
+  mul data float
+  mul data fconst
+  mul data xmmx
+  mul xmmx xmmx
+  mul xmmx data
+  mul xmmx integer
+  mul xmmx const
+  mul xmmx float
+  mul xmmx fconst
+
+div a b div-zero-branch
+Divide the value of register a by value b or value of register b
+If either operand is a floating point nubmer, the operation will be performed using xmm registers
+If dividing a data register and a "div-zero-branch" operand is provided, it will jump to the specified branch target if the value of b is zero.
+If dividing a data register and a "div-zero-branch" is not provided, then it will set status to "DIVISION_BY_ZERO" and terminate execution if the value of b is zero.
+Floating point division by zero is unchecked (supposedly it doesn't cause floating point exceptions)
+Typespecs:
+  a:                      data xmmx
+  b:                      data xmmx const fconst integer float
+  div-zero-branch:        branch
+Variants:
+  div data data
+  div data integer
+  div data const
+  div data float
+  div data fconst
+  div data xmmx
+  div xmmx xmmx
+  div xmmx data
+  div xmmx integer
+  div xmmx const
+  div xmmx float
+  div xmmx fconst
+  div data data div-zero-branch
+  div data integer div-zero-branch
+  div data const div-zero-branch
+  div data float div-zero-branch
+  div data fconst div-zero-branch
+  div data xmmx div-zero-branch
+
+and destination source
+Apply bitwise AND to a data register
+Typespecs:
+  destination:            data
+  source:                 data integer const
+Variants:
+  and data data
+  and data integer
+  and data const
+
+or destination source
+Apply bitwise OR to a data register
+Typespecs:
+  destination:            data
+  source:                 data integer const
+Variants:
+  or data data
+  or data integer
+  or data const
+
+xor destination source
+Apply bitwise XOR to a data register
+Typespecs:
+  destination:            data
+  source:                 data integer const
+Variants:
+  xor data data
+  xor data integer
+  xor data const
+
+assign destination-register source
+Assign the value of source to a register
+The "Unusual Varaints" differ significantly.
+Typespecs:
+  destination:            data xmmx address-offset
+  source:                 data xmmx stackreg const fconst address-offset context-property integer float string
+Common Variants:
+  assign data data
+  assign data integer
+  assign data const
+  assign data string
+  assign data xmmx
+  assign data dloat
+  assign data fconst
+  assign xmmx xmmx
+  assign xmmx data
+  assign xmmx integer
+  assign xmmx const
+  assign xmmx string
+  assign xmmx float
+  assign xmmx fconst
+Unusual variants:
+  assign data context-property
+    fetch a context property and assign it to a data register
+  assign data address-offset
+    calculate the offset of an address register and assign it to a data register
+  assign data stackreg
+    calculate the relative stack position and assign it to a data register
+    (stack position relative to the stack "floor" [base position when the current context was entered])
+  assign address-offset data
+    offset an address register by a value taken from a data register
+  assign address-offset const
+    offset an address register by a integer constant
+  assign address-offset integer
+    offset an address register by an integer immediate
+
+shift-left destination source
+Apply a bitwise left shift to a data register
+Typespecs:
+  destination:            data
+  source:                 data integer const
+Variants:
+  shift-left data data
+  shift-left data integer
+  shift-left data const
+
+shift-right destination source
+Apply a bitwise right shift to a data register
+Typespecs:
+  destination:            data
+  source:                 data integer const
+Variants:
+  shift-right data data
+  shift-right data integer
+  shift-right data const
+
+rotate-left destination source
+Apply a bitwise left rotation to a data register
+Typespecs:
+  destination:            data
+  source:                 data integer const
+Variants:
+  rotate-left data data
+  rotate-left data integer
+  rotate-left data const
+
+rotate-right destination source
+Apply a bitwise right rotation to a data register
+Typespecs:
+  destination:            data
+  source:                 data integer const
+Variants:
+  rotate-right data data
+  rotate-right data integer
+  rotate-right data const
+
+inc destination
+Add 1 to the value of a data register
+Typespecs:
+  destination:            data
+Variants:
+  inc data
+
+dec destination
+Subtract 1 from the value of a data register
+Typespecs:
+  destination:            data
+Variants:
+  dec data
+
+not destination
+Apply bitwise NOT to a data register
+Typespecs:
+  destination:            data
+Variants:
+  not data
+
+negate destination
+Multiply a data register by -1
+Typespecs:
+  destination:            data
+Variants:
+  negate data
+
+goto branch
+perform an unconditonal jump
+Typespecs
+  branch:                 data
+Variants:
+  goto branch
+
+if OPT-format a cmp b branch
+Perform a conditional branch
+Typespecs:
+  OPT-vec-format:         vec-float-format
+    This assigns an instruction suffix for use with floating-point/SSE2 comparisons
+    This is implicit in all variants (though irrelevant in integer-based comparators)
+  a:                      data xmmx integer const fconst float
+  cmp:                    comparator
+  b:                      data xmmx integer const fconst float
+  branch:                 branch
+Variants:
+  if data comparator data branch
+  if data comparator integer branch
+  if data comparator const branch
+  if data comparator float branch
+  if data comparator fconst branch
+  if integer comparator data branch
+  if const comparator data branch
+  if float comparator data branch
+  if fconst comparator data branch
+  if xmmx comparator xmmx branch
+  if xmmx comparator data branch
+  if xmmx comparator float branch
+  if xmmx comparator fconst branch
+  if xmmx comparator integer branch
+  if xmmx comparator const branch
+  if float comparator xmmx branch
+  if fconst comparator xmmx branch
+  if data comparator xmmx branch
+  if integer comparator xmmx branch
+  if const comparator xmmx branch
+
+ccall OPT-destination c-function
+Call a C function and optionally assign its result to a data register
+NOTE:  For the time being, only C functions with simple function signatures that are easy to call from Assembly Language are supported,
+       and the "tcall" interface is going to be preferred mechanism for TACTYK programs to interface with the host application.
+NOTE-1:  The specification here is slgithly simplified to omit a minor hack in the current implementation
+         (ccalls were implemented prior to optional operands, so a "null" operand and some ugly overloading were used)
+Typespecs:
+  OPT-destination:        data
+  c-function:             capi
+Variants:
+  tcall data capi
+  tcall capi none
+
+tcall t-function
+Call a TACTYK-API function
+TACTYK API functions use only a pointer to the context data structure and are expected to do I/O by reference
+  Expected behavior of t-api fucntions is to read the exposed register contents from the context data structure to obtain arguments and
+  overwrite the exposed register contents to return any results.
+  This should more easily cover the many cases which would otherwise require a complex interface.
+Typespecs:
+  t-function:             tapi
+Variants:
+  tcall tapi
+
+lwcall branch
+Perform a lightweight call
+This performs an "in-context" function call
+  It pushes the index of the next instruction onto the lecall stack, then unconditionally jumps to the specified branch target
+Typespecs:
+  branch:                 branch
+Variants:
+  lwcall branch
+
+lwreturn
+Return form a lightweight call
+  This pops an instruction index off the lwcall stack and jumps to it.
+Typespecs:
+  Nothing!
+Variants:
+  lwreturn
+
+mctxpush
+Push a new stash onto the microcontext stash stack.
+  This affects the region of memory which stash operations apply to.
+Typespecs:
+  Nothing!
+Variants:
+  mctxpush
+
+mctxpop
+Pop a stash off microcontext stash stack.
+  This affects the region of memory which stash operations apply to.
+  NOTE:  This only changes a pointer and does not remove any existing data from the stash.
+Typespecs:
+  Nothing!
+Variants:
+  mctxpop
+
+mctxjump index
+Explicitly select a microcontext stash entry to use for stash operations.
+Typespecs:
+  index:                  data integer const
+Variants:
+  mctxjump data
+  mctxjump integer
+  mctxjump const
+
+tvmpush program-index function-index
+TACTYK Virtual Machine Call
+tvmcalls are calls from one tactyk program into another tactyk program.  A partial context switch is performed to prevent programs from
+  interfering with each other or accessing private data
+  This is complete context switch from the perspective of a tactyk program, but only a partial switch from the host/runtime perspective.
+Initiate a tvmcall bypushing a new tvmcall entry onto the tvm stack
+NOTE:  tvmcall set up is split to allow data registers to be used to reference a function to initiate the call, then replaced with intended
+  arguments before performing the jump.
+Typespecs:
+  program-index:          data integer const
+    "Nth" program loaded into the TACTYK Virtual Machine.
+  function-index:         data integer const
+    "Nth" declared branch target within the loaded program
+Variants:
+  tvmpush data data
+  tvmpush data const
+  tvmpush data integer
+  tvmpush const data
+  tvmpush const const
+  tvmpush const integer
+  tvmpush integer data
+  tvmpush integer const
+  tvmpush integer integer
+
+tvmjump
+Perform the tvm call into the function referenced by the immediately preceding tvmpush
+typespecs:
+  Nothing!
+Variants:
+  tvmjump
+
+tvmreturn
+return from a tvm call
+typespecs:
+  Nothing!
+Variants:
+  tvmreturn
+
+cpuclocks
+This is a diagnostic function which reads CPU cycle count and writes it to a diagnostic proprety.
+Its results are not accessible to scripts.
+Its purpose is to aid in performance testing.
+This will probably be removed in favor of simply expecting that performance testing be conducted exclusively in native code with a conventional
+high-resolution timer.
+
+stash   OPT-swap dest-0 source-0 ? OPT-swap dest-1 source-1 ? ... ? OPT-swap dest-15 source-15
+Transfer data between registers and the stash or transfer data within the stash
+This uses a variable-length argument list.  Each set of entries in the arguments list defines a stash transfer.
+Typespecs:
+  OPT-swap:               "swap"
+    This is an inline typespec - if a "swap" token is present and in an appropriate location, then the stash transfer will be a swap operation isntead
+    of an assignment operation.
+  dest-N:                 data xmmx address stash-addr stash-item stash-item-low stash-item-high
+  source-N:               data xmmx address stash-addr stash-item stash-item-low stash-item-high
+Variants:
+  stash ? data stash-item ?
+  stash ? data stash-item-low ?
+  stash ? data stash-item-high ?
+  stash ? swap data stash-item ?
+  stash ? swap data stash-item-low ?
+  stash ? swap data stash-item-high ?
+  stash ? stash-item data ?
+  stash ? stash-item-low data ?
+  stash ? stash-item-high data ?
+  stash ? swap stash-item data ?
+  stash ? swap stash-item-low data ?
+  stash ? swap stash-item-high data ?
+  stash ? xmmx stash-item ?
+  stash ? xmmx stash-item-low ?
+  stash ? xmmx stash-item-high ?
+  stash ? swap xmmx stash-item ?
+  stash ? swap xmmx stash-item-low ?
+  stash ? swap xmmx stash-item-high ?
+  stash ? stash-item xmmx ?
+  stash ? stash-item-low xmmx ?
+  stash ? stash-item-high xmmx ?
+  stash ? swap stash-item xmmx ?
+  stash ? swap stash-item-low xmmx ?
+  stash ? swap stash-item-high xmmx ?
+  stash ? stash-item stash-item ?
+  stash ? stash-item stash-item-low ?
+  stash ? stash-item stash-item-high ?
+  stash ? stash-item-low stash-item ?
+  stash ? stash-item-high stash-item ?
+  stash ? swap stash-item stash-item-low ?
+  stash ? swap stash-item stash-item-high ?
+  stash ? swap stash-item-low stash-item ?
+  stash ? swap stash-item-high stash-item ?
+  stash ? stash-item-low stash-item-low ?
+  stash ? stash-item-low stash-item-high ?
+  stash ? stash-item-high stash-item-low ?
+  stash ? stash-item-high stash-item-high ?
+  stash ? swap stash-item stash-item ?
+  stash ? swap stash-item-low stash-item-low ?
+  stash ? swap stash-item-low stash-item-high ?
+  stash ? swap stash-item-high stash-item-low ?
+  stash ? swap stash-item-high stash-item-high ?
+  stash ? addr stash-addr ?
+  stash ? stash-addr addr ?
