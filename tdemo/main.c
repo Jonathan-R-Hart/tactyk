@@ -78,12 +78,10 @@ int main() {
 
     printf("%s\n", TACTYK_SE__DESCRIPTION);
 
-    tactyk_visa__init("rsc/tactyk_core.visa");
+    tactyk_visa__init("rsc", "tactyk_core.visa");
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
-    emitctx->visa_file_prefix = "rsc/";
 
     tactyk_visa__init_emit(emitctx);
-    tactyk_pl__init();
     struct tactyk_asmvm__VM *vm = tactyk_asmvm__new_vm();
     struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
 
@@ -114,7 +112,8 @@ int main(int argc, char *argv[], char *envp[]) {
 
     printf("%s\n", TACTYK_SE__DESCRIPTION);
 
-    char *visa_fname = "rsc/tactyk_core.visa";
+    char *visa_directory_name = "rsc";
+    char *visa_fname = "tactyk_core.visa";
 
     bool printctx = false;
 
@@ -130,12 +129,10 @@ int main(int argc, char *argv[], char *envp[]) {
         }
     }
 
-    tactyk_visa__init(visa_fname);
+    tactyk_visa__init(visa_directory_name, visa_fname);
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
                                         //tactyk_visa__init(fname);
-    emitctx->visa_file_prefix = "rsc/";
     tactyk_visa__init_emit(emitctx);
-    tactyk_pl__init();
     struct tactyk_asmvm__VM *vm = tactyk_asmvm__new_vm();
     struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
 

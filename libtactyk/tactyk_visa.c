@@ -43,10 +43,13 @@ struct tactyk_dblock__DBlock *tactyk_visa_spec;
 // a non-null "flag" indicator to insert into
 struct tactyk_dblock__DBlock *TACTYK_VISA_FLAG;
 
-void tactyk_visa__init(char *fname) {
+char *rsc_directory_name;
+
+void tactyk_visa__init(char *rsc_dname, char *visa_fname) {
 
     if (initialized) return;
     initialized = true;
+    rsc_directory_name = rsc_dname;
 
     visa_hl_subroutines = tactyk_dblock__new_table(16);
     tactyk_dblock__put(visa_hl_subroutines, "instruction", tactyk_visa__mk_instruction);
@@ -79,6 +82,8 @@ void tactyk_visa__init(char *fname) {
     //                  is only about consistancy and correctness.)
     //
     // Afterward, apply the configuration by invoking the handler for component top-level item in the data structure
+    char fname[1024];
+    snprintf(fname, 1024, "%s/%s", rsc_directory_name, visa_fname);
     FILE *f = fopen(fname, "r");
     if (f == NULL) {
         error("VIRTUAL-ISA -- specification file not found", NULL);
@@ -205,9 +210,10 @@ bool tactyk_visa__mk_subroutine(struct tactyk_emit__Context *ctx, struct tactyk_
 }
 bool tactyk_visa__ld_header(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
     struct tactyk_dblock__DBlock *name = vopcfg->token->next;
-    struct tactyk_dblock__DBlock *fname = tactyk_dblock__concat(NULL, ctx->visa_file_prefix, name);
+    char fname[512];
+    tactyk_dblock__export_cstring(fname, 512, name);
     char buf[1024];
-    tactyk_dblock__export_cstring(buf, 1024, fname);
+    snprintf(buf, 1024, "%s/%s", rsc_directory_name, fname);
     FILE *f = fopen(buf, "r");
     fseek(f, 0, SEEK_END);
     int64_t len = ftell(f);

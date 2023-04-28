@@ -1,0 +1,158 @@
+LIBTACTYK Tactyk interface for host applications
+
+This document covers aspects of the TACTYK runtime which are to be used by host applications to load and interface with TACTYK programs.
+
+A BRIEF OVERVIEW
+
+Here is how, with just a few simple function calls, the TACTYK runtime can be set up and used to load and run a TACTYK script:
+  
+  // Setup backend compilation and program loading components
+  tactyk_init();
+  tactyk_visa__init("rsc", "tactyk_core.visa");
+  struct tactyk_emit__Context *emitctx = tactyk_emit__init();
+  tactyk_visa__init_emit(emitctx);
+  
+  // Setup the runtime components.
+  struct tactyk_asmvm__VM *vm = tactyk_asmvm__new_vm();
+  struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
+  
+  // Setup builtin scripting APIs
+  tactyk_debug__configure_api(emitctx);
+  tactyk_emit_svc__configure(emitctx);
+  
+  // Setup a custom scripting API
+  tactyk_emit__add_c_apifunc(emitctx, "very_capi_function", my_very_CAPI_function);
+  tactyk_emit__add_tactyk_apifunc(emitctx, "very_tapi_function", my_very_TAPI_function);
+  
+  // Load, compile, and link a program [to the runtime]
+  struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
+  tactyk_pl__load(plctx, "MY_VERY_TACTYK_PROGRAM_CODE");
+  struct tactyk_asmvm__Program *program = tactyk_pl__build(plctx);
+  tactyk_asmvm__add_program(ctx, prg);
+  
+  // call a TACTYK function
+  tactyk_asmvm__invoke(ctx, program, "MY_VERY_TACTYK_PROGRAM_FUNCTION");
+
+
+INTIALIZATION:
+
+TACTYK static initialization:         tactyk_init();
+  This sets up required data structures used by various tactyk components.
+  Specifically, it sets up:
+    A random number generator
+    error and warning handlers
+    Managed object storage
+    tactyk_pl function map
+    tactyk_pl defaultmemory layout
+    And if the USE_TACTYK_ALLOCATOR compilation option is set, it also sets up a custom mmap-based memory allocator 
+
+Virtual ISA initialization:           tactyk_visa__init(resource_directoryname, visa_filename)
+  Loads a Virtual ISA configuration file.
+  The name of a resource directory and the name of a Virtual ISA config file are needed.
+    The config file is assumed to be located inside the resource directory (use a relative file name).
+  The resource directory should either be an absolute path or a path relative to the application's working directory.
+
+Emit interface initialization:        struct tactyk_emit__Context *emitctx = tactyk_emit__init()
+  Instantiate and return a new emit interface context
+    (A data structure used to hold specifications and intermediate products).
+
+Emit interface configuration:         tactyk_visa__init_emit(emitctx)
+  Apply the loaded Virtual ISA configuration to the emit context.
+
+API CONFIGURATION
+
+For a TACTYK script to directly interact with external code, it needs to have a set of functions provided.
+There are two kinds of external functions which TACTYK scripts can [safely] call:
+  C functions which only use integer and floating point arguments and only return an integer or return nothing.
+    NOTE: presently, tactyk only partially understands Unix-64 ABI - it ignores things passed on the stack and the x87 FPU,
+          so only up to 6 integers and 8 floating point numbers may be passed.
+          And, even if/when getting arond to a more complete handling of Unix-64 calls, it still seems more appropriate to
+          insist on using "Tactyk-ABI" calls (explained next).
+  C functions which accept a pointer to tactyk context (and which operate on data exposed by the context data structure).
+
+Attach a Conventional C function:     tactyk_emit__add_c_apifunc(emitctx, "very_capi_function", my_very_CAPI_function);
+Attach a "TACTYK-ABI" function:       tactyk_emit__add_tactyk_apifunc(emitctx, "very_tapi_function", my_very_TAPI_function);
+
+Additionally, there are also a few builtin functions which can also be attached
+
+Serial debug functions:               tactyk_debug__configure_api(emitctx);
+  Functions for dumping test representation ofthe current TACTYK context state.
+
+Dynamic compilation interface:        tactyk_emit_svc__configure(emitctx);
+  Functions for allowing scripts to compile and load more scripts.
+  This is intended to eventually allow high-level languages to be compiled and run without relying on any components
+  outside of the tactyk sandbox.
+
+PROGRAM LOADING AND INVOCATION
+
+TACTYK-PL context initialization:     struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
+  This sets up data structures used by TACTYK-PL to hold intermediate products while processing the tactyk "native"
+  assembly-like language.
+
+Load a script program:                tactyk_pl__load(plctx, "MY_VERY_TACTYK_PROGRAM_CODE");
+  Modular loading is also supported - additional calls to tactyk_pl__load() prior to building causes it to effectively
+  concatenate each loaded script.
+  The only restriction on this is that each contained data structure passd to tactyk_pl__load() must be complete.
+
+Build the loaded program:             struct tactyk_asmvm__Program *program = tactyk_pl__build(plctx);
+Link the loaded program to the VM:    tactyk_asmvm__add_program(ctx, prg);
+
+Invoke a program fucntion:            tactyk_asmvm__invoke(ctx, program, "MY_VERY_TACTYK_PROGRAM_FUNCTION");
+
+Alternatively, if you want a boolean value returned indicating whether or not the fucntion invocation was successful:
+  bool success = tactyk_asmvm__call(ctx, program, "MY_VERY_TACTYK_PROGRAM_FUNCTION")
+
+Directly returned results are not supported - pick a register to place a result on and have the host application access
+the register, like so:
+  if (tactyk_asmvm__call(ctx, program, "MY_VERY_TACTYK_PROGRAM_FUNCTION")) {
+    my_very_result = ctx->reg.rA
+  }
+
+
+TACTYK CONTEXT (data structure)
+
+The TACTYK Context data structure (struct tactyk_asmvm__Context) represents the current execution state of a TACTYK context.
+Member variables in it are set directly by tactyk (either the script or internal control logic).
+Any changes to anything in the TACTYK context will directly alter what a script program "sees" next time control is passed to
+it or returned to it.
+
+Direct manipuation of the TACTYK context is the preferred mechanism for Host applications to interface with script programs
+
+The Noteable aspects of the TACTYK context are as follows:
+
+context.reg
+  This is a snapshot of the register file.
+  context.reg.[rA-rF] are the data registers (which hold arbitrary 64-bit integers)
+  context.reg.[xA-xM] are the xmm registers
+    These usually hold floating point numbers, though in a future revision [SSE2 support], these are expected to also hold packed
+integers and floating point numbers
+  context.reg.[addr1-addr4] are address registers (see below).
+  Parameters and return values should be passed by writing to it and reading from it.
+  Registers may be freely allocated, so there is no predefined standard for how to use them to pass data
+    (Bring Your Own Calling Convention!)
+
+context.active_memblocks[N] and context.reg.addrN
+  These properties are the active memory bindings.
+  The address register is effecively a pointer to an object
+    Be careful with pointers taken from TACTYK address registers, as scripts can freely select any byte offset between the start
+    of an array and the offset of the last object in the array.
+  context.active_memblocks[N] is the low-level representation of a memblock
+  Dynamically memory binding can be accomplished by overwriting context.active_memblocks[N] and context.reg.addrN
+    Assign a pointer to context.active_memblocks[N].base_address and context.reg.addrN
+    Assign the object size (in bytes) to context.active_memblocks[N].element_bound
+    Assign the array size (in bytes) to context.active_memblocks[N].array_bound
+      (object size * element count)
+    Ignore or clear or assign something invalid to context.active_memblocks[N].memblock_index
+      (TACTYK does not use memblock_index - It is there for high-level code to get an objective reference to an entry in the memblocks table.)
+    Assign an object byte offset to context.active_memblocks[N].offset
+      (object pointer - base address)
+      Also, if this is non-zero, assign the actual object pointer to context.reg.addrN instead of the base address
+
+context.microcontext_stack[context.microcontext_stack_offset]
+  The microcontext stack is generally used for storing local variables (see struct tactyk_asmvm__MicrocontextStash in tactyk_asmvm.h)
+  The "A-Z" entries are general-purpose storage.
+  The addrN entries are stored memory bindings.
+  microcontext_stack_offset indicates which entry is at the top of the stack
+  mctx_stack_floor indicates the base position of the currently executing program's view of the micricontext stack.
+
+For more details, the data structures are defined in tactyk_asmvm.h

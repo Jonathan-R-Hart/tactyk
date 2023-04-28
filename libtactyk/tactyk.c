@@ -6,6 +6,7 @@
 
 #include "tactyk.h"
 #include "tactyk_alloc.h"
+#include "tactyk_pl.h"
 
 // simple and safe random number generator
 //          -- safe if safe means favoring a secure PRNG over something one has personally invented.
@@ -69,5 +70,7 @@ void tactyk_init() {
     #ifdef USE_TACTYK_ALLOCATOR
     tactyk_alloc__init();
     #endif // USE_TACTYK_ALLOCATOR
+
+    tactyk_pl__init();
 }
 

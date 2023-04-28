@@ -79,8 +79,6 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     ctx->random_const_fs = tactyk__rand_uint64() & 0x3fffffff;
     ctx->random_const_gs = tactyk__rand_uint64() & 0x3fffffff;
 
-    ctx->visa_file_prefix = "";
-
     ctx->api_table = tactyk_dblock__new_table(64);
     ctx->c_api_table = tactyk_dblock__new_table(64);
     ctx->visa_token_constants = tactyk_dblock__new_table(512);
