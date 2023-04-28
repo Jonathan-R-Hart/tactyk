@@ -2,6 +2,8 @@ TACTYK_CORE Virtual Instructon Set Architecture
 
 This document covers the main TACTYK Virtual ISA (rsc/tactyk_core.txt).
 
+For details on how to interpret this document, please review the Virtual ISA documentation.  In particular, focus on the "type" operator and how it relates to code template selection.
+
 
 TYPE SPECIFICATIONS
 

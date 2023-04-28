@@ -86,6 +86,19 @@ typespec data
       value rF
   pick D
 
+typespec word
+  select-operand
+    case byte i8
+      pick B
+    case word i16
+      pick W
+    case dword i32
+      pick D
+    case qword i64
+      pick Q
+    case float
+      pick X
+
 typespec stackreg
   select-operand
     case mctx.pos mcxtstack.pos mctx.position mcxtstack.position
@@ -388,17 +401,7 @@ instruction bind
 #          anything but data reguisters and the data content of listed memory blocks.))
 instruction load
   operand
-    select-operand
-      case byte i8
-        pick B
-      case word i16
-        pick W
-      case dword i32
-        pick D
-      case qword i64
-        pick Q
-      case float
-        pick X
+    type word
   operand
     type data xmmx
     $DEST__DATA_REG $VALUE
@@ -603,17 +606,7 @@ instruction load
 
 instruction store
   operand
-    select-operand
-      case byte i8
-        pick B
-      case word i16
-        pick W
-      case dword i32
-        pick D
-      case qword i64
-        pick Q
-      case float
-        pick X
+    type word
   operand
     type address
     $ADDRESS_REGISTER $VALUE

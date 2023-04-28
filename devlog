@@ -1,3 +1,7 @@
+28 Apr 2023
+
+Move word size type specification used in load and store operations to a named typespec
+
 27 Apr 2023
 Wrote documentation for the general-purpose structured text used for all TACTYK code and configuration inputs.
 Wrote new documentation covering TACTYK Virtual Instruction Set Architecture.
