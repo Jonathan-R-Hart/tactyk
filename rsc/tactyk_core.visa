@@ -1489,7 +1489,6 @@ instruction if
     # Comparisons of xmmx register with data register assumes that the xmmx register is a float and the data register
     # is an integer
     # Floating point comparisons wherein neither operand is stored on an xmmx register are unspported
-    #   (due to only one xmmx temp register reserved)
     case XTXL
       code
         mov$VECFMT xTEMPA, $A
@@ -2449,9 +2448,9 @@ typespec vec-float-format
       $VECFMT pd
     case ps PS
       $VECFMT ps
-    case pd SD
+    case sd SD
       $VECFMT sd
-    case ps SS
+    case ss SS
       $VECFMT ss
 
 typespec xmmx
