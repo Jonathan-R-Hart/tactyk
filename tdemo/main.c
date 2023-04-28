@@ -82,7 +82,6 @@ int main() {
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
 
     tactyk_visa__init_emit(emitctx);
-    tactyk_pl__init();
     struct tactyk_asmvm__VM *vm = tactyk_asmvm__new_vm();
     struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
 
@@ -134,7 +133,6 @@ int main(int argc, char *argv[], char *envp[]) {
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
                                         //tactyk_visa__init(fname);
     tactyk_visa__init_emit(emitctx);
-    tactyk_pl__init();
     struct tactyk_asmvm__VM *vm = tactyk_asmvm__new_vm();
     struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
 

@@ -144,7 +144,6 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     emitctx = tactyk_emit__init();
 
     tactyk_visa__init_emit(emitctx);
-    tactyk_pl__init();
 
     vm = tactyk_asmvm__new_vm();
     vmctx = tactyk_asmvm__new_context(vm);
