@@ -3,6 +3,8 @@ Wrote the instruction section for the new documentation of the tactyk_core Virtu
 
 Move word size type specification used in load and store operations to a named typespec
 
+Move Virtual-ISA resource directory specification to the V-ISA init function.
+
 27 Apr 2023
 Wrote documentation for the general-purpose structured text used for all TACTYK code and configuration inputs.
 Wrote new documentation covering TACTYK Virtual Instruction Set Architecture.

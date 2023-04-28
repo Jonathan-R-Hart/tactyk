@@ -140,9 +140,8 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
 
     // should make configuration mutable - some tests will need to load alternative virtual ISA specifications that include special instructions which test
     //      the integrity of the sandbox.
-    tactyk_visa__init("rsc/tactyk_core.visa");
+    tactyk_visa__init("rsc", "tactyk_core.visa");
     emitctx = tactyk_emit__init();
-    emitctx->visa_file_prefix = "rsc/";
 
     tactyk_visa__init_emit(emitctx);
     tactyk_pl__init();
