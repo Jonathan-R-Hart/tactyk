@@ -1,3 +1,127 @@
 TACTYK-TEST - Semi-automated test system for tactyk Virtual ISAs
 
-This document covers the testing interface for validating virtual ISAs (and general regression testing)...  Or it will when it gets written...
+This document covers the TACTYK Semi-Automated Virtual ISA testing platform.  (full automation requires only a decision to invoke it form the build script)
+
+TACTYK-TEST runs a collection of test scripts (specifially, the scripts in the tests directory).  Each test script runs a series of commands.  A test passes if it
+completes execution without producing any [unexpected] errors, if all expected state transitions are observed, and if no unexpected state transitions are observed.
+
+Test scripts generally load and compile one or more tactyk programs, then run a series of script functions interleaved with test functions.  The script functions
+are tactyk programs written to generate and invoke code using specific Virtual-ISA code templates.  The test functions provide athe set of state transitions which
+the preceding tactyk code invoke is expected to apply to the tactyk context.
+
+The test system maintains two data tactyk Context data structures.  One of them is the actual context which the script runs within.  The other Context data structure 
+is a "shadow" context which [apart from some minor bookkeeping] is updated from expected state transitions.  Every time a test command is run, the "Shadow" Context is
+compared with the "Real" Context - If the shadow context and the real context are identical (each byte of state transitoin accounted for), then the test command passes,
+otherwise it fails and reports the location in the Context data structure where the deviation was observed (if the property is known, it reports it by name and with
+a presumed data type, and if not known, a byte offset is given).
+
+Each test script is run in a separate system process.  Each test process initializes and configures its own tactyk runtime, runs a single script, and reports the results
+to the [parent] test shell through shared memory.  The test shell also monitors each test process to determine if it has either been terminated by a signal or has been
+running for an excessive amount of time - misbehaving processes are accounted as test failures.  And, since child processes are in use, the test shell also is set up able 
+to run any number of tests in parallel.
+
+The tactyk test ystem is invoked from a system shell in this manner:
+
+  ./ttest --jobs=16 tests/*
+
+"--jobs=N" specifies how many processes to use.
+"tests/*" lists all test scripts in the tests directory and passes them to the test shell as inputs.
+
+The test system then invokes each input script, prints a single-char code to indicate a pass/fail/error result, then exits.  Additionally, the test system generates a log
+file which contains the report (ttest.log).  If errors or failures occur, the log file will contain the reported erorr message for the failed test, as well as a text 
+representation of the main context data structures.
+
+TEST SCRIPTS
+
+Like the Virtual ISA and TACTYK-PL, TACTYK-TEST also uses tactyk structured text as the data format for its input (and even re-uses tactyk components to handle it).
+
+PROGRAM <name>
+  [SCRIPT]
+Load, build, and link a program to the Context.
+The subordinate content of the PROGRAM data structure is the script to load.
+<name> binds the program to a name (referenced by other test commands to more easily keep track of everything)
+
+ALLOC <name>
+  [data]
+Allocate and initialize a memory block and attach it to the program.
+This was added to the test very early and mostly got ignored in favor of simply using tactyk-pl's memory initialization facilities.  The "bind" test uses it.
+
+EXEC <OPT-program> <function>
+  [OPT-test-functions]
+Run a script function
+if two arguments are provided, the first argument is the name of the program and the second is the fucntion to call.
+If only one argument is provided, then the most recently accessed program is used and the argument is the function to call.
+If the EXEC command contains subordinate data, then it is expected that the program will call one or more of the test system's callback functions.
+  The callback functions invoke the test functions provided in the subordinate data.
+
+TEST
+  [OPT-state-transitions]
+Apply a collection of state transitions to the shadow context, then compare the shadow context with the real context
+If the shadow context matches the real context, then proceed with the test.  If there is a deviation, fail and report the deviation.
+  
+  state-transition specifications:
+  status:               expected execution status
+  r[A-F]:               expected conventional register value
+  x[A-M]:               expected xmm register value
+  stack-lock:           expected tvm stack lock
+  stack-pos:            expected tvm stack position
+  stack-entry <index>:  tvm stack entry  NOTE:  Not all of these properties are assigned all at once.
+    dest-program:         Which program is being called into through a tvmcall
+    src-program:          Which program a tvmcall originated from.
+    jumptarget:           Which function [in dest] is being called into (may be specified either as the branch target or index into a list of branch targets)
+    returntarget:         Which instruction [in src] to reurn to (may be specified either as literal script-command index or as label and command offset)
+    src-lwcsfloor:        src-program lightweight call stack floor
+    src-mctxfloor:        src-program microcontext stack floor
+    src-lwcspos:          src-program lightweight call stack position
+    src-mctxpos:          src-program microcontext stack position
+  addr[1-4] <OPT-program> <memblock> <offset> <OPT-arraybound> <OPT elementbound>
+    expected memory binding.
+    <program> specifies which program memblock belongs to.  (default is the most recently accessed program)
+    <memblock> is the name of the memblock
+    <offset> specifies the address offset
+    <arraybound> and <elementbound> specify the layout.     (defaults are the memblock-provided layout parameters)
+  mem <OPT-program> <memblock> <index> <type> <value>
+    expected memblock value
+    <program> specifies which program memblock belongs to.  (default is the most recently accessed program)
+    <memblock> is the name of the memblock
+    <index> is the byte offset within the memblock to check
+    <type> is the data type & word-size of the expected value (options are "byte", "word", "dword", "qword", "float32", and "float64")
+    <value> is the expected value
+  callback <id>:        expected callback.  The test system uses a set of 8 callbacks, each with its own ID - the id must match.
+  stash <mctx-index> <field> <value>
+    stash entry test
+    <mctx-index> index (or stack position) of microcontext stash entry
+    <field> microcontext stash field name
+    <value> expected value,
+      data type is implicit:
+      strings are anything that starts with '
+      integers is any integer value or radix-16 (hexadecimal) value starting with "h." or a radix-2 (binary) value starting with "b."
+      floating point numbers are anythin else which correctly parses as such.
+  lwcstack <index> <value> <OPT-repetitions>
+    <index> is a lightweight call stack position
+    <value> is the expected value at said position
+    if specified, <repetitions> is the number of times the value is expected to repeat on the stack
+      (used for more easily handling recursive tests -- especially for recursive tests that fill the entire stack and deliberately overflow it)
+  program <name>:       expected program (used to recognize control transfer between tactyk programs)
+  rLWCSI:               expected lightweight call stack register value (literal stack position)
+  lwcs-floor:           expected lightweight call stack floor
+  rMCSI:                expected microcontext stack register value (literal stack position)
+  mctx-floor:           expected microcontext stack floor
+  arg[0-5]:             expected callback argument value (values tactyk is expected to have passed to the most recent C-API callback)
+
+RESUME
+  return control to tactyk after tactyk has yielded to the test system with a "break" instruction.
+
+RETURN
+  Set the value that will be "returned" to tactyk when returning to it with a CONTINUE instruction.
+
+CONTINUE
+  return control to tactyk after tactyk has invoked a "C-API" or a "T-API" function
+
+XMM-DISPLAYMODE
+  Helper function to set the data format used for text representation of xmm register content
+
+
+
+
+
