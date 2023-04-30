@@ -62,7 +62,6 @@ void tactyk_emit_svc__disconfigure(struct tactyk_emit__Context *emit_context) {
 }
 
 void tactyk_emit_svc__new(struct tactyk_asmvm__Context *asmvm_ctx) {
-    tactyk_emit__reset(tactyk_emit_svc__emitctx);
     tactyk_emit__init_program(tactyk_emit_svc__emitctx);
 }
 

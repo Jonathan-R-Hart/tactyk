@@ -1,0 +1,258 @@
+TACTYK_EMIT - dynamic compilation interface
+
+TACTYK compilation is accomplished with these functions:
+
+  // intiailize or reset emit context
+  struct tactyk_emit__Context *emitctx = tactyk_emit__init();
+  
+  // initialize (or reset) the emit context
+  tactyk_emit__init_program(emitctx);
+  
+  // load program code into the emit context
+  tactyk_emit__add_script_label(emitctx, label);
+  tactyk_emit__add_script_command(emitctx, tokens, raw_command);
+  
+  // build the program
+  tactyk_emit__compile(emitctx);
+  
+  // program reference
+  struct tactyk_asmvm__Program *program = emitctx->program;
+
+
+A BRIEF COMMENT ON "DBLOCKS"
+
+Functions tactyk_emit__add_script_label and tactyk_emit__add_script_command make use of a frequently used internal structure 
+called "DBLOCK" (or "data-block").  Loosely speaking, this data structure is a wierd amalgamation of strings, trees, associative 
+arrays, and raw binary data.  It was put in place as a means to consolidate a large amount of memory management code.  It may be 
+also be somewhat analogous to the high-level base Objects available in high-level duck-types languages (like Python and JavaScript).
+For the time being, it is preferred to keep this an internal data structure, but in order to describe the emit interface, the
+existence of it at least has to be admitted.  Consequently, the runtime emit interface is not intended to be directly used.  
+Anyway:  tactyk-structured-text files do get converted directly into a DBLOCK, and elements from them are what gets passed into
+the aformentioned emit functions.  And, for the adventurous, the usage in emit is only as a linked list of strings which have 
+declared sizes.
+
+It is easier to mention the DBLOCK structure here because the tactyk dynamic compilation interface [for scripts] directly builds 
+them.
+
+
+PROGRAM CONSTRUCTION
+
+Building a program with the emit interface is fairly simple:
+
+  tactyk_emit__add_script_label(emitctx, label)
+    Generate a branch target.  The next command appended is what the branch target will point at.
+    <emitctx> is the emit context.
+    <label> is a DBLOCK token containing the name of the branch target.
+
+  tactyk_emit__add_script_command(emitctx, tokens, raw_command)
+    Append a script command.
+    <emitctx>       The emit context.
+    <tokens>        A linked list of DBLOCKS which provide the name of the command and each argument.
+                    (linkage is through the DBLOCK "next" property)
+    <raw_command>   A reference to the parent dblock.  This is used for debugging.
+    
+    Each added script command is appended to the program.  
+    No processing or name resolution is performed until after the program is fully loaded.
+
+  tactyk_emit__compile(emitctx)
+    Compile all loaded script code.
+
+
+TACTYK EMIT-SVC 
+
+Emit-svc is a script-accesible dynamic compilation interface.  This takes the above-described emit interface and exposes it to
+tactyk scripts, allowing scripts to serve as compilers for high-level languages.
+
+The emit-svc interface is an optional component which must be enabled by the host application before in order to be usable within
+tactyk using the emit-svc configuration function:
+  tactyk_emit_svc__configure(emitctx)
+
+The emit-svc interface is a collection of TACTYK-API calls.  As TACTYK-API functions, these directly access register contents
+in order to accept parameters and return results.
+
+
+TACTYK-PL directive:  "use_vconstants"
+  If a tactyk program includes a "use_vconstants" directive, then TACTYK-PL will insert a set of named constants into a program's
+  constants table which may be used by a compiler to reference any Virtual-ISA token with a constant reference.
+  The loaded constants all use this format: ".<token>" (token name prefixed with a period).
+  
+  The code, "add rA rB" would be represented with these token handles by ".add .rA .rB"
+  
+  (the alternatives are either hard-coding all of these constants and never updating the Virtual-ISA or
+   using text representations for everything [which might get a bit tedious without macros])
+
+
+EMIT-SVC FUNCTIONS
+
+  tcall emit-new
+    Initialize a new program.
+    The emit interface only operates on one program at a time (and so does not need to use a handle).
+    arguments:
+      Nothing
+    return:
+      Nothing
+
+  tcall emit-build
+    compile the program and link it to the tactyk Context.
+    arguments:
+      Nothing
+    return:
+      rA      Program identifier (handle used for making tvmcalls into the compiled tactyk program)
+
+  tcall emit-mem
+    Define and allocate a memblock
+    NOTE:  There is no notion of "struct" or memory layout within emit-svc.  That's a high-level concept.
+           The emit interface only understands memory bounds.
+    arguments:
+      addr1   name (reference to bound memory containing a string)
+      rA      index of memblock name (offset within memory bound to addr1)
+      rB      length of memblock name (length of the string located at addr1[index])
+      rC      Number of objects to allocate
+      rD      Size of each object
+    return:
+      Nothing
+
+  tcall emit-mem-external
+    Declare a memblock.  
+    This just creates a memblock entry; the declared memblock is expected to be provided by the host application.
+    arguments:
+      addr1   name (reference to bound memory containing a string)
+      rA      index of memblock name (offset within memory bound to addr1)
+      rB      length of memblock name (length of the string located at addr1[index])
+    return:
+      Nothing
+  
+  tcall emit-mem-ref
+    Create a reference to a shared memblock
+    arguments:
+      addr1   name (reference to bound memory containing a string)
+      rA      index of memblock name (offset within memory bound to addr1)
+      rB      length of memblock name (length of the string located at addr1[index])
+    return:
+      Nothing
+  
+  tcall emit-mem-copy
+    Create a copy of an existing memblock
+    arguments:
+      addr1   name (reference to bound memory containing a string)
+      rA      index of memblock name (offset within memory bound to addr1)
+      rB      length of memblock name (length of the string located at addr1[index])
+    return:
+      Nothing
+
+  tcall emit-label
+    Create a branch target
+    arguments:
+      addr1   name (reference to bound memory containing a string)
+      rA      index of memblock name (offset within memory bound to addr1)
+      rB      length of memblock name (length of the string located at addr1[index])
+    return:
+      rA      index in function table of branch target (function handle for use in tvmcalls)
+  
+  tcall emit-intlabel
+    Create a branch target using an integer as the label namel
+    arguments:
+      rA      integer value to convert and use as a label name
+    return:
+      rA      index in function table of branch target (function handle for use in tvmcalls)
+    
+  tcall emit-cmd
+    Begin a command
+    arguments:
+      rA      V-ISA command identifier (see use_vconstants)
+    return:
+      Nothing
+  
+  tcall emit-token-1
+    Append one predefined token to the open command
+    arguments:
+      rA      V-ISA token identifier (see use_vconstants)
+    return:
+      Nothing
+  
+  tcall emit-token-2
+    Append two predefined tokens to the open command
+    arguments:
+      rA      V-ISA token identifier (see use_vconstants)
+      rB      V-ISA token identifier (see use_vconstants)
+    return:
+      Nothing
+  
+  tcall emit-token-3
+    Append three predefined tokens to the open command
+    arguments:
+      rA      V-ISA token identifier (see use_vconstants)
+      rB      V-ISA token identifier (see use_vconstants)
+      rC      V-ISA token identifier (see use_vconstants)
+    return:
+      Nothing
+  
+  tcall emit-token-4
+    Append four predefined tokens to the open command
+    arguments:
+      rA      V-ISA token identifier (see use_vconstants)
+      rB      V-ISA token identifier (see use_vconstants)
+      rC      V-ISA token identifier (see use_vconstants)
+      rD      V-ISA token identifier (see use_vconstants)
+    return:
+      Nothing
+  
+  tcall emit-token-5
+    Append five predefined tokens to the open command
+    arguments:
+      rA      V-ISA token identifier (see use_vconstants)
+      rB      V-ISA token identifier (see use_vconstants)
+      rC      V-ISA token identifier (see use_vconstants)
+      rD      V-ISA token identifier (see use_vconstants)
+      rE      V-ISA token identifier (see use_vconstants)
+    return:
+      Nothing
+  
+  tcall emit-token-6
+    Append six predefined tokens to the open command
+    arguments:
+      rA      V-ISA token identifier (see use_vconstants)
+      rB      V-ISA token identifier (see use_vconstants)
+      rC      V-ISA token identifier (see use_vconstants)
+      rD      V-ISA token identifier (see use_vconstants)
+      rE      V-ISA token identifier (see use_vconstants)
+      rF      V-ISA token identifier (see use_vconstants)
+    return:
+      Nothing
+  
+  tcall emit-text
+    Append a custom string token to the open command
+    arguments:
+      addr1   name (reference to bound memory containing a string)
+      rA      index of memblock name (offset within memory bound to addr1)
+      rB      length of memblock name (length of the string located at addr1[index])
+    return:
+      Nothing
+  
+  tcall emit-int
+    Append a custom integer value token to the open command
+    arguments:
+      rA      token integer value
+    return:
+      Nothing
+
+  tcall emit-float
+    Append a custom floating-point value token to the open command
+    arguments:
+      rA      token floating point value
+    return:
+      Nothing
+  
+  tcall end
+    Close the open command and append it to the program [via the underlying emit intrface].
+    arguments:
+      Nothing
+    return:
+      Nothing
+
+
+
+
+
+
+
