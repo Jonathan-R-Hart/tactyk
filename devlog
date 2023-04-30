@@ -1,4 +1,5 @@
 29 Apr 2023
+Wrote documentation for the tactyk emit interface
 
 Design corrections
   Combine tactyk_emit__reset() with tactyk_emit__init_program()
