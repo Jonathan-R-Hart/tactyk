@@ -147,7 +147,6 @@ struct tactyk_emit__Context {
 };
 
 struct tactyk_emit__Context* tactyk_emit__init();
-void tactyk_emit__reset(struct tactyk_emit__Context *emitctx);
 void tactyk_emit__dispose(struct tactyk_emit__Context *ctx);
 void tactyk_emit__error(struct tactyk_emit__Context *ctx, void *msg);
 

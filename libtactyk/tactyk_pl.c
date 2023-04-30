@@ -47,7 +47,6 @@ void tactyk_pl__init() {
 }
 
 struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx) {
-    tactyk_emit__reset(emitctx);
     struct tactyk_pl__Context *ctx = tactyk_alloc__allocate(1, sizeof(struct tactyk_pl__Context));
     ctx->emitctx = emitctx;
 

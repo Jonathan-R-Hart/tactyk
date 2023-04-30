@@ -84,7 +84,6 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     ctx->visa_token_constants = tactyk_dblock__new_table(512);
     ctx->visa_token_invmap = NULL;
     ctx->token_handle_count = 0;
-    ctx->has_visa_constants = false;
     ctx->operator_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
     ctx->typespec_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
     ctx->instruction_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_emit__subroutine_spec));
@@ -142,11 +141,36 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     return ctx;
 }
 
-void tactyk_emit__reset(struct tactyk_emit__Context *emitctx) {
-    emitctx->local_vars = tactyk_dblock__new_table(256);
-    emitctx->script_commands = tactyk_dblock__new_container(8, sizeof(struct tactyk_emit__script_command));
-    emitctx->code_template = tactyk_dblock__new(16);
-    emitctx->has_visa_constants = false;
+void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
+    ctx->local_vars = tactyk_dblock__new_table(256);
+    ctx->script_commands = tactyk_dblock__new_container(8, sizeof(struct tactyk_emit__script_command));
+    ctx->code_template = tactyk_dblock__new(16);
+    ctx->has_visa_constants = false;
+
+    ctx->symbol_tables = tactyk_dblock__new_table(128);
+    ctx->label_table = tactyk_dblock__new_table(256);
+    ctx->const_table = tactyk_dblock__new_table(64);
+    ctx->fconst_table = tactyk_dblock__new_table(64);
+    ctx->memblock_table = tactyk_dblock__new_table(64);
+
+    ctx->program = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__Program));
+    ctx->program->functions = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_asmvm__identifier));
+    tactyk_dblock__set_persistence_code(ctx->program->functions, 10);
+
+    tactyk_dblock__put(ctx->symbol_tables, "label", ctx->label_table);
+    tactyk_dblock__put(ctx->symbol_tables, "const", ctx->const_table);
+    tactyk_dblock__put(ctx->symbol_tables, "fconst", ctx->fconst_table);
+    tactyk_dblock__put(ctx->symbol_tables, "mem", ctx->memblock_table);
+    tactyk_dblock__put(ctx->symbol_tables, "capi", ctx->c_api_table);
+    tactyk_dblock__put(ctx->symbol_tables, "tapi", ctx->api_table);
+
+    ctx->program->memory_layout_ll = tactyk_dblock__new_container(TACTYK_ASMVM__MEMBLOCK_CAPACITY, sizeof(struct tactyk_asmvm__memblock_lowlevel));
+    tactyk_dblock__fix(ctx->program->memory_layout_ll);
+    tactyk_dblock__make_pseudosafe(ctx->program->memory_layout_ll);
+    ctx->program->memory_layout_hl = tactyk_dblock__new_managedobject_table(TACTYK_ASMVM__MEMBLOCK_CAPACITY, sizeof(struct tactyk_asmvm__memblock_highlevel));
+
+    tactyk_dblock__set_persistence_code(ctx->program->memory_layout_ll, 10);
+    tactyk_dblock__set_persistence_code(ctx->program->memory_layout_hl, 10);
 }
 
 // release all memory belonging to an emit context.
@@ -262,33 +286,6 @@ void tactyk_emit__add_tactyk_apifunc(struct tactyk_emit__Context *ctx, char *nam
 void tactyk_emit__add_c_apifunc(struct tactyk_emit__Context *ctx, char *name, void* func) {
     struct tactyk_dblock__DBlock *fctn = tactyk_dblock__from_uint((uint64_t)func);
     tactyk_dblock__put(ctx->c_api_table, name, fctn);
-}
-
-void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
-    ctx->symbol_tables = tactyk_dblock__new_table(128);
-    ctx->label_table = tactyk_dblock__new_table(256);
-    ctx->const_table = tactyk_dblock__new_table(64);
-    ctx->fconst_table = tactyk_dblock__new_table(64);
-    ctx->memblock_table = tactyk_dblock__new_table(64);
-
-    ctx->program = tactyk_alloc__allocate(1, sizeof(struct tactyk_asmvm__Program));
-    ctx->program->functions = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_asmvm__identifier));
-    tactyk_dblock__set_persistence_code(ctx->program->functions, 10);
-
-    tactyk_dblock__put(ctx->symbol_tables, "label", ctx->label_table);
-    tactyk_dblock__put(ctx->symbol_tables, "const", ctx->const_table);
-    tactyk_dblock__put(ctx->symbol_tables, "fconst", ctx->fconst_table);
-    tactyk_dblock__put(ctx->symbol_tables, "mem", ctx->memblock_table);
-    tactyk_dblock__put(ctx->symbol_tables, "capi", ctx->c_api_table);
-    tactyk_dblock__put(ctx->symbol_tables, "tapi", ctx->api_table);
-
-    ctx->program->memory_layout_ll = tactyk_dblock__new_container(TACTYK_ASMVM__MEMBLOCK_CAPACITY, sizeof(struct tactyk_asmvm__memblock_lowlevel));
-    tactyk_dblock__fix(ctx->program->memory_layout_ll);
-    tactyk_dblock__make_pseudosafe(ctx->program->memory_layout_ll);
-    ctx->program->memory_layout_hl = tactyk_dblock__new_managedobject_table(TACTYK_ASMVM__MEMBLOCK_CAPACITY, sizeof(struct tactyk_asmvm__memblock_highlevel));
-
-    tactyk_dblock__set_persistence_code(ctx->program->memory_layout_ll, 10);
-    tactyk_dblock__set_persistence_code(ctx->program->memory_layout_hl, 10);
 }
 
 bool tactyk_emit__Type(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
