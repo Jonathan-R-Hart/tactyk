@@ -7,6 +7,10 @@ Disable memory-bind stashing
     But the checks would require two static memory fetches, one dynamic memory fetch, and two comparisons
       (which seems a bit much for stash ops (which are supposed to be rapid))
 
+Build script modifications
+  Make symlinks if building the testing system or the demo, but not the tactyk library
+  Use a better path variable (CMAKE_CURRENT_SOURCE_DIR instead of CMAKE_SOURCE_DIR)
+
 29 Apr 2023
 Wrote documentation for the tactyk emit interface
 Removed the old overview document.  The operational aspects of TACTYk are now described by the documents in the doc directory, and

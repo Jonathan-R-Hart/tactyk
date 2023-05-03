@@ -36,14 +36,14 @@ add_executable(ttest
 find_package(SDL2 REQUIRED)
 
 target_include_directories(tdemo PRIVATE
-  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${SDL2_INCLUDE_DIRS}
 )
 target_include_directories(tactyk PRIVATE
-  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 target_include_directories(ttest PRIVATE
-  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries( tdemo tactyk ${SDL2_LIBRARIES} )
@@ -58,14 +58,22 @@ add_compile_definitions(
 add_compile_options( -m64 -fPIC )
 
 add_custom_command(
-  TARGET tactyk PRE_BUILD
+  TARGET ttest PRE_BUILD
   COMMAND ${CMAKE_COMMAND} -E create_symlink
-          ${CMAKE_SOURCE_DIR}/tests
-          ${CMAKE_CURRENT_BINARY_DIR}/tests
-  COMMAND ${CMAKE_COMMAND} -E create_symlink
-          ${CMAKE_SOURCE_DIR}/rsc
+          ${CMAKE_CURRENT_SOURCE_DIR}/rsc
           ${CMAKE_CURRENT_BINARY_DIR}/rsc
   COMMAND ${CMAKE_COMMAND} -E create_symlink
-          ${CMAKE_SOURCE_DIR}/examples
+          ${CMAKE_CURRENT_SOURCE_DIR}/tests
+          ${CMAKE_CURRENT_BINARY_DIR}/tests
+)
+
+
+add_custom_command(
+  TARGET tdemo PRE_BUILD
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_CURRENT_SOURCE_DIR}/rsc
+          ${CMAKE_CURRENT_BINARY_DIR}/rsc
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_CURRENT_SOURCE_DIR}/examples
           ${CMAKE_CURRENT_BINARY_DIR}/examples
 )
