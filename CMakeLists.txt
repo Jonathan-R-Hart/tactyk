@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(tactyk-p C CXX)
-project(tactyk-p VERSION 0.7.4)
+project(tactyk-p VERSION 0.7.5)
 
 add_library(tactyk
   libtactyk/tactyk.c
@@ -66,7 +66,6 @@ add_custom_command(
           ${CMAKE_CURRENT_SOURCE_DIR}/tests
           ${CMAKE_CURRENT_BINARY_DIR}/tests
 )
-
 
 add_custom_command(
   TARGET tdemo PRE_BUILD
