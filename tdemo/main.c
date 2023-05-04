@@ -170,10 +170,10 @@ int main(int argc, char *argv[], char *envp[]) {
         struct tactyk_asmvm__Program *prg = tactyk_pl__build(plctx);
         tactyk_asmvm__add_program(ctx, prg);
 
+        tactyk_asmvm__invoke(ctx, prg, "MAIN");
         for (int64_t i = 0; i < module_count; i += 1) {
             free(module_src[i]);
         }
-        tactyk_asmvm__invoke(ctx, prg, "MAIN");
     }
     free(module_src);
     exit(0);

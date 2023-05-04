@@ -1837,10 +1837,10 @@ instruction stash
         case swap
           pick W
     operand
-      type data xmmx address stash-addr stash-item stash-item-low stash-item-high
+      type data xmmx stash-item stash-item-low stash-item-high
       $DEST $VALUE
     operand
-      type data xmmx address stash-addr stash-item stash-item-low stash-item-high
+      type data xmmx stash-item stash-item-low stash-item-high
       $SRC $VALUE
     select-template
       case SiD SilD SihD
@@ -1915,33 +1915,33 @@ instruction stash
           xchg rTEMPA, gs:[microcontext.$DEST+random_const_GS]
           mov gs:[microcontext.$SRC+random_const_GS], rTEMPA
           xor rTEMPA, rTEMPA
-      case SaA
-        code
-          mov rTEMPA, fs:[$CONTEXT_ADDR + random_const_FS]
-          mov gs:[microcontext.$DEST+random_const_GS], rTEMPA
-          negate rTEMPA
-          add rTEMPA, $SRC
-          mov dword gs:[microcontext.$DEST+20+random_const_GS], %[$SRC]_32
-          mov rTEMPC, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-          mov gs:[microcontext.$DEST+8+random_const_GS], rTEMPC
-          mov rTEMPD_32, dword fs:[$CTX_MEMBLOCK_INDEX + random_const_FS]
-          mov dword gs:[microcontext.$DEST+16+random_const_GS], rTEMPD_32
-          xor rTEMPA, rTEMPA
-          xor rTEMPC, rTEMPC
-          xor rTEMPD, rTEMPD
-      case ASa
-        code
-          mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
-          mov fs:[$CONTEST_ADDR + random_const_FS]
-          mov $DEST, rTEMPA
-          add $DEST, dword gs:[microcontext.$SRC+20+random_const_GS]
-          mov rTEMPC, gs:[microcontext.$SRC+8+random_const_GS]
-          mov fs:[$CTX_ELEMENT_BOUND + random_const_FS], rTEMPC
-          mov rTEMPD_32, dword gs:[microcontext.$SRC+16+random_const_GS]
-          mov dword fs:[$CTX_MEMBLOCK_INDEX + random_const_FS], rTEMPD_16
-          xor rTEMPA, rTEMPA
-          xor rTEMPC, rTEMPC
-          xor rTEMPD, rTEMPD
+      #case SaA
+      #  code
+      #    mov rTEMPA, fs:[$CONTEXT_ADDR + random_const_FS]
+      #    mov gs:[microcontext.$DEST+random_const_GS], rTEMPA
+      #    negate rTEMPA
+      #    add rTEMPA, $SRC
+      #    mov dword gs:[microcontext.$DEST+20+random_const_GS], %[$SRC]_32
+      #    mov rTEMPC, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+      #    mov gs:[microcontext.$DEST+8+random_const_GS], rTEMPC
+      #    mov rTEMPD_32, dword fs:[$CTX_MEMBLOCK_INDEX + random_const_FS]
+      #    mov dword gs:[microcontext.$DEST+16+random_const_GS], rTEMPD_32
+      #    xor rTEMPA, rTEMPA
+      #    xor rTEMPC, rTEMPC
+      #    xor rTEMPD, rTEMPD
+      #case ASa
+      #  code
+      #    mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
+      #    mov fs:[$CONTEST_ADDR + random_const_FS]
+      #    mov $DEST, rTEMPA
+      #    add $DEST, dword gs:[microcontext.$SRC+20+random_const_GS]
+      #    mov rTEMPC, gs:[microcontext.$SRC+8+random_const_GS]
+      #    mov fs:[$CTX_ELEMENT_BOUND + random_const_FS], rTEMPC
+      #    mov rTEMPD_32, dword gs:[microcontext.$SRC+16+random_const_GS]
+      #    mov dword fs:[$CTX_MEMBLOCK_INDEX + random_const_FS], rTEMPD_16
+      #    xor rTEMPA, rTEMPA
+      #    xor rTEMPC, rTEMPC
+      #    xor rTEMPD, rTEMPD
   code
     jmp $NEXT_INSTRUCTION
 
