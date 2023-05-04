@@ -3,6 +3,12 @@ Fix a use-after-free error in the tactyk demo
   This was due to an oversight when releasing the buffer containing the raw script code. 
   - forgot that that buffer was treated as a persistant backing buffer for table keys.
 
+Rename the tactyk_asm memory binding updater.
+Add a dynamic object binding function to tactyk_asmvm
+  This sets up a temporary memory binding within the tactyk context.
+  The memory binding is assumed to be valid until a matching unbind function is called
+    the unbind function scans the context for the binding (scripts are allowed to move them) and resets it.
+
 2 May 2023
 Disable memory-bind stashing
   It directly conflicts with dynamic memory binding, and dynamic memory binding is preferred over it.

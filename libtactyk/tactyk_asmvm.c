@@ -9,6 +9,7 @@
 
 #include <sys/mman.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "tactyk.h"
 #include "tactyk_asmvm.h"
@@ -181,7 +182,7 @@ void tactyk_asmvm__get_mblock(struct tactyk_asmvm__Context *asmvm_context, void*
     *m_hl = mem_hl;
     *m_ll = mem_ll;
 }
-void tactyk_asmvm__update_dynamic_memblock(struct tactyk_asmvm__Context *asmvm_context, struct tactyk_asmvm__memblock_lowlevel *m_ll, int64_t active_index) {
+void tactyk_asmvm__update_declared_memblock(struct tactyk_asmvm__Context *asmvm_context, struct tactyk_asmvm__memblock_lowlevel *m_ll, int64_t active_index) {
     struct tactyk_asmvm__memblock_lowlevel *mem_ll = tactyk_dblock__index(asmvm_context->hl_program_ref->memory_layout_ll, m_ll->memblock_index);
     struct tactyk_asmvm__memblock_highlevel *mem_hl = tactyk_dblock__index(asmvm_context->hl_program_ref->memory_layout_hl, m_ll->memblock_index);
     mem_hl->data = m_ll->base_address;
@@ -204,5 +205,65 @@ void tactyk_asmvm__update_dynamic_memblock(struct tactyk_asmvm__Context *asmvm_c
             break;
         }
         //if active_index is anything else (presumably -1), dont attempt to update an address register
+    }
+}
+void tactyk_asmvm__bind(struct tactyk_asmvm__Context *asmvm_context, uint64_t index, void* object, uint64_t object_size, uint64_t object_count) {
+    if (index >= 4) {
+        char buf[256];
+        snprintf(buf, 256, "Invlaid dynamic binding index:  %ju\n", index);
+        error(buf, NULL);
+    }
+    struct tactyk_asmvm__memblock_lowlevel *mb = &asmvm_context->active_memblocks[index];
+    mb->array_bound = object_size*(object_count-1)+1;
+    mb->element_bound = object_size;
+    mb->offset = 0;
+    mb->base_address = (uint8_t*)object;
+    mb->memblock_index = 0xffffffff;
+    switch(index) {
+        case 0: {
+            asmvm_context->reg.rADDR1 = (uint64_t*)object;
+            break;
+        }
+        case 1: {
+            asmvm_context->reg.rADDR2 = (uint64_t*)object;
+            break;
+        }
+        case 2: {
+            asmvm_context->reg.rADDR3 = (uint64_t*)object;
+            break;
+        }
+        case 3: {
+            asmvm_context->reg.rADDR4 = (uint64_t*)object;
+            break;
+        }
+    }
+}
+void tactyk_asmvm__unbind(struct tactyk_asmvm__Context *asmvm_context, void* object) {
+    if (object == NULL) {
+        return;
+    }
+    for (uint64_t index = 0; index < 4; index += 1) {
+        struct tactyk_asmvm__memblock_lowlevel *mb = &asmvm_context->active_memblocks[index];
+        if ( (mb->base_address == (uint8_t*) object) && (mb->memblock_index == 0xffffffff) ) {
+            memset(mb, 0, sizeof(struct tactyk_asmvm__memblock_lowlevel));
+            switch(index) {
+                case 0: {
+                    asmvm_context->reg.rADDR1 = NULL;
+                    break;
+                }
+                case 1: {
+                    asmvm_context->reg.rADDR2 = NULL;
+                    break;
+                }
+                case 2: {
+                    asmvm_context->reg.rADDR3 = NULL;
+                    break;
+                }
+                case 3: {
+                    asmvm_context->reg.rADDR4 = NULL;
+                    break;
+                }
+            }
+        }
     }
 }
