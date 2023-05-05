@@ -605,7 +605,76 @@ instruction load
         xor rTEMPC, rTEMPC
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
+    
+    case F32XAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 7
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        cvtss2sd $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case F32XAI F32XAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 7
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        cvtss2sd $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case F32DAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 7
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movd xTEMPA, [$ADDRESS_REGISTER+$OFFSET]
+        cvttss2si $DEST__DATA_REG, xTEMPA
+        
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
 
+    case F32DAI F32DAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 7
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movd xTEMPA, [$ADDRESS_REGISTER+rTEMPC]
+        cvttss2si $DEST__DATA_REG, xTEMPA
+
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
 instruction store
   operand
     type word
@@ -752,6 +821,37 @@ instruction store
         movq [$ADDRESS_REGISTER+rTEMPC], $SRC
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    
+    case F32ADX
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 7
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        cvtsd2ss xTEMPA, $SRC
+        movq [$ADDRESS_REGISTER+$OFFSET], xTEMPA
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case F32AIX F32ACX
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 7
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        cvtsd2ss xTEMPA, $SRC
+        movq [$ADDRESS_REGISTER+rTEMPC], xTEMPA
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
 
 instruction pop
