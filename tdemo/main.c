@@ -32,6 +32,9 @@
 #include "tactyk_dblock.h"
 #include "tactyk_emit_svc.h"
 
+#include "aux_printit.h"
+#include "aux_util.h"
+
 #include "tactyk.h"
 #include "qstest.h"
 #include "fibtest.h"
@@ -140,6 +143,8 @@ int main(int argc, char *argv[], char *envp[]) {
     aux_configure(emitctx);
     aux_sdl__configure(emitctx);
     tactyk_emit_svc__configure(emitctx);
+    aux_printit__configure(emitctx);
+    aux_util__configure(emitctx);
 
     // intermediate storage for loaded data
     //  (tactyk uses the allocated data passed in as a backing data source during compilation, so it can't be freed

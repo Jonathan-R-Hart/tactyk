@@ -9,6 +9,10 @@ Add a dynamic object binding function to tactyk_asmvm
   The memory binding is assumed to be valid until a matching unbind function is called
     the unbind function scans the context for the binding (scripts are allowed to move them) and resets it.
 
+Add an auxiliary library for helper functions for use by tactyk scripts.
+  These are optional, placed in a separate library by the build script.
+  To use them, a host application must be linked to the library, and it must call the configuration functions when setting up a tactyk-emit context.
+
 2 May 2023
 Disable memory-bind stashing
   It directly conflicts with dynamic memory binding, and dynamic memory binding is preferred over it.
