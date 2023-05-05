@@ -3,17 +3,17 @@
 # This verifies that tactyk halts when out-of-bounds offsets are used in load instructions
 #
 #   NOTE:  The specific values tested for have not been verified as of the writing of this test, but have simply been copied from test log.
-#          These are assumed to be the correct floating point values interpreting the sequence of bytes specified in data array "mm" as an
-#          IEEE-754 floating point number.
+#          These are assumed to be the correct float64ing point values interpreting the sequence of bytes specified in data array "mm" as an
+#          IEEE-754 float64ing point number.
 #          This test is more focused on the bounds checking than the literal values.
 #          Floating point handling elsewhere has conistantly given expected results.
 # 
 # Virtual-ISA: tactyk_core
 # 
 # Coverage:
-#   load float-data-addr-data (XXAD)
-#   load float-data-addr-integer (XXAI)
-#   load float-data-addr-const (XXAC)
+#   load float64-data-addr-data (F64XAD)
+#   load float64-data-addr-integer (F64XAI)
+#   load float64-data-addr-const (F64XAC)
 
 PROGRAM
   struct st
@@ -48,139 +48,139 @@ PROGRAM
     bind addr1 mm
     exit
   
-  ld_XXAD_neg:
+  ld_F64XAD_neg:
     assign b -1
-    load float xA addr1 b
+    load float64 xA addr1 b
     exit
-  ld_XXAD_zero:
+  ld_F64XAD_zero:
     assign b 0
-    load float xA addr1 b
+    load float64 xA addr1 b
     exit
-  ld_XXAD_edge:
+  ld_F64XAD_edge:
     assign b 2
-    load float xA addr1 b
+    load float64 xA addr1 b
     exit
-  ld_XXAD_cross:
+  ld_F64XAD_cross:
     assign b 3
-    load float xA addr1 b
+    load float64 xA addr1 b
     exit
-  ld_XXAD_far:
+  ld_F64XAD_far:
     assign b 9
-    load float xA addr1 b
+    load float64 xA addr1 b
     exit
-  ld_XXAD_beyond:
+  ld_F64XAD_beyond:
     assign b 10
-    load float xA addr1 b
+    load float64 xA addr1 b
     exit
   
-  ld_XXAI_neg:
-    load float xA addr1 -1
+  ld_F64XAI_neg:
+    load float64 xA addr1 -1
     exit
-  ld_XXAI_zero:
-    load float xA addr1 0
+  ld_F64XAI_zero:
+    load float64 xA addr1 0
     exit
-  ld_XXAI_edge:
-    load float xA addr1 2
+  ld_F64XAI_edge:
+    load float64 xA addr1 2
     exit
-  ld_XXAI_cross:
-    load float xA addr1 3
+  ld_F64XAI_cross:
+    load float64 xA addr1 3
     exit
-  ld_XXAI_far:
-    load float xA addr1 9
+  ld_F64XAI_far:
+    load float64 xA addr1 9
     exit
-  ld_XXAI_beyond:
-    load float xA addr1 10
+  ld_F64XAI_beyond:
+    load float64 xA addr1 10
     exit
   
-  ld_XXAC_neg:
-    load float xA addr1 CN1
+  ld_F64XAC_neg:
+    load float64 xA addr1 CN1
     exit
-  ld_XXAC_zero:
-    load float xA addr1 C0
+  ld_F64XAC_zero:
+    load float64 xA addr1 C0
     exit
-  ld_XXAC_edge:
-    load float xA addr1 C2
+  ld_F64XAC_edge:
+    load float64 xA addr1 C2
     exit
-  ld_XXAC_cross:
-    load float xA addr1 C3
+  ld_F64XAC_cross:
+    load float64 xA addr1 C3
     exit
-  ld_XXAC_far:
-    load float xA addr1 C9
+  ld_F64XAC_far:
+    load float64 xA addr1 C9
     exit
-  ld_XXAC_beyond:
-    load float xA addr1 C10
+  ld_F64XAC_beyond:
+    load float64 xA addr1 C10
     exit
 
 EXEC INIT
 TEST
   addr1 mm 0
 
-EXEC ld_XXAD_neg
+EXEC ld_F64XAD_neg
 TEST
   status 101
   rB -1
-EXEC ld_XXAD_zero
+EXEC ld_F64XAD_zero
 TEST
   status 4
   rB 0
   xA 2.7134646652071e+209
-EXEC ld_XXAD_edge
+EXEC ld_F64XAD_edge
 TEST
   status 4
   rB 2
   xA 1.2540207159433e+219
-EXEC ld_XXAD_cross
+EXEC ld_F64XAD_cross
 TEST
   status 101
   rB 3
-EXEC ld_XXAD_far
+EXEC ld_F64XAD_far
 TEST
   status 101
   rB 9
-EXEC ld_XXAD_beyond
+EXEC ld_F64XAD_beyond
 TEST
   status 101
   rB 10
 
-EXEC ld_XXAI_neg
+EXEC ld_F64XAI_neg
 TEST
   status 101
-EXEC ld_XXAI_zero
+EXEC ld_F64XAI_zero
 TEST
   status 4
   xA 2.7134646652071e+209
-EXEC ld_XXAI_edge
+EXEC ld_F64XAI_edge
 TEST
   status 4
   xA 1.2540207159433e+219
-EXEC ld_XXAI_cross
+EXEC ld_F64XAI_cross
 TEST
   status 101
-EXEC ld_XXAI_far
+EXEC ld_F64XAI_far
 TEST
   status 101
-EXEC ld_XXAI_beyond
+EXEC ld_F64XAI_beyond
 TEST
   status 101
 
-EXEC ld_XXAC_neg
+EXEC ld_F64XAC_neg
 TEST
   status 101
-EXEC ld_XXAC_zero
+EXEC ld_F64XAC_zero
 TEST
   status 4
   xA 2.7134646652071e+209
-EXEC ld_XXAC_edge
+EXEC ld_F64XAC_edge
 TEST
   status 4
   xA 1.2540207159433e+219
-EXEC ld_XXAC_cross
+EXEC ld_F64XAC_cross
 TEST
   status 101
-EXEC ld_XXAC_far
+EXEC ld_F64XAC_far
 TEST
   status 101
-EXEC ld_XXAC_beyond
+EXEC ld_F64XAC_beyond
 TEST
   status 101
 

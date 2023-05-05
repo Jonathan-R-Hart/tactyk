@@ -96,8 +96,10 @@ typespec word
       pick D
     case qword i64
       pick Q
-    case float
-      pick X
+    case float float64
+      pick F64
+    case float32
+      pick F32
 
 typespec stackreg
   select-operand
@@ -534,7 +536,7 @@ instruction load
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
     
-    case XXAD
+    case F64XAD
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
@@ -548,7 +550,7 @@ instruction load
         movq $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
-    case XXAI XXAC
+    case F64XAI F64XAC
       code
         $LD_OFFSET_IMMEDIATE
         
@@ -565,7 +567,7 @@ instruction load
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
-    case XDAD
+    case F64DAD
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
@@ -583,7 +585,7 @@ instruction load
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
 
-    case XDAI XDAC
+    case F64DAI F64DAC
       code
         $LD_OFFSET_IMMEDIATE
         
@@ -725,7 +727,7 @@ instruction store
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
     
-    case XADX
+    case F64ADX
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
@@ -737,7 +739,7 @@ instruction store
         movq [$ADDRESS_REGISTER+$OFFSET], $SRC
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
-    case XAIX XACX
+    case F64AIX F64ACX
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
