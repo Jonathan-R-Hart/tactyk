@@ -6,7 +6,14 @@
 #          These are assumed to be the correct float64ing point values interpreting the sequence of bytes specified in data array "mm" as an
 #          IEEE-754 float64ing point number.
 #          This test is more focused on the bounds checking than the literal values.
-#          Floating point handling elsewhere has conistantly given expected results.
+#          Floating point handling elsewhere has consistantly given expected results.
+#
+#          It at least matches the results from this test:
+#              uint8_t data[10] = { 100, 101, 102, 103, 104, 105, 106, 107, 108, 109 };
+#              printf("F[0] = %.14g\n", *((float*)data) );
+#              printf("F[6] = %.14g\n", *((float*)&data[6]) );
+#              printf("D[0] = %.14g\n", *((double*)data) );
+#              printf("D[2] = %.14g\n", *((double*)&data[2]) );
 # 
 # Virtual-ISA: tactyk_core
 # 

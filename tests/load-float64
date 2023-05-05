@@ -3,12 +3,12 @@
 # Virtual-ISA: tactyk_core
 # 
 # Coverage:
-#   load float64-xmmx-addr-data (XXAI)
-#   load float64-xmmx-addr-data (XXAC)
-#   load float64-xmmx-addr-data (XXAD)
-#   load float64-data-addr-data (XXAI)
-#   load float64-data-addr-data (XXAC)
-#   load float64-data-addr-data (XXAD)
+#   load float64-xmmx-addr-data (F64XAI)
+#   load float64-xmmx-addr-data (F64XAC)
+#   load float64-xmmx-addr-data (F64XAD)
+#   load float64-data-addr-data (F64XAI)
+#   load float64-data-addr-data (F64XAC)
+#   load float64-data-addr-data (F64XAD)
 
 PROGRAM
   struct s1

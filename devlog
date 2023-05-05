@@ -1,3 +1,11 @@
+5 May 2023
+Support for loading and storing 32-bit floating point values in memory operations
+  Conversions are only done on load and store operations - internally the 64-bit format is used for both
+
+Test coverage for 32-bit floating point load/store operations
+
+Add a semi-justification for the floating point values used in the load-fail-f64 test (and load-fail-32).
+
 4 May 2023
 Fix a use-after-free error in the tactyk demo
   This was due to an oversight when releasing the buffer containing the raw script code. 

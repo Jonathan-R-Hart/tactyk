@@ -1,0 +1,102 @@
+# TEST:  Load floating point values from memory
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   load float32-xmmx-addr-data (F32XAI)
+#   load float32-xmmx-addr-data (F32XAC)
+#   load float32-xmmx-addr-data (F32XAD)
+#   load float32-data-addr-data (F32XAI)
+#   load float32-data-addr-data (F32XAC)
+#   load float32-data-addr-data (F32XAD)
+
+PROGRAM
+  struct s1
+    4 va
+    4 vb
+    4 vc
+    4 vd
+    4 ve
+    4 vf
+    4 vg
+    4 vh
+  const C24 24
+  const C0 0
+  const C16 16
+  data m1 s1 23123
+    123.456
+    -345.78901
+    6134324.213
+    1.523
+    234.345543
+    5432.12
+    678.9
+    10000.1234
+  
+  LOAD_SOME_FLOATS:
+    bind addr1 m1
+    assign a 0
+    assign b 4
+    assign c 8
+    assign d 12
+    load float32 xA addr1 s1.va
+    load float32 xB addr1 s1.vb
+    load float32 xC addr1 s1.vc
+    load float32 xD addr1 s1.vd
+    load float32 xE addr1 16
+    load float32 xF addr1 20
+    load float32 xG addr1 24
+    load float32 xH addr1 28
+    load float32 xI addr1 a
+    load float32 xJ addr1 b
+    load float32 xK addr1 c
+    load float32 xL addr1 d
+    load float32 xM addr1 s1.va
+    load float32 xN addr1 s1.vb
+    exit
+  LOAD_N_TrUNCATE:
+    load float32 rA addr1 a
+    load float32 rF addr1 c
+    load float32 rC addr1 b
+    load float32 rB addr1 s1.vh
+    load float32 rD addr1 s1.ve
+    load float32 rE addr1 24
+    
+    exit
+
+EXEC LOAD_SOME_FLOATS
+TEST
+  addr1 m1 0
+  rA 0
+  rB 4
+  rC 8
+  rD 12
+  xA f32 123.456
+  xB f32 -345.78901
+  xC f32 6134324.213
+  xD f32 1.523
+  xE f32 234.345543
+  xF f32 5432.12
+  xG f32 678.9
+  xH f32 10000.1234
+  xI f32 123.456
+  xJ f32 -345.78901
+  xK f32 6134324.213
+  xL f32 1.523
+  xM f32 123.456
+  xN f32 -345.78901
+
+EXEC LOAD_N_TrUNCATE
+TEST
+  rA 123
+  rB 10000
+  rC -345
+  rD 234
+  rE 678
+  rF 6134324
+
+
+
+
+
+

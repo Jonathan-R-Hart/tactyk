@@ -3,7 +3,7 @@
 #include "ttest.h"
 
 
-bool tactyk_test__approximately_eq(double a, double b) {
+bool tactyk_test__approximately_eq(double a, double b, double precision) {
     if ( a == b ) {
         return true;
     }
@@ -25,7 +25,7 @@ bool tactyk_test__approximately_eq(double a, double b) {
     else if (b == 0) {
         return fabs(a) < precision;
     }
-    return ( fabs(1.0-(a/b)) < precision);
+    return ( fabs(1.0-(a/b)) <= precision);
 }
 
 

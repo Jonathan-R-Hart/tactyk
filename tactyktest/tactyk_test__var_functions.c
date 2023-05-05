@@ -377,13 +377,13 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
             if ( tactyk_dblock__equals_c_string(item_type, "float") || tactyk_dblock__equals_c_string(item_type, "float64")) {
                 if (!dbl_success) { goto ERR_FLOAT; }
                 double observed_val = *((double*)&mbll->base_address[idx]);
-                if (tactyk_test__approximately_eq(fval, observed_val)) {
+                if (tactyk_test__approximately_eq(fval, observed_val, precision_f64)) {
                     *((double*)&shadow_mbll->base_address[idx]) = observed_val;
                     return TACTYK_TESTSTATE__PASS;
                 }
                 else {
                     *((double*)&shadow_mbll->base_address[idx]) = fval;
-                    sprintf(test_state->report, "deviation: memblock #%ju at offset %ju, expected:%f observed:%f", mbhl->memblock_id, idx, fval, observed_val);
+                    sprintf(test_state->report, "deviation [f64]: memblock #%ju at offset %ju, expected:%f observed:%f", mbhl->memblock_id, idx, fval, observed_val);
                     return TACTYK_TESTSTATE__FAIL;
                 }
             }
@@ -391,13 +391,13 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
                 if (!dbl_success) { goto ERR_FLOAT; }
                 float observed_val = *((float*)&mbll->base_address[idx]);
                 double f64v = (double)observed_val;
-                if (tactyk_test__approximately_eq(fval, f64v)) {
+                if (tactyk_test__approximately_eq(fval, f64v, precision_f32)) {
                     *((float*)&shadow_mbll->base_address[idx]) = observed_val;
                     return TACTYK_TESTSTATE__PASS;
                 }
                 else {
                     *((float*)&shadow_mbll->base_address[idx]) = fval;
-                    sprintf(test_state->report, "deviation: memblock #%ju at offset %ju, expected:%f observed:%f", mbhl->memblock_id, idx, fval, f64v);
+                    sprintf(test_state->report, "deviation [f32]: memblock #%ju at offset %ju, expected:%f observed:%f", mbhl->memblock_id, idx, fval, f64v);
                     return TACTYK_TESTSTATE__FAIL;
                 }
             }
@@ -623,7 +623,17 @@ uint64_t tactyk_test__TEST_REGISTER(struct tactyk_test_entry *valtest_spec, stru
 //      then performs its own state transition check using a floating point comparison with error tolerance.
 //      If the comparison test fails, this will pre-empt the general-purpose state transition tracker by returning a failure.
 uint64_t tactyk_test__TEST_XMM_REGISTER (struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
-    struct tactyk_dblock__DBlock *expected_value = spec->token->next;
+    struct tactyk_dblock__DBlock *ftype = spec->token->next;
+    struct tactyk_dblock__DBlock *expected_value = ftype;
+    double precision = precision_f64;
+    if ( tactyk_dblock__equals_c_string(ftype, "f32") || tactyk_dblock__equals_c_string(ftype, "float32")) {
+        expected_value = ftype->next;
+        precision = precision_f32;
+    }
+    if ( tactyk_dblock__equals_c_string(ftype, "f64") || tactyk_dblock__equals_c_string(ftype, "float64")) {
+        expected_value = ftype->next;
+        precision = precision_f64;
+    }
 
     double fval = 0;
     if (tactyk_dblock__try_parsedouble(&fval, expected_value)) {
@@ -714,7 +724,7 @@ uint64_t tactyk_test__TEST_XMM_REGISTER (struct tactyk_test_entry *valtest_spec,
                 return TACTYK_TESTSTATE__TEST_ERROR;
             }
         }
-        if (tactyk_test__approximately_eq(stval, fval)) {
+        if (tactyk_test__approximately_eq(stval, fval, precision)) {
             return TACTYK_TESTSTATE__PASS;
         }
         else {

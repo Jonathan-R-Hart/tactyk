@@ -609,7 +609,7 @@ instruction load
     case F32XAD
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
+        sub rTEMPA_32, 3
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
@@ -625,7 +625,7 @@ instruction load
         $LD_OFFSET_IMMEDIATE
         
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
+        sub rTEMPA_32, 3
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
@@ -640,7 +640,7 @@ instruction load
     case F32DAD
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
+        sub rTEMPA_32, 3
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
@@ -660,7 +660,7 @@ instruction load
         $LD_OFFSET_IMMEDIATE
         
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
+        sub rTEMPA_32, 3
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
@@ -826,14 +826,14 @@ instruction store
     case F32ADX
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
+        sub rTEMPA_32, 3
         cmp $OFFSET, rTEMPA
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
         lfence
         cvtsd2ss xTEMPA, $SRC
-        movq [$ADDRESS_REGISTER+$OFFSET], xTEMPA
+        movd [$ADDRESS_REGISTER+$OFFSET], xTEMPA
         xor rTEMPA, rTEMPA
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
@@ -841,14 +841,14 @@ instruction store
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
+        sub rTEMPA_32, 3
         cmp rTEMPC, rTEMPA
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
         lfence
         cvtsd2ss xTEMPA, $SRC
-        movq [$ADDRESS_REGISTER+rTEMPC], xTEMPA
+        movd [$ADDRESS_REGISTER+rTEMPC], xTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         pxor xTEMPA, xTEMPA
