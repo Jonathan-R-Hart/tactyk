@@ -154,6 +154,7 @@ int main(int argc, char *argv[], char *envp[]) {
     char **module_src = calloc(argc, sizeof(void*));
 
     struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
+    tactyk_pl__define_constants(plctx, ".VISA", emitctx->visa_token_constants);
 
     // re-scan the args and ingest source code files.
     for (int64_t i = 1; i < argc; i += 1) {

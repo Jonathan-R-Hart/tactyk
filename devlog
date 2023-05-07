@@ -1,3 +1,8 @@
+6 May 2023
+tactyk-pl - platform constant tables
+  Host applications can now provide arbitrary constant tables for use by tactyk-pl scripts.
+  This generalizes the "use_vconstants" directive.
+
 5 May 2023
 Support for loading and storing 32-bit floating point values in memory operations
   Conversions are only done on load and store operations - internally the 64-bit format is used for both

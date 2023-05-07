@@ -52,6 +52,8 @@ struct tactyk_pl__Context {
 
     struct tactyk_dblock__DBlock *getters;
     struct tactyk_dblock__DBlock *setters;
+    
+    struct tactyk_dblock__DBlock *constant_sets;
 };
 
 bool tactyk_pl__var(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
@@ -65,6 +67,8 @@ bool tactyk_pl__data(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
 bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__const(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 
+bool tactyk_pl__ld_constants(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__ld_visa_constants(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
+void tactyk_pl__define_constants(struct tactyk_pl__Context *ctx, char *name, struct tactyk_dblock__DBlock *constants);
 
 #endif /* TACTYK_PL__INCLUDE_GUARD */

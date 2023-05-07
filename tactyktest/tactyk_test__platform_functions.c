@@ -14,6 +14,7 @@ uint64_t tactyk_test__PROGRAM(struct tactyk_dblock__DBlock *spec) {
         name = DEFAULT_NAME;
     }
     struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
+    tactyk_pl__define_constants(plctx, ".VISA", emitctx->visa_token_constants);
     tactyk_pl__load_dblock(plctx, spec->child);
     tprg = tactyk_pl__build(plctx);
     tactyk_asmvm__add_program(vmctx, tprg);
