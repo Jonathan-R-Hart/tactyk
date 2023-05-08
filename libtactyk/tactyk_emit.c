@@ -127,6 +127,8 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     tactyk_dblock__put(ctx->operator_table, "sub", tactyk_emit__DoSub);
     tactyk_dblock__put(ctx->operator_table, "nullarg", tactyk_emit__NullArg);
+    
+    tactyk_dblock__put(ctx->operator_table, "repeat", tactyk_emit__Repeat);
 
     ctx->active_labels = NULL;
     ctx->active_labels_last = NULL;
@@ -690,6 +692,24 @@ bool tactyk_emit__NullArg(struct tactyk_emit__Context *ctx, struct tactyk_dblock
     }
     else {
         return false;
+    }
+}
+
+bool tactyk_emit__Repeat(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    struct tactyk_dblock__DBlock *qtyref = vopcfg->token->next;
+    if (qtyref == NULL) {
+        qtyref = tactyk_dblock__from_safe_c_string("$REPETITIONS");
+    }
+    struct tactyk_dblock__DBlock *qty = tactyk_emit__fetch_var(ctx, NULL, qtyref);
+    uint64_t limit = 0;
+    if (!tactyk_dblock__try_parseuint(&limit, qty)) {
+        error("EMIT -- Undefined or invalid repetitions specifier", qtyref);
+    }
+    struct tactyk_dblock__DBlock *repvarname = tactyk_dblock__from_safe_c_string("$REP");
+    for (uint64_t i = 0; i < limit; i++) {
+        struct tactyk_dblock__DBlock *itxt = tactyk_dblock__from_uint(i);
+        tactyk_dblock__put(ctx->local_vars, repvarname, itxt);
+        tactyk_emit__ExecSubroutine(ctx, vopcfg);
     }
 }
 

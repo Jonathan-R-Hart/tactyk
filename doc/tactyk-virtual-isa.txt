@@ -182,6 +182,9 @@ nullarg
 Operator which passes if all script-command arguments have been consumed.
 This predates the "opt-operand" operator and may be removed in a future revision.
 
-
+repeat <opt-repetitions>
+Run the subordinate subroutine multiple times.
+<repetitions> is the number of times to run it.  If not specified, the value of the "$REPETITIONS" variable will be used.
+On each iteration, the loop counter is assigned to the "$REP" local variable.
 
 
