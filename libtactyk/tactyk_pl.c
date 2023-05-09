@@ -488,12 +488,11 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
                 while (token != NULL) {
                     double f64val = 0;
                     if (tactyk_dblock__try_parsedouble(&f64val, token)) {
-                        memcpy(&data[pos], &f64val, 4);
+                        memcpy(&data[pos], &f64val, 8);
                     }
                     else {
                         warn("PL -- Not an floating point number", token);
                     }
-
                     pos += nbytes;
                     token = token->next;
                 }

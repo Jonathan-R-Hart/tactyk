@@ -1,3 +1,17 @@
+8 May 2023
+tactyk_core.visa - Add a "block-load" instruction (with test coverage)
+  This loads short blocks of memory and writes it to consecutive sets of registers (according to tactyk register alias lexical order)
+  It loads 1-6 words onto data registers or 1-14 words onto xmm registers.
+  It starts at any requested register and wraps around.
+  This only does operates on qwords (8-byte words)
+    (at some point an extra xmm variant should be added which does double-qword loads [to the whole register])
+  Internally, this is accomplished with a large set of register aliases (in the asm header)
+  This probably should be revised to use a specialized operator
+    (was initially going to use a simple repetition operator, but bounds checking undermined that approach)
+
+Fixed an error in tactyk-pl "flat" directive
+  (It was only copying 4 out of 8 bytes into the [compiler-initialized] memblock when using double-precisions floating point numbers)
+
 6 May 2023
 tactyk-pl - platform constant tables
   Host applications can now provide arbitrary constant tables for use by tactyk-pl scripts.
