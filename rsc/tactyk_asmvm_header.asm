@@ -152,7 +152,7 @@
 
     %define rC~0    rC
     %define rC~1    rD
-    %define rC~2    rF
+    %define rC~2    rE
     %define rC~3    rF
     %define rC~4    rA
     %define rC~5    rB
@@ -420,7 +420,6 @@
     %define xO~11   xL
     %define xO~12   xM
     %define xO~13   xN
-    %define xO~14   xO
     
     %define rMAPPER_8 %[rMAPPER]_8
     %define rMAPPER_16 %[rMAPPER]_16

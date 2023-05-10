@@ -1,3 +1,7 @@
+10 May 2023
+tactyk_core.visa - Add a "block-store" instruction (with test coverage)
+  This stores values from consecutive sets of registers (according to tactyk register alias lexical order) in blocks of memory
+
 8 May 2023
 tactyk_core.visa - Add a "block-load" instruction (with test coverage)
   This loads short blocks of memory and writes it to consecutive sets of registers (according to tactyk register alias lexical order)

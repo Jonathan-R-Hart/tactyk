@@ -1,0 +1,873 @@
+# TEST:  Batched data store to memory
+#
+# Read sequential data from a memblock and load it onto sequential registers (according to tactyk register alias lexical order)
+#
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   block-store block-quanitity-data-addr-data (BqsXAD)
+#   block-store block-quanitity-data-addr-data (BqsXAI)
+#   block-store block-quanitity-data-addr-data (BqsXAC)
+PROGRAM
+  struct s1
+    8 v0
+    8 v8
+    8 v16
+    8 v24
+    8 v32
+    8 v40
+    8 v48
+    8 v56
+    8 v64
+    8 v72
+    8 v80
+    8 v88
+    8 v96
+    8 v104
+    8 v112
+    8 v120
+    8 v128
+    8 v136
+    8 v144
+    8 v152
+    8 v160
+    8 v168
+    8 v176
+    8 v184
+    8 v192
+    8 v200
+    8 v208
+    8 v216
+    8 v224
+    8 v232
+    8 v240
+    8 v248
+    8 v256
+    8 v264
+    8 v272
+    8 v280
+    12 padding
+  
+  mem m1 s1 32
+  
+  const CN1 -1
+  const C0 0
+  const C8 8
+  const C16 16
+  const C24 24
+  const C32 32
+  const C40 40
+  const C48 48
+  const C64 64
+  const C72 72
+  const C80 80
+  const C96 96
+  const C120 120
+  const C128 128
+  const C144 144
+  const C160 160
+  const C192 192
+  const C200 200
+  const C240 240
+  const C261 261
+  const C300 300
+    
+  INIT:
+    bind addr1 m1
+    assign a 1
+    assign b 2
+    assign c 3
+    assign d 4
+    assign e 5
+    assign f 6
+    exit
+  
+  BLKSTORE_int_1:
+    assign addr1.offset 0
+    block-store 1 addr1 0 a
+    block-store 1 addr1 8 b
+    block-store 1 addr1 16 c
+    block-store 1 addr1 24 d
+    block-store 1 addr1 32 e
+    block-store 1 addr1 40 f
+    exit
+
+  BLKSTORE_int_2:
+    assign addr1.offset 300
+    block-store 2 addr1 0 a
+    block-store 2 addr1 16 b
+    block-store 2 addr1 32 c
+    block-store 2 addr1 48 d
+    block-store 2 addr1 64 e
+    block-store 2 addr1 80 f
+    exit
+  
+  BLKSTORE_int_3:
+    assign addr1.offset 600
+    block-store 3 addr1 0 a
+    block-store 3 addr1 24 b
+    block-store 3 addr1 48 c
+    block-store 3 addr1 72 d
+    block-store 3 addr1 96 e
+    block-store 3 addr1 120 f
+    exit
+
+  BLKSTORE_int_4:
+    assign addr1.offset 900
+    block-store 4 addr1 0 a
+    block-store 4 addr1 32 b
+    block-store 4 addr1 64 c
+    block-store 4 addr1 96 d
+    block-store 4 addr1 128 e
+    block-store 4 addr1 160 f
+    exit
+
+  BLKSTORE_int_5:
+    assign addr1.offset 1200
+    block-store 5 addr1 0 a
+    block-store 5 addr1 40 b
+    block-store 5 addr1 80 c
+    block-store 5 addr1 120 d
+    block-store 5 addr1 160 e
+    block-store 5 addr1 200 f
+    exit
+
+  BLKSTORE_int_6:
+    assign addr1.offset 1500
+    block-store 6 addr1 0 a
+    block-store 6 addr1 48 b
+    block-store 6 addr1 96 c
+    block-store 6 addr1 144 d
+    block-store 6 addr1 192 e
+    block-store 6 addr1 240 f
+    exit
+
+  BLKSTORE_const_1:
+    assign addr1.offset 1800
+    block-store 1 addr1 C0 a
+    block-store 1 addr1 C8 b
+    block-store 1 addr1 C16 c
+    block-store 1 addr1 C24 d
+    block-store 1 addr1 C32 e
+    block-store 1 addr1 C40 f
+    exit
+
+  BLKSTORE_const_2:
+    assign addr1.offset 2100
+    block-store 2 addr1 C0 a
+    block-store 2 addr1 C16 b
+    block-store 2 addr1 C32 c
+    block-store 2 addr1 C48 d
+    block-store 2 addr1 C64 e
+    block-store 2 addr1 C80 f
+    exit
+  
+  BLKSTORE_const_3:
+    assign addr1.offset 2400
+    block-store 3 addr1 C0 a
+    block-store 3 addr1 C24 b
+    block-store 3 addr1 C48 c
+    block-store 3 addr1 C72 d
+    block-store 3 addr1 C96 e
+    block-store 3 addr1 C120 f
+    exit
+
+  BLKSTORE_const_4:
+    assign addr1.offset 2700
+    block-store 4 addr1 C0 a
+    block-store 4 addr1 C32 b
+    block-store 4 addr1 C64 c
+    block-store 4 addr1 C96 d
+    block-store 4 addr1 C128 e
+    block-store 4 addr1 C160 f
+    exit
+
+  BLKSTORE_const_5:
+    assign addr1.offset 3000
+    block-store 5 addr1 C0 a
+    block-store 5 addr1 C40 b
+    block-store 5 addr1 C80 c
+    block-store 5 addr1 C120 d
+    block-store 5 addr1 C160 e
+    block-store 5 addr1 C200 f
+    exit
+
+  BLKSTORE_const_6:
+    assign addr1.offset 3300
+    block-store 6 addr1 C0 a
+    block-store 6 addr1 C48 b
+    block-store 6 addr1 C96 c
+    block-store 6 addr1 C144 d
+    block-store 6 addr1 C192 e
+    block-store 6 addr1 C240 f
+    exit
+
+  BLKSTORE_reg_init:
+    assign a 0
+    assign b 48
+    assign c 96
+    assign d 144
+    assign e 192
+    assign f 240
+    exit
+  
+  BLKSTORE_reg_1:
+    assign addr1.offset 3600
+    block-store 1 addr1 a f
+    block-store 1 addr1 b e
+    block-store 1 addr1 c d
+    block-store 1 addr1 d c
+    block-store 1 addr1 e b
+    block-store 1 addr1 f a
+    exit
+  
+  BLKSTORE_reg_2:
+    assign addr1.offset 3900
+    block-store 2 addr1 a f
+    block-store 2 addr1 b e
+    block-store 2 addr1 c d
+    block-store 2 addr1 d c
+    block-store 2 addr1 e b
+    block-store 2 addr1 f a
+    exit
+  
+  BLKSTORE_reg_3:
+    assign addr1.offset 4200
+    block-store 3 addr1 a f
+    block-store 3 addr1 b e
+    block-store 3 addr1 c d
+    block-store 3 addr1 d c
+    block-store 3 addr1 e b
+    block-store 3 addr1 f a
+    exit
+  
+  BLKSTORE_reg_4:
+    assign addr1.offset 4500
+    block-store 4 addr1 a f
+    block-store 4 addr1 b e
+    block-store 4 addr1 c d
+    block-store 4 addr1 d c
+    block-store 4 addr1 e b
+    block-store 4 addr1 f a
+    exit
+  
+  BLKSTORE_reg_5:
+    assign addr1.offset 4800
+    block-store 5 addr1 a f
+    block-store 5 addr1 b e
+    block-store 5 addr1 c d
+    block-store 5 addr1 d c
+    block-store 5 addr1 e b
+    block-store 5 addr1 f a
+    exit
+  
+  BLKSTORE_reg_6:
+    assign addr1.offset 5100
+    block-store 6 addr1 a f
+    block-store 6 addr1 b e
+    block-store 6 addr1 c d
+    block-store 6 addr1 d c
+    block-store 6 addr1 e b
+    block-store 6 addr1 f a
+    exit
+  
+  BLKSTORE_int_fail_neg:
+    block-store 5 addr1 -1 f
+    exit
+  BLKSTORE_int_fail_edge:
+    block-store 5 addr1 261 f
+    exit
+  BLKSTORE_int_fail_over:
+    block-store 5 addr1 300 f
+    exit
+
+  BLKSTORE_const_fail_neg:
+    block-store 5 addr1 CN1 f
+    exit
+  BLKSTORE_const_fail_edge:
+    block-store 5 addr1 C261 f
+    exit
+  BLKSTORE_const_fail_over:
+    block-store 5 addr1 C300 f
+    exit
+
+  BLKSTORE_reg_fail_neg:
+    assign a -1
+    block-store 5 addr1 -1 f
+    exit
+  BLKSTORE_reg_fail_edge:
+    assign a 261
+    block-store 5 addr1 261 f
+    exit
+  BLKSTORE_reg_fail_over:
+    assign a 300
+    block-store 5 addr1 300 f
+    exit
+
+EXEC BLKSTORE_const_3
+  
+EXEC INIT
+TEST
+  addr1 m1 0
+  rA 1
+  rB 2
+  rC 3
+  rD 4
+  rE 5
+  rF 6
+
+EXEC BLKSTORE_int_1
+TEST
+  mem m1 0 qword 1
+  mem m1 8 qword 2
+  mem m1 16 qword 3
+  mem m1 24 qword 4
+  mem m1 32 qword 5
+  mem m1 40 qword 6
+
+EXEC BLKSTORE_int_2
+TEST
+  addr1 m1 300
+  mem m1 300 qword 1
+  mem m1 308 qword 2
+  mem m1 316 qword 2
+  mem m1 324 qword 3
+  mem m1 332 qword 3
+  mem m1 340 qword 4
+  mem m1 348 qword 4
+  mem m1 356 qword 5
+  mem m1 364 qword 5
+  mem m1 372 qword 6
+  mem m1 380 qword 6
+  mem m1 388 qword 1
+
+EXEC BLKSTORE_int_3
+TEST
+  addr1 m1 600
+  mem m1 600 qword 1
+  mem m1 608 qword 2
+  mem m1 616 qword 3
+  
+  mem m1 624 qword 2
+  mem m1 632 qword 3
+  mem m1 640 qword 4
+  
+  mem m1 648 qword 3
+  mem m1 656 qword 4
+  mem m1 664 qword 5
+  
+  mem m1 672 qword 4
+  mem m1 680 qword 5
+  mem m1 688 qword 6
+  
+  mem m1 696 qword 5
+  mem m1 704 qword 6
+  mem m1 712 qword 1
+  
+  mem m1 720 qword 6
+  mem m1 728 qword 1
+  mem m1 736 qword 2
+
+EXEC BLKSTORE_int_4
+TEST
+  addr1 m1 900
+  mem m1 900 qword 1
+  mem m1 908 qword 2
+  mem m1 916 qword 3
+  mem m1 924 qword 4
+  
+  mem m1 932 qword 2
+  mem m1 940 qword 3
+  mem m1 948 qword 4
+  mem m1 956 qword 5
+  
+  mem m1 964 qword 3
+  mem m1 972 qword 4
+  mem m1 980 qword 5
+  mem m1 988 qword 6
+  
+  mem m1 996 qword 4
+  mem m1 1004 qword 5
+  mem m1 1012 qword 6
+  mem m1 1020 qword 1
+  
+  mem m1 1028 qword 5
+  mem m1 1036 qword 6
+  mem m1 1044 qword 1
+  mem m1 1052 qword 2
+  
+  mem m1 1060 qword 6
+  mem m1 1068 qword 1
+  mem m1 1076 qword 2
+  mem m1 1084 qword 3
+
+EXEC BLKSTORE_int_5
+TEST
+  addr1 m1 1200
+  mem m1 1200 qword 1
+  mem m1 1208 qword 2
+  mem m1 1216 qword 3
+  mem m1 1224 qword 4
+  mem m1 1232 qword 5
+  
+  mem m1 1240 qword 2
+  mem m1 1248 qword 3
+  mem m1 1256 qword 4
+  mem m1 1264 qword 5
+  mem m1 1272 qword 6
+  
+  mem m1 1280 qword 3
+  mem m1 1288 qword 4
+  mem m1 1296 qword 5
+  mem m1 1304 qword 6
+  mem m1 1312 qword 1
+  
+  mem m1 1320 qword 4
+  mem m1 1328 qword 5
+  mem m1 1336 qword 6
+  mem m1 1344 qword 1
+  mem m1 1352 qword 2
+  
+  mem m1 1360 qword 5
+  mem m1 1368 qword 6
+  mem m1 1376 qword 1
+  mem m1 1384 qword 2
+  mem m1 1392 qword 3
+  
+  mem m1 1400 qword 6
+  mem m1 1408 qword 1
+  mem m1 1416 qword 2
+  mem m1 1424 qword 3
+  mem m1 1432 qword 4
+
+EXEC BLKSTORE_int_6
+TEST
+  addr1 m1 1500
+  mem m1 1500 qword 1
+  mem m1 1508 qword 2
+  mem m1 1516 qword 3
+  mem m1 1524 qword 4
+  mem m1 1532 qword 5
+  mem m1 1540 qword 6
+  
+  mem m1 1548 qword 2
+  mem m1 1556 qword 3
+  mem m1 1564 qword 4
+  mem m1 1572 qword 5
+  mem m1 1580 qword 6
+  mem m1 1588 qword 1
+  
+  mem m1 1596 qword 3
+  mem m1 1604 qword 4
+  mem m1 1612 qword 5
+  mem m1 1620 qword 6
+  mem m1 1628 qword 1
+  mem m1 1636 qword 2
+  
+  mem m1 1644 qword 4
+  mem m1 1652 qword 5
+  mem m1 1660 qword 6
+  mem m1 1668 qword 1
+  mem m1 1676 qword 2
+  mem m1 1684 qword 3
+  
+  mem m1 1692 qword 5
+  mem m1 1700 qword 6
+  mem m1 1708 qword 1
+  mem m1 1716 qword 2
+  mem m1 1724 qword 3
+  mem m1 1732 qword 4
+  
+  mem m1 1740 qword 6
+  mem m1 1748 qword 1
+  mem m1 1756 qword 2
+  mem m1 1764 qword 3
+  mem m1 1772 qword 4
+  mem m1 1780 qword 5
+
+EXEC BLKSTORE_const_1
+TEST
+  addr1 m1 1800
+  mem m1 1800 qword 1
+  mem m1 1808 qword 2
+  mem m1 1816 qword 3
+  mem m1 1824 qword 4
+  mem m1 1832 qword 5
+  mem m1 1840 qword 6
+
+EXEC BLKSTORE_const_2
+TEST
+  addr1 m1 2100
+  mem m1 2100 qword 1
+  mem m1 2108 qword 2
+  mem m1 2116 qword 2
+  mem m1 2124 qword 3
+  mem m1 2132 qword 3
+  mem m1 2140 qword 4
+  mem m1 2148 qword 4
+  mem m1 2156 qword 5
+  mem m1 2164 qword 5
+  mem m1 2172 qword 6
+  mem m1 2180 qword 6
+  mem m1 2188 qword 1
+
+EXEC BLKSTORE_const_3
+TEST
+  addr1 m1 2400
+  mem m1 2400 qword 1
+  mem m1 2408 qword 2
+  mem m1 2416 qword 3
+  
+  mem m1 2424 qword 2
+  mem m1 2432 qword 3
+  mem m1 2440 qword 4
+  
+  mem m1 2448 qword 3
+  mem m1 2456 qword 4
+  mem m1 2464 qword 5
+  
+  mem m1 2472 qword 4
+  mem m1 2480 qword 5
+  mem m1 2488 qword 6
+  
+  mem m1 2496 qword 5
+  mem m1 2504 qword 6
+  mem m1 2512 qword 1
+  
+  mem m1 2520 qword 6
+  mem m1 2528 qword 1
+  mem m1 2536 qword 2
+
+EXEC BLKSTORE_const_4
+TEST
+  addr1 m1 2700
+  mem m1 2700 qword 1
+  mem m1 2708 qword 2
+  mem m1 2716 qword 3
+  mem m1 2724 qword 4
+  
+  mem m1 2732 qword 2
+  mem m1 2740 qword 3
+  mem m1 2748 qword 4
+  mem m1 2756 qword 5
+  
+  mem m1 2764 qword 3
+  mem m1 2772 qword 4
+  mem m1 2780 qword 5
+  mem m1 2788 qword 6
+  
+  mem m1 2796 qword 4
+  mem m1 2804 qword 5
+  mem m1 2812 qword 6
+  mem m1 2820 qword 1
+  
+  mem m1 2828 qword 5
+  mem m1 2836 qword 6
+  mem m1 2844 qword 1
+  mem m1 2852 qword 2
+  
+  mem m1 2860 qword 6
+  mem m1 2868 qword 1
+  mem m1 2876 qword 2
+  mem m1 2884 qword 3
+
+EXEC BLKSTORE_const_5
+TEST
+  addr1 m1 3000
+  mem m1 3000 qword 1
+  mem m1 3008 qword 2
+  mem m1 3016 qword 3
+  mem m1 3024 qword 4
+  mem m1 3032 qword 5
+  
+  mem m1 3040 qword 2
+  mem m1 3048 qword 3
+  mem m1 3056 qword 4
+  mem m1 3064 qword 5
+  mem m1 3072 qword 6
+  
+  mem m1 3080 qword 3
+  mem m1 3088 qword 4
+  mem m1 3096 qword 5
+  mem m1 3104 qword 6
+  mem m1 3112 qword 1
+  
+  mem m1 3120 qword 4
+  mem m1 3128 qword 5
+  mem m1 3136 qword 6
+  mem m1 3144 qword 1
+  mem m1 3152 qword 2
+  
+  mem m1 3160 qword 5
+  mem m1 3168 qword 6
+  mem m1 3176 qword 1
+  mem m1 3184 qword 2
+  mem m1 3192 qword 3
+  
+  mem m1 3200 qword 6
+  mem m1 3208 qword 1
+  mem m1 3216 qword 2
+  mem m1 3224 qword 3
+  mem m1 3232 qword 4
+
+EXEC BLKSTORE_const_6
+TEST
+  addr1 m1 3300
+  mem m1 3300 qword 1
+  mem m1 3308 qword 2
+  mem m1 3316 qword 3
+  mem m1 3324 qword 4
+  mem m1 3332 qword 5
+  mem m1 3340 qword 6
+  
+  mem m1 3348 qword 2
+  mem m1 3356 qword 3
+  mem m1 3364 qword 4
+  mem m1 3372 qword 5
+  mem m1 3380 qword 6
+  mem m1 3388 qword 1
+  
+  mem m1 3396 qword 3
+  mem m1 3404 qword 4
+  mem m1 3412 qword 5
+  mem m1 3420 qword 6
+  mem m1 3428 qword 1
+  mem m1 3436 qword 2
+  
+  mem m1 3444 qword 4
+  mem m1 3452 qword 5
+  mem m1 3460 qword 6
+  mem m1 3468 qword 1
+  mem m1 3476 qword 2
+  mem m1 3484 qword 3
+  
+  mem m1 3492 qword 5
+  mem m1 3500 qword 6
+  mem m1 3508 qword 1
+  mem m1 3516 qword 2
+  mem m1 3524 qword 3
+  mem m1 3532 qword 4
+  
+  mem m1 3540 qword 6
+  mem m1 3548 qword 1
+  mem m1 3556 qword 2
+  mem m1 3564 qword 3
+  mem m1 3572 qword 4
+  mem m1 3580 qword 5
+
+
+EXEC BLKSTORE_reg_init
+TEST
+  rA 0
+  rB 48
+  rC 96
+  rD 144
+  rE 192
+  rF 240
+
+EXEC BLKSTORE_reg_1
+TEST
+  addr1 m1 3600
+  mem m1 3600 qword 240
+  mem m1 3648 qword 192
+  mem m1 3696 qword 144
+  mem m1 3744 qword 96
+  mem m1 3792 qword 48
+  mem m1 3840 qword 0
+
+EXEC BLKSTORE_reg_2
+TEST
+  addr1 m1 3900
+  mem m1 3900 qword 240
+  mem m1 3908 qword 0
+  mem m1 3948 qword 192
+  mem m1 3956 qword 240
+  mem m1 3996 qword 144
+  mem m1 4004 qword 192
+  mem m1 4044 qword 96
+  mem m1 4052 qword 144
+  mem m1 4092 qword 48
+  mem m1 4100 qword 96
+  mem m1 4140 qword 0
+  mem m1 4148 qword 48
+
+EXEC BLKSTORE_reg_3
+TEST
+  addr1 m1 4200
+  mem m1 4200 qword 240
+  mem m1 4208 qword 0
+  mem m1 4216 qword 48
+  
+  mem m1 4248 qword 192
+  mem m1 4256 qword 240
+  mem m1 4264 qword 0
+  
+  mem m1 4296 qword 144
+  mem m1 4304 qword 192
+  mem m1 4312 qword 240
+  
+  mem m1 4344 qword 96
+  mem m1 4352 qword 144
+  mem m1 4360 qword 192
+  
+  mem m1 4392 qword 48
+  mem m1 4400 qword 96
+  mem m1 4408 qword 144
+  
+  mem m1 4440 qword 0
+  mem m1 4448 qword 48
+  mem m1 4456 qword 96
+
+EXEC BLKSTORE_reg_4
+TEST
+  addr1 m1 4500
+  mem m1 4500 qword 240
+  mem m1 4508 qword 0
+  mem m1 4516 qword 48
+  mem m1 4524 qword 96
+  
+  mem m1 4548 qword 192
+  mem m1 4556 qword 240
+  mem m1 4564 qword 0
+  mem m1 4572 qword 48
+  
+  mem m1 4596 qword 144
+  mem m1 4604 qword 192
+  mem m1 4612 qword 240
+  mem m1 4620 qword 0
+  
+  mem m1 4644 qword 96
+  mem m1 4652 qword 144
+  mem m1 4660 qword 192
+  mem m1 4668 qword 240
+  
+  mem m1 4692 qword 48
+  mem m1 4700 qword 96
+  mem m1 4708 qword 144
+  mem m1 4716 qword 192
+  
+  mem m1 4740 qword 0
+  mem m1 4748 qword 48
+  mem m1 4756 qword 96
+  mem m1 4764 qword 144
+
+EXEC BLKSTORE_reg_5
+TEST
+  addr1 m1 4800
+  mem m1 4800 qword 240
+  mem m1 4808 qword 0
+  mem m1 4816 qword 48
+  mem m1 4824 qword 96
+  mem m1 4832 qword 144
+  
+  mem m1 4848 qword 192
+  mem m1 4856 qword 240
+  mem m1 4864 qword 0
+  mem m1 4872 qword 48
+  mem m1 4880 qword 96
+  
+  mem m1 4896 qword 144
+  mem m1 4904 qword 192
+  mem m1 4912 qword 240
+  mem m1 4920 qword 0
+  mem m1 4928 qword 48
+  
+  mem m1 4944 qword 96
+  mem m1 4952 qword 144
+  mem m1 4960 qword 192
+  mem m1 4968 qword 240
+  mem m1 4976 qword 0
+  
+  mem m1 4992 qword 48
+  mem m1 5000 qword 96
+  mem m1 5008 qword 144
+  mem m1 5016 qword 192
+  mem m1 5024 qword 240
+  
+  mem m1 5040 qword 0
+  mem m1 5048 qword 48
+  mem m1 5056 qword 96
+  mem m1 5064 qword 144
+  mem m1 5072 qword 192
+
+EXEC BLKSTORE_reg_6
+TEST
+  addr1 m1 5100
+  mem m1 5100 qword 240
+  mem m1 5108 qword 0
+  mem m1 5116 qword 48
+  mem m1 5124 qword 96
+  mem m1 5132 qword 144
+  mem m1 5140 qword 192
+  
+  mem m1 5148 qword 192
+  mem m1 5156 qword 240
+  mem m1 5164 qword 0
+  mem m1 5172 qword 48
+  mem m1 5180 qword 96
+  mem m1 5188 qword 144
+  
+  mem m1 5196 qword 144
+  mem m1 5204 qword 192
+  mem m1 5212 qword 240
+  mem m1 5220 qword 0
+  mem m1 5228 qword 48
+  mem m1 5236 qword 96
+  
+  mem m1 5244 qword 96
+  mem m1 5252 qword 144
+  mem m1 5260 qword 192
+  mem m1 5268 qword 240
+  mem m1 5276 qword 0
+  mem m1 5284 qword 48
+  
+  mem m1 5292 qword 48
+  mem m1 5300 qword 96
+  mem m1 5308 qword 144
+  mem m1 5316 qword 192
+  mem m1 5324 qword 240
+  mem m1 5332 qword 0
+  
+  mem m1 5340 qword 0
+  mem m1 5348 qword 48
+  mem m1 5356 qword 96
+  mem m1 5364 qword 144
+  mem m1 5372 qword 192
+  mem m1 5380 qword 240
+
+EXEC BLKSTORE_int_fail_neg
+TEST
+  status 101
+EXEC BLKSTORE_int_fail_edge
+TEST
+  status 101
+EXEC BLKSTORE_int_fail_over
+TEST
+  status 101
+
+EXEC BLKSTORE_const_fail_neg
+TEST
+  status 101
+EXEC BLKSTORE_const_fail_edge
+TEST
+  status 101
+EXEC BLKSTORE_const_fail_over
+TEST
+  status 101
+
+EXEC BLKSTORE_reg_fail_neg
+TEST
+  status 101
+  rA -1
+EXEC BLKSTORE_reg_fail_edge
+TEST
+  status 101
+  rA 261
+EXEC BLKSTORE_reg_fail_over
+TEST
+  status 101
+  rA 300
+
+
+
+

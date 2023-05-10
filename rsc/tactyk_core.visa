@@ -914,6 +914,59 @@ typespec block-quantity
       $ELEMENT_BOUND_MODIFIER 111
       pick Bql
 
+instruction block-store
+  operand
+    type block-quantity
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  operand
+    type data const integer
+    $OFFSET $VALUE
+    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+  operand
+    type data xmmx
+    $SRC $VALUE
+  select-template
+    case BqsADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA, $ELEMENT_BOUND_MODIFIER
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        jmp .$QTY
+        .6: mov [$ADDRESS_REGISTER+$OFFSET+40], $SRC~5
+        .5: mov [$ADDRESS_REGISTER+$OFFSET+32], $SRC~4
+        .4: mov [$ADDRESS_REGISTER+$OFFSET+24], $SRC~3
+        .3: mov [$ADDRESS_REGISTER+$OFFSET+16], $SRC~2
+        .2: mov [$ADDRESS_REGISTER+$OFFSET+8], $SRC~1
+        .1: mov [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case BqsAID BqsACD
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA, $ELEMENT_BOUND_MODIFIER
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        jmp .$QTY
+        .6: mov [$ADDRESS_REGISTER+rTEMPC+40], $SRC~5
+        .5: mov [$ADDRESS_REGISTER+rTEMPC+32], $SRC~4
+        .4: mov [$ADDRESS_REGISTER+rTEMPC+24], $SRC~3
+        .3: mov [$ADDRESS_REGISTER+rTEMPC+16], $SRC~2
+        .2: mov [$ADDRESS_REGISTER+rTEMPC+8], $SRC~1
+        .1: mov [$ADDRESS_REGISTER+rTEMPC+0], $SRC~0
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+
 instruction block-load
   operand
     type block-quantity
@@ -1071,7 +1124,7 @@ instruction push
         add $ADDRESS_REGISTER, 8
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
-        
+
 
 instruction swap
   operand 
