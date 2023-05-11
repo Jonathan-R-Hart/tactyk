@@ -655,6 +655,7 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
     st->properties = calloc(st->num_properties, sizeof(struct tactyk_asmvm__property));
 
     uint64_t offset = 0;
+    uint64_t prev_offset = 0;
     uint64_t stride = 0;
 
     dblock = dblock->child;
@@ -701,28 +702,31 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
         //prop->name = prop_name;
         prop->byte_width = p_width;
         prop->byte_offset = offset;
-
+        
         char prop_qname[1024];
         sprintf(prop_qname, "%s.%s", st->name, prop->name);
-
-        struct tactyk_dblock__DBlock *propid = tactyk_dblock__from_int(offset);
-        tactyk_dblock__put(ectx->const_table, prop_qname, propid);
-
+        
         switch(directive) {
             case '.': {
+                offset = prev_offset;
+                prop->byte_offset = prev_offset;
                 if ( (offset + p_width) > stride) {
                     stride = (offset + p_width);
                 }
+                offset += p_width;
                 break;
             }
             case '>': {
+                prev_offset = 0;
+                prop->byte_offset = 0;
                 if ( (offset + p_width) > stride) {
                     stride = (offset + p_width);
                 }
-                offset = 0;
+                offset = p_width;
                 break;
             }
             default: {
+                prev_offset = offset;
                 offset += p_width;
                 if ( offset > stride) {
                     stride = offset;
@@ -730,6 +734,9 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
                 break;
             }
         }
+
+        struct tactyk_dblock__DBlock *propid = tactyk_dblock__from_int(prop->byte_offset);
+        tactyk_dblock__put(ectx->const_table, prop_qname, propid);
 
         dblock = dblock->next;
     }
