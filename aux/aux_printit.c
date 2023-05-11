@@ -47,6 +47,23 @@ void aux_printit__configure(struct tactyk_emit__Context *emitctx) {
     tactyk_emit__add_tactyk_apifunc(emitctx, "print-uint-d", aux_print__uint_d);
     tactyk_emit__add_tactyk_apifunc(emitctx, "print-uint-e", aux_print__uint_e);
     tactyk_emit__add_tactyk_apifunc(emitctx, "print-uint-f", aux_print__uint_f);
+    
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float", aux_print__float64_xa);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xa", aux_print__float64_xa);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xb", aux_print__float64_xb);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xc", aux_print__float64_xc);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xd", aux_print__float64_xd);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xe", aux_print__float64_xe);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xf", aux_print__float64_xf);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xg", aux_print__float64_xg);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xh", aux_print__float64_xh);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xi", aux_print__float64_xi);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xj", aux_print__float64_xj);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xk", aux_print__float64_xk);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xl", aux_print__float64_xl);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xm", aux_print__float64_xm);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xn", aux_print__float64_xn);
+    
 }
 
 // space and newline print functions
@@ -247,3 +264,65 @@ void aux_print__uint_f(struct tactyk_asmvm__Context *ctx) {
     fprintf(stream, "%ju", ctx->reg.rF);
     fflush(stream);
 }
+
+// print 64-bit floating-point numbers
+void aux_print__float64_xa(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xA.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xb(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xB.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xc(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xC.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xd(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xD.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xe(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xE.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xf(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xF.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xg(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xG.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xh(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xH.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xi(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xI.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xj(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xJ.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xk(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xK.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xl(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xL.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xm(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xM.f64[0]);
+    fflush(stream);
+}
+void aux_print__float64_xn(struct tactyk_asmvm__Context *ctx) {
+    fprintf(stream, "%f", ctx->reg.xN.f64[0]);
+    fflush(stream);
+}
+
+
+
+

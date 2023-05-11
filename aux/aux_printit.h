@@ -49,6 +49,22 @@ void aux_print__uint_d(struct tactyk_asmvm__Context *ctx);
 void aux_print__uint_e(struct tactyk_asmvm__Context *ctx);
 void aux_print__uint_f(struct tactyk_asmvm__Context *ctx);
 
+// print 64-bit floating point numbers
+void aux_print__float64_xa(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xb(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xc(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xd(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xe(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xf(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xg(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xh(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xi(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xj(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xk(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xl(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xm(struct tactyk_asmvm__Context *ctx);
+void aux_print__float64_xn(struct tactyk_asmvm__Context *ctx);
+
 #endif //AUX_PRINTIT_H
 
 

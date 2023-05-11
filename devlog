@@ -1,5 +1,6 @@
 11 May 2023
 tactyk-pl - Fix the '.' and '>' sub-directives (used for union type specifications)
+tactyk-auxiliary library - Add functions for printing floating point numbres (from xmm registers)
 
 10-11 May 2023
 tactyk_core.visa - Add a "block-store" instruction (with test coverage)
