@@ -1,6 +1,6 @@
 # TEST:  Batched data store to memory
 #
-# Read sequential data from a memblock and load it onto sequential registers (according to tactyk register alias lexical order)
+# Write contents of a series of consecutive registers (according to tactyk register alias lexical order) to a memblock.
 #
 # Virtual-ISA: tactyk_core
 # 
@@ -293,15 +293,15 @@ PROGRAM
 
   BLKSTORE_reg_fail_neg:
     assign a -1
-    block-store 5 addr1 -1 f
+    block-store 5 addr1 a f
     exit
   BLKSTORE_reg_fail_edge:
     assign a 261
-    block-store 5 addr1 261 f
+    block-store 5 addr1 a f
     exit
   BLKSTORE_reg_fail_over:
     assign a 300
-    block-store 5 addr1 300 f
+    block-store 5 addr1 a f
     exit
 
 EXEC BLKSTORE_const_3

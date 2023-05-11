@@ -966,7 +966,60 @@ instruction block-store
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
-
+    case BqsADX BqlADX
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA, $ELEMENT_BOUND_MODIFIER
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        jmp .$QTY
+        .14: movq [$ADDRESS_REGISTER+$OFFSET+104], $SRC~13
+        .13: movq [$ADDRESS_REGISTER+$OFFSET+96], $SRC~12
+        .12: movq [$ADDRESS_REGISTER+$OFFSET+88], $SRC~11
+        .11: movq [$ADDRESS_REGISTER+$OFFSET+80], $SRC~10
+        .10: movq [$ADDRESS_REGISTER+$OFFSET+72], $SRC~9
+        .9: movq [$ADDRESS_REGISTER+$OFFSET+64], $SRC~8
+        .8: movq [$ADDRESS_REGISTER+$OFFSET+56], $SRC~7
+        .7: movq [$ADDRESS_REGISTER+$OFFSET+48], $SRC~6
+        .6: movq [$ADDRESS_REGISTER+$OFFSET+40], $SRC~5
+        .5: movq [$ADDRESS_REGISTER+$OFFSET+32], $SRC~4
+        .4: movq [$ADDRESS_REGISTER+$OFFSET+24], $SRC~3
+        .3: movq [$ADDRESS_REGISTER+$OFFSET+16], $SRC~2
+        .2: movq [$ADDRESS_REGISTER+$OFFSET+8], $SRC~1
+        .1: movq [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case BqsAIX BqsACX BqlAIX BqlACX
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA, $ELEMENT_BOUND_MODIFIER
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        jmp .$QTY
+        .14: movq [$ADDRESS_REGISTER+rTEMPC+104], $SRC~13
+        .13: movq [$ADDRESS_REGISTER+rTEMPC+96], $SRC~12
+        .12: movq [$ADDRESS_REGISTER+rTEMPC+88], $SRC~11
+        .11: movq [$ADDRESS_REGISTER+rTEMPC+80], $SRC~10
+        .10: movq [$ADDRESS_REGISTER+rTEMPC+72], $SRC~9
+        .9: movq [$ADDRESS_REGISTER+rTEMPC+64], $SRC~8
+        .8: movq [$ADDRESS_REGISTER+rTEMPC+56], $SRC~7
+        .7: movq [$ADDRESS_REGISTER+rTEMPC+48], $SRC~6
+        .6: movq [$ADDRESS_REGISTER+rTEMPC+40], $SRC~5
+        .5: movq [$ADDRESS_REGISTER+rTEMPC+32], $SRC~4
+        .4: movq [$ADDRESS_REGISTER+rTEMPC+24], $SRC~3
+        .3: movq [$ADDRESS_REGISTER+rTEMPC+16], $SRC~2
+        .2: movq [$ADDRESS_REGISTER+rTEMPC+8], $SRC~1
+        .1: movq [$ADDRESS_REGISTER+rTEMPC+0], $SRC~0
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
 instruction block-load
   operand
     type block-quantity

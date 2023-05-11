@@ -405,21 +405,6 @@
     %define xN~11   xK
     %define xN~12   xL
     %define xN~13   xM
-
-    %define xO~0    xA
-    %define xO~1    xB
-    %define xO~2    xC
-    %define xO~3    xD
-    %define xO~4    xE
-    %define xO~5    xF
-    %define xO~6    xG
-    %define xO~7    xH
-    %define xO~8    xI
-    %define xO~9    xJ
-    %define xO~10   xK
-    %define xO~11   xL
-    %define xO~12   xM
-    %define xO~13   xN
     
     %define rMAPPER_8 %[rMAPPER]_8
     %define rMAPPER_16 %[rMAPPER]_16
