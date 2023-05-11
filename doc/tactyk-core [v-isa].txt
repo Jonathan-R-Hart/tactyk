@@ -309,12 +309,24 @@ Bind a memory block to an address register
 This also copies the memblock specification into context local storage.
 Typespecs:
   address-register:       address
-  memblock-ref:           data integer memblock
+  memblock-ref:           address data integer memblock
     This is an integer index into the program's memblock array.
 Variants:
   bind address data
   bind address integer
   bind address memblock
+  bind address address
+Unusual variants:
+  bind address address
+    This copies one memory binding onto another.
+
+unbind address-register
+Clear/reset a memory binding
+Typespecs:
+  address-register:       address
+Variants:
+  unbind address
+
 
 load word-size destination-register address-register element-offset
 Fetch data from a memblock and load it onto a register
@@ -390,14 +402,16 @@ swap a b
 Swap the contents of two registers.
 If swapping between data and xmmx registers, this assumes the data register contains an integer and the xmmx register
 contains a floating point number, and will cast both values.
+If address registers are swapped, it also swaps the internal memory binding variables.
 Typespecs:
-  a:                      data xmmx
-  b:                      data xmmx
+  a:                      address data xmmx
+  b:                      address data xmmx
 Variants:
   swap data data
   swap xmmx xmmx
   swap data xmmx
   swap xmmx data
+  swap address address
 
 add a b
 Add the value b or value of register b onto the value of register a

@@ -452,7 +452,34 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
 
 uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *expected_value = spec->token->next;
-
+    if (tactyk_dblock__equals_c_string(expected_value, "NULL")) {
+        struct tactyk_asmvm__memblock_lowlevel *shadow_target = &shadow_vmctx->active_memblocks[entry->offset-1];
+        shadow_target->base_address = NULL;
+        shadow_target->element_bound = 0;
+        shadow_target->array_bound = 0;
+        shadow_target->memblock_index = 0;
+        shadow_target->offset = 0;
+        switch(entry->offset) {
+            case 1: {
+                shadow_vmctx->reg.rADDR1 = NULL;
+                break;
+            }
+            case 2: {
+                shadow_vmctx->reg.rADDR2 = NULL;
+                break;
+            }
+            case 3: {
+                shadow_vmctx->reg.rADDR3 = NULL;
+                break;
+            }
+            case 4: {
+                shadow_vmctx->reg.rADDR4 = NULL;
+                break;
+            }
+        }
+        return TACTYK_TESTSTATE__PASS;
+    }
+    
     uint64_t num_tokens = tactyk_dblock__count_peers(expected_value);
     if (num_tokens < 2) {
         tactyk_test__report("Not enough arguments to specify a memory binding.");
@@ -460,6 +487,7 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
     }
     struct tactyk_dblock__DBlock *name = expected_value;
     struct tactyk_dblock__DBlock *reg_ofs = expected_value->next;
+    
 
     // if the name is the name of a loaded program, then a "foreign" memblock is specified, so use the "foreign" program's memblock table.
     //  Also:  I should probably generate a test errror for programs which share the same name as a memblock.

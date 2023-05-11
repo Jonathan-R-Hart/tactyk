@@ -1,0 +1,88 @@
+# TEST:  Supplemental memory binding functions
+# 
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   bind addr-addr (AA)
+#   swap addr-addr (AA)
+#   unbind addr (A)
+
+PROGRAM
+  struct mdef
+    1 va
+    1 vb
+    8 vc
+    8 vd
+    4 ve
+    2 vf
+    8 vg
+  
+  text txt
+    qzaxswcdervfbtgyhnmju,kio.lp/;
+  
+  mem mm mdef 100
+  
+  extmem em
+  
+  INIT:
+    bind addr1 mm
+    bind addr3 txt
+    bind addr4 em
+    exit
+  
+  BIND_SWAP:
+    swap addr1 addr2
+    swap addr2 addr3
+    swap addr3 addr4
+    swap addr4 addr1
+    load qword a addr3 10
+    exit
+  
+  BIND_TRANSFER:
+    bind addr4 addr3
+    bind addr2 addr1
+    exit
+
+  BIND_RESET:
+    unbind addr1
+    unbind addr3
+    exit
+
+ALLOC em
+  byte 213
+  byte 12
+  qword 543211234599999
+  qword 999995432112345
+  dword 100000000
+  word 1000
+  qword -100
+
+EXEC INIT
+TEST
+  addr1 mm 0
+  addr3 txt 0
+  addr4 em 0
+  mem txt *
+  mem mm *
+
+EXEC BIND_SWAP
+TEST
+  addr1 mm 0
+  addr2 txt 0
+  addr3 em 0
+  addr4 NULL
+  rA 999995432112345
+
+EXEC BIND_TRANSFER
+TEST
+  addr1 mm 0
+  addr2 mm 0
+  addr3 em 0
+  addr4 em 0
+
+EXEC BIND_RESET
+TEST
+  addr1 NULL
+  addr2 mm 0
+  addr3 NULL
+  addr4 em 0
+

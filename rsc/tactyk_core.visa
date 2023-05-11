@@ -308,14 +308,30 @@ instruction break
 instruction bind
   operand
     type address
-    $ADDRESS_REGISTER $VALUE
+    $ADDR_REG_A $VALUE
+    $CTX_ADDR_A $CTX_ADDR
   operand
-    type data memblock integer
+    type address data memblock integer
+    $ADDR_REG_B $VALUE
+    $CTX_ADDR_B $CTX_ADDR
     $SRC $VALUE
     $KWSRC $KW
     scramble rTEMPA $LD_SRC_IMMEDIATE
   select-template
-
+    case AA
+      code
+        mov rTEMPA, fs:[$CTX_ADDR_B + 0 + random_const_FS]
+        mov rTEMPC, fs:[$CTX_ADDR_B + 8 + random_const_FS]
+        mov rTEMPD, fs:[$CTX_ADDR_B + 16 + random_const_FS]
+        mov fs:[$CTX_ADDR_A + 0 + random_const_FS], rTEMPA
+        mov fs:[$CTX_ADDR_A + 8 + random_const_FS], rTEMPC
+        mov fs:[$CTX_ADDR_A + 16 + random_const_FS], rTEMPD
+        mov $ADDR_REG_A, $ADDR_REG_B
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    
     case AD
       code
         mov rTEMPA, $SRC
@@ -329,13 +345,13 @@ instruction bind
         
         imul rTEMPA, 24
         add rTEMPA, fs:[context.memblocks + random_const_FS]
-        mov $ADDRESS_REGISTER, [rTEMPA]
-        mov fs:[$CTX_ADDR + random_const_FS], $ADDRESS_REGISTER
+        mov $ADDR_REG_A, [rTEMPA]
+        mov fs:[$CTX_ADDR_A + random_const_FS], $ADDR_REG_A
 
         mov rTEMPC, [rTEMPA+8]
         mov rTEMPD, [rTEMPA+16]
-        mov fs:[$CTX_ADDR+8 + random_const_FS], rTEMPC
-        mov fs:[$CTX_ADDR+16 + random_const_FS], rTEMPD
+        mov fs:[$CTX_ADDR_A+8 + random_const_FS], rTEMPC
+        mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPD
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -355,13 +371,13 @@ instruction bind
         
         imul rTEMPA, 24
         add rTEMPA, fs:[context.memblocks + random_const_FS]
-        mov $ADDRESS_REGISTER, [rTEMPA]
-        mov fs:[$CTX_ADDR + random_const_FS], $ADDRESS_REGISTER
+        mov $ADDR_REG_A, [rTEMPA]
+        mov fs:[$CTX_ADDR_A + random_const_FS], $ADDR_REG_A
         
         mov rTEMPC, [rTEMPA+8]
         mov rTEMPD, [rTEMPA+16]
-        mov fs:[$CTX_ADDR+8 + random_const_FS], rTEMPC
-        mov fs:[$CTX_ADDR+16 + random_const_FS], rTEMPD
+        mov fs:[$CTX_ADDR_A+8 + random_const_FS], rTEMPC
+        mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPD
         
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
@@ -380,17 +396,29 @@ instruction bind
     #    imul rTEMPA, 24
     #    add rTEMPA, fs:[context.memblocks + random_const_FS]
     #    mov $ADDRESS_REGISTER, [rTEMPA]
-    #    mov fs:[$CTX_ADDR + random_const_FS], $ADDRESS_REGISTER
+    #    mov fs:[$CTX_ADDR_A + random_const_FS], $ADDR_REG_A
     #    
     #    mov rTEMPC, [rTEMPA+8]
     #    mov rTEMPD, [rTEMPA+16]
-    #    mov fs:[$CTX_ADDR+8 + random_const_FS], rTEMPC
-    #    mov fs:[$CTX_ADDR+16 + random_const_FS], rTEMPD
+    #    mov fs:[$CTX_ADDR_A+8 + random_const_FS], rTEMPC
+    #    mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPD
     #    
     #    xor rTEMPA, rTEMPA
     #    xor rTEMPC, rTEMPC
     #    xor rTEMPD, rTEMPD
     #    jmp $NEXT_INSTRUCTION
+
+instruction unbind
+  operand
+    type address
+    $ADDR_REG_A $VALUE
+    $CTX_ADDR_A $CTX_ADDR
+  code
+    mov qword fs:[$CTX_ADDR_A + 0 + random_const_FS], 0
+    mov qword fs:[$CTX_ADDR_A + 8 + random_const_FS], 0
+    mov qword fs:[$CTX_ADDR_A + 16 + random_const_FS], 0
+    mov $ADDR_REG_A, 0
+    jmp $NEXT_INSTRUCTION
 
 # Read a word from a memory block and write it to a register
 # NOTICE:  This instruction will need to be reviewed for spectre/meltdown mitigations 
@@ -1181,11 +1209,15 @@ instruction push
 
 instruction swap
   operand 
-    type data xmmx
+    type address data xmmx
     $A $VALUE
+    $ADDR_REG_A $VALUE
+    $CTX_ADDR_A $CTX_ADDR
   operand
-    type data xmmx
+    type address data xmmx
     $B $VALUE
+    $ADDR_REG_B $VALUE
+    $CTX_ADDR_B $CTX_ADDR
   select-template
     case DD
       code
@@ -1211,6 +1243,22 @@ instruction swap
         movq $A, $B
         movq $B, xTEMPA
         pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case AA
+      code
+        mov rTEMPA, fs:[$CTX_ADDR_A + 0 + random_const_FS]
+        mov rTEMPC, fs:[$CTX_ADDR_A + 8 + random_const_FS]
+        mov rTEMPD, fs:[$CTX_ADDR_A + 16 + random_const_FS]
+        xchg rTEMPA, fs:[$CTX_ADDR_B + 0 + random_const_FS]
+        xchg rTEMPC, fs:[$CTX_ADDR_B + 8 + random_const_FS]
+        xchg rTEMPD, fs:[$CTX_ADDR_B + 16 + random_const_FS]
+        mov fs:[$CTX_ADDR_A + 0 + random_const_FS], rTEMPA
+        mov fs:[$CTX_ADDR_A + 8 + random_const_FS], rTEMPC
+        mov fs:[$CTX_ADDR_A + 16 + random_const_FS], rTEMPD
+        xchg $ADDR_REG_A, $ADDR_REG_B
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
         jmp $NEXT_INSTRUCTION
 
 subroutine simple_unary_instruction

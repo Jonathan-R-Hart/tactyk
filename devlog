@@ -1,6 +1,11 @@
 11 May 2023
 tactyk-pl - Fix the '.' and '>' sub-directives (used for union type specifications)
 tactyk-auxiliary library - Add functions for printing floating point numbres (from xmm registers)
+tactyk_core.visa - Supplemental memory binding functions
+  Add an "unbind" instruction
+  Add the abiltiy to copy another memory binding to the "bind" instruction
+  Add an ability to swap a pair of memory bindings to the "swap" instruction
+tactyk-test - Add a null memory binding test
 
 10-11 May 2023
 tactyk_core.visa - Add a "block-store" instruction (with test coverage)
