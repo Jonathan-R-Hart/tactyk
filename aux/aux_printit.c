@@ -31,6 +31,20 @@ void aux_printit__configure(struct tactyk_emit__Context *emitctx) {
     tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-d", aux_print__text_d);
     tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-e", aux_print__text_e);
     tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-f", aux_print__text_f);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xa", aux_print__text_xa);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xb", aux_print__text_xb);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xc", aux_print__text_xc);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xd", aux_print__text_xd);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xe", aux_print__text_xe);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xf", aux_print__text_xf);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xg", aux_print__text_xg);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xh", aux_print__text_xh);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xi", aux_print__text_xi);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xj", aux_print__text_xj);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xk", aux_print__text_xk);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xl", aux_print__text_xl);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xm", aux_print__text_xm);
+    tactyk_emit__add_tactyk_apifunc(emitctx, "print-text-xn", aux_print__text_xn);
     
     tactyk_emit__add_tactyk_apifunc(emitctx, "print-int", aux_print__int_a);
     tactyk_emit__add_tactyk_apifunc(emitctx, "print-int-a", aux_print__int_a);
@@ -208,6 +222,105 @@ void aux_print__text_e(struct tactyk_asmvm__Context *ctx) {
 void aux_print__text_f(struct tactyk_asmvm__Context *ctx) {
     uint64_t buf[2] = { 0,0 };
     buf[0] = ctx->reg.rF;
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}
+    
+void aux_print__text_xa(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xA.u64[0];
+    buf[1] = ctx->reg.xA.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xb(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xB.u64[0];
+    buf[1] = ctx->reg.xB.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xc(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xC.u64[0];
+    buf[1] = ctx->reg.xC.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xd(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xD.u64[0];
+    buf[1] = ctx->reg.xD.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xe(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xE.u64[0];
+    buf[1] = ctx->reg.xE.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xf(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xF.u64[0];
+    buf[1] = ctx->reg.xF.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xg(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xG.u64[0];
+    buf[1] = ctx->reg.xG.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xh(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xH.u64[0];
+    buf[1] = ctx->reg.xH.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xi(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xI.u64[0];
+    buf[1] = ctx->reg.xI.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xj(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xJ.u64[0];
+    buf[1] = ctx->reg.xJ.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xk(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xK.u64[0];
+    buf[1] = ctx->reg.xK.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xl(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xL.u64[0];
+    buf[1] = ctx->reg.xL.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xm(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xM.u64[0];
+    buf[1] = ctx->reg.xM.u64[1];
+    fprintf(stream, "%s", (char*) buf);
+    fflush(stream);
+}    
+void aux_print__text_xn(struct tactyk_asmvm__Context *ctx) {
+    uint64_t buf[3] = { 0,0,0 };
+    buf[0] = ctx->reg.xN.u64[0];
+    buf[1] = ctx->reg.xN.u64[1];
     fprintf(stream, "%s", (char*) buf);
     fflush(stream);
 }

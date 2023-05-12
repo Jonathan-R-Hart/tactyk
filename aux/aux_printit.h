@@ -32,6 +32,20 @@ void aux_print__text_c(struct tactyk_asmvm__Context *ctx);
 void aux_print__text_d(struct tactyk_asmvm__Context *ctx);
 void aux_print__text_e(struct tactyk_asmvm__Context *ctx);
 void aux_print__text_f(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xa(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xb(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xc(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xd(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xe(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xf(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xg(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xh(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xi(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xj(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xk(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xl(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xm(struct tactyk_asmvm__Context *ctx);
+void aux_print__text_xn(struct tactyk_asmvm__Context *ctx);
 
 // print signed integers
 void aux_print__int_a(struct tactyk_asmvm__Context *ctx);
