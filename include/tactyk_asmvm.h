@@ -184,8 +184,7 @@ struct tactyk_asmvm__VM {
 struct tactyk_asmvm__Program;
 
 struct tactyk_asmvm__MicrocontextStash {
-    struct tactyk_asmvm__memblock_lowlevel memblocks[4];
-    union tactyk_asmvm__reg128 a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z;
+    union tactyk_asmvm__reg128 a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, s26, s27, s28, s29, s30, s31;
 };
 
 // would prefer an explicit struct memory layout here, since this represents a low-level data structure

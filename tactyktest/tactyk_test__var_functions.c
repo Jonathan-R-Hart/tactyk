@@ -917,7 +917,7 @@ uint64_t tactyk_test__TEST_LWCALL_STACK(struct tactyk_test_entry *entry, struct 
 uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *ofs_token = spec->token->next;
     struct tactyk_dblock__DBlock *fieldname_token = ofs_token->next;
-
+    
     uint64_t ofs = 0;
     if (!tactyk_dblock__try_parseuint(&ofs, ofs_token)) {
         ofs = vmctx->reg.rMCSI;
@@ -967,55 +967,7 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
         shstash->NAME.i64[1] = ival2; \
         field_matched = true; \
     }
-
-    if ( (strncmp(fn, "addr", 4) == 0) && (strlen(fn) == 5) ) {
-        uint64_t aofs = fn[4] - '1';
-        //struct tactyk_asmvm__memblock_lowlevel *mbll = &stash->memblocks[aofs];
-        struct tactyk_asmvm__memblock_lowlevel *shmbll = &shstash->memblocks[aofs];
-        if (ival == 0) {
-            struct tactyk_dblock__DBlock *prgref = val_token;
-            struct tactyk_dblock__DBlock *addrref = val_token->next;
-            struct tactyk_asmvm__Program *prg = tactyk_dblock__get(programs, prgref);
-            if (prg == NULL) {
-                addrref = val_token;
-                prg = tprg;
-            }
-            struct tactyk_dblock__DBlock *addrofs = addrref->next;
-            struct tactyk_asmvm__memblock_highlevel *mbhl = tactyk_dblock__get(prg->memory_layout_hl, addrref);
-            if (mbhl == NULL) {
-                char buf[64];
-                tactyk_dblock__export_cstring(buf, 64, prgref);
-                snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "Undefined memblock:  '%s'", buf);
-                return TACTYK_TESTSTATE__TEST_ERROR;
-            }
-            ival += (int64_t)mbhl->data;
-
-            if (addrofs != NULL) {
-                uint64_t uival = 0;
-                tactyk_dblock__try_parseuint(&uival, addrofs);
-                ival += uival;
-            }
-        }
-        shmbll->base_address = (uint8_t*)ival;
-        field_matched = true;
-    }
-    STASH_ATEST("addr1.array_bound", memblocks[0].array_bound, uint32_t)
-    STASH_ATEST("addr1.element_bound", memblocks[0].element_bound, uint32_t)
-    STASH_ATEST("addr1.index", memblocks[0].memblock_index, uint32_t)
-    STASH_ATEST("addr1.offset", memblocks[0].offset, uint32_t)
-    STASH_ATEST("addr2.array_bound", memblocks[1].array_bound, uint32_t)
-    STASH_ATEST("addr2.element_bound", memblocks[1].element_bound, uint32_t)
-    STASH_ATEST("addr2.index", memblocks[1].memblock_index, uint32_t)
-    STASH_ATEST("addr2.offset", memblocks[1].offset, uint32_t)
-    STASH_ATEST("addr3.array_bound", memblocks[2].array_bound, uint32_t)
-    STASH_ATEST("addr3.element_bound", memblocks[2].element_bound, uint32_t)
-    STASH_ATEST("addr3.index", memblocks[2].memblock_index, uint32_t)
-    STASH_ATEST("addr3.offset", memblocks[2].offset, uint32_t)
-    STASH_ATEST("addr4.array_bound", memblocks[3].array_bound, uint32_t)
-    STASH_ATEST("addr4.element_bound", memblocks[3].element_bound, uint32_t)
-    STASH_ATEST("addr4.index", memblocks[3].memblock_index, uint32_t)
-    STASH_ATEST("addr4.offset", memblocks[3].offset, uint32_t)
-
+    if (false) {}
     STASH_TEST(al, a.i64[0])
     STASH_TEST(ah, a.i64[1])
     STASH_TEST(bl, b.i64[0])
@@ -1073,6 +1025,19 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
 
     STASH_TEST(zl, z.i64[0])
     STASH_TEST(zh, z.i64[1])
+    
+    STASH_TEST(s26, z.i64[0])
+    STASH_TEST(s26, z.i64[1])
+    STASH_TEST(s27, z.i64[0])
+    STASH_TEST(s27, z.i64[1])
+    STASH_TEST(s28, z.i64[0])
+    STASH_TEST(s28, z.i64[1])
+    STASH_TEST(s29, z.i64[0])
+    STASH_TEST(s29, z.i64[1])
+    STASH_TEST(s30, z.i64[0])
+    STASH_TEST(s30, z.i64[1])
+    STASH_TEST(s31, z.i64[0])
+    STASH_TEST(s31, z.i64[1])
 
     STASH_BTEST(a)
     STASH_BTEST(b)
@@ -1100,6 +1065,12 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
     STASH_BTEST(x)
     STASH_BTEST(y)
     STASH_BTEST(z)
+    STASH_BTEST(s26)
+    STASH_BTEST(s27)
+    STASH_BTEST(s28)
+    STASH_BTEST(s29)
+    STASH_BTEST(s30)
+    STASH_BTEST(s31)
 
     #undef STASH_TEST
     #undef STASH_ATEST

@@ -495,51 +495,6 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
         struct tactyk_asmvm__MicrocontextStash *stash = &vmctx->microcontext_stack[i];
         struct tactyk_asmvm__MicrocontextStash *shadow_stash = &shadow_mctxstack[i];
 
-        for (uint64_t j = 0; j < 4; j++) {
-            struct tactyk_asmvm__memblock_lowlevel *mbll = &stash->memblocks[i];
-            struct tactyk_asmvm__memblock_lowlevel *shadow_mbll = &stash->memblocks[i];
-            if (mbll->base_address != shadow_mbll->base_address) {
-                snprintf(
-                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "deviation: mctx stash #%ju, memblock #%ju base address: expected: %p observed: %p",
-                    i, j, shadow_mbll->base_address, mbll->base_address
-                );
-                return TACTYK_TESTSTATE__FAIL;
-            }
-            if (mbll->array_bound != shadow_mbll->array_bound) {
-                snprintf(
-                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "deviation: mctx stash #%ju, memblock #%ju array bound: expected: %u observed: %u",
-                    i, j, shadow_mbll->array_bound, mbll->array_bound
-                );
-                return TACTYK_TESTSTATE__FAIL;
-            }
-            if (mbll->element_bound != shadow_mbll->element_bound) {
-                snprintf(
-                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "deviation: mctx stash #%ju, memblock #%ju element bound: expected: %u observed: %u",
-                    i, j, shadow_mbll->element_bound, mbll->element_bound
-                );
-                return TACTYK_TESTSTATE__FAIL;
-            }
-            if (mbll->memblock_index != shadow_mbll->memblock_index) {
-                snprintf(
-                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "deviation: mctx stash #%ju, memblock #%ju index: expected: %u observed: %u",
-                    i, j, shadow_mbll->memblock_index, mbll->memblock_index
-                );
-                return TACTYK_TESTSTATE__FAIL;
-            }
-            if (mbll->offset != shadow_mbll->offset) {
-                snprintf(
-                    test_state->report, TACTYK_TEST__REPORT_BUFSIZE,
-                    "deviation: mctx stash #%ju, memblock #%ju offset: expected: %u observed: %u",
-                    i, j, shadow_mbll->offset, mbll->offset
-                );
-                return TACTYK_TESTSTATE__FAIL;
-            }
-        }
-
         sprintf(prefix, "stash #%ju ", i);
         #undef DESCRIPTION_PREFIX
         #define DESCRIPTION_PREFIX stash_prefix
@@ -602,6 +557,19 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
 
         CHK(z.i64[0], "%jd", "z-low");
         CHK(z.i64[1], "%jd", "z-high");
+        
+        CHK(s26.i64[0], "%jd", "s26-low");
+        CHK(s26.i64[1], "%jd", "s26-high");
+        CHK(s27.i64[0], "%jd", "s27-low");
+        CHK(s27.i64[1], "%jd", "s27-high");
+        CHK(s28.i64[0], "%jd", "s28-low");
+        CHK(s28.i64[1], "%jd", "s28-high");
+        CHK(s29.i64[0], "%jd", "s29-low");
+        CHK(s29.i64[1], "%jd", "s29-high");
+        CHK(s30.i64[0], "%jd", "s30-low");
+        CHK(s30.i64[1], "%jd", "s30-high");
+        CHK(s31.i64[0], "%jd", "s31-low");
+        CHK(s31.i64[1], "%jd", "s31-high");
         #undef DESCRIPTION_PREFIX
         #undef SHADOW_OBJ
         #undef REAL_OBJ

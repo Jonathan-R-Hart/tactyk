@@ -554,14 +554,6 @@
     endstruc
     
     struc microcontext
-        qwords addr1
-        dwords addr1_element_bound, addr1_array_bound, addr1_memblock_index, addr1_offset
-        qwords addr2
-        dwords addr2_element_bound, addr2_array_bound, addr2_memblock_index, addr2_offset
-        qwords addr3
-        dwords addr3_element_bound, addr3_array_bound, addr3_memblock_index, addr3_offset
-        qwords addr4
-        dwords addr4_element_bound, addr4_array_bound, addr4_memblock_index, addr4_offset
         .a: qwords al, ah
         .b: qwords bl, bh
         .c: qwords cl, ch
@@ -588,6 +580,12 @@
         .x: qwords xl, xh
         .y: qwords yl, yh
         .z: qwords zl, zh
+        .s26: qwords s26l, s26h
+        .s27: qwords s27l, s27h
+        .s28: qwords s28l, s28h
+        .s29: qwords s29l, s29h
+        .s30: qwords s30l, s30h
+        .s31: qwords s31l, s31h
     endstruc
     
     %define microcontext_size_bits 9

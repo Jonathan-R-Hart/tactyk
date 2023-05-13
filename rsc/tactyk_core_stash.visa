@@ -69,6 +69,19 @@ typespec stash-item
       value yl
     case sz sZ
       value zl
+    
+    case s26
+      value s26
+    case s27
+      value s27
+    case s28
+      value s28
+    case s29
+      value s29
+    case s30
+      value s30
+    case s31
+      value s31
   pick Si
 
 typespec stash-item-low
@@ -129,6 +142,19 @@ typespec stash-item-low
       value yl
     case szl sZl
       value zl
+    
+    case s26l
+      value s26l
+    case s27l
+      value s27l
+    case s28l
+      value s28l
+    case s29l
+      value s29l
+    case s30l
+      value s30l
+    case s31l
+      value s31l
   pick Sil
 
 typespec stash-item-high
@@ -189,6 +215,19 @@ typespec stash-item-high
       value yh
     case szh sZh
       value zh
+    
+    case s26h
+      value s26h
+    case s27h
+      value s27h
+    case s28h
+      value s28h
+    case s29h
+      value s29h
+    case s30h
+      value s30h
+    case s31h
+      value s31h
   pick Sih
 
 instruction stash
