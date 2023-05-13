@@ -1,0 +1,374 @@
+
+typespec stash-addr
+  select-operand
+    case s-addr1 stash-addr1
+      value addr1
+    case s-addr2 stash-addr2
+      value addr2
+    case s-addr3 stash-addr3
+      value addr3
+    case s-addr4 stash-addr4
+      value addr4
+  pick Sa
+
+typespec stash-item
+  select-operand
+    case sa sA
+      value al
+    case sb sB
+      value bl
+    case sc sC
+      value cl
+    case sd sD
+      value dl
+    case se sE
+      value el
+    
+    case sf sF
+      value fl
+    case sg sG
+      value gl
+    case sh sH
+      value hl
+    case si sI
+      value il
+    case sj sJ
+      value jl
+
+    case sk sK
+      value kl
+    case sl sL
+      value ll
+    case sm sM
+      value ml
+    case sn sN
+      value nl
+    case so sO
+      value ol
+
+    case sp sP
+      value pl
+    case sq sQ
+      value ql
+    case sr sR
+      value rl
+    case ss sS
+      value sl
+    case st sT
+      value tl
+
+    case su sU
+      value ul
+    case sv sV
+      value vl
+    case sw sW
+      value wl
+    case sx sX
+      value xl
+    case sy sY
+      value yl
+    case sz sZ
+      value zl
+  pick Si
+
+typespec stash-item-low
+  select-operand
+    case sal sAl
+      value al
+    case sbl sBl
+      value bl
+    case scl sCl
+      value cl
+    case sdl sDl
+      value dl
+    case sel sEl
+      value el
+    
+    case sfl sFl
+      value fl
+    case sgl sGl
+      value gl
+    case shl sHl
+      value hl
+    case sil sIl
+      value il
+    case sjl sJl
+      value jl
+
+    case skl sKl
+      value kl
+    case sll sLl
+      value ll
+    case sml sMl
+      value ml
+    case snl sNl
+      value nl
+    case sol sOl
+      value ol
+
+    case spl sPl
+      value pl
+    case sql sQl
+      value ql
+    case srl sRl
+      value rl
+    case ssl sSl
+      value sl
+    case stl sTl
+      value tl
+
+    case sul sUl
+      value ul
+    case svl sVl
+      value vl
+    case swl sWl
+      value wl
+    case sxl sXl
+      value xl
+    case syl sYl
+      value yl
+    case szl sZl
+      value zl
+  pick Sil
+
+typespec stash-item-high
+  select-operand
+    case sah sAh
+      value ah
+    case sbh sBh
+      value bh
+    case sch sCh
+      value ch
+    case sdh sDh
+      value dh
+    case seh sEh
+      value eh
+    
+    case sfh sFh
+      value fh
+    case sgh sGh
+      value gh
+    case shh sHh
+      value hh
+    case sih sIh
+      value ih
+    case sjh sJh
+      value jh
+
+    case skh sKh
+      value kh
+    case slh sLh
+      value lh
+    case smh sMh
+      value mh
+    case snh sNh
+      value nh
+    case soh sOh
+      value oh
+
+    case sph sPh
+      value ph
+    case sqh sQh
+      value qh
+    case srh sRh
+      value rh
+    case ssh sSh
+      value sh
+    case sth sTh
+      value th
+
+    case suh sUh
+      value uh
+    case svh sVh
+      value vh
+    case swh sWh
+      value wh
+    case sxh sXh
+      value xh
+    case syh sYh
+      value yh
+    case szh sZh
+      value zh
+  pick Sih
+
+instruction stash
+  composite 16 permute-code no-duplicates
+    opt-operand
+      select-operand
+        case swap
+          pick W
+    operand
+      type data xmmx stash-item stash-item-low stash-item-high
+      $DEST $VALUE
+    operand
+      type data xmmx stash-item stash-item-low stash-item-high
+      $SRC $VALUE
+    select-template
+      case SiD SilD SihD
+        code
+          mov gs:[microcontext.$DEST+random_const_GS], $SRC
+      case DSi DSil DSih
+        code
+          mov $DEST, gs:[microcontext.$SRC+random_const_GS]
+      case SilX SihX
+        code
+          movq gs:[microcontext.$DEST+random_const_GS], $SRC
+      case XSil XSih
+        code
+          movq $DEST, gs:[microcontext.$SRC+random_const_GS]
+      case SiX
+        code
+          movdqu gs:[microcontext.$DEST+random_const_GS], $SRC
+      case XSi
+        code
+          movdqu $DEST, gs:[microcontext.$SRC+random_const_GS]
+      case SiSi
+        code
+          movdqu xTEMPA, gs:[microcontext.$SRC+random_const_GS]
+          movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
+          pxor xTEMPA, xTEMPA
+      case SilSil SilSih SihSil SihSih SilSi SihSi SiSil SiSih
+        code
+          mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
+          mov gs:[microcontext.$DEST+random_const_GS], rTEMPA
+          xor rTEMPA, rTEMPA
+      case WSiD WSilD WSihD
+        code
+          xchg gs:[microcontext.$DEST+random_const_GS], $SRC
+      case WDSi WDSil WDSih
+        code
+          xchg $DEST, gs:[microcontext.$SRC+random_const_GS]
+      case WSilX WSihX
+        code
+          movq xTEMPA, $SRC
+          movq $SRC, gs:[microcontext.$DEST+random_const_GS]
+          movq gs:[microcontext.$DEST+random_const_GS], xTEMPA
+          pxor xTEMPA, xTEMPA
+      case WXSil WXSih
+        code
+          movq xTEMPA, $DEST
+          movq $DEST, gs:[microcontext.$SRC+random_const_GS]
+          movq gs:[microcontext.$SRC+random_const_GS], xTEMPA
+          pxor xTEMPA, xTEMPA
+      case WSiX
+        code
+          movdqu xTEMPA, $SRC
+          movdqu $SRC, gs:[microcontext.$DEST+random_const_GS]
+          movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
+          pxor xTEMPA, xTEMPA
+      case WXSi
+        code
+          movdqu xTEMPA, $DEST
+          movdqu $DEST, gs:[microcontext.$SRC+random_const_GS]
+          movdqu gs:[microcontext.$SRC+random_const_GS], xTEMPA
+          pxor xTEMPA, xTEMPA
+      case WSiSi
+        code
+          movdqu xTEMPA, gs:[microcontext.$SRC+random_const_GS]
+          movdqu xTEMPB, gs:[microcontext.$DEST+random_const_GS]
+          movdqu gs:[microcontext.$SRC+random_const_GS], xTEMPB
+          movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
+          pxor xTEMPA, xTEMPA
+          pxor xTEMPB, xTEMPB
+      case WSilSil WSilSih WSihSil WSihSih WSilSi WSihSi WSiSil WSiSih
+        code
+          mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
+          xchg rTEMPA, gs:[microcontext.$DEST+random_const_GS]
+          mov gs:[microcontext.$SRC+random_const_GS], rTEMPA
+          xor rTEMPA, rTEMPA
+      #case SaA
+      #  code
+      #    mov rTEMPA, fs:[$CONTEXT_ADDR + random_const_FS]
+      #    mov gs:[microcontext.$DEST+random_const_GS], rTEMPA
+      #    negate rTEMPA
+      #    add rTEMPA, $SRC
+      #    mov dword gs:[microcontext.$DEST+20+random_const_GS], %[$SRC]_32
+      #    mov rTEMPC, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+      #    mov gs:[microcontext.$DEST+8+random_const_GS], rTEMPC
+      #    mov rTEMPD_32, dword fs:[$CTX_MEMBLOCK_INDEX + random_const_FS]
+      #    mov dword gs:[microcontext.$DEST+16+random_const_GS], rTEMPD_32
+      #    xor rTEMPA, rTEMPA
+      #    xor rTEMPC, rTEMPC
+      #    xor rTEMPD, rTEMPD
+      #case ASa
+      #  code
+      #    mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
+      #    mov fs:[$CONTEST_ADDR + random_const_FS]
+      #    mov $DEST, rTEMPA
+      #    add $DEST, dword gs:[microcontext.$SRC+20+random_const_GS]
+      #    mov rTEMPC, gs:[microcontext.$SRC+8+random_const_GS]
+      #    mov fs:[$CTX_ELEMENT_BOUND + random_const_FS], rTEMPC
+      #    mov rTEMPD_32, dword gs:[microcontext.$SRC+16+random_const_GS]
+      #    mov dword fs:[$CTX_MEMBLOCK_INDEX + random_const_FS], rTEMPD_16
+      #    xor rTEMPA, rTEMPA
+      #    xor rTEMPC, rTEMPC
+      #    xor rTEMPD, rTEMPD
+  code
+    jmp $NEXT_INSTRUCTION
+
+instruction mctxpush
+  code
+    cmp rMCSI, 65535
+    errorge STATUS_STACK_OVERFLOW
+    inc rMCSI_16
+    movzx rTEMPA, rMCSI_16
+    shl rTEMPA, microcontext_size_bits
+    add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
+    sub rTEMPA, random_const_GS
+    wrgsbase rTEMPA
+    xor rTEMPA, rTEMPA
+    jmp $NEXT_INSTRUCTION
+
+instruction mctxpop
+  code
+    cmp rMCSI_16, word fs:[context.microcontext_floor + random_const_FS]
+    errorle STATUS_STACK_UNDERFLOW
+    dec rMCSI_16
+    movzx rTEMPA, rMCSI_16
+    shl rTEMPA, microcontext_size_bits
+    add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
+    sub rTEMPA, random_const_GS
+    wrgsbase rTEMPA
+    xor rTEMPA, rTEMPA
+    jmp $NEXT_INSTRUCTION
+
+instruction mctxjump
+  operand
+    type data const integer
+    $TARGET $VALUE
+    scramble rTEMPA $LD_IMMEDIATE_TARGET
+  select-template
+    case D
+      code
+        mov rTEMPA, $TARGET
+        mov rTEMPC_32, dword fs:[context.microcontext_floor + random_const_FS]
+        add rTEMPA, rTEMPC
+        cmp rTEMPA, rTEMPC
+        errorlt STATUS_STACK_UNDERFLOW
+        cmp rTEMPA, microcontext_stack_size
+        errorgt STATUS_STACK_OVERFLOW
+        mov rMCSI, rTEMPA
+        shl rTEMPA, microcontext_size_bits
+        add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
+        sub rTEMPA, random_const_GS
+        wrgsbase rTEMPA
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case I C
+      code
+        $LD_IMMEDIATE_TARGET
+        mov rTEMPC_32, dword fs:[context.microcontext_floor + random_const_FS]
+        add rTEMPA, rTEMPC
+        cmp rTEMPA, rTEMPC
+        errorlt STATUS_STACK_UNDERFLOW
+        cmp rTEMPA, microcontext_stack_size
+        errorgt STATUS_STACK_OVERFLOW
+        mov rMCSI, rTEMPA
+        shl rTEMPA, microcontext_size_bits
+        add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
+        sub rTEMPA, random_const_GS
+        wrgsbase rTEMPA
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION

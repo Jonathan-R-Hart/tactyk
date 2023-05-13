@@ -1,3 +1,8 @@
+13 May 2023
+Make tactyk-visa loading modular.
+Split tactyk-core into a set of modules.
+  A large portion of tactyk can now be factored out of complexity considerations if not needed.
+
 12 May 2023
 tactyk-auxiliary library - Add "text" print statements for xmm register content (16 byte text chunks).
 

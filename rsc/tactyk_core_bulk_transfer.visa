@@ -1,0 +1,272 @@
+typespec block-quantity
+  select-operand
+    case 1
+      $QTY 1
+      $ELEMENT_BOUND_MODIFIER 7
+      pick Bqs
+    case 2
+      $QTY 2
+      $QTY_BYTES 16
+      $ELEMENT_BOUND_MODIFIER 15
+      pick Bqs
+    case 3
+      $QTY 3
+      $ELEMENT_BOUND_MODIFIER 23
+      pick Bqs
+    case 4
+      $QTY 4
+      $ELEMENT_BOUND_MODIFIER 31
+      pick Bqs
+    case 5
+      $QTY 5
+      $ELEMENT_BOUND_MODIFIER 39
+      pick Bqs
+    case 6
+      $QTY 6
+      $ELEMENT_BOUND_MODIFIER 47
+      pick Bqs
+    case 7
+      $QTY 7
+      $ELEMENT_BOUND_MODIFIER 55
+      pick Bql
+    case 8
+      $QTY 8
+      $ELEMENT_BOUND_MODIFIER 63
+      pick Bql
+    case 9
+      $QTY 9
+      $ELEMENT_BOUND_MODIFIER 71
+      pick Bql
+    case 10
+      $QTY 10
+      $ELEMENT_BOUND_MODIFIER 79
+      pick Bql
+    case 11
+      $QTY 11
+      $ELEMENT_BOUND_MODIFIER 87
+      pick Bql
+    case 12
+      $QTY 12
+      $ELEMENT_BOUND_MODIFIER 95
+      pick Bql
+    case 13
+      $QTY 13
+      $ELEMENT_BOUND_MODIFIER 103
+      pick Bql
+    case 14
+      $QTY 14
+      $ELEMENT_BOUND_MODIFIER 111
+      pick Bql
+
+instruction block-store
+  operand
+    type block-quantity
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  operand
+    type data const integer
+    $OFFSET $VALUE
+    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+  operand
+    type data xmmx
+    $SRC $VALUE
+  select-template
+    case BqsADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA, $ELEMENT_BOUND_MODIFIER
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        jmp .$QTY
+        .6: mov [$ADDRESS_REGISTER+$OFFSET+40], $SRC~5
+        .5: mov [$ADDRESS_REGISTER+$OFFSET+32], $SRC~4
+        .4: mov [$ADDRESS_REGISTER+$OFFSET+24], $SRC~3
+        .3: mov [$ADDRESS_REGISTER+$OFFSET+16], $SRC~2
+        .2: mov [$ADDRESS_REGISTER+$OFFSET+8], $SRC~1
+        .1: mov [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case BqsAID BqsACD
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA, $ELEMENT_BOUND_MODIFIER
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        jmp .$QTY
+        .6: mov [$ADDRESS_REGISTER+rTEMPC+40], $SRC~5
+        .5: mov [$ADDRESS_REGISTER+rTEMPC+32], $SRC~4
+        .4: mov [$ADDRESS_REGISTER+rTEMPC+24], $SRC~3
+        .3: mov [$ADDRESS_REGISTER+rTEMPC+16], $SRC~2
+        .2: mov [$ADDRESS_REGISTER+rTEMPC+8], $SRC~1
+        .1: mov [$ADDRESS_REGISTER+rTEMPC+0], $SRC~0
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case BqsADX BqlADX
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA, $ELEMENT_BOUND_MODIFIER
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        jmp .$QTY
+        .14: movq [$ADDRESS_REGISTER+$OFFSET+104], $SRC~13
+        .13: movq [$ADDRESS_REGISTER+$OFFSET+96], $SRC~12
+        .12: movq [$ADDRESS_REGISTER+$OFFSET+88], $SRC~11
+        .11: movq [$ADDRESS_REGISTER+$OFFSET+80], $SRC~10
+        .10: movq [$ADDRESS_REGISTER+$OFFSET+72], $SRC~9
+        .9: movq [$ADDRESS_REGISTER+$OFFSET+64], $SRC~8
+        .8: movq [$ADDRESS_REGISTER+$OFFSET+56], $SRC~7
+        .7: movq [$ADDRESS_REGISTER+$OFFSET+48], $SRC~6
+        .6: movq [$ADDRESS_REGISTER+$OFFSET+40], $SRC~5
+        .5: movq [$ADDRESS_REGISTER+$OFFSET+32], $SRC~4
+        .4: movq [$ADDRESS_REGISTER+$OFFSET+24], $SRC~3
+        .3: movq [$ADDRESS_REGISTER+$OFFSET+16], $SRC~2
+        .2: movq [$ADDRESS_REGISTER+$OFFSET+8], $SRC~1
+        .1: movq [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case BqsAIX BqsACX BqlAIX BqlACX
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA, $ELEMENT_BOUND_MODIFIER
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        jmp .$QTY
+        .14: movq [$ADDRESS_REGISTER+rTEMPC+104], $SRC~13
+        .13: movq [$ADDRESS_REGISTER+rTEMPC+96], $SRC~12
+        .12: movq [$ADDRESS_REGISTER+rTEMPC+88], $SRC~11
+        .11: movq [$ADDRESS_REGISTER+rTEMPC+80], $SRC~10
+        .10: movq [$ADDRESS_REGISTER+rTEMPC+72], $SRC~9
+        .9: movq [$ADDRESS_REGISTER+rTEMPC+64], $SRC~8
+        .8: movq [$ADDRESS_REGISTER+rTEMPC+56], $SRC~7
+        .7: movq [$ADDRESS_REGISTER+rTEMPC+48], $SRC~6
+        .6: movq [$ADDRESS_REGISTER+rTEMPC+40], $SRC~5
+        .5: movq [$ADDRESS_REGISTER+rTEMPC+32], $SRC~4
+        .4: movq [$ADDRESS_REGISTER+rTEMPC+24], $SRC~3
+        .3: movq [$ADDRESS_REGISTER+rTEMPC+16], $SRC~2
+        .2: movq [$ADDRESS_REGISTER+rTEMPC+8], $SRC~1
+        .1: movq [$ADDRESS_REGISTER+rTEMPC+0], $SRC~0
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+instruction block-load
+  operand
+    type block-quantity
+  operand
+    type data xmmx
+    $DEST__DATA_REG $VALUE
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  operand
+    type data const integer
+    $OFFSET $VALUE
+    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+  select-template
+    case BqsDAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA, $ELEMENT_BOUND_MODIFIER
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        jmp .$QTY
+        .6: mov $DEST__DATA_REG~5, [$ADDRESS_REGISTER+$OFFSET+40]
+        .5: mov $DEST__DATA_REG~4, [$ADDRESS_REGISTER+$OFFSET+32]
+        .4: mov $DEST__DATA_REG~3, [$ADDRESS_REGISTER+$OFFSET+24]
+        .3: mov $DEST__DATA_REG~2, [$ADDRESS_REGISTER+$OFFSET+16]
+        .2: mov $DEST__DATA_REG~1, [$ADDRESS_REGISTER+$OFFSET+8]
+        .1: mov $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case BqsDAI BqsDAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA, $ELEMENT_BOUND_MODIFIER
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        jmp .$QTY
+        .6: mov $DEST__DATA_REG~5, [$ADDRESS_REGISTER+rTEMPC+40]
+        .5: mov $DEST__DATA_REG~4, [$ADDRESS_REGISTER+rTEMPC+32]
+        .4: mov $DEST__DATA_REG~3, [$ADDRESS_REGISTER+rTEMPC+24]
+        .3: mov $DEST__DATA_REG~2, [$ADDRESS_REGISTER+rTEMPC+16]
+        .2: mov $DEST__DATA_REG~1, [$ADDRESS_REGISTER+rTEMPC+8]
+        .1: mov $DEST__DATA_REG~0, [$ADDRESS_REGISTER+rTEMPC+0]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case BqsXAD BqlXAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA, $ELEMENT_BOUND_MODIFIER
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        jmp .$QTY
+        .14: movq $DEST__DATA_REG~13, [$ADDRESS_REGISTER+$OFFSET+104]
+        .13: movq $DEST__DATA_REG~12, [$ADDRESS_REGISTER+$OFFSET+96]
+        .12: movq $DEST__DATA_REG~11, [$ADDRESS_REGISTER+$OFFSET+88]
+        .11: movq $DEST__DATA_REG~10, [$ADDRESS_REGISTER+$OFFSET+80]
+        .10: movq $DEST__DATA_REG~9, [$ADDRESS_REGISTER+$OFFSET+72]
+        .9: movq $DEST__DATA_REG~8, [$ADDRESS_REGISTER+$OFFSET+64]
+        .8: movq $DEST__DATA_REG~7, [$ADDRESS_REGISTER+$OFFSET+56]
+        .7: movq $DEST__DATA_REG~6, [$ADDRESS_REGISTER+$OFFSET+48]
+        .6: movq $DEST__DATA_REG~5, [$ADDRESS_REGISTER+$OFFSET+40]
+        .5: movq $DEST__DATA_REG~4, [$ADDRESS_REGISTER+$OFFSET+32]
+        .4: movq $DEST__DATA_REG~3, [$ADDRESS_REGISTER+$OFFSET+24]
+        .3: movq $DEST__DATA_REG~2, [$ADDRESS_REGISTER+$OFFSET+16]
+        .2: movq $DEST__DATA_REG~1, [$ADDRESS_REGISTER+$OFFSET+8]
+        .1: movq $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case BqsXAI BqlXAI BqsXAC BqlXAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA, $ELEMENT_BOUND_MODIFIER
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        jmp .$QTY
+        .14: movq $DEST__DATA_REG~13, [$ADDRESS_REGISTER+rTEMPC+104]
+        .13: movq $DEST__DATA_REG~12, [$ADDRESS_REGISTER+rTEMPC+96]
+        .12: movq $DEST__DATA_REG~11, [$ADDRESS_REGISTER+rTEMPC+88]
+        .11: movq $DEST__DATA_REG~10, [$ADDRESS_REGISTER+rTEMPC+80]
+        .10: movq $DEST__DATA_REG~9, [$ADDRESS_REGISTER+rTEMPC+72]
+        .9: movq $DEST__DATA_REG~8, [$ADDRESS_REGISTER+rTEMPC+64]
+        .8: movq $DEST__DATA_REG~7, [$ADDRESS_REGISTER+rTEMPC+56]
+        .7: movq $DEST__DATA_REG~6, [$ADDRESS_REGISTER+rTEMPC+48]
+        .6: movq $DEST__DATA_REG~5, [$ADDRESS_REGISTER+rTEMPC+40]
+        .5: movq $DEST__DATA_REG~4, [$ADDRESS_REGISTER+rTEMPC+32]
+        .4: movq $DEST__DATA_REG~3, [$ADDRESS_REGISTER+rTEMPC+24]
+        .3: movq $DEST__DATA_REG~2, [$ADDRESS_REGISTER+rTEMPC+16]
+        .2: movq $DEST__DATA_REG~1, [$ADDRESS_REGISTER+rTEMPC+8]
+        .1: movq $DEST__DATA_REG~0, [$ADDRESS_REGISTER+rTEMPC+0]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION

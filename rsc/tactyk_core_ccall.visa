@@ -1,0 +1,115 @@
+instruction ccall
+  operand
+    type data capi
+    $A $VALUE
+  operand
+    type capi none
+    $B $VALUE
+  select-template
+    case CfuncN
+      code
+        store_context
+        
+        ; align the data registers with the unix call
+        mov rdi, rA
+        mov rsi, rB
+        mov rdx, rC
+        mov rcx, rD
+        ;rE, rF are already aligned
+        
+        rdfsbase r14
+        add r14, random_const_FS
+        load_runtimecontext r14
+        
+        push rbp
+        mov r10, $A
+        call r10
+        
+        pop rbp
+        
+        validate_context_pointer r14
+        sub r14, random_const_FS
+        
+        load_context r14
+        
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        
+        jmp $NEXT_INSTRUCTION
+    case DCfunc
+      code
+        store_context
+        
+        ; align the data registers with the unix call
+        mov rdi, rA
+        mov rsi, rB
+        mov rdx, rC
+        mov rcx, rD
+        ;rE, rF are already aligned
+        
+        rdfsbase r14
+        add r14, random_const_FS
+        load_runtimecontext r14
+        
+        push rbp
+        mov r10, $B
+        call r10
+        
+        pop rbp
+        mov rTEMPD, rTEMPA
+        
+        validate_context_pointer r14
+        sub r14, random_const_FS
+        
+        load_context r14
+        
+        mov $A, rTEMPD
+        
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        
+        jmp $NEXT_INSTRUCTION
+    case CfuncCfunc DN
+      error
+
+instruction tcall
+  operand
+    type tapi
+    $A $VALUE
+  code
+    store_context    
+    
+    ; align the data registers with the unix call
+    ; rdfsbase rdi
+    ; add rdi, random_const_FS
+    mov rsi, rB
+    mov rdx, rC
+    mov rcx, rD
+    ;rE, rF are aligned
+
+    rdfsbase r14
+    add r14, random_const_FS
+    mov rdi, r14
+    load_runtimecontext r14
+    
+    xor rax, rax
+    xor r10, r10
+    xor r11, r11
+    
+    push rbp
+    mov r10, $A
+    call r10
+    
+    pop rbp
+    validate_context_pointer r14
+    sub r14, random_const_FS
+    load_context r14
+    
+    xor rTEMPA, rTEMPA
+    xor rTEMPC, rTEMPC
+    xor rTEMPD, rTEMPD
+    
+    jmp $NEXT_INSTRUCTION
+    

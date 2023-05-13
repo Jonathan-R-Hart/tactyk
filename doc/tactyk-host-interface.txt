@@ -8,7 +8,8 @@ Here is how, with just a few simple function calls, the TACTYK runtime can be se
   
   // Setup backend compilation and program loading components
   tactyk_init();
-  tactyk_visa__init("rsc", "tactyk_core.visa");
+  tactyk_visa__init("rsc");
+  tactyk_visa__load_config_module("tactyk_core.visa");
   struct tactyk_emit__Context *emitctx = tactyk_emit__init();
   tactyk_visa__init_emit(emitctx);
   
@@ -43,8 +44,10 @@ TACTYK static initialization:         tactyk_init();
     error and warning handlers
     Managed object storage
     tactyk_pl function map
-    tactyk_pl defaultmemory layout
+    tactyk_pl default memory layout
     And if the USE_TACTYK_ALLOCATOR compilation option is set, it also sets up a custom mmap-based memory allocator 
+TACTYK module loader:                 tactyk_visa__load_config_module();
+  This loads a collection of subroutines (emit interface functionality)
 
 Virtual ISA initialization:           tactyk_visa__init(resource_directoryname, visa_filename)
   Loads a Virtual ISA configuration file.

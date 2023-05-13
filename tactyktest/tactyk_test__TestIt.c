@@ -142,7 +142,15 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
 
     // should make configuration mutable - some tests will need to load alternative virtual ISA specifications that include special instructions which test
     //      the integrity of the sandbox.
-    tactyk_visa__init("rsc", "tactyk_core.visa");
+    tactyk_visa__init("rsc");
+    tactyk_visa__load_config_module("tactyk_core.visa");
+    tactyk_visa__load_config_module("tactyk_core_typespec.visa");
+    tactyk_visa__load_config_module("tactyk_core_ccall.visa");
+    tactyk_visa__load_config_module("tactyk_core_memory.visa");
+    tactyk_visa__load_config_module("tactyk_core_bulk_transfer.visa");
+    tactyk_visa__load_config_module("tactyk_core_stash.visa");
+    tactyk_visa__load_config_module("tactyk_core_tvmcall.visa");
+    tactyk_visa__load_config_module("tactyk_core_xmm_fpmath.visa");
     emitctx = tactyk_emit__init();
 
     tactyk_visa__init_emit(emitctx);
