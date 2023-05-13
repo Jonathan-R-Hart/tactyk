@@ -191,6 +191,30 @@ PROGRAM prg
   STASH_TEST_STRINGS_4:
     stash xA sA xB sB xC sC xD sD xE sE xF sF xG sG xH sH xI sI xJ sJ xK sK xL sL xM sM xN sN
     exit
+  
+  STASH_EXTENDED_1:
+    assign rA 1
+    assign rB 2
+    assign rC 3
+    assign rD 4
+    assign rE 5
+    assign rF 6
+    stash  s26l rA  s26h rB  s27l rC  s27h rD  s28l rE  s28h rF
+    stash  s29l s26l  s29h s26h  s30l s27l  s30h s27h  s31l s28l  s31h s28h
+    stash  rA s29h  rB s29l  rC s30h  rD s30l  rE s31h  rF s31l
+    exit
+  
+  STASH_EXTENDED_2:
+    assign xA 'uvtuvtuvtuvtuvtt
+    assign xB 'tuvtuvtuvtuvtuvt
+    assign xC 'wwwwwwwwwwwwwwww
+    assign xD 'xxxxxxxxxxxxxxxx
+    assign xE 'yyyyyyyyyyyyyyyy
+    assign xF 'zzzzzzzzzzzzzzzz
+    stash s28 xA s30 xB s26 xC s27 xD s29 xE s31 xF
+    stash xA s31 xB s29 xC s27 xD s26 xE s30 xF s28
+    exit
+
 
 EXEC STASH_TEST_1
 TEST
@@ -522,6 +546,41 @@ TEST
   xN 'You_agree_yes?
 
 
+EXEC STASH_EXTENDED_1
+TEST
+  rA 2
+  rB 1
+  rC 4
+  rD 3
+  rE 6
+  rF 5
+  stash s26l 1
+  stash s26h 2
+  stash s27l 3
+  stash s27h 4
+  stash s28l 5
+  stash s28h 6
+  stash s29l 1
+  stash s29h 2
+  stash s30l 3
+  stash s30h 4
+  stash s31l 5
+  stash s31h 6
+
+EXEC STASH_EXTENDED_2
+TEST
+  xA 'zzzzzzzzzzzzzzzz
+  xB 'yyyyyyyyyyyyyyyy
+  xC 'xxxxxxxxxxxxxxxx
+  xD 'wwwwwwwwwwwwwwww
+  xE 'tuvtuvtuvtuvtuvt
+  xF 'uvtuvtuvtuvtuvtt
+  stash s26 'wwwwwwwwwwwwwwww
+  stash s27 'xxxxxxxxxxxxxxxx
+  stash s28 'uvtuvtuvtuvtuvtt
+  stash s29 'yyyyyyyyyyyyyyyy
+  stash s30 'tuvtuvtuvtuvtuvt
+  stash s31 'zzzzzzzzzzzzzzzz
 
 
 
