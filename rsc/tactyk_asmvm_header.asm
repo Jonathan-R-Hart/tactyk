@@ -618,10 +618,10 @@
         
         qwords vm, stack, program_map, hl_program_ref, instruction_index, status, signature, extra
         
+        owords fpu_a, fpu_b, fpu_c, fpu_d,  fpu_e, fpu_f, fpu_g, fpu_h
+
         .registers:  resq 48
         .runtime_registers:  resq 48
-        
-        .diagnostic_out:resq 1024
     endstruc
     
     %unmacro dwords 1-*

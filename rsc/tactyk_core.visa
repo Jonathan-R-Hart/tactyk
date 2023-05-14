@@ -414,16 +414,6 @@ instruction if
         xor rTEMPA, rTEMPA
         jmp $JTARGET
 
-instruction cpuclocks
-  code
-    rdtsc
-    shl rTEMPD, 32
-    or rTEMPA, rTEMPD
-    mov fs:[context.diagnostic_out+0 + random_const_FS], rTEMPA
-    xor rTEMPA, rTEMPA
-    xor rTEMPD, rTEMPD
-    jmp $NEXT_INSTRUCTION
-
 instruction lwcall
   operand
     type branch

@@ -5,6 +5,20 @@ Split tactyk-core into a set of modules.
 
 Remove memblock stash allocation.  Re-assign the space to general-purpose storage.
 
+Remove "diagnostic" output
+Remove "cpuclocks" instruction
+
+Added a mechanism for accessing the x87 FPU.
+  It uses a few new entries added to the context data structure to transfer data between tactyk and the x87 FPU.
+  The x87 FPU is not considered part of tactyk state
+    There is no plan or intent either to allow scripts.
+    Data is not to be stored on the x87 registers beyond the duration of a single instruction.
+    Neither the x87 FPU state, nor the memory used to transfer data in and out of it are considered part of the tactyk state
+      (no intent to check it on tests) - actual results should suffice for testing.
+
+New instructions: sine, cosine, atan, log2, logN
+  (access to x87 transcendentals functions)
+
 12 May 2023
 tactyk-auxiliary library - Add "text" print statements for xmm register content (16 byte text chunks).
 

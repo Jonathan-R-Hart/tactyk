@@ -179,7 +179,14 @@ uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
     CHK(STATUS, "%ju", "execution status")
     CHK(signature, "%ju", "context pointer validation signature")
     CHK(extra, "%ju", "extra")
-
+    
+    // unchecked:  fpu "registers"
+    // I dont want to formalize FPU state as part of VM state at present
+    //      the x87 FPU has the appearance of being a largely irrelevant processor which was bolted on years ago and never followed up with a more
+    //      cleanly integrated for, yet still it seems to be the exclusive owner of hardware trigonometry and higher-precision arithmetic.
+    //  so only what gets returned to a script-accessible location is to be checked.
+    // Anyway the "fpu_X" fields are used to transfer data in and out of the FPU.
+    
     CHK(reg.rA, "%jd", "Register rA");
     CHK(reg.rB, "%jd", "Register rB");
     CHK(reg.rC, "%jd", "Register rC");

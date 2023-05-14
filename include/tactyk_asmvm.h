@@ -66,6 +66,7 @@ union tactyk_asmvm__reg128 {
     int16_t i16[8];
     double f64[2];
     float f32[4];
+    long double f80;
 };
 
 struct tactyk_asmvm__register_bank {
@@ -215,18 +216,25 @@ struct tactyk_asmvm__Context {
     struct tactyk_asmvm__Program *hl_program_ref;      // a pointer to help high-level code access representative data structures.
 
     uint64_t instruction_index;     //tactyk function to call into.
-
+    
     // execution state or error code
     uint64_t STATUS;
 
     uint64_t signature;
     uint64_t extra;         // register spills
-
+    
+    union tactyk_asmvm__reg128 fpu_A;
+    union tactyk_asmvm__reg128 fpu_B;
+    union tactyk_asmvm__reg128 fpu_C;
+    union tactyk_asmvm__reg128 fpu_D;
+    union tactyk_asmvm__reg128 fpu_E;
+    union tactyk_asmvm__reg128 fpu_F;
+    union tactyk_asmvm__reg128 fpu_G;
+    union tactyk_asmvm__reg128 fpu_H;
+    
     // dword #28
     struct tactyk_asmvm__register_bank reg;                     // tactyk context register content
     struct tactyk_asmvm__register_bank runtime_registers;       // native context register content
-
-    uint64_t diagnostic_data[1024];
 };
 void tactyk_asmvm__print_context(struct tactyk_asmvm__Context *context);
 void tactyk_asmvm__print_diagnostic_data(struct tactyk_asmvm__Context *context, int64_t amount);

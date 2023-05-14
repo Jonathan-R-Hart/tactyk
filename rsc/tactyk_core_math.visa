@@ -1,0 +1,198 @@
+subroutine unary_fpu_instruction
+  operand
+    type xmmx
+    $A $VALUE
+  opt-operand
+    type xmmx
+    $B $VALUE
+  select-template
+    case X
+      code
+        movq fs:[context.fpu_b + random_const_FS], $A
+        fld qword fs:[context.fpu_b + random_const_FS]
+        $INSTRUCTION
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
+        jmp $NEXT_INSTRUCTION
+    case XX
+      code
+        movq fs:[context.fpu_b + random_const_FS], $B
+        fld qword fs:[context.fpu_b + random_const_FS]
+        $INSTRUCTION
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
+        jmp $NEXT_INSTRUCTION
+
+subroutine unary_fpu_instruction__pop1first
+  operand
+    type xmmx
+    $A $VALUE
+  opt-operand
+    type xmmx
+    $B $VALUE
+  select-template
+    case X
+      code
+        movq fs:[context.fpu_b + random_const_FS], $A
+        fld qword fs:[context.fpu_b + random_const_FS]
+        $INSTRUCTION
+        fstp st0
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
+        jmp $NEXT_INSTRUCTION
+    case XX
+      code
+        movq fs:[context.fpu_b + random_const_FS], $B
+        fld qword fs:[context.fpu_b + random_const_FS]
+        $INSTRUCTION
+        fstp st0
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
+        jmp $NEXT_INSTRUCTION
+
+# compute sine of X
+#   If two operands (A,B), compute sine(B) and store the result in register A
+#   If one operand (A), compute sine(A) and replace the value on register A with the result
+instruction sine
+  $INSTRUCTION fsin
+  sub unary_fpu_instruction
+
+# compute cosine of X
+#   If two operands (A,B), compute cosine(B) and store the result in register A
+#   If one operand (A), compute cosine(A) and replace the value on register A with the result
+instruction cosine
+  $INSTRUCTION fcos
+  sub unary_fpu_instruction
+
+# compute tangent of X
+#   If two operands (A,B), compute tangent(B) and store the result in register A
+#   If one operand (A), compute tangent(A) and replace the value on register A with the result
+instruction tangent
+  $INSTRUCTION fptan
+  sub unary_fpu_instruction__pop1first
+
+# Compute arctangent of X or point (X,Y)
+#   if three operands, (T, X,Y), compute arctangent(X,Y) and store the result on register T
+#     ("north-clockwise" convention - because every time I've ever used an atan2() function, my paramters have always been geometric coordinates )
+#   if two operands (T, R), compute arctangent(R) and store the result on register T
+#   if one operand (R), compute arctangent(R) and replace the value on register R with the result
+instruction arctangent
+  operand
+    type xmmx
+    $A $VALUE
+  opt-operand
+    type xmmx
+    $B $VALUE
+  opt-operand
+    type xmmx
+    $C $VALUE
+  select-template
+    case X
+      code
+        movq fs:[context.fpu_b + random_const_FS], $A
+        fld qword fs:[context.fpu_b + random_const_FS]
+        fld1
+        fpatan
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
+        jmp $NEXT_INSTRUCTION
+    case XX
+      code
+        movq fs:[context.fpu_b + random_const_FS], $B
+        fld qword fs:[context.fpu_b + random_const_FS]
+        fld1
+        fpatan
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
+        jmp $NEXT_INSTRUCTION
+    case XXX
+      code
+        movq fs:[context.fpu_b + random_const_FS], $B
+        movq fs:[context.fpu_c + random_const_FS], $C
+        fld qword fs:[context.fpu_c + random_const_FS]
+        fld qword fs:[context.fpu_b + random_const_FS]
+        fpatan
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
+        jmp $NEXT_INSTRUCTION
+
+# compute log-base2 of X
+#   If two operands (A,B), compute log2(B) and store in register A
+#   If one operand (A), compute log2(A) and replace value on register A
+instruction log2
+  $INSTRUCTION fyl2x
+  # note:  code auto-concatenation is used to inject ASM for pushing a constant on the stack into the otherwise conventional subroutine.
+  code
+    fld1
+  sub unary_fpu_instruction
+
+# compute log-baseN of X
+# if three operands (A,B,C), compute log-C(B) and store in register A 
+# if two operands (A,B), compute log-B(A) and replace value on register A 
+instruction log
+  operand
+    type xmmx
+    $A $VALUE
+  operand
+    type xmmx
+    $B $VALUE
+  opt-operand
+    type xmmx
+    $C $VALUE
+  select-template
+    case XX
+      code
+        ; do the RPN thing.
+        fld1
+        fld1
+        movq fs:[context.fpu_c + random_const_FS], $B
+        fld qword fs:[context.fpu_c + random_const_FS]
+        fyl2x
+        fdivp 
+        movq fs:[context.fpu_b + random_const_FS], $A
+        fld qword fs:[context.fpu_b + random_const_FS]
+        fyl2x
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
+        jmp $NEXT_INSTRUCTION
+    case XXX
+      code  
+        fld1
+        fld1
+        movq fs:[context.fpu_c + random_const_FS], $C
+        fld qword fs:[context.fpu_c + random_const_FS]
+        fyl2x
+        fdivp 
+        movq fs:[context.fpu_b + random_const_FS], $B
+        fld qword fs:[context.fpu_b + random_const_FS]
+        fyl2x
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
+        jmp $NEXT_INSTRUCTION
+
+# Compute sine and cosine of X and store both results
+#   $DEST_SINE:     xmm register to write the result of sine(X) to
+#   $DEST_COSINE:   xmm register to write the result of cosine(X) to
+#   $ARG:           xmm register containing argument X
+# x87 includes it, so why not?
+instruction sine_and_cosine
+  operand
+    type xmmx
+    $DEST_SINE $VALUE
+  operand
+    type xmmx
+    $DEST_COSINE $VALUE
+  operand
+    type xmmx
+    $ARG $VALUE
+  select-template
+    case XXX
+      code
+        movq fs:[context.fpu_c + random_const_FS], $ARG
+        fld qword fs:[context.fpu_c + random_const_FS]
+        fsincos
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        fstp qword fs:[context.fpu_b + random_const_FS]
+        movq $DEST_COSINE, fs:[context.fpu_a + random_const_FS]
+        movq $DEST_SINE, fs:[context.fpu_b + random_const_FS]
+        jmp $NEXT_INSTRUCTION
