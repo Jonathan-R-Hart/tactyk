@@ -1,3 +1,6 @@
+15 May 2023
+Add an "extra" Python script to help generate tactyk test scripts
+
 13 May 2023
 Make tactyk-visa loading modular.
 Split tactyk-core into a set of modules.
