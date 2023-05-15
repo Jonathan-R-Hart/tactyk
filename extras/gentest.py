@@ -178,24 +178,24 @@ export_imm = False
 # This setup is for a unary operation ("instruction <register>")
 for var in vars:
   var.type = PARAM_RANDOM
-  var.min = -math.pi*4
-  var.max = math.pi*4
+  var.min = 0.01
+  var.max = 100
   var.maybe_imm = True
   var.use_expect = True
 
 # Python implementation of the intended function
 def simulate_x(var):
-  var.expect = math.sin(var.value)
+  var.expect = math.log(var.value)
 
 simulate = simulate_x
 
 # set up the tactyk instruction
 arg_order = [vars]
-prefix = "SINE_X"
-op = "sine"
+prefix = "LOG_X"
+op = "log"
 
 # Append test code to each test script chunk
-gen_tests()
+# gen_tests()
 
 
 # reconfigure the test to target a variant of the tactyk instruction
@@ -203,24 +203,57 @@ gen_tests()
 # This setup is for a basic unary operation ("instruction <destination-register> <source-register>")
 
 for var in vars:
+  var.type = PARAM_RANDOM
+  var.min = 0.01
+  var.max = 100
+  var.maybe_imm = True
+  var.use_expect = True
+
+
+# prepare the source register.
+pxa.type = PARAM_RANDOM
+pxa.per_var = True
+pxa.maybe_imm = True
+pxa.min = 0.001
+pxa.max = 10
+
+arg_order = [vars, pxa]
+prefix = "LOG_XX"
+
+def simulate_xx(var):
+  var.expect = math.log(var.value)/math.log(pxa.value)
+
+simulate = simulate_xx
+
+gen_tests()
+
+
+
+for var in vars:
   var.type = PARAM_PRODUCT
   var.maybe_imm = False
   var.use_expect = True
 
-# prepare the soruce register.  
+# prepare the source register.
 pxa.type = PARAM_RANDOM
 pxa.per_var = True
 pxa.maybe_imm = True
-pxa.min = -math.pi*4
-pxa.max = math.pi*4
+pxa.min = 0.001
+pxa.max = 100
 
-arg_order = [vars, pxa]
-prefix = "SINE_XX"
+pxb.type = PARAM_RANDOM
+pxb.per_var = True
+pxb.maybe_imm = True
+pxb.min = 0.001
+pxb.max = 10
 
-def simulate_xx(var):
-  var.expect = math.sin(pxa.value)
+arg_order = [vars, pxa, pxb]
+prefix = "LOG_XXX"
 
-simulate = simulate_xx
+def simulate_xxx(var):
+  var.expect = math.log(pxa.value)/math.log(pxb.value)
+
+simulate = simulate_xxx
 
 gen_tests()
 
