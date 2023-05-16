@@ -6,6 +6,8 @@ Add an "extra" Python script to help generate tactyk test scripts
   in tactyk and compares the tactyk result with the result from Python.
   If python implementation is correct and correctly used, this should suffice for common cases.
 
+Add square-root instruction
+
 13 May 2023
 Make tactyk-visa loading modular.
 Split tactyk-core into a set of modules.

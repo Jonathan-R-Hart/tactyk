@@ -1,4 +1,21 @@
 
+instruction square-root
+  operand
+    type xmmx
+    $A $VALUE
+  opt-operand
+    type xmmx
+    $B $VALUE
+  select-template
+    case X
+      code
+        sqrtsd $A, $A
+        jmp $NEXT_INSTRUCTION
+    case XX
+      code
+        sqrtsd $A, $B
+        jmp $NEXT_INSTRUCTION
+
 extend instruction load select-template
   case F64XAD
     code
