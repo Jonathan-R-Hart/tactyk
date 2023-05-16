@@ -1,3 +1,12 @@
+16 May 2023
+New instruction:  spread
+  This loads a list of values onto a series of registers (lexical order by tactyk aliases)
+  Up to 6 integers may be loaded onto data registers, starting at any named data register (rA-rF)
+  Up to 14 floating point values may be loaded onto xmm registers, starting at any named xmm register (xA-xN)
+  For the time being, this is restricted to hard-coded integer and floating point values
+    At some point later, this should be changed to allow integer constants and floating point constants
+    (this can technically be accomomplished with tactyk as-is, but would require a combinatorial explosion due to literals and constants being handled
+     with separate type specifiers)
 15 May 2023
 test coverage for: sine, cosine, tangent, arctangent, log2, log
 

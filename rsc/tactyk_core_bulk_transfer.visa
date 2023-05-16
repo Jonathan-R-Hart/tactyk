@@ -270,3 +270,349 @@ instruction block-load
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
+
+instruction spread
+  operand
+    type data xmmx
+    $TARGET $VALUE
+  operand
+    type integer float
+    scramble rTEMPA $LD_IMMEDIATE_0
+  opt-operand
+    type integer float
+    scramble rTEMPA $LD_IMMEDIATE_1
+  opt-operand
+    type integer float
+    scramble rTEMPA $LD_IMMEDIATE_2
+  opt-operand
+    type integer float
+    scramble rTEMPA $LD_IMMEDIATE_3
+  opt-operand
+    type integer float
+    scramble rTEMPA $LD_IMMEDIATE_4
+  opt-operand
+    type integer float
+    scramble rTEMPA $LD_IMMEDIATE_5
+  opt-operand
+    type float
+    scramble rTEMPA $LD_IMMEDIATE_6
+  opt-operand
+    type float
+    scramble rTEMPA $LD_IMMEDIATE_7
+  opt-operand
+    type float
+    scramble rTEMPA $LD_IMMEDIATE_8
+  opt-operand
+    type float
+    scramble rTEMPA $LD_IMMEDIATE_9
+  opt-operand
+    type float
+    scramble rTEMPA $LD_IMMEDIATE_10
+  opt-operand
+    type float
+    scramble rTEMPA $LD_IMMEDIATE_11
+  opt-operand
+    type float
+    scramble rTEMPA $LD_IMMEDIATE_12
+  opt-operand
+    type float
+    scramble rTEMPA $LD_IMMEDIATE_13
+  opt-operand
+    type float
+    scramble rTEMPA $LD_IMMEDIATE_14
+  select-template
+    case DI
+      code
+        $LD_IMMEDIATE_0
+        mov $TARGET~0, rTEMPA
+    case DII
+      code
+        $LD_IMMEDIATE_0
+        mov $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        mov $TARGET~1, rTEMPA
+    case DIII
+      code
+        $LD_IMMEDIATE_0
+        mov $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        mov $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        mov $TARGET~2, rTEMPA
+    case DIIII
+      code
+        $LD_IMMEDIATE_0
+        mov $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        mov $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        mov $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        mov $TARGET~3, rTEMPA
+    case DIIIII
+      code
+        $LD_IMMEDIATE_0
+        mov $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        mov $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        mov $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        mov $TARGET~3, rTEMPA
+        $LD_IMMEDIATE_4
+        mov $TARGET~4, rTEMPA
+    case DIIIIII
+      code
+        $LD_IMMEDIATE_0
+        mov $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        mov $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        mov $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        mov $TARGET~3, rTEMPA
+        $LD_IMMEDIATE_4
+        mov $TARGET~4, rTEMPA
+        $LD_IMMEDIATE_5
+        mov $TARGET~5, rTEMPA
+    case XF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+    case XFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+    case XFFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        movq $TARGET~2, rTEMPA
+    case XFFFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        movq $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        movq $TARGET~3, rTEMPA
+    case XFFFFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        movq $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        movq $TARGET~3, rTEMPA
+        $LD_IMMEDIATE_4
+        movq $TARGET~4, rTEMPA
+    case XFFFFFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        movq $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        movq $TARGET~3, rTEMPA
+        $LD_IMMEDIATE_4
+        movq $TARGET~4, rTEMPA
+        $LD_IMMEDIATE_5
+        movq $TARGET~5, rTEMPA
+    case XFFFFFFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        movq $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        movq $TARGET~3, rTEMPA
+        $LD_IMMEDIATE_4
+        movq $TARGET~4, rTEMPA
+        $LD_IMMEDIATE_5
+        movq $TARGET~5, rTEMPA
+        $LD_IMMEDIATE_6
+        movq $TARGET~6, rTEMPA
+    case XFFFFFFFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        movq $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        movq $TARGET~3, rTEMPA
+        $LD_IMMEDIATE_4
+        movq $TARGET~4, rTEMPA
+        $LD_IMMEDIATE_5
+        movq $TARGET~5, rTEMPA
+        $LD_IMMEDIATE_6
+        movq $TARGET~6, rTEMPA
+        $LD_IMMEDIATE_7
+        movq $TARGET~7, rTEMPA
+    case XFFFFFFFFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        movq $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        movq $TARGET~3, rTEMPA
+        $LD_IMMEDIATE_4
+        movq $TARGET~4, rTEMPA
+        $LD_IMMEDIATE_5
+        movq $TARGET~5, rTEMPA
+        $LD_IMMEDIATE_6
+        movq $TARGET~6, rTEMPA
+        $LD_IMMEDIATE_7
+        movq $TARGET~7, rTEMPA
+        $LD_IMMEDIATE_8
+        movq $TARGET~8, rTEMPA
+    case XFFFFFFFFFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        movq $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        movq $TARGET~3, rTEMPA
+        $LD_IMMEDIATE_4
+        movq $TARGET~4, rTEMPA
+        $LD_IMMEDIATE_5
+        movq $TARGET~5, rTEMPA
+        $LD_IMMEDIATE_6
+        movq $TARGET~6, rTEMPA
+        $LD_IMMEDIATE_7
+        movq $TARGET~7, rTEMPA
+        $LD_IMMEDIATE_8
+        movq $TARGET~8, rTEMPA
+        $LD_IMMEDIATE_9
+        movq $TARGET~9, rTEMPA
+    case XFFFFFFFFFFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        movq $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        movq $TARGET~3, rTEMPA
+        $LD_IMMEDIATE_4
+        movq $TARGET~4, rTEMPA
+        $LD_IMMEDIATE_5
+        movq $TARGET~5, rTEMPA
+        $LD_IMMEDIATE_6
+        movq $TARGET~6, rTEMPA
+        $LD_IMMEDIATE_7
+        movq $TARGET~7, rTEMPA
+        $LD_IMMEDIATE_8
+        movq $TARGET~8, rTEMPA
+        $LD_IMMEDIATE_9
+        movq $TARGET~9, rTEMPA
+        $LD_IMMEDIATE_10
+        movq $TARGET~10, rTEMPA
+    case XFFFFFFFFFFFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        movq $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        movq $TARGET~3, rTEMPA
+        $LD_IMMEDIATE_4
+        movq $TARGET~4, rTEMPA
+        $LD_IMMEDIATE_5
+        movq $TARGET~5, rTEMPA
+        $LD_IMMEDIATE_6
+        movq $TARGET~6, rTEMPA
+        $LD_IMMEDIATE_7
+        movq $TARGET~7, rTEMPA
+        $LD_IMMEDIATE_8
+        movq $TARGET~8, rTEMPA
+        $LD_IMMEDIATE_9
+        movq $TARGET~9, rTEMPA
+        $LD_IMMEDIATE_10
+        movq $TARGET~10, rTEMPA
+        $LD_IMMEDIATE_11
+        movq $TARGET~11, rTEMPA
+    case XFFFFFFFFFFFFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        movq $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        movq $TARGET~3, rTEMPA
+        $LD_IMMEDIATE_4
+        movq $TARGET~4, rTEMPA
+        $LD_IMMEDIATE_5
+        movq $TARGET~5, rTEMPA
+        $LD_IMMEDIATE_6
+        movq $TARGET~6, rTEMPA
+        $LD_IMMEDIATE_7
+        movq $TARGET~7, rTEMPA
+        $LD_IMMEDIATE_8
+        movq $TARGET~8, rTEMPA
+        $LD_IMMEDIATE_9
+        movq $TARGET~9, rTEMPA
+        $LD_IMMEDIATE_10
+        movq $TARGET~10, rTEMPA
+        $LD_IMMEDIATE_11
+        movq $TARGET~11, rTEMPA
+        $LD_IMMEDIATE_12
+        movq $TARGET~12, rTEMPA
+    case XFFFFFFFFFFFFFF
+      code
+        $LD_IMMEDIATE_0
+        movq $TARGET~0, rTEMPA
+        $LD_IMMEDIATE_1
+        movq $TARGET~1, rTEMPA
+        $LD_IMMEDIATE_2
+        movq $TARGET~2, rTEMPA
+        $LD_IMMEDIATE_3
+        movq $TARGET~3, rTEMPA
+        $LD_IMMEDIATE_4
+        movq $TARGET~4, rTEMPA
+        $LD_IMMEDIATE_5
+        movq $TARGET~5, rTEMPA
+        $LD_IMMEDIATE_6
+        movq $TARGET~6, rTEMPA
+        $LD_IMMEDIATE_7
+        movq $TARGET~7, rTEMPA
+        $LD_IMMEDIATE_8
+        movq $TARGET~8, rTEMPA
+        $LD_IMMEDIATE_9
+        movq $TARGET~9, rTEMPA
+        $LD_IMMEDIATE_10
+        movq $TARGET~10, rTEMPA
+        $LD_IMMEDIATE_11
+        movq $TARGET~11, rTEMPA
+        $LD_IMMEDIATE_12
+        movq $TARGET~12, rTEMPA
+        $LD_IMMEDIATE_13
+        movq $TARGET~13, rTEMPA
+  code
+    xor rTEMPA, rTEMPA
+    jmp $NEXT_INSTRUCTION
