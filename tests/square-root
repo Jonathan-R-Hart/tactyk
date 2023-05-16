@@ -1,0 +1,78 @@
+# TEST:  square-root
+#
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   square-root xmmx (X)
+#   square-root xmmx-xmmx (XX)
+#   square-root xmmx-xmmx-xmmx (XXX)
+PROGRAM
+  SQUARE_ROOT_X_1_reg:
+    assign xE 16.00130673494004
+    assign xF 30.407261182837782
+    assign xG 12.77702646709318
+    assign xH 36.19398063301503
+    assign xI 16.149387218780827
+    assign xJ 13.482506356673674
+    assign xK 75.19603816980042
+    assign xL 74.82167103677116
+    assign xM 76.18765506953388
+    assign xN 9.618981522052827
+    square-root xE
+    square-root xF
+    square-root xG
+    square-root xH
+    square-root xI
+    square-root xJ
+    square-root xK
+    square-root xL
+    square-root xM
+    square-root xN
+    exit
+  SQUARE_ROOT_XX_2_reg:
+    assign xA 91.40551499964288
+    square-root xE xA
+    assign xA 26.78470100765014
+    square-root xF xA
+    assign xA 85.46388353040149
+    square-root xG xA
+    assign xA 97.20679499238675
+    square-root xH xA
+    assign xA 0.1915360620084641
+    square-root xI xA
+    assign xA 16.287035883869546
+    square-root xJ xA
+    assign xA 44.00228810735729
+    square-root xK xA
+    assign xA 15.137930866729137
+    square-root xL xA
+    assign xA 17.229878088636585
+    square-root xM xA
+    assign xA 60.35647348280862
+    square-root xN xA
+    exit
+
+EXEC SQUARE_ROOT_X_1_reg
+TEST
+  xE 4.000163338532571
+  xF 5.51427793848277
+  xG 3.5744966732524985
+  xH 6.0161433354778895
+  xI 4.018630017652885
+  xJ 3.671853259142265
+  xK 8.671564920462766
+  xL 8.649952082917636
+  xM 8.728554007940483
+  xN 3.101448294273633
+EXEC SQUARE_ROOT_XX_2_reg
+TEST
+  xA 60.35647348280862
+  xE 9.560623149128036
+  xF 5.1753938021806745
+  xG 9.24466784316243
+  xH 9.859350637460194
+  xI 0.43764833143571347
+  xJ 4.035719995721896
+  xK 6.633422051050068
+  xL 3.8907493965467808
+  xM 4.150888831158525
+  xN 7.768942880650405
