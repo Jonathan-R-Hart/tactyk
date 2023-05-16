@@ -1,5 +1,5 @@
 16 May 2023
-Test coverage for square-root
+Test coverage for square-root, spread
 
 New instruction:  spread
   This loads a list of values onto a series of registers (lexical order by tactyk aliases)
