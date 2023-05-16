@@ -1,0 +1,126 @@
+# TEST:  arctangent
+#
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   arctangent xmmx (X)
+#   arctangent xmmx-xmmx (XX)
+#   arctangent xmmx-xmmx-xmmx (XXX)
+
+
+PROGRAM
+  ARCTANGENT_X_1_reg:
+    assign xE 1.770110337162007
+    assign xF 0.7103818126199393
+    assign xG -1.5165682824120852
+    assign xH -0.024356329866947135
+    assign xI -0.47316122702410235
+    assign xJ 0.583272498805663
+    assign xK 0.722537953432957
+    assign xL -1.80353318452857
+    assign xM -0.415090129078886
+    assign xN -0.6908955941137496
+    arctangent xE
+    arctangent xF
+    arctangent xG
+    arctangent xH
+    arctangent xI
+    arctangent xJ
+    arctangent xK
+    arctangent xL
+    arctangent xM
+    arctangent xN
+    exit
+  ARCTANGENT_XX_2_reg:
+    assign xA 0.5358163432798695
+    arctangent xE xA
+    assign xA 1.114877662417264
+    arctangent xF xA
+    assign xA -0.11172268595205637
+    arctangent xG xA
+    assign xA -1.5776142972737976
+    arctangent xH xA
+    assign xA -0.4806101879901554
+    arctangent xI xA
+    assign xA 0.9166547230116189
+    arctangent xJ xA
+    assign xA -0.9112019751648792
+    arctangent xK xA
+    assign xA 1.9866642624204798
+    arctangent xL xA
+    assign xA -0.5086957210927547
+    arctangent xM xA
+    assign xA -1.811397512667558
+    arctangent xN xA
+    exit
+  ARCTANGENT_XXX_3_reg:
+    assign xA 1.5597120408728595
+    assign xB 1.909156677760202
+    arctangent xE xA xB
+    assign xA 0.13798065689289896
+    assign xB -1.7190910689662484
+    arctangent xF xA xB
+    assign xA -0.9316281421572796
+    assign xB 0.8815069672009739
+    arctangent xG xA xB
+    assign xA 0.4487444737893176
+    assign xB 1.5296129170828423
+    arctangent xH xA xB
+    assign xA -1.09364374124049
+    assign xB -1.793426353158944
+    arctangent xI xA xB
+    assign xA -1.0074456919748829
+    assign xB -1.7147796909752722
+    arctangent xJ xA xB
+    assign xA 0.5529896768620302
+    assign xB 1.9740917520533636
+    arctangent xK xA xB
+    assign xA -0.2747900565578205
+    assign xB 1.6599511807715022
+    arctangent xL xA xB
+    assign xA 0.4598111913923959
+    assign xB 0.07650642534643781
+    arctangent xM xA xB
+    assign xA -0.9914281967065399
+    assign xB -1.917370681447312
+    arctangent xN xA xB
+    exit
+
+EXEC ARCTANGENT_X_1_reg
+TEST
+  xE 1.0565578948137575
+  xF 0.6176596938985632
+  xG -0.98785292559012
+  xH -0.024351515272142632
+  xI -0.4419469939270103
+  xJ 0.5280290577324244
+  xK 0.6256925079529547
+  xL -1.064529872425658
+  xM -0.3934470462389743
+  xN -0.6045894542546734
+EXEC ARCTANGENT_XX_2_reg
+TEST
+  xA -1.811397512667558
+  xE 0.49188847205637865
+  xF 0.8396636561754609
+  xG -0.11126129716355324
+  xH -1.0058450704627804
+  xI -0.4480157836119004
+  xJ 0.741940777830223
+  xK -0.7389696789395152
+  xL 1.1044672730532235
+  xM -0.4705799617137723
+  xN -1.0663729647458307
+EXEC ARCTANGENT_XXX_3_reg
+TEST
+  xA -0.9914281967065399
+  xB -1.917370681447312
+  xE 0.8857968104507074
+  xF -1.490704296328447
+  xG 2.383830827796467
+  xH 1.2854319821286524
+  xI -2.118395585671449
+  xJ -2.1019794186779035
+  xK 1.297673018523192
+  xL 1.7348496072607549
+  xM 0.1648761774161042
+  xN -2.0480119823893803

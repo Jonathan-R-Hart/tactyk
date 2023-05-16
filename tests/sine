@@ -1,0 +1,78 @@
+# TEST:  sine computation
+#
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   sine xmmx (X)
+#   sine xmmx-xmmx (XX)
+
+PROGRAM
+  SINE_X_1_reg:
+    assign xE -5.2214010097148975
+    assign xF 12.134632213289507
+    assign xG -2.0142347164282377
+    assign xH -7.647104966653958
+    assign xI -3.9451982551338176
+    assign xJ 7.594986090083971
+    assign xK -9.524945136631285
+    assign xL -3.2050612711036184
+    assign xM 2.1878116868247712
+    assign xN -5.143932632890873
+    sine xE
+    sine xF
+    sine xG
+    sine xH
+    sine xI
+    sine xJ
+    sine xK
+    sine xL
+    sine xM
+    sine xN
+    exit
+  SINE_XX_2_reg:
+    assign xA 6.160468175942629
+    sine xE xA
+    assign xA 8.08711665389163
+    sine xF xA
+    assign xA 7.391834889991827
+    sine xG xA
+    assign xA 5.311359620306142
+    sine xH xA
+    assign xA -11.38460491852918
+    sine xI xA
+    assign xA 5.42828171613025
+    sine xJ xA
+    assign xA 1.9051921453233476
+    sine xK xA
+    assign xA 0.38464761781554735
+    sine xL xA
+    assign xA -4.38264352009509
+    sine xM xA
+    assign xA -3.5387377987156725
+    sine xN xA
+    exit
+
+EXEC SINE_X_1_reg
+TEST
+  xE 0.8732263864320373
+  xF -0.41845031876525557
+  xG -0.903281772046092
+  xH -0.9786772328399648
+  xI 0.7198634693040028
+  xJ 0.9666477167111873
+  xK 0.09999975592992215
+  xL 0.06342601468942213
+  xM 0.8156090098092396
+  xN 0.9083211633012853
+EXEC SINE_XX_2_reg
+TEST
+  xA -3.5387377987156725
+  xE -0.12240935342092353
+  xF 0.972946897336093
+  xG 0.8950973905977708
+  xH -0.825916397972389
+  xI 0.9252771681191778
+  xJ -0.7545076472900043
+  xK 0.9446087734898907
+  xL 0.37523252618081704
+  xM 0.9461247946988401
+  xN 0.3867872634954761
