@@ -1,0 +1,1327 @@
+#############################################################
+
+# Code for setting up a 3D perspective transformation matrix with THREE.js:
+#
+# m_tr1 = new THREE.Matrix4();
+# m_tr1.makeTranslation(2,3,4);
+#
+# m_sc = new THREE.Matrix4();
+# m_sc.makeScale(1,10,1);
+#
+# m_rot = new THREE.Matrix4();
+# v_axis = new THREE.Vector3(0.25, -0.75, 8);
+# v_axis.normalize();
+# m_rot.makeRotationAxis(v_axis, -0.333);
+#
+# m_tr2 = new THREE.Matrix4();
+# m_tr2.makeTranslation(1000, 10000, 100000);
+#
+# m_persp = new THREE.Matrix4();
+# m_persp.makePerspective(-10,20,-30,40,-50,60);
+#
+# m_result = new THREE.Matrix4();
+# m_result.multiplyMatrices(m_persp, m_tr2);
+# m_result.multiplyMatrices(m_result, m_rot);
+# m_result.multiplyMatrices(m_result, m_sc);
+# m_result.multiplyMatrices(m_result, m_tr1);
+#
+# console.log(m_result.elements);
+#
+# Expected result:
+# [
+#   -3.159995734141859,
+#   -0.46082135113497585,
+#   0.002617848935466001,
+#   0.02879633829012601,
+#   
+#   -10.888746227694885,
+#   13.52958116305623,
+#   0.0138779400397095,
+#   0.15265734043680448,
+#   
+#   0.22583453747396015,
+#   -0.1355452236590941,
+#   -0.09086079300045194,
+#   -0.9994687230049714,
+#   
+#   29961.917107998524,
+#   39.12491989226419,
+#   -9036.68021001765,
+#   -100003.48231019413
+# ]
+
+struct MATRIX_4x4
+  32 col.0
+  32 col.1
+  32 col.2
+  32 col.3
+  > 8 x0
+  8 y0
+  8 z0
+  8 w0
+  8 x1
+  8 y1
+  8 z1
+  8 w1
+  8 x2
+  8 y2
+  8 z2
+  8 w2
+  8 x3
+  8 y3
+  8 z3
+  8 w3
+
+mem m1 MATRIX_4x4 1
+
+# equivalent code for setting up the a 3D perspective transformation matrix with TACTYK-in-3D
+#  (Expected to reproduce the above result)
+MAIN:
+  tcall print-newline
+  bind addr1 m1
+  lwcall MATRIX__IDENTITY_MAT4
+  spread xA 2.0 3.0 4.0 1.0
+  lwcall MATRIX__TRANSLATE_MAT4
+  spread xA 1.0 10.0 1.0 1.0
+  lwcall MATRIX__SCALE_MAT4
+  spread xA 0.25 -0.75 8.0 -0.333
+  lwcall VECTOR__NORMALIZE_VEC3
+  lwcall MATRIX__ROTATE__ANGLE_AXIS
+  spread xA 1000.0 10000.0 100000.0 1.0
+  lwcall MATRIX__TRANSLATE_MAT4
+  spread xA -10.0 20.0 -30.0 40.0 -50.0 60.0
+  lwcall MATRIX__PERSPECTIVE
+  lwcall MATRIX__PRINT_MAT4
+  tcall print-newline
+  exit
+
+
+#############################################################
+# A copy of the [in-dev] TACTYK-in-3D matrix math component #
+#############################################################
+
+# TACTYK-in-3D Matrix math handling
+#
+# Matrices are computed by creating an identity matrix (or loading whatever initial matrix), then applying a series of transforms to produce 
+# a composite matrix.  Each transform is equivalent to creating a transformation matrix, them multiplying the current transform by the created transform.
+#
+# In theory, this could be a native module in C, but I'd really like to get into the sandboxed part of the sandbox.
+#   And (at least if binary executable randomization is at some point disabled), the context switch overhead is likely to exceed
+#   the performance advantage for native compilation (these functions aren't particularly complex), so it probably will be
+#   preferable to keep this in the sandbox.
+#
+# This was adapted/ported from the Matrix math components from THREE.js ( https://threejs.org/ )
+
+struct MATRIX_4x4
+  32 col.0
+  32 col.1
+  32 col.2
+  32 col.3
+  > 8 x0
+  8 y0
+  8 z0
+  8 w0
+  8 x1
+  8 y1
+  8 z1
+  8 w1
+  8 x2
+  8 y2
+  8 z2
+  8 w2
+  8 x3
+  8 y3
+  8 z3
+  8 w3
+
+# Apply a 4x4 matrix transform to a vector.
+# MAT4_APPLY Input:
+#   addr1:  Matrix data.  Min 512 bytes, offset to matrix location.
+#   xA,xB,xC,xD:  A 4-element vector
+# Output:
+#   xA,xB,xC,xD:  Transformed vector
+# Clobbers:  
+#   xE,xF,xG,xH, xI,xJ,xK,xL
+MATRIX__APPLY_MAT4:
+  assign xI xA
+  assign xJ xB
+  assign xK xC
+  assign xL xD
+  block-load 8 xA addr1 MATRIX_4x4.col.0
+  mul xA xI
+  mul xB xI
+  mul xC xI
+  mul xD xI
+  mul xE xJ
+  mul xF xJ
+  mul xG xJ
+  mul xH xJ
+  add xA xE
+  add xB xF
+  add xC xG
+  add xD xH
+  block-load 4 xE addr1 MATRIX_4x4.col.2
+  mul xE xK
+  mul xF xK
+  mul xG xK
+  mul xH xK
+  add xA xE
+  add xB xF
+  add xC xG
+  add xD xH
+  block-load 4 xE addr1 MATRIX_4x4.col.3
+  mul xE xL
+  mul xF xL
+  mul xG xL
+  mul xH xL
+  add xA xE
+  add xB xF
+  add xC xG
+  add xD xH
+  lwreturn
+
+
+# Copy registers xA-xD into a MATRIX_4x4 column
+# Input:
+#   addr1:  Matrix data.  Min 512 bytes, offset to matrix location.
+#   rA:  column number, clobbered.
+#   xA,xB,xC,xD: x,y,z,w
+# Error:
+#   rF:  set to "bad-col" if rA is not in range 0-3 (inclusive)
+MATRIX__STORE_MAT4x4_COLUMN:
+  if rA < 0 MATRIX__INVALID_COLUMN
+  if rA >= 4 MATRIX__INVALID_COLUMN
+  shift-left rA 5
+  block-store 4 addr1 rA xA
+  lwreturn
+
+
+# Copy registers xA-xD into a MATRIX_4x4 row
+# Input:
+#   addr1:  Matrix data.  Min 512 bytes, offset to matrix location.
+#   rA:  row number, clobbered.
+#   xA,xB,xC,xD: x,y,z,w
+# Error:
+#   rF:  set to "bad-row" if rA is not in range 0-3 (inclusive)
+MATRIX__STORE_MAT4x4_ROW:
+  if rA < 0 MATRIX__INVALID_ROW
+  if rA >= 4 MATRIX__INVALID_ROW
+  shift-left rA 3
+  store float64 addr1 rA xA
+  add rA 32
+  store float64 addr1 rA xB
+  add rA 32
+  store float64 addr1 rA xC
+  add rA 32
+  store float64 addr1 rA xD
+  lwreturn
+
+# Copy a MATRIX_4x4 column into registers xA-xD
+# Input:
+#   addr1:  Matrix data.  Min 512 bytes, offset to matrix location.
+#   rA:  column number, clobbered.
+# Output:
+#   xA,xB,xC,xD: x,y,z,w
+# Error:
+#   rF:  set to "bad-col" if rA is not in range 0-3 (inclusive)
+MATRIX__LOAD_MAT4x4_COLUMN:
+  if rA < 0 MATRIX__INVALID_COLUMN
+  if rA >= 4 MATRIX__INVALID_COLUMN
+  shift-left rA 5
+  block-load 4 xA addr1 rA
+  lwreturn
+
+# Copy a MATRIX_4x4 row into registers xA-xD
+# Input:
+#   addr1:  Matrix data.  Min 512 bytes, offset to matrix location.
+#   rA:  row number, clobbered.
+# Output:
+#   xA,xB,xC,xD: x,y,z,w
+# Error:
+#   rF:  set to "bad-row" if rA is not in range 0-3 (inclusive)
+MATRIX__LOAD_MAT4x4_ROW:
+  if rA < 0 MATRIX__INVALID_ROW
+  if rA >= 4 MATRIX__INVALID_ROW
+  shift-left rA 3
+  load float64 xA addr1 rA
+  add rA 32
+  load float64 xB addr1 rA
+  add rA 32
+  load float64 xC addr1 rA
+  add rA 32
+  load float64 xD addr1 rA
+  lwreturn
+
+MATRIX__INVALID_COLUMN:
+  assign rF 'bad-col
+  lwreturn
+MATRIX__INVALID_ROW:
+  assign rF 'bad-row
+  lwreturn
+
+# Print a text representation of a matrix.
+# This prints the matrix in row-major order
+#   NOTE:  Matrices are stored in column major order - both to more directly use them in OpenGL and to assist in porting
+#          matrix math code.
+# Input:
+#   addr1:  Matrix data.  Min 512 bytes, offset to matrix location.
+# Clobbers:
+#   xA-xH
+MATRIX__PRINT_MAT4:
+  assign rA 0
+  lwcall MATRIX__LOAD_MAT4x4_ROW
+  lwcall MATRIX__PRINT_VEC4
+  assign rA 1
+  lwcall MATRIX__LOAD_MAT4x4_ROW
+  lwcall MATRIX__PRINT_VEC4
+  assign rA 2
+  lwcall MATRIX__LOAD_MAT4x4_ROW
+  lwcall MATRIX__PRINT_VEC4
+  assign rA 3
+  lwcall MATRIX__LOAD_MAT4x4_ROW
+  lwcall MATRIX__PRINT_VEC4
+  lwreturn
+
+# Multiply two matrices 
+# Input:
+#   addr1:  Matrix A.  Min 512 bytes, offset to matrix location.
+#   addr2:  Matrix B.  Min 512 bytes, offset to matrix location.
+# Output:
+#   addr1:  Matrix Out.  Min 512 bytes, offset to matrix location.
+# Clobbers:
+#   stash sA-sH (low and high entries)
+MATRIX_MUL_MAT4:
+  # hold a row from Matrix A in registers since they're "inefficiently" stored 
+  #   (no mechamism in place at present to read patterned data)
+  load float64 xI addr1 MATRIX_4x4.x0
+  load float64 xJ addr1 MATRIX_4x4.x1
+  load float64 xK addr1 MATRIX_4x4.x2
+  load float64 xL addr1 MATRIX_4x4.x3
+  
+  # load a column from matrix A, multiply it by the values from the selected row from matrix B, and leave the result on the register
+  block-load 4 xA addr2 MATRIX_4x4.col.0
+  mul xA xI
+  mul xB xJ
+  mul xC xK
+  mul xD xL
+  add xA xB
+  add xA xC
+  add xA xD
+  
+  # Again with the next column, but offset one register
+  block-load 4 xB addr2 MATRIX_4x4.col.1
+  mul xB xI
+  mul xC xJ
+  mul xD xK
+  mul xE xL
+  add xB xC
+  add xB xD
+  add xB xE
+  
+  block-load 4 xC addr2 MATRIX_4x4.col.2
+  mul xC xI
+  mul xD xJ
+  mul xE xK
+  mul xF xL
+  add xC xD
+  add xC xE
+  add xC xF
+  
+  block-load 4 xD addr2 MATRIX_4x4.col.3
+  mul xD xI
+  mul xE xJ
+  mul xF xK
+  mul xG xL
+  add xD xE
+  add xD xF
+  add xD xG
+  
+  # stash the output column (can't write back immediately because it is permissible to reference the same object for both input and output)
+  #   
+  stash sAl xA sCl xB sEl xC sGl xD
+  
+  load float64 xI addr1 MATRIX_4x4.y0
+  load float64 xJ addr1 MATRIX_4x4.y1
+  load float64 xK addr1 MATRIX_4x4.y2
+  load float64 xL addr1 MATRIX_4x4.y3
+  
+  block-load 4 xA addr2 MATRIX_4x4.col.0  
+  mul xA xI
+  mul xB xJ
+  mul xC xK
+  mul xD xL
+  add xA xB
+  add xA xC
+  add xA xD
+  
+  block-load 4 xB addr2 MATRIX_4x4.col.1
+  mul xB xI
+  mul xC xJ
+  mul xD xK
+  mul xE xL
+  add xB xC
+  add xB xD
+  add xB xE
+  
+  block-load 4 xC addr2 MATRIX_4x4.col.2
+  mul xC xI
+  mul xD xJ
+  mul xE xK
+  mul xF xL
+  add xC xD
+  add xC xE
+  add xC xF
+  
+  block-load 4 xD addr2 MATRIX_4x4.col.3
+  mul xD xI
+  mul xE xJ
+  mul xF xK
+  mul xG xL
+  add xD xE
+  add xD xF
+  add xD xG
+  
+  stash sAh xA sCh xB sEh xC sGh xD
+  
+  load float64 xI addr1 MATRIX_4x4.z0
+  load float64 xJ addr1 MATRIX_4x4.z1
+  load float64 xK addr1 MATRIX_4x4.z2
+  load float64 xL addr1 MATRIX_4x4.z3
+  
+  block-load 4 xA addr2 MATRIX_4x4.col.0  
+  mul xA xI
+  mul xB xJ
+  mul xC xK
+  mul xD xL
+  add xA xB
+  add xA xC
+  add xA xD
+  
+  block-load 4 xB addr2 MATRIX_4x4.col.1
+  mul xB xI
+  mul xC xJ
+  mul xD xK
+  mul xE xL
+  add xB xC
+  add xB xD
+  add xB xE
+  
+  block-load 4 xC addr2 MATRIX_4x4.col.2
+  mul xC xI
+  mul xD xJ
+  mul xE xK
+  mul xF xL
+  add xC xD
+  add xC xE
+  add xC xF
+  
+  block-load 4 xD addr2 MATRIX_4x4.col.3
+  mul xD xI
+  mul xE xJ
+  mul xF xK
+  mul xG xL
+  add xD xE
+  add xD xF
+  add xD xG
+  
+  stash sBl xA sDl xB sFl xC sHl xD
+  
+  load float64 xI addr1 MATRIX_4x4.w0
+  load float64 xJ addr1 MATRIX_4x4.w1
+  load float64 xK addr1 MATRIX_4x4.w2
+  load float64 xL addr1 MATRIX_4x4.w3
+  
+  block-load 4 xA addr2 MATRIX_4x4.col.0  
+  mul xA xI
+  mul xB xJ
+  mul xC xK
+  mul xD xL
+  add xA xB
+  add xA xC
+  add xA xD
+  
+  block-load 4 xB addr2 MATRIX_4x4.col.1
+  mul xB xI
+  mul xC xJ
+  mul xD xK
+  mul xE xL
+  add xB xC
+  add xB xD
+  add xB xE
+  
+  block-load 4 xC addr2 MATRIX_4x4.col.2
+  mul xC xI
+  mul xD xJ
+  mul xE xK
+  mul xF xL
+  add xC xD
+  add xC xE
+  add xC xF
+  
+  block-load 4 xD addr2 MATRIX_4x4.col.3
+  mul xD xI
+  mul xE xJ
+  mul xF xK
+  mul xG xL
+  add xD xE
+  add xD xF
+  add xD xG
+  
+  stash sBh xA sDh xB sFh xC sHh xD
+  
+  # 16-byte fields have not been implemenented beyond stub form, and neither have stash-memblock transfers been defined or implemented,
+  # so transfer each field explicitly.
+  stash  xA sAl  xB sAh  xC sBl  xD sBh  xE sCl  xF sCh  xG sDl  xH sDh 
+  block-store 8 addr1 MATRIX_4x4.col.0 xA
+  stash  xA sEl  xB sEh  xC sFl  xD sFh  xE sGl  xF sGh  xG sHl  xH sHh 
+  block-store 8 addr1 MATRIX_4x4.col.2 xA
+  
+  lwreturn
+
+# map submatrix [(0,1):(3,3)] onto registers xK,xL,xM, xA,xB,xC,  xE,xF,xG, xH,xI,xJ (colum-major order)
+MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES__ROWS_123:
+  block-load 11 xK addr1 MATRIX_4x4.y0
+  block-load 3 xH addr1 MATRIX_4x4.y3
+  goto MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES
+
+# map submatrix [(0,0):(3,0) .. (0,2):(3,3)] onto registers xK,xL,xM, xA,xB,xC,  xE,xF,xG, xH,xI,xJ (colum-major order)
+MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES__ROWS_023:
+  load float64 xK addr1 MATRIX_4x4.x0
+  load float64 xL addr1 MATRIX_4x4.z0
+  load float64 xM addr1 MATRIX_4x4.w0
+  # dodge xN
+  load float64 xA addr1 MATRIX_4x4.x1
+  load float64 xB addr1 MATRIX_4x4.z1
+  load float64 xC addr1 MATRIX_4x4.w1
+  # dodge xD
+  load float64 xE addr1 MATRIX_4x4.x2
+  load float64 xF addr1 MATRIX_4x4.z2
+  load float64 xG addr1 MATRIX_4x4.w2
+  
+  load float64 xH addr1 MATRIX_4x4.x3
+  load float64 xI addr1 MATRIX_4x4.z3
+  load float64 xJ addr1 MATRIX_4x4.w3
+  goto MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES
+
+# map submatrix [(0,0):(3,1) .. (0,3):(3,3)] onto registers xK,xL,xM, xA,xB,xC,  xE,xF,xG, xH,xI,xJ (colum-major order)
+MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES__ROWS_013:
+  load float64 xK addr1 MATRIX_4x4.x0
+  load float64 xL addr1 MATRIX_4x4.y0
+  load float64 xM addr1 MATRIX_4x4.w0
+  # dodge xN
+  load float64 xA addr1 MATRIX_4x4.x1
+  load float64 xB addr1 MATRIX_4x4.y1
+  load float64 xC addr1 MATRIX_4x4.w1
+  # dodge xD
+  load float64 xE addr1 MATRIX_4x4.x2
+  load float64 xF addr1 MATRIX_4x4.y2
+  load float64 xG addr1 MATRIX_4x4.w2
+  
+  load float64 xH addr1 MATRIX_4x4.x3
+  load float64 xI addr1 MATRIX_4x4.y3
+  load float64 xJ addr1 MATRIX_4x4.w3
+  goto MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES
+  
+# map submatrix [(0,0):(3,2)] onto registers xK,xL,xM, xA,xB,xC,  xE,xF,xG, xH,xI,xJ (colum-major order)
+MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES__ROWS_012:
+  block-load 11 xK addr1 MATRIX_4x4.col.0
+  block-load 3 xH addr1 MATRIX_4x4.col.3
+  goto MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES
+
+#   THREE.js mapping
+#		 n11 0   n12 4   n13 8   n14 12
+#		 n21 1   n22 5   n23 9   n24 13
+#		 n31 2   n32 6   n33 10  n34 14
+#		 n41 3   n42 7   n43 11  n44 15
+
+#    ti3d mapping  (last row omitted for more efficient use of xmm registers within tactyk constraints)
+#		 n11 K   n12 A   n13 E   n14 H
+#		 n21 L   n22 B   n23 F   n24 I
+#		 n31 M   n32 C   n33 G   n34 J
+#		 n41 .   n42 .   n43 .   n44 .
+
+# compute a set of intermediate products used for matrix determinant and matrix inversion factors.
+#   This is intended for internal use only
+#   It clobbers all xmm registers, stash entries sAl-sAh, and uses an obscure layout (minimizes the number of tactyk instructions needed)
+MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES:  
+  # assign rD 'map
+  # tcall print-text-d
+  # tcall print-newline
+  # tcall dump-ctx
+  #		 n12 A   n13 E   n14 H
+  #		 n22 B   n23 F   n24 I
+  #		 n32 C   n33 G   n34 J
+  #		 n42 .   n43 .   n44 .
+  assign xD xA
+  mul xD xI
+  mul xD xG
+  assign xN xE
+  mul xN xB
+  mul xN xJ
+  add xD xN
+  assign xN xH
+  mul xN xF
+  mul xN xC
+  add xD xN
+  assign xN xA
+  mul xN xF
+  mul xN xJ
+  sub xD xN
+  assign xN xE
+  mul xN xI
+  mul xN xC
+  sub xD xN
+  assign xN xH
+  mul xN xB
+  mul xN xG
+  sub xD xN
+  stash sAl xD
+  # assign rD 'im1
+  # tcall print-text-d
+  # tcall print-newline
+  # tcall dump-ctx
+
+#		 n11 K   n13 E   n14 H
+#		 n21 L   n23 F   n24 I
+#		 n31 M   n33 G   n34 J
+  #		 n41 .   n43 .   n44 .
+
+  assign xD xK
+  mul xD xF
+  mul xD xJ
+  assign xN xE
+  mul xN xI
+  mul xN xM
+  add xD xN
+  assign xN xH
+  mul xN xL
+  mul xN xG
+  add xD xN
+  assign xN xK
+  mul xN xI
+  mul xN xG
+  sub xD xN
+  assign xN xE
+  mul xN xL
+  mul xN xJ
+  sub xD xN
+  assign xN xH
+  mul xN xF
+  mul xN xM
+  sub xD xN
+  stash sAh xD
+  #assign rD 'im2
+  #tcall print-text-d
+  #tcall print-newline
+  #tcall dump-ctx
+  
+#		 n11 K   n12 A   n14 H
+#		 n21 L   n22 B   n24 I
+#		 n31 M   n32 C   n34 J
+  #		 n41 .   n42 .   n44 .
+
+  assign xD xK
+  mul xD xI
+  mul xD xC
+  assign xN xA
+  mul xN xL
+  mul xN xJ
+  add xD xN
+  assign xN xH
+  mul xN xB
+  mul xN xM
+  add xD xN
+  assign xN xK
+  mul xN xB
+  mul xN xJ
+  sub xD xN
+  assign xN xA
+  mul xN xI
+  mul xN xM
+  sub xD xN
+  assign xN xH
+  mul xN xL
+  mul xN xC
+  sub xD xN
+  stash sBl xD
+  #assign rD 'im3
+  #tcall print-text-d
+  #tcall print-newline
+  #tcall dump-ctx
+  
+#		 n11 K   n12 A   n13 E
+#		 n21 L   n22 B   n23 F
+#		 n31 M   n32 C   n33 G
+  #		 n41 .   n42 .   n43 .
+
+  assign xD xK
+  mul xD xB
+  mul xD xG
+  assign xN xA
+  mul xN xF
+  mul xN xM
+  add xD xN
+  assign xN xE
+  mul xN xL
+  mul xN xC
+  add xD xN
+  assign xN xK
+  mul xN xF
+  mul xN xC
+  sub xD xN
+  assign xN xA
+  mul xN xL
+  mul xN xG
+  sub xD xN
+  assign xN xE
+  mul xN xB
+  mul xN xM
+  sub xD xN
+  # stash sBh xD
+  #assign rD 'im4
+  #tcall print-text-d
+  #tcall print-newline
+  #tcall dump-ctx
+  stash xA sAl xB sAh xC sBl
+  lwreturn
+
+# Compute the determinant of a matrix
+# Inputs:
+#   addr1:  Matrix A.  Min 512 bytes, offset to matrix location.
+# Outputs:
+#   xA:  Determinant
+# Clobbers:
+#   xB-xM (all xmm registers)
+#   sA-sH (first 8 entries in stash)
+MATRIX__DET_MAT4:
+  lwcall MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES__ROWS_012
+  
+  load float64 xE addr1 MATRIX_4x4.w0
+  load float64 xF addr1 MATRIX_4x4.w1
+  load float64 xG addr1 MATRIX_4x4.w2
+  load float64 xH addr1 MATRIX_4x4.w3
+
+  mul xA xE
+  mul xB xF
+  mul xC xG
+  mul xD xH
+  
+  add xA xB
+  add xA xC
+  add xA xD
+  
+  lwreturn
+  
+# Apply an angle-axis rotation to a matrix
+# input:
+#   xA,xB,xC:   Axis (represented as a normalized vector)
+#   xD:         angle of rotation (in radians)
+#   addr1:      Matrix A.  Min 512 bytes, offset to matrix location.
+# output:
+#   addr1:  Matrix A.  Min 512 bytes, offset to matrix location.
+# clobbers:
+#   all xmm registers
+#   stash sCl,sCh,sDl,sDh,sEl,sEh,sFl,sFh,sGl
+MATRIX__ROTATE__ANGLE_AXIS:
+  sine_and_cosine xD xE xD
+  assign xF xA
+  assign xG xB
+  assign xH xC
+  mul xF xD
+  mul xG xD
+  mul xH xD
+  assign xD xE
+  mul xE -1
+  add xE 1
+  
+  # xA:  x
+  # xB:  y
+  # xC:  z
+  # xD:  cosine(angle)
+  # xE:  1-cosine(angle)
+  # xF:  sine(angle) * x
+  # xG:  sine(angle) * y
+  # xH:  sine(angle) * z
+  # xI:  in.xN
+  # xJ:  in.yN
+  # xK:  in.zN
+  # xL:  out.xN
+  # xM:  out.yN
+  # xN:  out.zN
+
+  # stash sAl xA sAh xB sBl xC sBh xD
+  
+  assign xL xA
+  mul xL xE
+  assign xM xL
+  assign xN xL
+  
+  mul xL xA
+  mul xM xB
+  mul xN xC
+  
+  add xL xD
+  sub xM xH
+  add xN xG
+
+  stash sCl xL  sCh xM  sDl xN
+
+  assign xL xB
+  mul xL xE
+  assign xM xL
+  assign xN xL
+  
+  mul xL xA
+  mul xM xB
+  mul xN xC
+  
+  add xL xH
+  add xM xD
+  sub xN xF
+    
+  stash sDh xL  sEl xM  sEh xN
+  
+  assign xL xC
+  mul xL xE
+  assign xM xL
+  assign xN xL
+  
+  mul xL xA
+  mul xM xB
+  mul xN xC
+  
+  sub xL xG
+  add xM xF
+  add xN xD
+  
+  stash sFl xL  sFh xM  sGl xN
+  
+  assign xD 0
+  block-load 3 xI addr1 MATRIX_4x4.col.0
+  
+  stash xA sCl xB sCh xC sDl
+  mul xA xI
+  mul xB xJ
+  mul xC xK
+  add xA xB
+  add xA xC
+
+  stash xB sDh xC sEl xE sEh
+  mul xB xI
+  mul xC xJ
+  mul xE xK
+  add xB xC
+  add xB xE
+
+  stash xC sFl xE sFh xF sGl
+  mul xC xI
+  mul xE xJ
+  mul xF xK
+  add xC xE
+  add xC xF
+
+  block-store 3 addr1 MATRIX_4x4.col.0 xA
+
+  block-load 3 xI addr1 MATRIX_4x4.col.1
+  
+  stash xA sCl xB sCh xC sDl
+  mul xA xI
+  mul xB xJ
+  mul xC xK
+  add xA xB
+  add xA xC
+
+  stash xB sDh xC sEl xE sEh
+  mul xB xI
+  mul xC xJ
+  mul xE xK
+  add xB xC
+  add xB xE
+
+  stash xC sFl xE sFh xF sGl
+  mul xC xI
+  mul xE xJ
+  mul xF xK
+  add xC xE
+  add xC xF
+  
+  block-store 3 addr1 MATRIX_4x4.col.1 xA
+
+  block-load 3 xI addr1 MATRIX_4x4.col.2
+  
+  stash xA sCl xB sCh xC sDl
+  mul xA xI
+  mul xB xJ
+  mul xC xK
+  add xA xB
+  add xA xC
+
+  stash xB sDh xC sEl xE sEh
+  mul xB xI
+  mul xC xJ
+  mul xE xK
+  add xB xC
+  add xB xE
+
+  stash xC sFl xE sFh xF sGl
+  mul xC xI
+  mul xE xJ
+  mul xF xK
+  add xC xE
+  add xC xF
+  
+  block-store 3 addr1 MATRIX_4x4.col.2 xA
+  
+  block-load 3 xI addr1 MATRIX_4x4.col.3
+  
+  stash xA sCl xB sCh xC sDl
+  mul xA xI
+  mul xB xJ
+  mul xC xK
+  add xA xB
+  add xA xC
+
+  stash xB sDh xC sEl xE sEh
+  mul xB xI
+  mul xC xJ
+  mul xE xK
+  add xB xC
+  add xB xE
+
+  stash xC sFl xE sFh xF sGl
+  mul xC xI
+  mul xE xJ
+  mul xF xK
+  add xC xE
+  add xC xF
+  
+  block-store 3 addr1 MATRIX_4x4.col.3 xA
+  
+  lwreturn
+
+# Apply an 3D perspective transform to a matrix
+# input:
+#   xA:         Left plane
+#   xB:         Right plane
+#   xC:         Top plane
+#   xD:         Bottom plane
+#   xE:         Near plane
+#   xF:         Far plane
+#   addr1:      Matrix A.  Min 512 bytes, offset to matrix location.
+# output:
+#   addr1:  Matrix A.  Min 512 bytes, offset to matrix location.
+# clobbers:
+#   xA-xN
+MATRIX__PERSPECTIVE:
+  # right-left
+  assign xK xB
+  sub xK xA
+  
+  # top-bottom
+  assign xL xC
+  sub xL xD
+  
+  # far-near
+  assign xM xF
+  sub xM xE
+  
+  # ( right + left ) / ( right - left );
+  assign xG xA
+  add xG xB
+  div xG xK
+  
+  # ( top + bottom ) / ( top - bottom );
+  assign xH xC
+  add xH xD
+  div xH xL
+  
+  # - ( far + near ) / ( far - near );
+  assign xI xE
+  add xI xF
+  mul xI -1
+  div xI xM
+  
+  # - 2 * far * near / ( far - near );
+  assign xJ xE
+  mul xJ -2 
+  mul xJ xF
+  div xJ xM
+
+  # 2 * near / ( right - left );
+  # 2 * near / ( top - bottom );
+  mul xE 2
+  assign xF xE
+  div xE xK
+  div xF xL
+  
+  block-load 4 xK addr1 MATRIX_4x4.col.0
+  
+  assign xA xK
+  assign xB xL
+  assign xC xM
+  mul xA xE
+  mul xB xF
+  mul xC xI
+  
+  assign xD xM
+  mul xD xG
+  add xA xD
+  assign xD xM
+  mul xD xH
+  add xB xD
+  assign xD xN
+  mul xD xJ
+  add xC xD
+  
+  assign xD 0
+  sub xD xM
+  
+  block-store 4 addr1 MATRIX_4x4.col.0 xA
+
+  block-load 4 xK addr1 MATRIX_4x4.col.1
+  
+  assign xA xK
+  assign xB xL
+  assign xC xM
+  mul xA xE
+  mul xB xF
+  mul xC xI
+  
+  assign xD xM
+  mul xD xG
+  add xA xD
+  assign xD xM
+  mul xD xH
+  add xB xD
+  assign xD xN
+  mul xD xJ
+  add xC xD
+  
+  assign xD 0
+  sub xD xM
+  
+  block-store 4 addr1 MATRIX_4x4.col.1 xA
+
+  block-load 4 xK addr1 MATRIX_4x4.col.2
+  
+  assign xA xK
+  assign xB xL
+  assign xC xM
+  mul xA xE
+  mul xB xF
+  mul xC xI
+  
+  assign xD xM
+  mul xD xG
+  add xA xD
+  assign xD xM
+  mul xD xH
+  add xB xD
+  assign xD xN
+  mul xD xJ
+  add xC xD
+  
+  assign xD 0
+  sub xD xM
+  
+  block-store 4 addr1 MATRIX_4x4.col.2 xA
+
+  block-load 4 xK addr1 MATRIX_4x4.col.3
+  
+  assign xA xK
+  assign xB xL
+  assign xC xM
+  mul xA xE
+  mul xB xF
+  mul xC xI
+  
+  assign xD xM
+  mul xD xG
+  add xA xD
+  assign xD xM
+  mul xD xH
+  add xB xD
+  assign xD xN
+  mul xD xJ
+  add xC xD
+  
+  assign xD 0
+  sub xD xM
+  
+  block-store 4 addr1 MATRIX_4x4.col.3 xA
+  
+  lwreturn
+
+# Compute an inverse transformation matrix
+#   This was modified extensively from the THREE.js implementation - mainly adjusted it to use column-major order values to obtain the determinant,
+#   as well as generalize the determinant intermediate product generation so it can be directly reused for all fields.
+#   (the modifications are also heavilly adapted to tactyk idiosyncrasies)
+MATRIX__INVERT_MAT4:
+  lwcall MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES__ROWS_012
+  
+  load float64 xE addr1 MATRIX_4x4.w0
+  load float64 xF addr1 MATRIX_4x4.w1
+  load float64 xG addr1 MATRIX_4x4.w2
+  load float64 xH addr1 MATRIX_4x4.w3
+  
+  assign xI xA
+  assign xJ xB
+  assign xK xC
+  assign xL xD
+  
+  mul xA xE
+  mul xB xF
+  mul xC xG
+  mul xD xH
+  
+  add xA xB
+  add xA xC
+  add xA xD
+  
+  if xa == 0 MATRIX__INVERT__ERROR_ZERO_DETERMINANT
+  assign xN 1
+  div xN xA
+  stash sCl xN
+  
+  mul xI xN
+  mul xJ xN
+  mul xK xN
+  mul xL xN
+  # block-store 4 addr1 MATRIX_4x4.col.3 xI
+  stash sHl xI sHh xJ sIl xK sIh xL
+  
+  lwcall MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES__ROWS_123
+  stash xN sCl
+  mul xN -1
+  mul xA xN
+  mul xB xN
+  mul xC xN
+  mul xD xN
+  stash sDl xA sDh xB sEl xC sEh xD
+  
+  lwcall MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES__ROWS_023
+  stash xN sCl
+  mul xA xN
+  mul xB xN
+  mul xC xN
+  mul xD xN
+  stash sFl xA sFh xB sGl xC sGh xD
+  
+  lwcall MATRIX__COMPUTE_DETERMINANT_INTERMEDIATES__ROWS_013
+  stash xN sCl
+  mul xN -1
+  mul xA xN
+  mul xB xN
+  mul xC xN
+  mul xD xN
+  
+  stash xE sHl xF sHh xG sIl xH sIh
+  block-store 8 addr1 MATRIX_4x4.col.2 xA
+  
+  stash xE sDl xF sDh xG sEl xH sEh  xI sFl xJ sFh xK sGl xL sGh
+  block-store 8 addr1 MATRIX_4x4.col.0 xE
+  
+  lwreturn
+
+MATRIX__INVERT__ERROR_ZERO_DETERMINANT:
+  assign rF 'det-ZERO
+  goto MATRIX__IDENTITY_MAT4
+
+MATRIX__IDENTITY_MAT4:
+  spread xA 1.0 0.0 0.0 0.0  0.0 1.0 0.0 0.0
+  block-store 8 addr1 MATRIX_4x4.col.0 xA
+  spread xA 0.0 0.0 1.0 0.0  0.0 0.0 0.0 1.0
+  block-store 8 addr1 MATRIX_4x4.col.2 xA
+  lwreturn
+
+MATRUX__COPY_MAT4:
+  block-load 8 xA addr2 MATRIX_4x4.col.0
+  block-store 8 addr2 MATRIX_4x4.col.0 xA
+  block-load 8 xA addr1 MATRIX_4x4.col.2
+  block-store 8 addr1 MATRIX_4x4.col.2 xA
+  lwreturn
+
+
+MATRIX__PRINT_VEC3:
+  tcall print-float-xa
+  tcall print-space
+  tcall print-float-xb
+  tcall print-space
+  tcall print-float-xc
+  tcall print-newline
+  lwreturn
+
+MATRIX__PRINT_VEC4:
+  tcall print-float-xa
+  tcall print-space
+  tcall print-float-xb
+  tcall print-space
+  tcall print-float-xc
+  tcall print-space
+  tcall print-float-xd
+  tcall print-newline
+  lwreturn
+  
+MATRIX__TRANSLATE_MAT4:
+  load float64 xK addr1 MATRIX_4x4.w0
+  load float64 xL addr1 MATRIX_4x4.w1
+  load float64 xM addr1 MATRIX_4x4.w2
+  load float64 xN addr1 MATRIX_4x4.w3
+  
+  block-load 4 xE addr1 MATRIX_4x4.col.0
+  assign xI xK
+  mul xI xA
+  add xE xI
+  assign xI xK
+  mul xI xB
+  add xF xI
+  assign xI xK
+  mul xI xC
+  add xG xI
+  #assign xI xK
+  #mul xI xD
+  #add xH xI
+  block-store 4 addr1 MATRIX_4x4.col.0 xE
+  
+  block-load 4 xE addr1 MATRIX_4x4.col.1
+  assign xI xL
+  mul xI xA
+  add xE xI
+  assign xI xL
+  mul xI xB
+  add xF xI
+  assign xI xL
+  mul xI xC
+  add xG xI
+  #assign xI xL
+  #mul xI xD
+  #add xH xI
+  block-store 4 addr1 MATRIX_4x4.col.1 xE
+  
+  block-load 4 xE addr1 MATRIX_4x4.col.2
+  assign xI xM
+  mul xI xA
+  add xE xI
+  assign xI xM
+  mul xI xB
+  add xF xI
+  assign xI xM
+  mul xI xC
+  add xG xI
+  #assign xI xM
+  #mul xI xD
+  #add xH xI
+  block-store 4 addr1 MATRIX_4x4.col.2 xE
+  
+  block-load 4 xE addr1 MATRIX_4x4.col.3
+  assign xI xN
+  mul xI xA
+  add xE xI
+  assign xI xN
+  mul xI xB
+  add xF xI
+  assign xI xN
+  mul xI xC
+  add xG xI
+  #assign xI xN
+  #mul xI xD
+  #add xH xI
+  block-store 4 addr1 MATRIX_4x4.col.3 xE
+  
+  lwreturn
+  
+
+MATRIX__SCALE_MAT4:
+  block-load 4 xE addr1 MATRIX_4x4.col.0
+  mul xE xA
+  mul xF xB
+  mul xG xC
+  mul xH xD
+  block-store 4 addr1 MATRIX_4x4.col.0 xE
+
+  block-load 4 xE addr1 MATRIX_4x4.col.1
+  mul xE xA
+  mul xF xB
+  mul xG xC
+  mul xH xD
+  block-store 4 addr1 MATRIX_4x4.col.1 xE
+
+  block-load 4 xE addr1 MATRIX_4x4.col.2
+  mul xE xA
+  mul xF xB
+  mul xG xC
+  mul xH xD
+  block-store 4 addr1 MATRIX_4x4.col.2 xE
+
+  block-load 4 xE addr1 MATRIX_4x4.col.3
+  mul xE xA
+  mul xF xB
+  mul xG xC
+  mul xH xD
+  block-store 4 addr1 MATRIX_4x4.col.3 xE
+  
+  lwreturn
+
+VECTOR__NORMALIZE_VEC2:
+  assign xE xA
+  mul xE xE
+  assign xF xB
+  mul xF xF
+  add xE xF
+  square-root xE
+  div xA xE
+  div xB xE
+  lwreturn
+
+#############################################################
+
+VECTOR__NORMALIZE_VEC3:
+  stash sAl xA sAh xB sBl xC
+  mul xA xA
+  mul xB xB
+  mul xC xC
+  assign xE xA
+  add xE xB
+  add xE xC
+  square-root xE
+  stash xA sAl xB sAh xC sBl
+  div xA xE
+  div xB xE
+  div xC xE
+  lwreturn
+
+VECTOR__NORMALIZE_VEC4:
+  stash sAl xA sAh xB sBl xC sBh xD
+  mul xA xA
+  mul xB xB
+  mul xC xC
+  mul xD xD
+  assign xE xA
+  add xE xB
+  add xE xC
+  add xE xD
+  square-root xE
+  stash xA sAl xB sAh xC sBl xD sBh
+  div xA xE
+  div xB xE
+  div xC xE
+  div xD xE
+  lwreturn
+
+VECTOR__LOAD_VEC3:
+  block-load 3 xA addr1 0
+  assign xD 1
+  lwreturn
+
+VECTOR__LOAD_VEC4:
+  block-load 4 xA addr1 0
+  lwreturn
+
+VECTOR__STORE_VEC3:
+  block-store 3 addr1 0 xA
+  assign xD 1
+  lwreturn
+
+VECTOR__STORE_VEC4:
+  block-store 4 addr1 0 xA
+  lwreturn

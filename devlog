@@ -9,6 +9,13 @@ New instruction:  spread
     At some point later, this should be changed to allow integer constants and floating point constants
     (this can technically be accomomplished with tactyk as-is, but would require a combinatorial explosion due to literals and constants being handled
      with separate type specifiers)
+
+Add a new example:  "matrix.tkp"
+  This example sets up a 3D perspective transformation using the Matrix processing component of an in-dev 3D graphcis framework for TACTYK.
+  The introductory comment includes JavaScript code for using THREE.js to generate the same matrix using equivalent logic.
+    "TACTYK-in-3D matrix processing is adapted from the Matrix component from THREE.js
+      (modified to use in-place modifications of existing data structures instead of requiring multiple data structures with separate calls for concatenation)
+
 15 May 2023
 test coverage for: sine, cosine, tangent, arctangent, log2, log
 
