@@ -120,6 +120,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     tactyk_dblock__put(ctx->operator_table, "scramble", tactyk_emit__Scramble);
     tactyk_dblock__put(ctx->operator_table, "code", tactyk_emit__Code);
+    tactyk_dblock__put(ctx->operator_table, "vcode", tactyk_emit__VCode);
 
     tactyk_dblock__put(ctx->operator_table, "int-operand", tactyk_emit__IntOperand);
     tactyk_dblock__put(ctx->operator_table, "float-operand", tactyk_emit__FloatOperand);
@@ -797,6 +798,41 @@ bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
         code_template = code_template->next;
         tactyk_dblock__append(code, code_rewritten);
         tactyk_dblock__append_char(code, '\n');
+    }
+    return true;
+}
+    
+bool tactyk_emit__VCode(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    uint64_t max = 0;
+    struct tactyk_dblock__DBlock *max_raw = vopcfg->token->next;
+    struct tactyk_dblock__DBlock *code = ctx->active_command->asm_code;
+    
+    if (max_raw == NULL) {
+        error("EMIT - VCode -- Invalid line count", vopcfg);
+    }
+    
+    struct tactyk_dblock__DBlock *max_fetched = tactyk_emit__fetch_var(ctx, NULL, max_raw);
+    if (!tactyk_dblock__try_parseuint(&max, max_fetched)) {
+        error("EMIT - VCode -- Invalid line count", vopcfg);
+    }
+    
+    struct tactyk_dblock__DBlock *code_template = vopcfg->child;
+    while (code_template != NULL) {
+        struct tactyk_dblock__DBlock *token = code_template->token;
+        if (token->data == code_template->data) {
+            code_template->data += token->length;
+            code_template->length -= token->length;
+        }
+        uint64_t hdr = 0;
+        if (!tactyk_dblock__try_parseuint(&hdr, token)) {
+            error("EMIT - VCode -- Invalid vcode line header", code_template);
+        }
+        if (hdr <= max) {
+            struct tactyk_dblock__DBlock *code_rewritten = tactyk_emit__fetch_var(ctx, NULL, code_template);
+            tactyk_dblock__append(code, code_rewritten);
+            tactyk_dblock__append_char(code, '\n');
+        }
+        code_template = code_template->next;
     }
     return true;
 }

@@ -206,6 +206,7 @@ bool tactyk_emit__OptionalOperand(struct tactyk_emit__Context *ctx, struct tacty
 bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Type(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+bool tactyk_emit__VCode(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Args(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__IntOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
