@@ -1,3 +1,23 @@
+18 May 2023
+New Virtual-ISA operator:  "vcode"
+  The vcode operator subsets a variable-length block of code.
+  It fetches a variable, then selectively appends subordinate code.
+  Each line of [subordinate] code is prefixed with an integer header.
+  If the header has a value less than a defined maximum value (the fetched variable), then the code will be
+    appended to the main code block.
+  Any code with header value greater than the defined maximum will be omitted.
+
+Update the block-load and block-store operations to use the vcode operator to properly subset the variable-length portion
+  (instead of hard-coding everything and using a goto to jump to the correct starting point)
+
+tactyk-debug - Add a tcall function for changing the format used for printing xmm register content with dump-ctx.
+  TACTYK code to make it print xmm register contents with integer formatting instead of float-64:
+    assign rA 9
+    tcall dump-dispmode
+    tcall dump-ctx
+
+tactyk-debug - add int32 and float32 format handlign for the dump-ctx function.
+
 16 May 2023
 Test coverage for square-root, spread
 
