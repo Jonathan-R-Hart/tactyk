@@ -10,6 +10,7 @@
 uint64_t tactyk_debug__xmm_display_mode = TACTYK_DEBUG__XMM_DISPLAYMODE__FLOAT64;
 
 void tactyk_debug__configure_api(struct tactyk_emit__Context *emitctx) {
+    tactyk_emit__add_tactyk_apifunc(emitctx, "dump-dispmode", tactyk_debug__set_display_mode);
     tactyk_emit__add_tactyk_apifunc(emitctx, "dump-ctx", tactyk_debug__print_context);
     tactyk_emit__add_tactyk_apifunc(emitctx, "dump-mbind", tactyk_debug__print_mbind);
     tactyk_emit__add_tactyk_apifunc(emitctx, "dump-stack", tactyk_debug__print_vmstack);
@@ -163,6 +164,10 @@ void tactyk_debug__write_vmstack(struct tactyk_asmvm__Stack *stack, FILE *stream
 }
 void tactyk_debug__write_vmprograms(struct tactyk_asmvm__Context *ctx, FILE *stream) {
 
+}
+
+void tactyk_debug__set_display_mode(struct tactyk_asmvm__Context *ctx) {
+    tactyk_debug__xmm_display_mode = ctx->reg.rA;
 }
 
 // should probably add a mechanism for determing what format(s) to use for showing data/xmmx register contents.

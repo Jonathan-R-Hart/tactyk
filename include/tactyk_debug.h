@@ -20,6 +20,7 @@ void tactyk_debug__write_mbind(struct tactyk_asmvm__Context *ctx, FILE *stream);
 void tactyk_debug__write_vmstack(struct tactyk_asmvm__Stack *st, FILE *stream);
 void tactyk_debug__write_vmprograms(struct tactyk_asmvm__Context *ctx, FILE *stream);
 
+void tactyk_debug__set_display_mode(struct tactyk_asmvm__Context *ctx);
 void tactyk_debug__print_context(struct tactyk_asmvm__Context *ctx);
 void tactyk_debug__print_mbind(struct tactyk_asmvm__Context *ctx);
 void tactyk_debug__print_vmstack(struct tactyk_asmvm__Context *ctx);
