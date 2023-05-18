@@ -907,7 +907,9 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
             label = label->next;
         }
         struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, cmd->name);
-
+        if (sub == NULL) {
+            error("EMIT-compile -- Unrecognized instruction", cmd->pl_code);
+        }
         sub->func(ctx, sub->vopcfg);
 
         #ifdef TACTYK_DEBUG
