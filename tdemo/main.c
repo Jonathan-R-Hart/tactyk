@@ -91,6 +91,7 @@ int main() {
     tactyk_visa__load_config_module("tactyk_core_tvmcall.visa");
     tactyk_visa__load_config_module("tactyk_core_xmm_fpmath.visa");
     tactyk_visa__load_config_module("tactyk_core_math.visa");
+    tactyk_visa__load_config_module("tactyk_core_simd.visa");
     
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
 
@@ -153,6 +154,7 @@ int main(int argc, char *argv[], char *envp[]) {
         tactyk_visa__load_config_module("tactyk_core_tvmcall.visa");
         tactyk_visa__load_config_module("tactyk_core_xmm_fpmath.visa");
         tactyk_visa__load_config_module("tactyk_core_math.visa");
+        tactyk_visa__load_config_module("tactyk_core_simd.visa");
     }
     else {
         tactyk_visa__load_config_module(visa_fname);

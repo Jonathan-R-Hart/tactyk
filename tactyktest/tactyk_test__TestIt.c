@@ -152,6 +152,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_visa__load_config_module("tactyk_core_tvmcall.visa");
     tactyk_visa__load_config_module("tactyk_core_xmm_fpmath.visa");
     tactyk_visa__load_config_module("tactyk_core_math.visa");
+    tactyk_visa__load_config_module("tactyk_core_simd.visa");
     emitctx = tactyk_emit__init();
 
     tactyk_visa__init_emit(emitctx);

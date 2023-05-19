@@ -20,6 +20,10 @@ tactyk-debug - add int32 and float32 format handlign for the dump-ctx function.
 
 tactyk-emit - Handle undefined instruction error
 
+tactyk-simd
+  begin development of simd capabilities
+  add instructions for packing and unpacking data on xmm registers
+
 16 May 2023
 Test coverage for square-root, spread
 
