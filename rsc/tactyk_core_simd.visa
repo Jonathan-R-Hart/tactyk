@@ -60,6 +60,7 @@ typespec word-index
       pick Wiw
     case word.3
       $WORD_INDEX 3
+      pick Wiw
     case word.4
       $WORD_INDEX 4
       pick Wiw
