@@ -681,6 +681,14 @@ uint64_t tactyk_test__TEST_XMM_REGISTER (struct tactyk_test_entry *valtest_spec,
         token = token->next;
     }
     
+    // float32+ is for 64-bit floats which have been promoted from the 32-bit format.  A reduced precision is needed for it
+    else  if ( tactyk_dblock__equals_c_string(ftype, "f32+") || tactyk_dblock__equals_c_string(ftype, "float32+")) {
+        bits32_mode = false;
+        fpmode = true;
+        token = token->next;
+        precision = precision_f32;
+    }
+    
     struct tactyk_dblock__DBlock *expected_value[4];
     memset(expected_value, 0, sizeof(expected_value));
     for (uint64_t i = 0; i < 4; i++) {

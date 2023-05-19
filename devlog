@@ -4,6 +4,10 @@ tactyk-test - refactor and extend the xmm register test function.
   It now checks the entire register for every test
   It now requires type specification if the xmm register contains anything other than 64-bit floating point numbers
 
+update tests for changes to the xmm register test function
+  the load-float32 test was found to be flawed - it erroneously assumes that loading 32-bit floating point numbers onto xmm registers results in the
+  register holding a number in 32-bit format (tactyk auto-promotes them).
+
 18 May 2023
 New Virtual-ISA operator:  "vcode"
   The vcode operator subsets a variable-length block of code.

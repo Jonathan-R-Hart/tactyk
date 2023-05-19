@@ -429,20 +429,20 @@ XMM-DISPLAYMODE string
 
 EXEC STASH_TEST_STRINGS
 TEST
-  xA 'Hello,_World!
-  xB '=-=-=-=--=-=-=-=
-  xC '`1234567890-=
-  xD 'qwertyuiop[]
-  xE 'asdfghjkl;'
-  xF 'zxcvbnm,./
-  xG '~!@#$%^&*()_+
-  xH 'QWERTYUIOP{}
-  xI 'ASDFGHJKL:
-  xJ 'ZXCVBNM<>?
-  xK 'This_is_text...
-  xL 'useful_useful
-  xM 'text.
-  xN 'You_agree_yes?
+  xA i64 'Hello,_World!
+  xB i64 '=-=-=-=--=-=-=-=
+  xC i64 '`1234567890-=
+  xD i64 'qwertyuiop[]
+  xE i64 'asdfghjkl;'
+  xF i64 'zxcvbnm,./
+  xG i64 '~!@#$%^&*()_+
+  xH i64 'QWERTYUIOP{}
+  xI i64 'ASDFGHJKL:
+  xJ i64 'ZXCVBNM<>?
+  xK i64 'This_is_text...
+  xL i64 'useful_useful
+  xM i64 'text.
+  xN i64 'You_agree_yes?
   stash a 'Hello,_World!
   stash b '=-=-=-=--=-=-=-=
   stash c '`1234567890-=
@@ -530,20 +530,20 @@ TEST
 
 EXEC STASH_TEST_STRINGS_4
 TEST
-  xA 'This_is_text...
-  xB 'This_is_text...
-  xC 'ASDFGHJKL:
-  xD 'ASDFGHJKL:
-  xE 'QWERTYUIOP{}
-  xF 'QWERTYUIOP{}
-  xG 'zxcvbnm,./
-  xH 'zxcvbnm,./
-  xI '`1234567890-=
-  xJ '`1234567890-=
-  xK 'Hello,_World!
-  xL 'Hello,_World!
-  xM 'You_agree_yes?
-  xN 'You_agree_yes?
+  xA i64 'This_is_text...
+  xB i64 'This_is_text...
+  xC i64 'ASDFGHJKL:
+  xD i64 'ASDFGHJKL:
+  xE i64 'QWERTYUIOP{}
+  xF i64 'QWERTYUIOP{}
+  xG i64 'zxcvbnm,./
+  xH i64 'zxcvbnm,./
+  xI i64 '`1234567890-=
+  xJ i64 '`1234567890-=
+  xK i64 'Hello,_World!
+  xL i64 'Hello,_World!
+  xM i64 'You_agree_yes?
+  xN i64 'You_agree_yes?
 
 
 EXEC STASH_EXTENDED_1
@@ -569,12 +569,12 @@ TEST
 
 EXEC STASH_EXTENDED_2
 TEST
-  xA 'zzzzzzzzzzzzzzzz
-  xB 'yyyyyyyyyyyyyyyy
-  xC 'xxxxxxxxxxxxxxxx
-  xD 'wwwwwwwwwwwwwwww
-  xE 'tuvtuvtuvtuvtuvt
-  xF 'uvtuvtuvtuvtuvtt
+  xA i64 'zzzzzzzzzzzzzzzz
+  xB i64 'yyyyyyyyyyyyyyyy
+  xC i64 'xxxxxxxxxxxxxxxx
+  xD i64 'wwwwwwwwwwwwwwww
+  xE i64 'tuvtuvtuvtuvtuvt
+  xF i64 'uvtuvtuvtuvtuvtt
   stash s26 'wwwwwwwwwwwwwwww
   stash s27 'xxxxxxxxxxxxxxxx
   stash s28 'uvtuvtuvtuvtuvtt
