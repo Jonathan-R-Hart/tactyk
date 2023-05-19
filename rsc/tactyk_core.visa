@@ -369,8 +369,6 @@ instruction goto
         jmp $JTARGET
 
 instruction if
-  opt-operand
-    type vec-float-format
   operand
     type xmmx data integer const fconst float
     $A $VALUE

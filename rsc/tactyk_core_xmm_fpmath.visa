@@ -437,8 +437,8 @@ extend instruction div select-template
 extend instruction if select-template    
   case XTXL
     code
-      mov$VECFMT xTEMPA, $A
-      cmp$VECFMT xTEMPA, $B, $VPRED
+      movsd xTEMPA, $A
+      cmpsd xTEMPA, $B, $VPRED
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
@@ -451,8 +451,8 @@ extend instruction if select-template
       jmp $JTARGET
   case DTXL
     code
-      cvtsi2$VECFMT xTEMPA, $A
-      cmp$VECFMT xTEMPA, $B, $VPRED
+      cvtsi2sd xTEMPA, $A
+      cmpsd xTEMPA, $B, $VPRED
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
@@ -467,7 +467,7 @@ extend instruction if select-template
     code
       $LD_IMMEDIATE_A
       movq xTEMPA, rTEMPA
-      cmp$VECFMT xTEMPA, $B, $VPRED
+      cmpsd xTEMPA, $B, $VPRED
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
@@ -481,8 +481,8 @@ extend instruction if select-template
   case ITXL CTXL
     code
       $LD_IMMEDIATE_A
-      cvtsi2$VECFMT xTEMPA, rTEMPA
-      cmp$VECFMT xTEMPA, $B, $VPRED
+      cvtsi2sd xTEMPA, rTEMPA
+      cmpsd xTEMPA, $B, $VPRED
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
@@ -495,8 +495,8 @@ extend instruction if select-template
       jmp $JTARGET
   case XTDL
     code
-      cvtsi2$VECFMT xTEMPA, $B
-      cmp$VECFMT xTEMPA, $A, $VPREDCOMPLEMENT
+      cvtsi2sd xTEMPA, $B
+      cmpsd xTEMPA, $A, $VPREDCOMPLEMENT
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
@@ -511,7 +511,7 @@ extend instruction if select-template
     code
       $LD_IMMEDIATE_B
       movq xTEMPA, rTEMPC
-      cmp$VECFMT xTEMPA, $A, $VPREDCOMPLEMENT
+      cmpsd xTEMPA, $A, $VPREDCOMPLEMENT
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
@@ -527,8 +527,8 @@ extend instruction if select-template
   case XTIL XTCL
     code
       $LD_IMMEDIATE_B
-      cvtsi2$VECFMT xTEMPA, rTEMPC
-      cmp$VECFMT xTEMPA, $A, $VPREDCOMPLEMENT
+      cvtsi2sd xTEMPA, rTEMPC
+      cmpsd xTEMPA, $A, $VPREDCOMPLEMENT
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
@@ -545,7 +545,7 @@ extend instruction if select-template
   case DTFL DTCfL
     code
       $LD_IMMEDIATE_B
-      cvtsi2$VECFMT xTEMPA, $A
+      cvtsi2sd xTEMPA, $A
       movq xTEMPB, rTEMPC
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
@@ -565,7 +565,7 @@ extend instruction if select-template
     code
       $LD_IMMEDIATE_A
       movq xTEMPA, rTEMPA
-      mov$VECFMT xTEMPB, $B
+      movsd xTEMPB, $B
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass

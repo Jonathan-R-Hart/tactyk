@@ -225,18 +225,6 @@ typespec address-offset
       $CTX_ADDRESS_BOUND context.addr4_array_bound
   pick O
 
-typespec vec-float-format
-  $VECFMT sd
-  select-operand
-    case pd PD
-      $VECFMT pd
-    case ps PS
-      $VECFMT ps
-    case sd SD
-      $VECFMT sd
-    case ss SS
-      $VECFMT ss
-
 typespec xmmx
   select-operand
     case x0 xmm0 xa xA
