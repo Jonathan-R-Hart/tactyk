@@ -718,7 +718,6 @@ uint64_t tactyk_test__TEST_XMM_REGISTER (struct tactyk_test_entry *valtest_spec,
             tactyk_dblock__try_parsedouble(&fval2, expected_value[1]);
         }
         if (expected_value[2] != NULL) {
-            printf("ev %p\n", expected_value[2]);
             tactyk_dblock__try_parsedouble(&fval3, expected_value[2]);
         }
         if (expected_value[3] != NULL) {

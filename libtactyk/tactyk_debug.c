@@ -20,7 +20,7 @@ void tactyk_debug__configure_api(struct tactyk_emit__Context *emitctx) {
 void tactyk_debug__write_context(struct tactyk_asmvm__Context *ctx, FILE *stream) {
     switch(tactyk_debug__xmm_display_mode) {
         case TACTYK_DEBUG__XMM_DISPLAYMODE__FLOAT32: {
-            fprintf(stream, "===== TACTYK CONTEXT =========================================================================================================\n");
+            fprintf(stream, "===== TACTYK CONTEXT =================================================================================================================================\n");
             fprintf(stream, "| CTX-seg  (fs:) | %20p | xA (xmm0)      | %-20.14g | %-20.14g | %-20.14g | %-20.14g |\n", ctx, ctx->reg.xA.f32[3], ctx->reg.xA.f32[2], ctx->reg.xA.f32[1], ctx->reg.xA.f32[0]);
             fprintf(stream, "| MCTX-seg (gs:) | %20p | xB (xmm1)      | %-20.14g | %-20.14g | %-20.14g | %-20.14g |\n", ctx->microcontext_stack, ctx->reg.xB.f32[3], ctx->reg.xB.f32[2], ctx->reg.xB.f32[1], ctx->reg.xB.f32[0]);
             fprintf(stream, "| rTEMPA   (rax) |                  --- | xC (xmm2)      | %-20.14g | %-20.14g | %-20.14g | %-20.14g |\n", ctx->reg.xC.f32[3], ctx->reg.xC.f32[2], ctx->reg.xC.f32[1], ctx->reg.xC.f32[0]);
@@ -37,9 +37,9 @@ void tactyk_debug__write_context(struct tactyk_asmvm__Context *ctx, FILE *stream
             fprintf(stream, "| rB       (rsi) | %20jd | xN (xmm13)     | %-20.14g | %-20.14g | %-20.14g | %-20.14g |\n", ctx->reg.rB, ctx->reg.xN.f32[3], ctx->reg.xN.f32[2], ctx->reg.xN.f32[1], ctx->reg.xN.f32[0]);
             fprintf(stream, "| rC       (r11) | %20jd | xTEMPA (xmm14) | %-20.14g | %-20.14g | %-20.14g | %-20.14g |\n", ctx->reg.rC, ctx->reg.xTEMPA.f32[3], ctx->reg.xTEMPA.f32[2], ctx->reg.xTEMPA.f32[1], ctx->reg.xTEMPA.f32[0]);
             fprintf(stream, "| rD       (r13) | %20jd | xTEMPB (xmm15) | %-20.14g | %-20.14g | %-20.14g | %-20.14g |\n", ctx->reg.rD, ctx->reg.xTEMPB.f32[3], ctx->reg.xTEMPB.f32[2], ctx->reg.xTEMPB.f32[1], ctx->reg.xTEMPB.f32[0]);
-            fprintf(stream, "| rE       (r8)  | %20jd | ---            |                  --- |                  --- |\n", ctx->reg.rE);
-            fprintf(stream, "| rF       (r9)  | %20jd | ---            |                  --- |                  --- |\n", ctx->reg.rF);
-            fprintf(stream, "==============================================================================================================================\n");
+            fprintf(stream, "| rE       (r8)  | %20jd | ---            |                  --- |                  --- |                  --- |                  --- |\n", ctx->reg.rE);
+            fprintf(stream, "| rF       (r9)  | %20jd | ---            |                  --- |                  --- |                  --- |                  --- |\n", ctx->reg.rF);
+            fprintf(stream, "======================================================================================================================================================\n");
             break;
         }
         case TACTYK_DEBUG__XMM_DISPLAYMODE__FLOAT64: {
@@ -66,7 +66,7 @@ void tactyk_debug__write_context(struct tactyk_asmvm__Context *ctx, FILE *stream
             break;
         }
         case TACTYK_DEBUG__XMM_DISPLAYMODE__INT32: {
-            fprintf(stream, "===== TACTYK CONTEXT =========================================================================================================\n");
+            fprintf(stream, "===== TACTYK CONTEXT =================================================================================================================================\n");
             fprintf(stream, "| CTX-seg  (fs:) | %20p | xA (xmm0)      | %-20d | %-20d | %-20d | %-20d |\n", ctx, ctx->reg.xA.i32[3], ctx->reg.xA.i32[2], ctx->reg.xA.i32[1], ctx->reg.xA.i32[0]);
             fprintf(stream, "| MCTX-seg (gs:) | %20p | xB (xmm1)      | %-20d | %-20d | %-20d | %-20d |\n", ctx->microcontext_stack, ctx->reg.xB.i32[3], ctx->reg.xB.i32[2], ctx->reg.xB.i32[1], ctx->reg.xB.i32[0]);
             fprintf(stream, "| rTEMPA   (rax) |                  --- | xC (xmm2)      | %-20d | %-20d | %-20d | %-20d |\n", ctx->reg.xC.i32[3], ctx->reg.xC.i32[2], ctx->reg.xC.i32[1], ctx->reg.xC.i32[0]);
@@ -83,9 +83,9 @@ void tactyk_debug__write_context(struct tactyk_asmvm__Context *ctx, FILE *stream
             fprintf(stream, "| rB       (rsi) | %20jd | xN (xmm13)     | %-20d | %-20d | %-20d | %-20d |\n", ctx->reg.rB, ctx->reg.xN.i32[3], ctx->reg.xN.i32[2], ctx->reg.xN.i32[1], ctx->reg.xN.i32[0]);
             fprintf(stream, "| rC       (r11) | %20jd | xTEMPA (xmm14) | %-20d | %-20d | %-20d | %-20d |\n", ctx->reg.rC, ctx->reg.xTEMPA.i32[3], ctx->reg.xTEMPA.i32[2], ctx->reg.xTEMPA.i32[1], ctx->reg.xTEMPA.i32[0]);
             fprintf(stream, "| rD       (r13) | %20jd | xTEMPB (xmm15) | %-20d | %-20d | %-20d | %-20d |\n", ctx->reg.rD, ctx->reg.xTEMPB.i32[3], ctx->reg.xTEMPB.i32[2], ctx->reg.xTEMPB.i32[1], ctx->reg.xTEMPB.i32[0]);
-            fprintf(stream, "| rE       (r8)  | %20jd | ---            |                  --- |                  --- |\n", ctx->reg.rE);
-            fprintf(stream, "| rF       (r9)  | %20jd | ---            |                  --- |                  --- |\n", ctx->reg.rF);
-            fprintf(stream, "==============================================================================================================================\n");
+            fprintf(stream, "| rE       (r8)  | %20jd | ---            |                  --- |                  --- |                  --- |                  --- |\n", ctx->reg.rE);
+            fprintf(stream, "| rF       (r9)  | %20jd | ---            |                  --- |                  --- |                  --- |                  --- |\n", ctx->reg.rF);
+            fprintf(stream, "======================================================================================================================================================\n");
             break;
         }
         default:
@@ -195,7 +195,7 @@ void tactyk_debug__write_vmstack(struct tactyk_asmvm__Stack *stack, FILE *stream
     else {
         lockstate = "UNLOCKED";
     }
-    fprintf(stream, "| state: %-8s |                                                                                                         |\n", lockstate);
+    fprintf(stream, "| state: %-8s |                                                                                                                                             |\n", lockstate);
     fprintf(stream, "|---------------------------------------------------------------------------------------------------------------------------------------------------------------|\n");
     fprintf(stream, "|   pos |    src-commands |   return-target |     src-maxiptr |  lwc-floor | mctx-floor |   dest-commands |  dest-functions |     jump-target |    dest-maxiptr |\n");
     fprintf(stream, "|---------------------------------------------------------------------------------------------------------------------------------------------------------------|\n");
@@ -206,7 +206,7 @@ void tactyk_debug__write_vmstack(struct tactyk_asmvm__Stack *stack, FILE *stream
             pos, entry->source_command_map, entry->source_return_index, entry->source_max_iptr, entry->source_lwcallstack_floor, entry->source_mctxstack_floor,
             entry->dest_command_map, entry->dest_function_map, entry->dest_jump_index, entry->dest_max_iptr);
     }
-    fprintf(stream, "================================================================================================================================================================\n");
+    fprintf(stream, "=================================================================================================================================================================\n");
 }
 void tactyk_debug__write_vmprograms(struct tactyk_asmvm__Context *ctx, FILE *stream) {
 
