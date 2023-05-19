@@ -915,6 +915,9 @@ uint64_t tactyk_test__TEST_XMM_REGISTER (struct tactyk_test_entry *valtest_spec,
 
         if (tactyk_dblock__try_parseint(&ival, expected_value[0])) {
             uival1 = (uint64_t)ival;
+            if (tactyk_dblock__try_parseint(&ival, expected_value[1])) {
+                uival2 = (uint64_t)ival;
+            }
         }
         else if ( (expected_value[0]->length > 0) && (tactyk_dblock__getchar(expected_value[0], 0) == '\'') ) {
             // setup string test by copying raw bytes onto integer variables (which are then written to shadow context register content)
