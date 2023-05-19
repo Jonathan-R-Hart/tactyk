@@ -1,3 +1,9 @@
+19 May 2023
+tactyk-test - refactor and extend the xmm register test function.
+  It now works with 32-bit fields
+  It now checks the entire register for every test
+  It now requires type specification if the xmm register contains anything other than 64-bit floating point numbers
+
 18 May 2023
 New Virtual-ISA operator:  "vcode"
   The vcode operator subsets a variable-length block of code.
@@ -23,6 +29,7 @@ tactyk-emit - Handle undefined instruction error
 tactyk-simd
   begin development of simd capabilities
   add instructions for packing and unpacking data on xmm registers
+
 
 16 May 2023
 Test coverage for square-root, spread
