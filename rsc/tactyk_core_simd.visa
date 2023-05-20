@@ -192,7 +192,10 @@ instruction extract
         pextrb $DEST, $SRC, $WORD_INDEX
     case DXWiw
       code
-        pextrd $DEST, $SRC, $WORD_INDEX
+        pextrw $DEST, $SRC, $WORD_INDEX
+    case DXWid
+      code
+        pextrd %[$DEST]_32, $SRC, $WORD_INDEX
     case DXWiq
       code
         pextrq $DEST, $SRC, $WORD_INDEX
