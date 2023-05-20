@@ -8,9 +8,6 @@
 #   insert xmmx word-index const (XWibC XWiwC XWidC XWiqC)
 #   insert xmmx word-index float (XWidF XWiqF)
 #   insert xmmx word-index fconst (XWidCf XWiqCf)
-#
-#   extract xmmx xmmx word-index (XXWib XXWiw XXWid XXWiq)
-#   extract data xmmx word-index (DXWib DXWiw DXWid DXWiq)
 
 PROGRAM
   const C05 h.05

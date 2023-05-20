@@ -206,6 +206,7 @@ instruction extract
     case XXWid
       code
         insertps xTEMPA, $SRC, $WORD_INDEX_alt_ext
+        pxor $DEST, $DEST
         cvtss2sd $DEST, xTEMPA
         pxor xTEMPA, xTEMPA
     case XXWiq
@@ -216,6 +217,108 @@ instruction extract
         #
         # insertps $DEST, xTEMPB, $WORD_INDEX_alt
   code
+    jmp $NEXT_INSTRUCTION
+
+typespec quantity.1-4
+  select-operand
+    case 1
+      $QTY 1
+    case 2
+      $QTY 2
+    case 3
+      $QTY 3
+    case 4
+      $QTY 4
+
+instruction pack-float32
+  $QTY 4
+  opt-operand
+    type quantity.1-4
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type xmmx
+    $SRC $VALUE
+  code
+    pxor $DEST, $DEST
+  vcode $QTY
+    1 cvtsd2ss $DEST, $SRC~0
+    2 cvtsd2ss xTEMPA, $SRC~1
+    2 insertps $DEST, xTEMPA, 16
+    3 cvtsd2ss xTEMPA, $SRC~2
+    3 insertps $DEST, xTEMPA, 32
+    4 cvtsd2ss xTEMPA, $SRC~3
+    4 insertps $DEST, xTEMPA, 48
+  code
+    pxor xTEMPA, xTEMPA
+    jmp $NEXT_INSTRUCTION
+
+instruction pack-int32
+  $QTY 4
+  opt-operand
+    type quantity.1-4
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type xmmx
+    $SRC $VALUE
+  vcode $QTY
+    1 insertps xTEMPB, $SRC~0, 0
+    2 insertps xTEMPB, $SRC~1, 16
+    3 insertps xTEMPB, $SRC~2, 32
+    4 insertps xTEMPB, $SRC~3, 48
+  code
+    movdqa $DEST, xTEMPB
+    pxor xTEMPB, xTEMPB
+    jmp $NEXT_INSTRUCTION
+
+instruction unpack-float32
+  $QTY 4
+  opt-operand
+    type quantity.1-4
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type xmmx
+    $SRC $VALUE
+  vcode $QTY
+    1 insertps xTEMPA, $SRC, 14
+    1 pxor $DEST~0, $DEST~0
+    1 cvtss2sd $DEST~0, xTEMPA
+    2 insertps xTEMPA, $SRC, 78
+    2 pxor $DEST~1, $DEST~1
+    2 cvtss2sd $DEST~1, xTEMPA
+    3 insertps xTEMPA, $SRC, 142
+    3 pxor $DEST~2, $DEST~2
+    3 cvtss2sd $DEST~2, xTEMPA
+    4 insertps xTEMPA, $SRC, 206
+    4 pxor $DEST~3, $DEST~3
+    4 cvtss2sd $DEST~3, xTEMPA
+  code
+    pxor xTEMPA, xTEMPA
+    pxor xTEMPB, xTEMPB
+    jmp $NEXT_INSTRUCTION
+
+instruction unpack-int32
+  $QTY 4
+  opt-operand
+    type quantity.1-4
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type xmmx
+    $SRC $VALUE
+  vcode $QTY
+    1 insertps $DEST~0, $SRC, 14
+    2 insertps $DEST~1, $SRC, 78
+    3 insertps $DEST~2, $SRC, 142
+    4 insertps $DEST~3, $SRC, 206
+  code
+    pxor xTEMPB, xTEMPB
     jmp $NEXT_INSTRUCTION
 
 

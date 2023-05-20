@@ -13,6 +13,14 @@ update tests for changes to the xmm register test function
 
 tactyk-debug - update format specifiers
 
+Add instructions pack-float32, pack-int32, unpack-float32, and unpack-int32 + test coverage
+  These instructions take 4 consecutive xmm registers, reduce them to 32-bit fields (of int or float types),
+  and pack them onto one xmm register.
+
+*** The pack, unpack, insert, and extract instructions are intended to become the basis for performing SIMD operations
+    within tactyk scripts.
+
+
 18 May 2023
 New Virtual-ISA operator:  "vcode"
   The vcode operator subsets a variable-length block of code.
