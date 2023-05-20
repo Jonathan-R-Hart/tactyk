@@ -205,7 +205,9 @@ instruction extract
     
     case XXWid
       code
-        insertps $DEST, $SRC, $WORD_INDEX_alt_ext
+        insertps xTEMPA, $SRC, $WORD_INDEX_alt_ext
+        cvtss2sd $DEST, xTEMPA
+        pxor xTEMPA, xTEMPA
     case XXWiq
       code
         pextrq rTEMPA, $SRC, $WORD_INDEX
