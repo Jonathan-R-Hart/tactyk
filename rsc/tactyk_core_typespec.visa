@@ -70,6 +70,8 @@ typespec word
       pick F64
     case float32
       pick F32
+    case oword bits128
+      pick B128
 
 typespec stackreg
   select-operand
@@ -256,3 +258,35 @@ typespec xmmx
     case x13 xmm13 xn xN
       value xN
   pick X
+
+typespec xmmx-full
+  select-operand
+    case xx0 xxmm0 xxa xxA
+      value xA
+    case xx1 xxmm1 xxb xxB
+      value xB
+    case xx2 xxmm2 xxc xxC
+      value xC
+    case xx3 xxmm3 xxd xxD
+      value xD
+    case xx4 xxmm4 xxe xxE
+      value xE
+    case xx5 xxmm5 xxf xxF
+      value xF
+    case xx6 xxmm6 xxg xxG
+      value xG
+    case xx7 xxmm7 xxh xxH
+      value xH
+    case xx8 xxmm8 xxi xxI
+      value xI
+    case xx9 xxmm9 xxj xxJ
+      value xJ
+    case xx10 xxmm10 xxk xxK
+      value xK
+    case xx11 xxmm11 xxl xxL
+      value xL
+    case xx12 xxmm12 xxm xxM
+      value xM
+    case xx13 xxmm13 xxn xxN
+      value xN
+  pick Xx

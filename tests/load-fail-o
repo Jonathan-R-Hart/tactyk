@@ -1,0 +1,191 @@
+# TEST:  Bounds checking for load instructions (oword)
+#
+# This verifies that tactyk halts when out-of-bounds offsets are used in load instructions
+# 
+# Virtual-ISA: tactyk_core
+# 
+# CovexAge:
+#   load oword-xmmx-addr-data (B128XAD)
+#   load oword-xmmx-addr-integer (B128CAI)
+#   load oword-xmmx-addr-const (B128XAC)
+
+PROGRAM
+  struct st
+    1 i0
+    1 i1
+    1 i2
+    1 i3
+    1 i4
+    1 i5
+    1 i6
+    1 i7
+    1 i8
+    1 i9
+    1 i10
+    1 i11
+    1 i12
+    1 i13
+    1 i14
+    1 i15
+    1 i16
+    1 i17
+    1 i18
+    1 i19
+
+  const CN1 -1
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C5 5
+  const C6 6
+  const C7 7
+  const C8 8
+  const C9 9
+  const C10 10
+  const C11 11
+  const C12 12
+  const C13 13
+  const C14 14
+  const C15 15
+  const C16 16
+  const C17 17
+  const C18 18
+  const C19 19
+  const C20 20
+  
+  data mm st 1
+    100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119
+  
+  INIT:
+    bind addr1 mm
+    exit
+  
+  ld_B128XAD_neg:
+    assign b -1
+    load oword xA addr1 b
+    exit
+  ld_B128XAD_zero:
+    assign b 0
+    load oword xA addr1 b
+    exit
+  ld_B128XAD_edge:
+    assign b 4
+    load oword xA addr1 b
+    exit
+  ld_B128XAD_cross:
+    assign b 5
+    load oword xA addr1 b
+    exit
+  ld_B128XAD_beyond:
+    assign b 20
+    load oword xA addr1 b
+    exit
+  
+  ld_B128XAI_neg:
+    load oword xA addr1 -1
+    exit
+  ld_B128XAI_zero:
+    load oword xA addr1 0
+    exit
+  ld_B128XAI_edge:
+    load oword xA addr1 4
+    exit
+  ld_B128XAI_cross:
+    load oword xA addr1 5
+    exit
+  ld_B128XAI_beyond:
+    load oword xA addr1 20
+    exit
+  
+  ld_B128XAC_neg:
+    load oword xA addr1 CN1
+    exit
+  ld_B128XAC_zero:
+    load oword xA addr1 C0
+    exit
+  ld_B128XAC_edge:
+    load oword xA addr1 C4
+    exit
+  ld_B128XAC_cross:
+    load oword xA addr1 C5
+    exit
+  ld_B128XAC_beyond:
+    load oword xA addr1 C20
+    exit
+
+
+XMM-DISPLAYMODE int64
+EXEC INIT
+TEST
+  addr1 mm 0
+
+EXEC ld_B128XAD_neg
+TEST
+  status 101
+  rB -1
+EXEC ld_B128XAD_zero
+TEST
+  status 4
+  rB 0
+  xA int64 h.6b6a696867666564 h.737271706f6e6d6c
+EXEC ld_B128XAD_edge
+TEST
+  status 4
+  rB 4
+  xA int64 h.6f6e6d6c6b6a6968 h.7776757473727170
+
+EXEC ld_B128XAD_cross
+TEST
+  status 101
+  rB 5
+EXEC ld_B128XAD_beyond
+TEST
+  status 101
+  rB 20
+
+EXEC ld_B128XAI_neg
+TEST
+  status 101
+EXEC ld_B128XAI_zero
+TEST
+  status 4
+  xA int64 h.6b6a696867666564 h.737271706f6e6d6c
+EXEC ld_B128XAI_edge
+TEST
+  status 4
+  xA int64 h.6f6e6d6c6b6a6968 h.7776757473727170
+EXEC ld_B128XAI_cross
+TEST
+  status 101
+EXEC ld_B128XAI_beyond
+TEST
+  status 101
+
+EXEC ld_B128XAC_neg
+TEST
+  status 101
+EXEC ld_B128XAC_zero
+TEST
+  status 4
+  xA int64 h.6b6a696867666564 h.737271706f6e6d6c
+EXEC ld_B128XAC_edge
+TEST
+  status 4
+  xA int64 h.6f6e6d6c6b6a6968 h.7776757473727170
+EXEC ld_B128XAC_cross
+TEST
+  status 101
+EXEC ld_B128XAC_beyond
+TEST
+  status 101
+
+    
+  
+  
+
+
+
+
+

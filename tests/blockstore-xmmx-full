@@ -1,0 +1,414 @@
+# TEST:  Batched data store to memory
+#
+# Write contents of a series of consecutive registers (according to tactyk register alias lexical order) to a memblock.
+#
+#
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   block-store block-quanitity-xmmx[full]-addr-data (BqsADXx BqlADXx)
+#   block-store block-quanitity-xmmx[full]-addr-data (BqsAIXx BqlAIXx)
+#   block-store block-quanitity-xmmx[full]-addr-data (BqsACXx BqlACXx)
+PROGRAM
+  struct s1
+    20000 not_very_structured_data
+  
+  mem m1 s1 1
+
+  struct s2
+    1680 asdf
+  mem m2 s2 1
+  
+  const CN1 -1
+  const C1521 1521
+  const C1680 1680
+  
+  const C0 0
+  const C16 16
+  const C48 48
+  const C96 96
+  const C160 160
+  const C240 240
+  const C336 336
+  const C448 448
+  const C576 576
+  const C720 720
+  const C880 880
+  const C1056 1056
+  const C1248 1248
+  const C1456 1456
+  
+  INIT:
+    assign xA 1.14
+    assign xB 2.01
+    assign xC 3.02
+    assign xD 4.03
+    assign xE 5.04
+    assign xF 6.05
+    assign xG 7.06
+    assign xH 8.07
+    assign xI 9.08
+    assign xJ 10.09
+    assign xK 11.10
+    assign xL 12.11
+    assign xM 13.12
+    assign xN 14.13
+    insert xA qword.1 1.02
+    insert xB qword.1 2.03
+    insert xC qword.1 3.04
+    insert xD qword.1 4.05
+    insert xE qword.1 5.06
+    insert xF qword.1 6.07
+    insert xG qword.1 7.08
+    insert xH qword.1 8.09
+    insert xI qword.1 9.10
+    insert xJ qword.1 10.11
+    insert xK qword.1 11.12
+    insert xL qword.1 12.13
+    insert xM qword.1 13.14
+    insert xN qword.1 14.01
+    exit
+  
+  BLKSTORE_int:
+    bind addr2 m2
+    block-store 1 addr2 0 xxA
+    block-store 2 addr2 16 xxB
+    block-store 3 addr2 48 xxC
+    block-store 4 addr2 96 xxD
+    block-store 5 addr2 160 xxE
+    block-store 6 addr2 240 xxF
+    block-store 7 addr2 336 xxG
+    block-store 8 addr2 448 xxH
+    block-store 9 addr2 576 xxI
+    block-store 10 addr2 720 xxJ
+    block-store 11 addr2 880 xxK
+    block-store 12 addr2 1056 xxL
+    block-store 13 addr2 1248 xxM
+    block-store 14 addr2 1456 xxN
+    exit
+
+  BLKSTORE_int_fail_neg:
+    block-store 10 addr2 -1 xxG
+    exit
+  BLKSTORE_int_fail_edge:
+    block-store 10 addr2 1521 xxG
+    exit
+  BLKSTORE_int_fail_over:
+    block-store 10 addr2 1680 xxG
+    exit
+
+  BLKSTORE_const_fail_neg:
+    block-store 10 addr2 CN1 xxG
+    exit
+  BLKSTORE_const_fail_edge:
+    block-store 10 addr2 C1521 xxG
+    exit
+  BLKSTORE_const_fail_over:
+    block-store 10 addr2 C1680 xxG
+    exit
+
+  BLKSTORE_reg_fail_neg:
+    assign a -1
+    block-store 10 addr2 a xxG
+    exit
+  BLKSTORE_reg_fail_edge:
+    assign a 1521
+    block-store 10 addr2 a xxG
+    exit
+  BLKSTORE_reg_fail_over:
+    assign a 1680
+    block-store 10 addr2 a xxG
+    exit
+
+EXEC INIT
+TEST
+  xA 1.14 1.02
+  xB 2.01 2.03
+  xC 3.02 3.04
+  xD 4.03 4.05
+  xE 5.04 5.06
+  xF 6.05 6.07
+  xG 7.06 7.08
+  xH 8.07 8.09
+  xI 9.08 9.10
+  xJ 10.09 10.11
+  xK 11.10 11.12
+  xL 12.11 12.13
+  xM 13.12 13.14
+  xN 14.13 14.01
+
+EXEC BLKSTORE_int
+TEST
+  addr2 m2 0
+  mem m2 0 float64 1.14
+  
+  mem m2 16 float64 2.01
+  mem m2 32 float64 3.02
+  
+  mem m2 48 float64 3.02
+  mem m2 64 float64 4.03
+  mem m2 80 float64 5.04
+  
+  mem m2 96 float64 4.03
+  mem m2 112 float64 5.04
+  mem m2 128 float64 6.05
+  mem m2 144 float64 7.06
+  
+  mem m2 160 float64 5.04
+  mem m2 176 float64 6.05
+  mem m2 192 float64 7.06
+  mem m2 208 float64 8.07
+  mem m2 224 float64 9.08
+  
+  mem m2 240 float64 6.05
+  mem m2 256 float64 7.06
+  mem m2 272 float64 8.07
+  mem m2 288 float64 9.08
+  mem m2 304 float64 10.09
+  mem m2 320 float64 11.10
+
+  mem m2 336 float64 7.06
+  mem m2 352 float64 8.07
+  mem m2 368 float64 9.08
+  mem m2 384 float64 10.09
+  mem m2 400 float64 11.10
+  mem m2 416 float64 12.11
+  mem m2 432 float64 13.12
+
+  mem m2 448 float64 8.07
+  mem m2 464 float64 9.08
+  mem m2 480 float64 10.09
+  mem m2 496 float64 11.10
+  mem m2 512 float64 12.11
+  mem m2 528 float64 13.12
+  mem m2 544 float64 14.13
+  mem m2 560 float64 1.14
+
+  mem m2 576 float64 9.08
+  mem m2 592 float64 10.09
+  mem m2 608 float64 11.10
+  mem m2 624 float64 12.11
+  mem m2 640 float64 13.12
+  mem m2 656 float64 14.13
+  mem m2 672 float64 1.14
+  mem m2 688 float64 2.01
+  mem m2 704 float64 3.02
+
+  mem m2 720 float64 10.09
+  mem m2 736 float64 11.10
+  mem m2 752 float64 12.11
+  mem m2 768 float64 13.12
+  mem m2 784 float64 14.13
+  mem m2 800 float64 1.14
+  mem m2 816 float64 2.01
+  mem m2 832 float64 3.02
+  mem m2 848 float64 4.03
+  mem m2 864 float64 5.04
+  
+  mem m2 880 float64 11.10
+  mem m2 896 float64 12.11
+  mem m2 912 float64 13.12
+  mem m2 928 float64 14.13
+  mem m2 944 float64 1.14
+  mem m2 960 float64 2.01
+  mem m2 976 float64 3.02
+  mem m2 992 float64 4.03
+  mem m2 1008 float64 5.04
+  mem m2 1024 float64 6.05
+  mem m2 1040 float64 7.06
+
+  mem m2 1056 float64 12.11
+  mem m2 1072 float64 13.12
+  mem m2 1088 float64 14.13
+  mem m2 1104 float64 1.14
+  mem m2 1120 float64 2.01
+  mem m2 1136 float64 3.02
+  mem m2 1152 float64 4.03
+  mem m2 1168 float64 5.04
+  mem m2 1184 float64 6.05
+  mem m2 1200 float64 7.06
+  mem m2 1216 float64 8.07
+  mem m2 1232 float64 9.08
+
+  mem m2 1248 float64 13.12
+  mem m2 1264 float64 14.13
+  mem m2 1280 float64 1.14
+  mem m2 1296 float64 2.01
+  mem m2 1312 float64 3.02
+  mem m2 1328 float64 4.03
+  mem m2 1344 float64 5.04
+  mem m2 1360 float64 6.05
+  mem m2 1376 float64 7.06
+  mem m2 1392 float64 8.07
+  mem m2 1408 float64 9.08
+  mem m2 1424 float64 10.09
+  mem m2 1440 float64 11.10
+
+  mem m2 1456 float64 14.13
+  mem m2 1472 float64 1.14
+  mem m2 1488 float64 2.01
+  mem m2 1504 float64 3.02
+  mem m2 1520 float64 4.03
+  mem m2 1536 float64 5.04
+  mem m2 1552 float64 6.05
+  mem m2 1568 float64 7.06
+  mem m2 1584 float64 8.07
+  mem m2 1600 float64 9.08
+  mem m2 1616 float64 10.09
+  mem m2 1632 float64 11.10
+  mem m2 1648 float64 12.11
+  mem m2 1664 float64 13.12
+
+
+  mem m2 8 float64 1.02
+  
+  mem m2 24 float64 2.03
+  mem m2 40 float64 3.04
+  
+  mem m2 56 float64 3.04
+  mem m2 72 float64 4.05
+  mem m2 88 float64 5.06
+  
+  mem m2 104 float64 4.05
+  mem m2 120 float64 5.06
+  mem m2 136 float64 6.07
+  mem m2 152 float64 7.08
+  
+  mem m2 168 float64 5.06
+  mem m2 184 float64 6.07
+  mem m2 200 float64 7.08
+  mem m2 216 float64 8.09
+  mem m2 232 float64 9.10
+  
+  mem m2 248 float64 6.07
+  mem m2 264 float64 7.08
+  mem m2 280 float64 8.09
+  mem m2 296 float64 9.10
+  mem m2 312 float64 10.11
+  mem m2 328 float64 11.12
+
+  mem m2 344 float64 7.08
+  mem m2 360 float64 8.09
+  mem m2 376 float64 9.10
+  mem m2 392 float64 10.11
+  mem m2 408 float64 11.12
+  mem m2 424 float64 12.13
+  mem m2 440 float64 13.14
+
+  mem m2 456 float64 8.09
+  mem m2 472 float64 9.10
+  mem m2 488 float64 10.11
+  mem m2 504 float64 11.12
+  mem m2 520 float64 12.13
+  mem m2 536 float64 13.14
+  mem m2 552 float64 14.01
+  mem m2 568 float64 1.02
+
+  mem m2 584 float64 9.10
+  mem m2 600 float64 10.11
+  mem m2 616 float64 11.12
+  mem m2 632 float64 12.13
+  mem m2 648 float64 13.14
+  mem m2 664 float64 14.01
+  mem m2 680 float64 1.02
+  mem m2 696 float64 2.03
+  mem m2 712 float64 3.04
+
+  mem m2 728 float64 10.11
+  mem m2 744 float64 11.12
+  mem m2 760 float64 12.13
+  mem m2 776 float64 13.14
+  mem m2 792 float64 14.01
+  mem m2 808 float64 1.02
+  mem m2 824 float64 2.03
+  mem m2 840 float64 3.04
+  mem m2 856 float64 4.05
+  mem m2 872 float64 5.06
+  
+  mem m2 888 float64 11.12
+  mem m2 904 float64 12.13
+  mem m2 920 float64 13.14
+  mem m2 936 float64 14.01
+  mem m2 952 float64 1.02
+  mem m2 968 float64 2.03
+  mem m2 984 float64 3.04
+  mem m2 1000 float64 4.05
+  mem m2 1016 float64 5.06
+  mem m2 1032 float64 6.07
+  mem m2 1048 float64 7.08
+
+  mem m2 1064 float64 12.13
+  mem m2 1080 float64 13.14
+  mem m2 1096 float64 14.01
+  mem m2 1112 float64 1.02
+  mem m2 1128 float64 2.03
+  mem m2 1144 float64 3.04
+  mem m2 1160 float64 4.05
+  mem m2 1176 float64 5.06
+  mem m2 1192 float64 6.07
+  mem m2 1208 float64 7.08
+  mem m2 1224 float64 8.09
+  mem m2 1240 float64 9.10
+
+  mem m2 1256 float64 13.14
+  mem m2 1272 float64 14.01
+  mem m2 1288 float64 1.02
+  mem m2 1304 float64 2.03
+  mem m2 1320 float64 3.04
+  mem m2 1336 float64 4.05
+  mem m2 1352 float64 5.06
+  mem m2 1368 float64 6.07
+  mem m2 1384 float64 7.08
+  mem m2 1400 float64 8.09
+  mem m2 1416 float64 9.10
+  mem m2 1432 float64 10.11
+  mem m2 1448 float64 11.12
+
+  mem m2 1464 float64 14.01
+  mem m2 1480 float64 1.02
+  mem m2 1496 float64 2.03
+  mem m2 1512 float64 3.04
+  mem m2 1528 float64 4.05
+  mem m2 1544 float64 5.06
+  mem m2 1560 float64 6.07
+  mem m2 1576 float64 7.08
+  mem m2 1592 float64 8.09
+  mem m2 1608 float64 9.10
+  mem m2 1624 float64 10.11
+  mem m2 1640 float64 11.12
+  mem m2 1656 float64 12.13
+  mem m2 1672 float64 13.14
+
+EXEC BLKSTORE_int_fail_neg
+TEST
+  status 101
+EXEC BLKSTORE_int_fail_edge
+TEST
+  status 101
+EXEC BLKSTORE_int_fail_over
+TEST
+  status 101
+
+EXEC BLKSTORE_const_fail_neg
+TEST
+  status 101
+EXEC BLKSTORE_const_fail_edge
+TEST
+  status 101
+EXEC BLKSTORE_const_fail_over
+TEST
+  status 101
+
+EXEC BLKSTORE_reg_fail_neg
+TEST
+  status 101
+  rA -1
+EXEC BLKSTORE_reg_fail_edge
+TEST
+  status 101
+  rA 1521
+EXEC BLKSTORE_reg_fail_over
+TEST
+  status 101
+  rA 1680
+

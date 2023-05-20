@@ -1,0 +1,344 @@
+# TEST:  Batched data load from memory
+#
+# Read sequential data from a memblock and load it onto sequential registers (according to tactyk register alias lexical order)
+#
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   block-load block-quanitity-xmmx[full]-addr-data (BqsXxAD, BqlXxAD)
+#   block-load block-quanitity-xmmx[full]-addr-data (BqsXxAI, BqlXxAI)
+#   block-load block-quanitity-xmmx[full]-addr-data (BqsXxAC, BqlXxAC)
+PROGRAM
+  
+  flat stuff float64
+    0 0
+    1.111 1
+    2.2222222 2
+    3.33333333333 3
+    4.444444444444444 4
+    5.55555555555 5
+    6.66666666 6
+    7.77777 7
+    8.88 8
+    9.999999999999999999 9
+    10 10
+    11 11
+    12.1212121212 12
+    13.1313131313131313 13
+    14.141414141414 14
+    15.1515 15
+    16 16
+    17.111 17
+    18.2222222 18
+    19.33333333333 19
+    20.444444444444444 20
+    21.55555555555 21
+    22.66666666 22
+    23.77777 23
+    24.88 24
+    25.999999999999999999 25
+    26 26
+    27 27
+    28.1212121212 28
+    29.1313131313131313 29
+    30.141414141414 30
+    31.1515 31
+  
+  const CN1 -1
+  const C0 0
+  const C16 16
+  const C32 32
+  const C48 48
+  const C64 64
+  const C80 80
+  const C96 96
+  const C112 112
+  const C128 128
+  const C144 144
+  const C160 160
+  const C176 176
+  const C192 192
+  const C208 208
+  const C224 224
+  const C240 240
+  const C256 256
+  const C321 321
+  const C512 512
+
+  INIT:
+    bind addr1 stuff
+    exit
+
+  BLKLOAD_int_1:
+    block-load 1 xxA addr1 16
+    exit
+
+  BLKLOAD_int_2:
+    block-load 2 xxB addr1 32
+    exit
+
+  BLKLOAD_int_3:
+    block-load 3 xxD addr1 64
+    exit
+
+  BLKLOAD_int_4:
+    block-load 4 xxG addr1 112
+    exit
+  
+  BLKLOAD_int_5:
+    block-load 5 xxK addr1 176
+    exit
+  BLKLOAD_int_6:
+    block-load 6 xxB addr1 0
+    exit
+  BLKLOAD_int_7:
+    block-load 7 xxH addr1 96
+    exit
+  BLKLOAD_int_8:
+    block-load 8 xxA addr1 208
+    exit
+  BLKLOAD_int_9:
+    block-load 9 xxI addr1 80
+    exit
+  BLKLOAD_int_10:
+    block-load 10 xxD addr1 224
+    exit
+  
+  BLKLOAD_int_11:
+    block-load 11 xxN addr1 128
+    exit
+  BLKLOAD_int_12:
+    block-load 12 xxK addr1 48
+    exit
+  BLKLOAD_int_13:
+    block-load 13 xxI addr1 240
+    exit
+  BLKLOAD_int_14:
+    block-load 14 xxH addr1 192
+    exit
+
+  # as usual, negative index -> out of bounds
+  BLKLOAD_int_fail_neg:
+    block-load 12 xxA addr1 -1
+    exit
+  # one byte over the edge (offset 321 +192 bytes)
+  BLKLOAD_int_fail_edge:
+    block-load 12 xxA addr1 321
+    exit
+  # completely over the edge
+  BLKLOAD_int_fail_over:
+    block-load 12 xxA addr1 512
+    exit
+ 
+  # as usual, negative index -> out of bounds
+  BLKLOAD_const_fail_neg:
+    block-load 12 xxA addr1 CN1
+    exit
+  # one byte over the edge (offset 161 +96 bytes)
+  BLKLOAD_const_fail_edge:
+    block-load 12 xxA addr1 C321
+    exit
+  # completely over the edge
+  BLKLOAD_const_fail_over:
+    block-load 12 xxA addr1 512
+    exit
+
+  # as usual, negative index -> out of bounds
+  BLKLOAD_reg_fail_neg:
+    assign b -1
+    block-load 12 xxA addr1 b
+    exit
+  # one byte over the edge (offset 161 +96 bytes)
+  BLKLOAD_reg_fail_edge:
+    assign b 321
+    block-load 12 xxA addr1 b
+    exit
+  # completely over the edge
+  BLKLOAD_reg_fail_over:
+    assign b 512
+    block-load 12 xxA addr1 b
+    exit
+
+EXEC INIT
+TEST
+  addr1 stuff 0
+
+EXEC BLKLOAD_int_1
+TEST
+  xA 1.111 1
+
+EXEC BLKLOAD_int_2
+TEST
+  xB 2.2222222 2
+  xC 3.33333333333 3
+
+EXEC BLKLOAD_int_3
+TEST
+  xD 4.444444444444444 4
+  xE 5.55555555555 5
+  xF 6.66666666 6
+
+EXEC BLKLOAD_int_4
+TEST
+  xG 7.77777 7
+  xH 8.88 8
+  xI 9.999999999999999999 9
+  xJ 10 10
+
+EXEC BLKLOAD_int_5
+TEST
+  xK 11 11
+  xL 12.1212121212 12
+  xM 13.1313131313131313 13
+  xN 14.141414141414 14
+  xA 15.1515 15
+
+EXEC BLKLOAD_int_6
+TEST
+  xB 0 0
+  xC 1.111 1
+  xD 2.2222222 2
+  xE 3.33333333333 3
+  xF 4.444444444444444 4
+  xG 5.55555555555 5
+
+EXEC BLKLOAD_int_7
+TEST
+  xH 6.66666666 6
+  xI 7.77777 7
+  xJ 8.88 8
+  xK 9.999999999999999999 9
+  xL 10 10
+  xM 11 11
+  xN 12.1212121212 12
+
+EXEC BLKLOAD_int_8
+TEST
+  xA 13.1313131313131313 13
+  xB 14.141414141414 14
+  xC 15.1515 15
+  xD 16 16
+  xE 17.111 17
+  xF 18.2222222 18
+  xG 19.33333333333 19
+  xH 20.444444444444444 20
+
+EXEC BLKLOAD_int_9
+TEST
+  xI 5.55555555555 5
+  xJ 6.66666666 6
+  xK 7.77777 7
+  xL 8.88 8
+  xM 9.999999999999999999 9
+  xN 10 10
+  xA 11 11
+  xB 12.1212121212 12
+  xC 13.1313131313131313 13
+
+EXEC BLKLOAD_int_10
+TEST
+  xD 14.141414141414 14
+  xE 15.1515 15
+  xF 16 16
+  xG 17.111 17
+  xH 18.2222222 18
+  xI 19.33333333333 19
+  xJ 20.444444444444444 20
+  xK 21.55555555555 21
+  xL 22.66666666 22
+  xM 23.77777 23
+
+EXEC BLKLOAD_int_11
+TEST
+  xN 8.88 8
+  xA 9.999999999999999999 9
+  xB 10 10
+  xC 11 11
+  xD 12.1212121212 12
+  xE 13.1313131313131313 13
+  xF 14.141414141414 14
+  xG 15.1515 15
+  xH 16 16
+  xI 17.111 17
+  xJ 18.2222222 18
+
+EXEC BLKLOAD_int_12
+TEST
+  xK 3.33333333333 3
+  xL 4.444444444444444 4
+  xM 5.55555555555 5
+  xN 6.66666666 6
+  xA 7.77777 7
+  xB 8.88 8
+  xC 9.999999999999999999 9
+  xD 10 10
+  xE 11 11
+  xF 12.1212121212 12
+  xG 13.1313131313131313 13
+  xH 14.141414141414 14
+
+EXEC BLKLOAD_int_13
+TEST
+  xI 15.1515 15
+  xJ 16 16
+  xK 17.111 17
+  xL 18.2222222 18
+  xM 19.33333333333 19
+  xN 20.444444444444444 20
+  xA 21.55555555555 21
+  xB 22.66666666 22
+  xC 23.77777 23
+  xD 24.88 24
+  xE 25.999999999999999999 25
+  xF 26 26
+  xG 27 27
+
+EXEC BLKLOAD_int_14
+TEST
+  xH 12.1212121212 12
+  xI 13.1313131313131313 13
+  xJ 14.141414141414 14
+  xK 15.1515 15
+  xL 16 16
+  xM 17.111 17
+  xN 18.2222222 18
+  xA 19.33333333333 19
+  xB 20.444444444444444 20
+  xC 21.55555555555 21
+  xD 22.66666666 22
+  xE 23.77777 23
+  xF 24.88 24
+  xG 25.999999999999999999 25
+
+EXEC BLKLOAD_int_fail_neg
+TEST
+  status 101
+EXEC BLKLOAD_int_fail_edge
+TEST
+  status 101
+EXEC BLKLOAD_int_fail_over
+TEST
+  status 101
+
+EXEC BLKLOAD_const_fail_neg
+TEST
+  status 101
+EXEC BLKLOAD_const_fail_edge
+TEST
+  status 101
+EXEC BLKLOAD_const_fail_over
+TEST
+  status 101
+
+EXEC BLKLOAD_reg_fail_neg
+TEST
+  status 101
+  rB -1
+EXEC BLKLOAD_reg_fail_edge
+TEST
+  status 101
+  rB 321
+EXEC BLKLOAD_reg_fail_over
+TEST
+  status 101
+  rB 512

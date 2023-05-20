@@ -17,6 +17,33 @@ instruction square-root
         jmp $NEXT_INSTRUCTION
 
 extend instruction load select-template
+  case B128XAD
+    code
+      mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+      sub rTEMPA_32, 15
+      cmp $OFFSET, rTEMPA
+      errorge STATUS_ROGUE_POINTER
+      cmp $OFFSET, 0
+      errorlt STATUS_ROGUE_POINTER
+      lfence
+      movdqu $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+      xor rTEMPA, rTEMPA
+      jmp $NEXT_INSTRUCTION
+  case B128XAI B128XAC
+    code
+      $LD_OFFSET_IMMEDIATE
+      mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+      sub rTEMPA_32, 15
+      cmp rTEMPC, rTEMPA
+      errorge STATUS_ROGUE_POINTER
+      cmp rTEMPC, 0
+      errorlt STATUS_ROGUE_POINTER
+      lfence
+      movdqu $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
+      xor rTEMPA, rTEMPA
+      xor rTEMPC, rTEMPC
+      jmp $NEXT_INSTRUCTION
+  
   case F64XAD
     code
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -158,6 +185,33 @@ extend instruction load select-template
       jmp $NEXT_INSTRUCTION
 
 extend instruction store select-template
+  case B128ADX
+    code
+      mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+      sub rTEMPA_32, 15
+      cmp $OFFSET, rTEMPA
+      errorge STATUS_ROGUE_POINTER
+      cmp $OFFSET, 0
+      errorlt STATUS_ROGUE_POINTER
+      lfence
+      movdqu [$ADDRESS_REGISTER+$OFFSET], $SRC
+      xor rTEMPA, rTEMPA
+      jmp $NEXT_INSTRUCTION
+  case B128AIX B128ACX
+    code
+      $LD_OFFSET_IMMEDIATE
+      mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+      sub rTEMPA_32, 15
+      cmp rTEMPC, rTEMPA
+      errorge STATUS_ROGUE_POINTER
+      cmp rTEMPC, 0
+      errorlt STATUS_ROGUE_POINTER
+      lfence
+      movdqu [$ADDRESS_REGISTER+rTEMPC], $SRC
+      xor rTEMPA, rTEMPA
+      xor rTEMPC, rTEMPC
+      jmp $NEXT_INSTRUCTION
+  
   case F64ADX
     code
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
