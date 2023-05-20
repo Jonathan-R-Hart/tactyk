@@ -1,0 +1,114 @@
+# TEST:  extract
+#
+# Virtual-ISA: tactyk_core
+# Templates:
+#
+#   extract xmmx xmmx word-index (XXWib XXWiw XXWid XXWiq)
+#   extract data xmmx word-index (DXWib DXWiw DXWid DXWiq)
+
+PROGRAM
+  TEST_INIT:
+    insert xA qword.0 h.1234567890abcdef
+    insert xA qword.1 h.fedcba0987654321
+    exit
+  
+  TEST_DXWib:
+    extract rA xA byte.0
+    extract rB xA byte.4
+    extract rC xA byte.5
+    extract rD xA byte.10
+    extract rE xA byte.8
+    extract rF xA byte.15
+    exit
+  TEST_DXWiw:
+    extract rA xA word.0
+    extract rB xA word.4
+    extract rC xA word.5
+    extract rD xA word.2
+    extract rE xA word.1
+    extract rF xA word.3
+    exit
+  TEST_DXWid:
+    extract rA xA dword.0
+    extract rD xA dword.2
+    extract rE xA dword.1
+    extract rF xA dword.3
+    exit
+  TEST_DXWiq:
+    extract rA xA qword.0
+    extract rE xA qword.1
+    exit
+  
+  TEST_XXWid:
+    insert xB dword.0 100.1234
+    insert xB dword.1 120.1234
+    insert xB dword.2 133.1234
+    insert xB dword.3 144.4000
+    extract xC xB dword.3
+    extract xD xB dword.2
+    extract xE xB dword.1
+    extract xF xB dword.0
+    exit
+  TEST_XXWiq:
+    insert xG qword.0 86546754.12354124
+    insert xG qword.1 12354124.86546754
+    extract xH xG qword.0
+    extract xI xG qword.1
+    exit
+
+XMM-DISPLAYMODE int64
+EXEC TEST_INIT
+TEST
+  xA int64 h.1234567890abcdef h.fedcba0987654321
+
+EXEC TEST_DXWib
+TEST
+  rA h.ef
+  rB h.78
+  rC h.56
+  rD h.65
+  rE h.21
+  rF h.fe
+
+EXEC TEST_DXWiw
+TEST
+  rA h.cdef
+  rB h.4321
+  rC h.8765
+  rD h.5678
+  rE h.90ab
+  rF h.1234
+
+EXEC TEST_DXWid
+TEST
+  rA h.90abcdef
+  rD h.87654321
+  rE h.12345678
+  rF h.fedcba09
+
+EXEC TEST_DXWiq
+TEST
+  rA h.1234567890abcdef
+  rE h.fedcba0987654321
+
+XMM-DISPLAYMODE float64
+EXEC TEST_XXWid
+TEST
+  xB float32 100.1234 120.1234 133.1234 144.4000
+  xC float32+ 144.4000
+  xD float32+ 133.1234
+  xE float32+ 120.1234
+  xF float32+ 100.1234
+
+EXEC TEST_XXWiq
+TEST
+  xG float64 86546754.12354124 12354124.86546754
+  xH 86546754.12354124
+  xI 12354124.86546754
+
+
+
+
+
+
+

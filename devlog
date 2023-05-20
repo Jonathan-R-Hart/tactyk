@@ -1,4 +1,6 @@
 19 May 2023
+test coverage for insert and extract instructions
+
 tactyk-test - refactor and extend the xmm register test function.
   It now works with 32-bit fields
   It now checks the entire register for every test

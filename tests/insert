@@ -1,0 +1,302 @@
+# TEST:  insert
+#
+# Virtual-ISA: tactyk_core
+# Templates:
+#   insert xmmx word-index data (XWibX XWiwX XWidX XWiqX)
+#   insert xmmx word-index xmmx (XWidX XWiqX)
+#   insert xmmx word-index integer (XWibI XWiwI XWidI XWiqI)
+#   insert xmmx word-index const (XWibC XWiwC XWidC XWiqC)
+#   insert xmmx word-index float (XWidF XWiqF)
+#   insert xmmx word-index fconst (XWidCf XWiqCf)
+#
+#   extract xmmx xmmx word-index (XXWib XXWiw XXWid XXWiq)
+#   extract data xmmx word-index (DXWib DXWiw DXWid DXWiq)
+
+PROGRAM
+  const C05 h.05
+  const C10 h.10
+  const C20 h.20
+  const C50 h.50
+  const C1234aa h.1234aa
+  const C11 h.11
+  const C14 h.14
+  const C15 h.15
+  const Caaa1 h.aaa1
+  const Cbbb2 h.bbb2
+  const Ccd03 h.cd03
+  const C1010 h.1010
+  const C99999999 h.99999999
+  const Cfade h.fade
+  const Caaa1bbb2 h.aaa1bbb2
+  const Cbbb2ccc412345678 h.bbb2ccc412345678
+  const Ccd036 h.cd036
+  const Ccd036000aaa1bbb2 h.cd036000aaa1bbb2
+  const C12345678bbb2ccc4 h.12345678bbb2ccc4
+  
+  const Cf6464.23410978 6464.23410978
+  const Cf7.10978 7.10978
+  const Cf64.234178 64.234178
+  const Cf1000.0 1000.0
+  const Cf3333.3 3333.3
+  const Cf4.4 4.4
+  
+  RESET:
+    spread rA 0 0 0 0 0 0
+    spread xA 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+    exit
+
+  TEST_XWibD:
+    spread rA  h.01 h.06 h.1a  h.41 h.81 h.104
+    insert xA byte.0 rF
+    insert xA byte.2 rA
+    insert xA byte.5 rE
+    insert xA byte.11 rB
+    insert xA byte.14 rD
+    insert xA byte.15 rC
+    exit
+  TEST_XWiwD:
+    spread rA  h.94ab h.f00f h.1234  h.abcd h.1359 h.b10c01
+    insert xB word.0 rF
+    insert xB word.2 rA
+    insert xB word.3 rE
+    insert xB word.4 rB
+    insert xB word.5 rD
+    insert xB word.7 rC
+    exit
+  TEST_XWidD:
+    spread rA h.1234abcd h.fff000ee h.12321000 h.33333333
+    insert xC dword.0 rA
+    insert xC dword.1 rD
+    insert xC dword.2 rC
+    insert xC dword.3 rB
+    exit
+  TEST_XWiqD:
+    spread rA h.abcdef0123456789 h.1515898920aabbbb
+    insert xD qword.0 rB
+    insert xD qword.1 rA
+    exit
+  
+  TEST_XWidX:
+    spread xK 123.234 231.123 34507.123 498761.1
+    insert xE dword.0 xM
+    insert xE dword.1 xN
+    insert xE dword.2 xL
+    insert xE dword.3 xK
+    exit
+  TEST_XWiqX:
+    spread xM 1.05 -2.05
+    insert xF qword.0 xM
+    insert xF qword.1 xN
+    exit
+  
+  TEST_XWibI:
+    insert xG byte.0 h.05
+    insert xG byte.1 h.10
+    insert xG byte.2 h.20
+    insert xG byte.5 h.50
+    insert xG byte.8 h.1234aa
+    insert xG byte.11 h.11
+    insert xG byte.14 h.14
+    insert xG byte.15 h.15
+    exit
+  TEST_XWiwI:
+    insert xH word.0 h.aaa1
+    insert xH word.1 h.bbb2
+    insert xH word.3 h.cd03
+    insert xH word.4 h.1010
+    insert xH word.5 h.99999999
+    insert xH word.7 h.fade
+    exit
+  TEST_XWidI:
+    insert xI dword.0 h.aaa1bbb2
+    insert xI dword.1 h.bbb2ccc412345678
+    insert xI dword.3 h.cd036
+    exit
+  TEST_XWiqI:
+    insert xJ qword.0 h.cd036000aaa1bbb2
+    insert xJ qword.1 h.12345678bbb2ccc4
+    exit
+
+  TEST_XWibC:
+    insert xG byte.0 C05
+    insert xG byte.1 C10
+    insert xG byte.2 C20
+    insert xG byte.5 C50
+    insert xG byte.8 C1234aa
+    insert xG byte.11 C11
+    insert xG byte.14 C14
+    insert xG byte.15 C15
+    exit
+  
+  TEST_XWiwC:
+    insert xH word.0 Caaa1
+    insert xH word.1 Cbbb2
+    insert xH word.3 Ccd03
+    insert xH word.4 C1010
+    insert xH word.5 C99999999
+    insert xH word.7 Cfade
+    exit
+  
+  TEST_XWidC:
+    insert xI dword.0 Caaa1bbb2
+    insert xI dword.1 Cbbb2ccc412345678
+    insert xI dword.3 Ccd036
+    exit
+
+  TEST_XWiqC:
+    insert xJ qword.0 Ccd036000aaa1bbb2
+    insert xJ qword.1 C12345678bbb2ccc4
+    exit
+  
+  TEST_XWidF:
+    insert xK dword.0 45.1
+    insert xK dword.2 NaN
+    insert xK dword.3 12341.6
+    exit
+  
+  TEST_XWidCf:
+    insert xL dword.0 Cf6464.23410978
+    insert xL dword.1 Cf7.10978
+    insert xL dword.2 Cf64.234178
+    insert xL dword.3 Cf1000.0
+    exit
+
+  TEST_XWiqF:
+    insert xM qword.0 1111111111111.1
+    insert xM qword.1 2222222.2
+    exit
+  
+  TEST_XWiqCf:
+    insert xN qword.0 Cf3333.3
+    insert xN qword.1 Cf4.4
+    exit
+
+XMM-DISPLAYMODE int32
+EXEC TEST_XWibD
+TEST
+  rA 1
+  rB 6
+  rC 26
+  rD 65
+  rE 129
+  rF 260
+  xA int64 h.0000810000010004 h.1a41000006000000
+
+EXEC TEST_XWiwD
+TEST
+  rA h.94ab
+  rB h.f00f
+  rC h.1234
+  rD h.abcd
+  rE h.1359
+  rF h.b10c01
+  xB int64 h.135994ab00000c01 h.12340000abcdf00f
+
+EXEC TEST_XWidD
+TEST
+  rA h.1234abcd
+  rB h.fff000ee
+  rC h.12321000
+  rD h.33333333
+  xC int32 h.1234abcd h.33333333 h.12321000 h.fff000ee
+
+XMM-DISPLAYMODE int64
+EXEC TEST_XWiqD
+TEST
+  rA h.abcdef0123456789
+  rB h.1515898920aabbbb
+  xD int64 h.1515898920aabbbb h.abcdef0123456789
+
+XMM-DISPLAYMODE float32
+EXEC TEST_XWidX
+TEST
+  xK 123.234
+  xL 231.123
+  xM 34507.123
+  xN 498761.1
+  xE float32 34507.123 498761.1 231.123 123.234
+
+XMM-DISPLAYMODE float64
+EXEC TEST_XWiqX
+TEST
+  xM 1.05
+  xN -2.05
+  xF float64 1.05 -2.05
+
+XMM-DISPLAYMODE int32
+EXEC TEST_XWibI
+TEST
+  xG int64 h.0000500000201005 h.15140000110000aa
+
+EXEC TEST_XWiwI
+TEST
+  xH int64 h.cd030000bbb2aaa1 h.fade000099991010
+
+EXEC TEST_XWidI
+TEST
+  xI int64 h.12345678aaa1bbb2 h.000cd03600000000
+
+XMM-DISPLAYMODE int64
+EXEC TEST_XWiqI
+TEST
+  xJ int64 h.cd036000aaa1bbb2 h.12345678bbb2ccc4
+
+EXEC RESET
+TEST
+  rA 0
+  rB 0
+  rC 0
+  rD 0
+  rE 0
+  rF 0
+  xA 0
+  xB 0
+  xC 0
+  xD 0
+  xE 0
+  xF 0
+  xG 0
+  xH 0
+  xI 0
+  xJ 0
+  xK 0
+  xL 0
+  xM 0
+  xN 0
+
+XMM-DISPLAYMODE int32
+EXEC TEST_XWibC
+TEST
+  xG int64 h.0000500000201005 h.15140000110000aa
+
+EXEC TEST_XWiwC
+TEST
+  xH int64 h.cd030000bbb2aaa1 h.fade000099991010
+
+EXEC TEST_XWidC
+TEST
+  xI int64 h.12345678aaa1bbb2 h.000cd03600000000
+
+XMM-DISPLAYMODE int64
+EXEC TEST_XWiqC
+TEST
+  xJ int64 h.cd036000aaa1bbb2 h.12345678bbb2ccc4
+
+XMM-DISPLAYMODE float32
+EXEC TEST_XWidF
+TEST
+  xK float32 45.1 0 NaN 12341.6
+
+EXEC TEST_XWidCf
+TEST
+  xL float32 6464.23410978 7.10978 64.234178 1000.0
+
+XMM-DISPLAYMODE float64
+EXEC TEST_XWiqF
+TEST
+  xM float64 1111111111111.1 2222222.2
+
+EXEC TEST_XWiqCf
+TEST
+  xN float64 3333.3 4.4
+
