@@ -166,6 +166,8 @@ instruction insert
         cvtsd2ss xTEMPB, xTEMPA
         insertps $DEST, xTEMPB, $WORD_INDEX_alt_ins
         xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
     
     case XWiqX
       code

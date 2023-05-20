@@ -7,16 +7,16 @@ bool tactyk_test__approximately_eq(double a, double b, double precision) {
     if ( a == b ) {
         return true;
     }
-    else if (!isfinite(a)) {
-        return false;
-    }
-    else if (!isfinite(b)) {
-        return false;
-    }
     else if (isnan(a)) {
         return isnan(b);    // For state transition tracking purposes (NAN == NAN) is TRUE
     }
     else if (isnan(b)) {
+        return false;
+    }
+    else if (!isfinite(a)) {
+        return false;
+    }
+    else if (!isfinite(b)) {
         return false;
     }
     else if (a == 0) {
