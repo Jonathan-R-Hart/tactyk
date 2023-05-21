@@ -6,7 +6,7 @@ Refactor simd handling
   Added a large "simd-format" typespec to encode various sse/mmx idiosyncrasies
   pack-float32 and pack-int32 merged into a general "pack" instruction
   unpack-float32 and unpack-int32 merged into a general "pack" instruction
-  
+  Revise insert and extract instructions to use simd-format
 
 19 May 2023
 test coverage for insert and extract instructions

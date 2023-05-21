@@ -2,12 +2,12 @@
 #
 # Virtual-ISA: tactyk_core
 # Templates:
-#   insert xmmx word-index data (XWibX XWiwX XWidX XWiqX)
-#   insert xmmx word-index xmmx (XWidX XWiqX)
-#   insert xmmx word-index integer (XWibI XWiwI XWidI XWiqI)
-#   insert xmmx word-index const (XWibC XWiwC XWidC XWiqC)
-#   insert xmmx word-index float (XWidF XWiqF)
-#   insert xmmx word-index fconst (XWidCf XWiqCf)
+#   insert simd-format-xmmx-data (I8XD I16XD I32XD I64XD)
+#   insert simd-format-xmmx-xmmx (F32XX F64XX)
+#   insert simd-format-xmmx-integer (I8XI I16XI I32XI I64XI)
+#   insert simd-format-xmmx-const (I8XC I16XC I32XC I64XC)
+#   insert simd-format-xmmx-float (F32XF F64XF)
+#   insert simd-format-xmmx-fconst (F32XCf F64XCf)
 
 PROGRAM
   const C05 h.05
@@ -42,134 +42,134 @@ PROGRAM
     spread xA 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
     exit
 
-  TEST_XWibD:
+  TEST_I8XD:
     spread rA  h.01 h.06 h.1a  h.41 h.81 h.104
-    insert xA byte.0 rF
-    insert xA byte.2 rA
-    insert xA byte.5 rE
-    insert xA byte.11 rB
-    insert xA byte.14 rD
-    insert xA byte.15 rC
+    insert uint8.1  xA rF
+    insert int8.3   xA rA
+    insert uint8.6  xA rE
+    insert int8.12  xA rB
+    insert uint8.15 xA rD
+    insert int8.16  xA rC
     exit
-  TEST_XWiwD:
+  TEST_I16XD:
     spread rA  h.94ab h.f00f h.1234  h.abcd h.1359 h.b10c01
-    insert xB word.0 rF
-    insert xB word.2 rA
-    insert xB word.3 rE
-    insert xB word.4 rB
-    insert xB word.5 rD
-    insert xB word.7 rC
+    insert uint16.1 xB rF
+    insert int16.3  xB rA
+    insert uint16.4 xB rE
+    insert int16.5  xB rB
+    insert uint16.6 xB rD
+    insert int16.8  xB rC
     exit
-  TEST_XWidD:
+  TEST_I32XD:
     spread rA h.1234abcd h.fff000ee h.12321000 h.33333333
-    insert xC dword.0 rA
-    insert xC dword.1 rD
-    insert xC dword.2 rC
-    insert xC dword.3 rB
+    insert uint32.1 xC rA
+    insert int32.2 xC rD
+    insert uint32.3 xC rC
+    insert int32.4 xC rB
     exit
-  TEST_XWiqD:
+  TEST_I64XD:
     spread rA h.abcdef0123456789 h.1515898920aabbbb
-    insert xD qword.0 rB
-    insert xD qword.1 rA
+    insert uint64.1 xD rB
+    insert int64.2  xD rA
     exit
   
-  TEST_XWidX:
+  TEST_F32XX:
     spread xK 123.234 231.123 34507.123 498761.1
-    insert xE dword.0 xM
-    insert xE dword.1 xN
-    insert xE dword.2 xL
-    insert xE dword.3 xK
+    insert float32.1 xE xM
+    insert float32.2 xE xN
+    insert float32.3 xE xL
+    insert float32.4 xE xK
     exit
-  TEST_XWiqX:
+  TEST_F64XX:
     spread xM 1.05 -2.05
-    insert xF qword.0 xM
-    insert xF qword.1 xN
+    insert float64.1 xF xM
+    insert float64.2 xF xN
     exit
   
-  TEST_XWibI:
-    insert xG byte.0 h.05
-    insert xG byte.1 h.10
-    insert xG byte.2 h.20
-    insert xG byte.5 h.50
-    insert xG byte.8 h.1234aa
-    insert xG byte.11 h.11
-    insert xG byte.14 h.14
-    insert xG byte.15 h.15
+  TEST_I8XI:
+    insert uint8.1 xG h.05
+    insert int8.2 xG h.10
+    insert uint8.3 xG h.20
+    insert int8.6 xG h.50
+    insert uint8.9 xG h.1234aa
+    insert int8.12 xG h.11
+    insert uint8.15 xG h.14
+    insert int8.16 xG h.15
     exit
-  TEST_XWiwI:
-    insert xH word.0 h.aaa1
-    insert xH word.1 h.bbb2
-    insert xH word.3 h.cd03
-    insert xH word.4 h.1010
-    insert xH word.5 h.99999999
-    insert xH word.7 h.fade
+  TEST_I16XI:
+    insert int16.1 xH h.aaa1
+    insert uint16.2 xH h.bbb2
+    insert int16.4 xH h.cd03
+    insert uint16.5 xH h.1010
+    insert int16.6 xH h.99999999
+    insert uint16.8 xH h.fade
     exit
-  TEST_XWidI:
-    insert xI dword.0 h.aaa1bbb2
-    insert xI dword.1 h.bbb2ccc412345678
-    insert xI dword.3 h.cd036
+  TEST_I32XI:
+    insert int32.1 xI h.aaa1bbb2
+    insert uint32.2 xI h.bbb2ccc412345678
+    insert int32.4 xI h.cd036
     exit
-  TEST_XWiqI:
-    insert xJ qword.0 h.cd036000aaa1bbb2
-    insert xJ qword.1 h.12345678bbb2ccc4
+  TEST_I64XI:
+    insert int64.1 xJ h.cd036000aaa1bbb2
+    insert uint64.2 xJ h.12345678bbb2ccc4
     exit
 
-  TEST_XWibC:
-    insert xG byte.0 C05
-    insert xG byte.1 C10
-    insert xG byte.2 C20
-    insert xG byte.5 C50
-    insert xG byte.8 C1234aa
-    insert xG byte.11 C11
-    insert xG byte.14 C14
-    insert xG byte.15 C15
+  TEST_I8XC:
+    insert uint8.1 xG C05
+    insert int8.2 xG C10
+    insert uint8.3 xG C20
+    insert int8.6 xG C50
+    insert uint8.9 xG C1234aa
+    insert int8.12 xG C11
+    insert uint8.15 xG C14
+    insert int8.16 xG C15
     exit
   
-  TEST_XWiwC:
-    insert xH word.0 Caaa1
-    insert xH word.1 Cbbb2
-    insert xH word.3 Ccd03
-    insert xH word.4 C1010
-    insert xH word.5 C99999999
-    insert xH word.7 Cfade
+  TEST_I16XC:
+    insert uint16.1 xH Caaa1
+    insert int16.2 xH Cbbb2
+    insert uint16.4 xH Ccd03
+    insert int16.5 xH C1010
+    insert uint16.6 xH C99999999
+    insert int16.8 xH Cfade
     exit
   
-  TEST_XWidC:
-    insert xI dword.0 Caaa1bbb2
-    insert xI dword.1 Cbbb2ccc412345678
-    insert xI dword.3 Ccd036
+  TEST_I32XC:
+    insert uint32.1 xI Caaa1bbb2
+    insert int32.2 xI Cbbb2ccc412345678
+    insert uint32.4 xI Ccd036
     exit
 
-  TEST_XWiqC:
-    insert xJ qword.0 Ccd036000aaa1bbb2
-    insert xJ qword.1 C12345678bbb2ccc4
+  TEST_I64XC:
+    insert uint64.1 xJ Ccd036000aaa1bbb2
+    insert int64.2 xJ C12345678bbb2ccc4
     exit
   
-  TEST_XWidF:
-    insert xK dword.0 45.1
-    insert xK dword.2 NaN
-    insert xK dword.3 12341.6
+  TEST_F32XF:
+    insert f32.1 xK 45.1
+    insert f32.3 xK NaN
+    insert f32.4 xK 12341.6
     exit
   
-  TEST_XWidCf:
-    insert xL dword.0 Cf6464.23410978
-    insert xL dword.1 Cf7.10978
-    insert xL dword.2 Cf64.234178
-    insert xL dword.3 Cf1000.0
-    exit
-
-  TEST_XWiqF:
-    insert xM qword.0 1111111111111.1
-    insert xM qword.1 2222222.2
+  TEST_F32XCf:
+    insert f32.1 xL Cf6464.23410978
+    insert f32.2 xL Cf7.10978
+    insert f32.3 xL Cf64.234178
+    insert f32.4 xL Cf1000.0
     exit
   
-  TEST_XWiqCf:
-    insert xN qword.0 Cf3333.3
-    insert xN qword.1 Cf4.4
+  TEST_F64XF:
+    insert f64.1 xM 1111111111111.1
+    insert f64.2 xM 2222222.2
+    exit
+  
+  TEST_F64XCf:
+    insert f64.1 xN Cf3333.3
+    insert f64.2 xN Cf4.4
     exit
 
 XMM-DISPLAYMODE int32
-EXEC TEST_XWibD
+EXEC TEST_I8XD
 TEST
   rA 1
   rB 6
@@ -179,7 +179,7 @@ TEST
   rF 260
   xA int64 h.0000810000010004 h.1a41000006000000
 
-EXEC TEST_XWiwD
+EXEC TEST_I16XD
 TEST
   rA h.94ab
   rB h.f00f
@@ -189,7 +189,7 @@ TEST
   rF h.b10c01
   xB int64 h.135994ab00000c01 h.12340000abcdf00f
 
-EXEC TEST_XWidD
+EXEC TEST_I32XD
 TEST
   rA h.1234abcd
   rB h.fff000ee
@@ -198,14 +198,14 @@ TEST
   xC int32 h.1234abcd h.33333333 h.12321000 h.fff000ee
 
 XMM-DISPLAYMODE int64
-EXEC TEST_XWiqD
+EXEC TEST_I64XD
 TEST
   rA h.abcdef0123456789
   rB h.1515898920aabbbb
   xD int64 h.1515898920aabbbb h.abcdef0123456789
 
 XMM-DISPLAYMODE float32
-EXEC TEST_XWidX
+EXEC TEST_F32XX
 TEST
   xK 123.234
   xL 231.123
@@ -214,27 +214,27 @@ TEST
   xE float32 34507.123 498761.1 231.123 123.234
 
 XMM-DISPLAYMODE float64
-EXEC TEST_XWiqX
+EXEC TEST_F64XX
 TEST
   xM 1.05
   xN -2.05
   xF float64 1.05 -2.05
 
 XMM-DISPLAYMODE int32
-EXEC TEST_XWibI
+EXEC TEST_I8XI
 TEST
   xG int64 h.0000500000201005 h.15140000110000aa
 
-EXEC TEST_XWiwI
+EXEC TEST_I16XI
 TEST
   xH int64 h.cd030000bbb2aaa1 h.fade000099991010
 
-EXEC TEST_XWidI
+EXEC TEST_I32XI
 TEST
   xI int64 h.12345678aaa1bbb2 h.000cd03600000000
 
 XMM-DISPLAYMODE int64
-EXEC TEST_XWiqI
+EXEC TEST_I64XI
 TEST
   xJ int64 h.cd036000aaa1bbb2 h.12345678bbb2ccc4
 
@@ -262,38 +262,38 @@ TEST
   xN 0
 
 XMM-DISPLAYMODE int32
-EXEC TEST_XWibC
+EXEC TEST_I8XC
 TEST
   xG int64 h.0000500000201005 h.15140000110000aa
 
-EXEC TEST_XWiwC
+EXEC TEST_I16XC
 TEST
   xH int64 h.cd030000bbb2aaa1 h.fade000099991010
 
-EXEC TEST_XWidC
+EXEC TEST_I32XC
 TEST
   xI int64 h.12345678aaa1bbb2 h.000cd03600000000
 
 XMM-DISPLAYMODE int64
-EXEC TEST_XWiqC
+EXEC TEST_I64XC
 TEST
   xJ int64 h.cd036000aaa1bbb2 h.12345678bbb2ccc4
 
 XMM-DISPLAYMODE float32
-EXEC TEST_XWidF
+EXEC TEST_F32XF
 TEST
   xK float32 45.1 0 NaN 12341.6
 
-EXEC TEST_XWidCf
+EXEC TEST_F32XCf
 TEST
   xL float32 6464.23410978 7.10978 64.234178 1000.0
 
 XMM-DISPLAYMODE float64
-EXEC TEST_XWiqF
+EXEC TEST_F64XF
 TEST
   xM float64 1111111111111.1 2222222.2
 
-EXEC TEST_XWiqCf
+EXEC TEST_F64XCf
 TEST
   xN float64 3333.3 4.4
 
