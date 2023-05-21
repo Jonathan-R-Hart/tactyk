@@ -103,11 +103,330 @@ typespec word-index
       $WORD_INDEX 1
       pick Wiq
 
-typespec ssimd-quantity
+typespec simd-format
   select-operand
-    case 1
-      $QTY 1
-      pick Sqty
+    case float32.1 f32.1
+      $SIMD_ARG 1
+      $SSE_CLASS ss
+      pick F32
+    case float32.2 f32.2
+      $SIMD_ARG 2
+      $SSE_CLASS ps
+      pick F32
+    case float32.3 f32.3
+      $SIMD_ARG 3
+      $SSE_CLASS ps
+      pick F32
+    case float32.4 f32.4 float32 f32
+      $SIMD_ARG 4
+      $SSE_CLASS ps
+      pick F32
+    case float64.1 f64.1
+      $SIMD_ARG 1
+      $SSE_CLASS sd
+      pick F64
+    case float64.2 f64.2 float64 f64
+      $SIMD_ARG 2
+      $SSE_CLASS pd
+      pick F64
+    
+    case uint8.1 ui8.1
+      $SIMD_ARG 1
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.2 ui8.2
+      $SIMD_ARG 2
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.3 ui8.3
+      $SIMD_ARG 3
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.4 ui8.4
+      $SIMD_ARG 4
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.5 ui8.5
+      $SIMD_ARG 5
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.6 ui8.6
+      $SIMD_ARG 6
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.7 ui8.7
+      $SIMD_ARG 7
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.8 ui8.8
+      $SIMD_ARG 8
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.9 ui8.9
+      $SIMD_ARG 9
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.10 ui8.10
+      $SIMD_ARG 10
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.11 ui8.11
+      $SIMD_ARG 11
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.12 ui8.12
+      $SIMD_ARG 12
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.13 ui8.13
+      $SIMD_ARG 13
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.14 ui8.14
+      $SIMD_ARG 14
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    case uint8.15 ui8.15 uint8 ui8
+      $SIMD_ARG 15
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+      pick Ui8
+    
+    case int8.1 i8.1
+      $SIMD_ARG 1
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.2 i8.2
+      $SIMD_ARG 2
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.3 i8.3
+      $SIMD_ARG 3
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.4 i8.4
+      $SIMD_ARG 4
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.5 i8.5
+      $SIMD_ARG 5
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.6 i8.6
+      $SIMD_ARG 6
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.7 i8.7
+      $SIMD_ARG 7
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.8 i8.8
+      $SIMD_ARG 8
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.9 i8.9
+      $SIMD_ARG 9
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.10 i8.10
+      $SIMD_ARG 10
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.11 i8.11
+      $SIMD_ARG 11
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.12 i8.12
+      $SIMD_ARG 12
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.13 i8.13
+      $SIMD_ARG 13
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.14 i8.14
+      $SIMD_ARG 14
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    case int8.15 i8.15 int8 i8
+      $SIMD_ARG 15
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+      pick I8
+    
+    case uint16.1 ui16.1
+      $SIMD_ARG 1
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+      pick Ui16
+    case uint16.2 ui16.2
+      $SIMD_ARG 2
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+      pick Ui16
+    case uint16.3 ui16.3
+      $SIMD_ARG 3
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+      pick Ui16
+    case uint16.4 ui16.4
+      $SIMD_ARG 4
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+      pick Ui16
+    case uint16.5 ui16.5
+      $SIMD_ARG 5
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+      pick Ui16
+    case uint16.6 ui16.6
+      $SIMD_ARG 6
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+      pick Ui16
+    case uint16.7 ui16.7
+      $SIMD_ARG 7
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+      pick Ui16
+    case uint16.8 ui16.8 uint16 ui16
+      $SIMD_ARG 8
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+      pick Ui16
+    
+    case int16.1 i16.1
+      $SIMD_ARG 1
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+      pick I16
+    case int16.2 i16.2
+      $SIMD_ARG 2
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+      pick I16
+    case int16.3 i16.3
+      $SIMD_ARG 3
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+      pick I16
+    case int16.4 i16.4
+      $SIMD_ARG 4
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+      pick I16
+    case int16.5 i16.5
+      $SIMD_ARG 5
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+      pick I16
+    case int16.6 i16.6
+      $SIMD_ARG 6
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+      pick I16
+    case int16.7 i16.7
+      $SIMD_ARG 7
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+      pick I16
+    case int16.8 i16.8 int16 i16
+      $SIMD_ARG 8
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+      pick I16
+    
+    case uint32.1 ui32.1
+      $SIMD_ARG 1
+      $SSE_UCLASS d
+      $SSE_CLASS ud
+      pick Ui32
+    case uint32.2 ui32.2
+      $SIMD_ARG 2
+      $SSE_UCLASS d
+      $SSE_CLASS ud
+      pick Ui32
+    case uint32.3 ui32.3
+      $SIMD_ARG 3
+      $SSE_UCLASS d
+      $SSE_CLASS ud
+      pick Ui32
+    case uint32.4 ui32.4 uint32 ui32
+      $SIMD_ARG 4
+      $SSE_UCLASS d
+      $SSE_CLASS ud
+      pick Ui32
+    
+    case int32.1 i32.1
+      $SIMD_ARG 1
+      $SSE_UCLASS d
+      $SSE_CLASS sd
+      pick I32
+    case int32.2 i32.2
+      $SIMD_ARG 2
+      $SSE_UCLASS d
+      $SSE_CLASS sd
+      pick I32
+    case int32.3 i32.3
+      $SIMD_ARG 3
+      $SSE_UCLASS d
+      $SSE_CLASS sd
+      pick I32
+    case int32.4 i32.4 int32 i32
+      $SIMD_ARG 4
+      $SSE_UCLASS d
+      $SSE_CLASS sd
+      pick I32
+    
+    case uint64.1 ui64.1
+      $SIMD_ARG 1
+      $SSE_UCLASS q
+      $SSE_CLASS uq
+      pick Ui64
+    case uint64.2 ui64.2 uint64 ui64
+      $SIMD_ARG 2
+      $SSE_UCLASS q
+      $SSE_CLASS uq
+      pick Ui64
+    
+    case int64.1 i64.1
+      $SIMD_ARG 1
+      $SSE_UCLASS q
+      $SSE_CLASS sq
+      pick Ui64
+    case int64.2 i64.2 int64 i64
+      $SIMD_ARG 2
+      $SSE_UCLASS q
+      $SSE_CLASS sq
+      pick Ui64
 
 instruction insert
   operand
@@ -230,95 +549,75 @@ typespec quantity.1-4
     case 4
       $QTY 4
 
-instruction pack-float32
-  $QTY 4
-  opt-operand
-    type quantity.1-4
+instruction pack
+  operand
+    type simd-format
   operand
     type xmmx
     $DEST $VALUE
   operand
     type xmmx
     $SRC $VALUE
-  code
-    pxor $DEST, $DEST
-  vcode $QTY
-    1 cvtsd2ss $DEST, $SRC~0
-    2 cvtsd2ss xTEMPA, $SRC~1
-    2 insertps $DEST, xTEMPA, 16
-    3 cvtsd2ss xTEMPA, $SRC~2
-    3 insertps $DEST, xTEMPA, 32
-    4 cvtsd2ss xTEMPA, $SRC~3
-    4 insertps $DEST, xTEMPA, 48
-  code
-    pxor xTEMPA, xTEMPA
-    jmp $NEXT_INSTRUCTION
+  select-template
+    case F32XX
+      code
+        pxor $DEST, $DEST
+      vcode $SIMD_ARG
+        1 cvtsd2ss $DEST, $SRC~0
+        2 cvtsd2ss xTEMPA, $SRC~1
+        2 insertps $DEST, xTEMPA, 16
+        3 cvtsd2ss xTEMPA, $SRC~2
+        3 insertps $DEST, xTEMPA, 32
+        4 cvtsd2ss xTEMPA, $SRC~3
+        4 insertps $DEST, xTEMPA, 48
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case I32XX
+      vcode $SIMD_ARG
+        1 insertps xTEMPB, $SRC~0, 0
+        2 insertps xTEMPB, $SRC~1, 16
+        3 insertps xTEMPB, $SRC~2, 32
+        4 insertps xTEMPB, $SRC~3, 48
+      code
+        movdqa $DEST, xTEMPB
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
 
-instruction pack-int32
-  $QTY 4
-  opt-operand
-    type quantity.1-4
+instruction unpack
+  operand
+    type simd-format
   operand
     type xmmx
     $DEST $VALUE
   operand
     type xmmx
     $SRC $VALUE
-  vcode $QTY
-    1 insertps xTEMPB, $SRC~0, 0
-    2 insertps xTEMPB, $SRC~1, 16
-    3 insertps xTEMPB, $SRC~2, 32
-    4 insertps xTEMPB, $SRC~3, 48
-  code
-    movdqa $DEST, xTEMPB
-    pxor xTEMPB, xTEMPB
-    jmp $NEXT_INSTRUCTION
-
-instruction unpack-float32
-  $QTY 4
-  opt-operand
-    type quantity.1-4
-  operand
-    type xmmx
-    $DEST $VALUE
-  operand
-    type xmmx
-    $SRC $VALUE
-  vcode $QTY
-    1 insertps xTEMPA, $SRC, 14
-    1 pxor $DEST~0, $DEST~0
-    1 cvtss2sd $DEST~0, xTEMPA
-    2 insertps xTEMPA, $SRC, 78
-    2 pxor $DEST~1, $DEST~1
-    2 cvtss2sd $DEST~1, xTEMPA
-    3 insertps xTEMPA, $SRC, 142
-    3 pxor $DEST~2, $DEST~2
-    3 cvtss2sd $DEST~2, xTEMPA
-    4 insertps xTEMPA, $SRC, 206
-    4 pxor $DEST~3, $DEST~3
-    4 cvtss2sd $DEST~3, xTEMPA
-  code
-    pxor xTEMPA, xTEMPA
-    pxor xTEMPB, xTEMPB
-    jmp $NEXT_INSTRUCTION
-
-instruction unpack-int32
-  $QTY 4
-  opt-operand
-    type quantity.1-4
-  operand
-    type xmmx
-    $DEST $VALUE
-  operand
-    type xmmx
-    $SRC $VALUE
-  vcode $QTY
-    1 insertps $DEST~0, $SRC, 14
-    2 insertps $DEST~1, $SRC, 78
-    3 insertps $DEST~2, $SRC, 142
-    4 insertps $DEST~3, $SRC, 206
-  code
-    pxor xTEMPB, xTEMPB
-    jmp $NEXT_INSTRUCTION
-
-
+  select-template
+    case F32XX
+      vcode $SIMD_ARG
+        1 insertps xTEMPA, $SRC, 14
+        1 pxor $DEST~0, $DEST~0
+        1 cvtss2sd $DEST~0, xTEMPA
+        2 insertps xTEMPA, $SRC, 78
+        2 pxor $DEST~1, $DEST~1
+        2 cvtss2sd $DEST~1, xTEMPA
+        3 insertps xTEMPA, $SRC, 142
+        3 pxor $DEST~2, $DEST~2
+        3 cvtss2sd $DEST~2, xTEMPA
+        4 insertps xTEMPA, $SRC, 206
+        4 pxor $DEST~3, $DEST~3
+        4 cvtss2sd $DEST~3, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    case I32XX
+      vcode $SIMD_ARG
+        1 insertps $DEST~0, $SRC, 14
+        2 insertps $DEST~1, $SRC, 78
+        3 insertps $DEST~2, $SRC, 142
+        4 insertps $DEST~3, $SRC, 206
+      code
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION

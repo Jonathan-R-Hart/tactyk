@@ -2,23 +2,23 @@
 #
 # Virtual-ISA: tactyk_core
 # Templates:
-#   pack-float32 quantity-xmmx-xmmx
-#   pack-int32 quantity-xmmx-xmmx
-#   unpack-float32 quantity-xmmx-xmmx
-#   unpack-int32 quantity-xmmx-xmmx
+#   pack simdformat.f32-xmmx-xmmx
+#   pack simdformat.i32-xmmx-xmmx
+#   unpack simdformat.f32-xmmx-xmmx
+#   unpack simdformat.i32-xmmx-xmmx
 
 PROGRAM
   TEST_unpack_int32:
     insert xJ qword.0 h.7766554433221100
     insert xJ qword.1 h.ffeeddccbbaa9988
-    unpack-int32 4 xB xJ
-    unpack-int32 3 xF xJ
-    unpack-int32 2 xN xJ
+    unpack int32.4 xB xJ
+    unpack int32.3 xF xJ
+    unpack int32.2 xN xJ
     exit
   TEST_pack_int32:
-    pack-int32 4 xK xN
-    pack-int32 3 xL xD
-    pack-int32 2 xM xC
+    pack int32.4 xK xN
+    pack int32.3 xL xD
+    pack int32.2 xM xC
     exit
   
   TEST_pack_float32:
@@ -33,14 +33,15 @@ PROGRAM
     assign xM 2.1454
     assign xN 3.1451
     
-    pack-float32 4 xG xL
-    pack-float32 3 xH xB
-    pack-float32 2 xI xE
+    pack float32.4 xG xL
+    pack float32.3 xH xB
+    pack float32.2 xI xE
+    
     exit
   TEST_unpack_float32:
-    unpack-float32 4 xN xG
-    unpack-float32 2 xD xH
-    unpack-float32 3 xG xI
+    unpack float32.4 xN xG
+    unpack float32.2 xD xH
+    unpack float32.3 xG xI
     exit
 
 XMM-DISPLAYMODE int32
