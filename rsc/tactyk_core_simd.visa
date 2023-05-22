@@ -1,4 +1,377 @@
-# sole purpose of this typespec is to verify the operand
+
+subroutine sse-insps-arg--direct
+  select $SIDX~$DIDX
+    case 0~0
+      $INSPS_arg 0
+    case 0~1
+      $INSPS_arg 16
+    case 0~2
+      $INSPS_arg 32
+    case 0~3
+      $INSPS_arg 48
+    case 1~0
+      $INSPS_arg 64
+    case 1~1
+      $INSPS_arg 80
+    case 1~2
+      $INSPS_arg 96
+    case 1~3
+      $INSPS_arg 112
+    case 2~0
+      $INSPS_arg 128
+    case 2~1
+      $INSPS_arg 144
+    case 2~2
+      $INSPS_arg 160
+    case 2~3
+      $INSPS_arg 176
+    case 3~0
+      $INSPS_arg 192
+    case 3~1
+      $INSPS_arg 208
+    case 3~2
+      $INSPS_arg 224
+    case 3~3
+      $INSPS_arg 240
+
+subroutine sse-insps-arg--Szero
+  select $DIDX
+    case 0
+      $INSPS_arg 0
+    case 1
+      $INSPS_arg 16
+    case 2
+      $INSPS_arg 32
+    case 3
+      $INSPS_arg 48
+
+subroutine sse-insps-arg--Dzero
+  select $SIDX
+    case 0
+      $INSPS_arg 0
+    case 1
+      $INSPS_arg 64
+    case 2
+      $INSPS_arg 128
+    case 3
+      $INSPS_arg 192
+
+
+instruction xassign
+  $DAUG 0
+  $DIDX 0
+  $SAUG 0
+  $SIDX 0
+  operand
+    type xmmx data
+  opt-operand
+    type simd-format-discriminator
+    sub simd-format-pick
+  opt-operand
+    sub sse-map
+    $DAUG $SIMD_REG
+    $DIDX $SIMD_INDEX
+  operand
+    type xmmx data const fconst int float
+  opt-operand
+    type simd-format-discriminator
+    sub simd-format-pick
+  opt-operand
+    sub sse-map
+    $SAUG $SIMD_REG
+    $SIDX $SIMD_INDEX
+  select-template
+    case XF32XF32 XI32XI32 XI32XI64
+      sub sse-insps-arg--direct
+      code
+        insertps $DEST~DAUG, $SRC~$SAUG, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32X
+      sub sse-insps-arg--Szero
+      code
+        insertps $DEST~DAUG, $SRC~$SAUG, $INSPS_arg
+        jmp $NEXT_INSTRUCTION
+    case XF32XF64
+      sub sse-insps-arg--Szero
+      code
+        pextrq rTEMPA, $SRC~$SAUG, $SIDX
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPA, xTEMPA
+        insertps $DEST~DAUG, xTEMPA, $INSPS_arg
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32XI64 XF32XI32 XF32XI16 XF32XI8
+      sub sse-insps-arg--Dzero
+      $INSPS_arg_dest $INSPS_arg
+      code
+        pextr$SSE_WORD rTEMPA,  $SRC~$SAUG, $SIDX
+        cvtsi2ss xTEMPA, rTEMPA_32
+        insertps $DEST~DAUG, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+      
+
+instruction insert
+  operand
+    type simd-format-discriminator
+    sub simd-format-sse-params
+    sub simd-format-pick
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type xmmx data integer const float fconst
+    $SRC $VALUE
+    scramble rTEMPA $LD_A_IMMEDIATE
+  select-template
+    
+    case I8XD
+      code
+        pinsrb $DEST, %[$SRC]_32, $SIMD_ARG_minus1
+        jmp $NEXT_INSTRUCTION
+    case I8XX
+      code
+        movq $SRC rTEMPA
+        pinsrb $DEST, rTEMPA_32, $SIMD_ARG_minus1
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case I8XC I8XI
+      code
+        $LD_A_IMMEDIATE
+        pinsrb $DEST, rTEMPA_32, $SIMD_ARG_minus1
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case I16XD
+      code
+        pinsrw $DEST, %[$SRC]_32, $SIMD_ARG_minus1
+        jmp $NEXT_INSTRUCTION
+    case I16XX
+      code
+        movq $SRC rTEMPA
+        pinsrw $DEST, rTEMPA_32, $SIMD_ARG_minus1
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case I16XC I16XI
+      code
+        $LD_A_IMMEDIATE
+        pinsrw $DEST, rTEMPA_32, $SIMD_ARG_minus1
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case I32XD
+      code
+        pinsrd $DEST, %[$SRC]_32, $SIMD_ARG_minus1
+        jmp $NEXT_INSTRUCTION
+    case I32XX
+      code
+        movq $SRC rTEMPA
+        pinsrd $DEST, rTEMPA_32, $SIMD_ARG_minus1
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case I32XC I32XI
+      code
+        $LD_A_IMMEDIATE
+        pinsrd $DEST, rTEMPA_32, $SIMD_ARG_minus1
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case I64XD
+      code
+        pinsrq $DEST, $SRC, $SIMD_ARG_minus1
+        jmp $NEXT_INSTRUCTION
+    case I64XX
+      code
+        movq $SRC rTEMPA
+        pinsrq $DEST, rTEMPA, $SIMD_ARG_minus1
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case I64XC I64XI
+      code
+        $LD_A_IMMEDIATE
+        pinsrq $DEST, rTEMPA, $SIMD_ARG_minus1
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case F32XX
+      code
+        cvtsd2ss xTEMPA, $SRC
+        insertps $DEST, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case F32XD
+      code
+        cvtsi2ss xTEMPA, $SRC
+        insertps $DEST, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case F32XI F32XC
+      code
+        $LD_A_IMMEDIATE
+        cvtsi2ss xTEMPA, rTEMPA
+        insertps $DEST, xTEMPA, $INSPS_arg
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case F32XF F32XCf
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPB, rTEMPA
+        cvtsd2ss xTEMPA, xTEMPB
+        insertps $DEST, xTEMPA, $INSPS_arg
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    
+    case F64XX
+      code
+        movq rTEMPA, $SRC
+        pinsrq $DEST, rTEMPA, $SIMD_ARG_minus1
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case F64XD
+      code
+        cvtsi2sd xTEMPA, $SRC
+        pinsrq $DEST, xTEMPA, $SIMD_ARG_minus1
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case F64XI F64XC
+      code
+        $LD_A_IMMEDIATE
+        cvtsi2sd xTEMPA, rTEMPA
+        pinsrq $DEST, xTEMPA, $SIMD_ARG_minus1
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case F64XF F64XCf
+      code
+        $LD_A_IMMEDIATE
+        pinsrq $DEST, rTEMPA, $SIMD_ARG_minus1
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+
+instruction extract
+  operand
+    type simd-format-discriminator
+    sub simd-format-sse-params
+    sub simd-format-pick
+  operand
+    type data xmmx
+    $DEST $VALUE
+  operand
+    type xmmx
+    $SRC $VALUE
+  select-template
+    case I8DX Ui8DX
+      code
+        pextrb $DEST, $SRC, $SIMD_ARG_minus1
+        jmp $NEXT_INSTRUCTION
+    case I16DX
+      code
+        pextrw $DEST, $SRC, $SIMD_ARG_minus1
+        jmp $NEXT_INSTRUCTION
+    case I32DX
+      code
+        pextrd %[$DEST]_32, $SRC, $SIMD_ARG_minus1
+        jmp $NEXT_INSTRUCTION
+    case I64DX
+      code
+        pextrq $DEST, $SRC, $SIMD_ARG_minus1
+        jmp $NEXT_INSTRUCTION
+    case F32XX
+      code
+        insertps xTEMPA, $SRC, $EXTPS_arg
+        pxor $DEST, $DEST
+        cvtss2sd $DEST, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case F64XX
+      code
+        pextrq rTEMPA, $SRC, $SIMD_ARG_minus1
+        movq $DEST, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+
+instruction pack
+  operand
+    type simd-format-discriminator
+    sub simd-format-sse-params
+    sub simd-format-pick
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type xmmx
+    $SRC $VALUE
+  select-template
+    case F32XX
+      code
+        pxor $DEST, $DEST
+      vcode $SIMD_ARG
+        1 cvtsd2ss $DEST, $SRC~0
+        2 cvtsd2ss xTEMPA, $SRC~1
+        2 insertps $DEST, xTEMPA, 16
+        3 cvtsd2ss xTEMPA, $SRC~2
+        3 insertps $DEST, xTEMPA, 32
+        4 cvtsd2ss xTEMPA, $SRC~3
+        4 insertps $DEST, xTEMPA, 48
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case I32XX
+      vcode $SIMD_ARG
+        1 insertps xTEMPB, $SRC~0, 0
+        2 insertps xTEMPB, $SRC~1, 16
+        3 insertps xTEMPB, $SRC~2, 32
+        4 insertps xTEMPB, $SRC~3, 48
+      code
+        movdqa $DEST, xTEMPB
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+
+instruction unpack
+  operand
+    type simd-format-discriminator
+    sub simd-format-sse-params
+    sub simd-format-pick
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type xmmx
+    $SRC $VALUE
+  select-template
+    case F32XX
+      vcode $SIMD_ARG
+        1 insertps xTEMPA, $SRC, 14
+        1 pxor $DEST~0, $DEST~0
+        1 cvtss2sd $DEST~0, xTEMPA
+        2 insertps xTEMPA, $SRC, 78
+        2 pxor $DEST~1, $DEST~1
+        2 cvtss2sd $DEST~1, xTEMPA
+        3 insertps xTEMPA, $SRC, 142
+        3 pxor $DEST~2, $DEST~2
+        3 cvtss2sd $DEST~2, xTEMPA
+        4 insertps xTEMPA, $SRC, 206
+        4 pxor $DEST~3, $DEST~3
+        4 cvtss2sd $DEST~3, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    case I32XX
+      vcode $SIMD_ARG
+        1 insertps $DEST~0, $SRC, 14
+        2 insertps $DEST~1, $SRC, 78
+        3 insertps $DEST~2, $SRC, 142
+        4 insertps $DEST~3, $SRC, 206
+      code
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+
 typespec simd-format-discriminator
   select-operand
     case float32.1 f32.1 float32.2 f32.2 float32.3 f32.3 float32.4 f32.4
@@ -20,7 +393,7 @@ typespec simd-format-discriminator
     case int64.1 i64.1 uint64.1 ui64.1 int64.2 i64.2 uint64.2 ui64.2
       $SSE_WORD qword
 
-subroutine simd-format-pick-complex
+subroutine simd-format-pick
   select-operand
     case float32.1 f32.1 float32.2 f32.2 float32.3 f32.3 float32.4 f32.4
       pick F32
@@ -423,1871 +796,1101 @@ subroutine simd-format-sse-params
       $SSE_UCLASS q
       $SSE_CLASS sq
 
-typespec simd-format
-  select-operand
-    case float32.1 f32.1
-      $SIMD_ARG 1
-      $SIMD_ARG_minus1 0
-      $SSE_CLASS ss
-      $INSPS_arg 0
-      $EXTPS_arg 14
-      pick F32
-    case float32.2 f32.2
-      $SIMD_ARG 2
-      $SIMD_ARG_minus1 1
-      $SSE_CLASS ps
-      $INSPS_arg 16
-      $EXTPS_arg 78
-      pick F32
-    case float32.3 f32.3
-      $SIMD_ARG 3
-      $SIMD_ARG_minus1 2
-      $SSE_CLASS ps
-      $INSPS_arg 32
-      $EXTPS_arg 142
-      pick F32
-    case float32.4 f32.4 float32 f32
-      $SIMD_ARG 4
-      $SIMD_ARG_minus1 3
-      $SSE_CLASS ps
-      $INSPS_arg 48
-      $EXTPS_arg 206
-      pick F32
-    case float64.1 f64.1
-      $SIMD_ARG 1
-      $SIMD_ARG_minus1 0
-      $SSE_CLASS sd
-      pick F64
-    case float64.2 f64.2 float64 f64
-      $SIMD_ARG 2
-      $SIMD_ARG_minus1 1
-      $SSE_CLASS pd
-      pick F64
-    
-    case uint8.1 ui8.1
-      $SIMD_ARG 1
-      $SIMD_ARG_minus1 0
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.2 ui8.2
-      $SIMD_ARG 2
-      $SIMD_ARG_minus1 1
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.3 ui8.3
-      $SIMD_ARG 3
-      $SIMD_ARG_minus1 2
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.4 ui8.4
-      $SIMD_ARG 4
-      $SIMD_ARG_minus1 3
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.5 ui8.5
-      $SIMD_ARG 5
-      $SIMD_ARG_minus1 4
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.6 ui8.6
-      $SIMD_ARG 6
-      $SIMD_ARG_minus1 5
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.7 ui8.7
-      $SIMD_ARG 7
-      $SIMD_ARG_minus1 6
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.8 ui8.8
-      $SIMD_ARG 8
-      $SIMD_ARG_minus1 7
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.9 ui8.9
-      $SIMD_ARG 9
-      $SIMD_ARG_minus1 8
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.10 ui8.10
-      $SIMD_ARG 10
-      $SIMD_ARG_minus1 9
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.11 ui8.11
-      $SIMD_ARG 11
-      $SIMD_ARG_minus1 10
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.12 ui8.12
-      $SIMD_ARG 12
-      $SIMD_ARG_minus1 11
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.13 ui8.13
-      $SIMD_ARG 13
-      $SIMD_ARG_minus1 12
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.14 ui8.14
-      $SIMD_ARG 14
-      $SIMD_ARG_minus1 13
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.15 ui8.15 uint8 ui8
-      $SIMD_ARG 15
-      $SIMD_ARG_minus1 14
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    case uint8.16 ui8.16 uint8 ui8
-      $SIMD_ARG 16
-      $SIMD_ARG_minus1 15
-      $SSE_UCLASS b
-      $SSE_CLASS ub
-      pick Ui8
-    
-    case int8.1 i8.1
-      $SIMD_ARG 1
-      $SIMD_ARG_minus1 0
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.2 i8.2
-      $SIMD_ARG 2
-      $SIMD_ARG_minus1 1
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.3 i8.3
-      $SIMD_ARG 3
-      $SIMD_ARG_minus1 2
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.4 i8.4
-      $SIMD_ARG 4
-      $SIMD_ARG_minus1 3
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.5 i8.5
-      $SIMD_ARG 5
-      $SIMD_ARG_minus1 4
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.6 i8.6
-      $SIMD_ARG 6
-      $SIMD_ARG_minus1 5
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.7 i8.7
-      $SIMD_ARG 7
-      $SIMD_ARG_minus1 6
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.8 i8.8
-      $SIMD_ARG 8
-      $SIMD_ARG_minus1 7
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.9 i8.9
-      $SIMD_ARG 9
-      $SIMD_ARG_minus1 8
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.10 i8.10
-      $SIMD_ARG 10
-      $SIMD_ARG_minus1 9
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.11 i8.11
-      $SIMD_ARG 11
-      $SIMD_ARG_minus1 10
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.12 i8.12
-      $SIMD_ARG 12
-      $SIMD_ARG_minus1 11
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.13 i8.13
-      $SIMD_ARG 13
-      $SIMD_ARG_minus1 12
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.14 i8.14
-      $SIMD_ARG 14
-      $SIMD_ARG_minus1 13
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.15 i8.15 int8 i8
-      $SIMD_ARG 15
-      $SIMD_ARG_minus1 14
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    case int8.16 i8.16 int8 i8
-      $SIMD_ARG 16
-      $SIMD_ARG_minus1 15
-      $SSE_UCLASS b
-      $SSE_CLASS sb
-      pick I8
-    
-    case uint16.1 ui16.1
-      $SIMD_ARG 1
-      $SIMD_ARG_minus1 0
-      $SSE_UCLASS w
-      $SSE_CLASS uw
-      pick Ui16
-    case uint16.2 ui16.2
-      $SIMD_ARG 2
-      $SIMD_ARG_minus1 1
-      $SSE_UCLASS w
-      $SSE_CLASS uw
-      pick Ui16
-    case uint16.3 ui16.3
-      $SIMD_ARG 3
-      $SIMD_ARG_minus1 2
-      $SSE_UCLASS w
-      $SSE_CLASS uw
-      pick Ui16
-    case uint16.4 ui16.4
-      $SIMD_ARG 4
-      $SIMD_ARG_minus1 3
-      $SSE_UCLASS w
-      $SSE_CLASS uw
-      pick Ui16
-    case uint16.5 ui16.5
-      $SIMD_ARG 5
-      $SIMD_ARG_minus1 4
-      $SSE_UCLASS w
-      $SSE_CLASS uw
-      pick Ui16
-    case uint16.6 ui16.6
-      $SIMD_ARG 6
-      $SIMD_ARG_minus1 5
-      $SSE_UCLASS w
-      $SSE_CLASS uw
-      pick Ui16
-    case uint16.7 ui16.7
-      $SIMD_ARG 7
-      $SIMD_ARG_minus1 6
-      $SSE_UCLASS w
-      $SSE_CLASS uw
-      pick Ui16
-    case uint16.8 ui16.8 uint16 ui16
-      $SIMD_ARG 8
-      $SIMD_ARG_minus1 7
-      $SSE_UCLASS w
-      $SSE_CLASS uw
-      pick Ui16
-    
-    case int16.1 i16.1
-      $SIMD_ARG 1
-      $SIMD_ARG_minus1 0
-      $SSE_UCLASS w
-      $SSE_CLASS sw
-      pick I16
-    case int16.2 i16.2
-      $SIMD_ARG 2
-      $SIMD_ARG_minus1 1
-      $SSE_UCLASS w
-      $SSE_CLASS sw
-      pick I16
-    case int16.3 i16.3
-      $SIMD_ARG 3
-      $SIMD_ARG_minus1 2
-      $SSE_UCLASS w
-      $SSE_CLASS sw
-      pick I16
-    case int16.4 i16.4
-      $SIMD_ARG 4
-      $SIMD_ARG_minus1 3
-      $SSE_UCLASS w
-      $SSE_CLASS sw
-      pick I16
-    case int16.5 i16.5
-      $SIMD_ARG 5
-      $SIMD_ARG_minus1 4
-      $SSE_UCLASS w
-      $SSE_CLASS sw
-      pick I16
-    case int16.6 i16.6
-      $SIMD_ARG 6
-      $SIMD_ARG_minus1 5
-      $SSE_UCLASS w
-      $SSE_CLASS sw
-      pick I16
-    case int16.7 i16.7
-      $SIMD_ARG 7
-      $SIMD_ARG_minus1 6
-      $SSE_UCLASS w
-      $SSE_CLASS sw
-      pick I16
-    case int16.8 i16.8 int16 i16
-      $SIMD_ARG 8
-      $SIMD_ARG_minus1 7
-      $SSE_UCLASS w
-      $SSE_CLASS sw
-      pick I16
-    
-    case uint32.1 ui32.1
-      $SIMD_ARG 1
-      $SIMD_ARG_minus1 0
-      $SSE_UCLASS d
-      $SSE_CLASS ud
-      $INSPS_arg 0
-      $EXTPS_arg 14
-      pick Ui32
-    case uint32.2 ui32.2
-      $SIMD_ARG 2
-      $SIMD_ARG_minus1 1
-      $SSE_UCLASS d
-      $SSE_CLASS ud
-      $INSPS_arg 16
-      $EXTPS_arg 78
-      pick Ui32
-    case uint32.3 ui32.3
-      $SIMD_ARG 3
-      $SIMD_ARG_minus1 2
-      $SSE_UCLASS d
-      $SSE_CLASS ud
-      $INSPS_arg 32
-      $EXTPS_arg 142
-      pick Ui32
-    case uint32.4 ui32.4 uint32 ui32
-      $SIMD_ARG 4
-      $SIMD_ARG_minus1 3
-      $SSE_UCLASS d
-      $SSE_CLASS ud
-      $INSPS_arg 48
-      $EXTPS_arg 208
-      pick Ui32
-    
-    case int32.1 i32.1
-      $SIMD_ARG 1
-      $SIMD_ARG_minus1 0
-      $SSE_UCLASS d
-      $SSE_CLASS sd
-      $INSPS_arg 0
-      $EXTPS_arg 14
-      pick I32
-    case int32.2 i32.2
-      $SIMD_ARG 2
-      $SIMD_ARG_minus1 1
-      $SSE_UCLASS d
-      $SSE_CLASS sd
-      $INSPS_arg 16
-      $EXTPS_arg 78
-      pick I32
-    case int32.3 i32.3
-      $SIMD_ARG 3
-      $SIMD_ARG_minus1 2
-      $SSE_UCLASS d
-      $SSE_CLASS sd
-      $INSPS_arg 32
-      $EXTPS_arg 142
-      pick I32
-    case int32.4 i32.4 int32 i32
-      $SIMD_ARG 4
-      $SIMD_ARG_minus1 3
-      $SSE_UCLASS d
-      $SSE_CLASS sd
-      $INSPS_arg 48
-      $EXTPS_arg 208
-      pick I32
-    
-    case uint64.1 ui64.1
-      $SIMD_ARG 1
-      $SIMD_ARG_minus1 0
-      $SSE_UCLASS q
-      $SSE_CLASS uq
-      pick Ui64
-    case uint64.2 ui64.2 uint64 ui64
-      $SIMD_ARG 2
-      $SIMD_ARG_minus1 1
-      $SSE_UCLASS q
-      $SSE_CLASS uq
-      pick Ui64
-    
-    case int64.1 i64.1
-      $SIMD_ARG 1
-      $SIMD_ARG_minus1 0
-      $SSE_UCLASS q
-      $SSE_CLASS sq
-      pick Ui64
-    case int64.2 i64.2 int64 i64
-      $SIMD_ARG 2
-      $SIMD_ARG_minus1 1
-      $SSE_UCLASS q
-      $SSE_CLASS sq
-      pick Ui64
-
-subroutine simd-map
-  select-operand
-    case qword.0
-      $SIMD_REG 0
-      $SIMD_INDEX 0
-    case qword.1
-      $SIMD_REG 0
-      $SIMD_INDEX 1
-    case qword.2
-      $SIMD_REG 1
-      $SIMD_INDEX 0
-    case qword.3
-      $SIMD_REG 1
-      $SIMD_INDEX 1
-    case qword.4
-      $SIMD_REG 2
-      $SIMD_INDEX 0
-    case qword.5
-      $SIMD_REG 2
-      $SIMD_INDEX 1
-    case qword.6
-      $SIMD_REG 3
-      $SIMD_INDEX 0
-    case qword.7
-      $SIMD_REG 3
-      $SIMD_INDEX 1
-    case qword.8
-      $SIMD_REG 4
-      $SIMD_INDEX 0
-    case qword.9
-      $SIMD_REG 4
-      $SIMD_INDEX 1
-    case qword.10
-      $SIMD_REG 5
-      $SIMD_INDEX 0
-    case qword.11
-      $SIMD_REG 5
-      $SIMD_INDEX 1
-    case qword.12
-      $SIMD_REG 6
-      $SIMD_INDEX 0
-    case qword.13
-      $SIMD_REG 6
-      $SIMD_INDEX 1
-    case qword.14
-      $SIMD_REG 7
-      $SIMD_INDEX 0
-    case qword.15
-      $SIMD_REG 7
-      $SIMD_INDEX 1
-    case qword.16
-      $SIMD_REG 8
-      $SIMD_INDEX 0
-    case qword.17
-      $SIMD_REG 8
-      $SIMD_INDEX 1
-    case qword.18
-      $SIMD_REG 9
-      $SIMD_INDEX 0
-    case qword.19
-      $SIMD_REG 9
-      $SIMD_INDEX 1
-    case qword.20
-      $SIMD_REG 10
-      $SIMD_INDEX 0
-    case qword.21
-      $SIMD_REG 10
-      $SIMD_INDEX 1
-    case qword.22
-      $SIMD_REG 11
-      $SIMD_INDEX 0
-    case qword.23
-      $SIMD_REG 11
-      $SIMD_INDEX 1
-    case qword.24
-      $SIMD_REG 12
-      $SIMD_INDEX 0
-    case qword.25
-      $SIMD_REG 12
-      $SIMD_INDEX 1
-    case qword.26
-      $SIMD_REG 13
-      $SIMD_INDEX 0
-    case qword.27
-      $SIMD_REG 13
-      $SIMD_INDEX 1
-
-instruction insert
-  operand
-    type simd-format-discriminator
-    sub simd-format-sse-params
-    sub simd-format-pick-complex
-  operand
-    type xmmx
-    $DEST $VALUE
-  operand
-    type xmmx data integer const float fconst
-    $SRC $VALUE
-    scramble rTEMPA $LD_A_IMMEDIATE
-  select-template
-    
-    case I8XD
-      code
-        pinsrb $DEST, %[$SRC]_32, $SIMD_ARG_minus1
-        jmp $NEXT_INSTRUCTION
-    case I8XX
-      code
-        movq $SRC rTEMPA
-        pinsrb $DEST, rTEMPA_32, $SIMD_ARG_minus1
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case I8XC I8XI
-      code
-        $LD_A_IMMEDIATE
-        pinsrb $DEST, rTEMPA_32, $SIMD_ARG_minus1
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    
-    case I16XD
-      code
-        pinsrw $DEST, %[$SRC]_32, $SIMD_ARG_minus1
-        jmp $NEXT_INSTRUCTION
-    case I16XX
-      code
-        movq $SRC rTEMPA
-        pinsrw $DEST, rTEMPA_32, $SIMD_ARG_minus1
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case I16XC I16XI
-      code
-        $LD_A_IMMEDIATE
-        pinsrw $DEST, rTEMPA_32, $SIMD_ARG_minus1
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    
-    case I32XD
-      code
-        pinsrd $DEST, %[$SRC]_32, $SIMD_ARG_minus1
-        jmp $NEXT_INSTRUCTION
-    case I32XX
-      code
-        movq $SRC rTEMPA
-        pinsrd $DEST, rTEMPA_32, $SIMD_ARG_minus1
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case I32XC I32XI
-      code
-        $LD_A_IMMEDIATE
-        pinsrd $DEST, rTEMPA_32, $SIMD_ARG_minus1
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    
-    case I64XD
-      code
-        pinsrq $DEST, $SRC, $SIMD_ARG_minus1
-        jmp $NEXT_INSTRUCTION
-    case I64XX
-      code
-        movq $SRC rTEMPA
-        pinsrq $DEST, rTEMPA, $SIMD_ARG_minus1
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case I64XC I64XI
-      code
-        $LD_A_IMMEDIATE
-        pinsrq $DEST, rTEMPA, $SIMD_ARG_minus1
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    
-    case F32XX
-      code
-        cvtsd2ss xTEMPA, $SRC
-        insertps $DEST, xTEMPA, $INSPS_arg
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
-    case F32XD
-      code
-        cvtsi2ss xTEMPA, $SRC
-        insertps $DEST, xTEMPA, $INSPS_arg
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
-    case F32XI F32XC
-      code
-        $LD_A_IMMEDIATE
-        cvtsi2ss xTEMPA, rTEMPA
-        insertps $DEST, xTEMPA, $INSPS_arg
-        xor rTEMPA, rTEMPA
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
-    case F32XF F32XCf
-      code
-        $LD_A_IMMEDIATE
-        movq xTEMPB, rTEMPA
-        cvtsd2ss xTEMPA, xTEMPB
-        insertps $DEST, xTEMPA, $INSPS_arg
-        xor rTEMPA, rTEMPA
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
-    
-    case F64XX
-      code
-        movq rTEMPA, $SRC
-        pinsrq $DEST, rTEMPA, $SIMD_ARG_minus1
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case F64XD
-      code
-        cvtsi2sd xTEMPA, $SRC
-        pinsrq $DEST, xTEMPA, $SIMD_ARG_minus1
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
-    case F64XI F64XC
-      code
-        $LD_A_IMMEDIATE
-        cvtsi2sd xTEMPA, rTEMPA
-        pinsrq $DEST, xTEMPA, $SIMD_ARG_minus1
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case F64XF F64XCf
-      code
-        $LD_A_IMMEDIATE
-        pinsrq $DEST, rTEMPA, $SIMD_ARG_minus1
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-
-instruction extract
-  operand
-    type simd-format-discriminator
-    sub simd-format-sse-params
-    sub simd-format-pick-complex
-  operand
-    type data xmmx
-    $DEST $VALUE
-  operand
-    type xmmx
-    $SRC $VALUE
-  select-template
-    case I8DX Ui8DX
-      code
-        pextrb $DEST, $SRC, $SIMD_ARG_minus1
-        jmp $NEXT_INSTRUCTION
-    case I16DX
-      code
-        pextrw $DEST, $SRC, $SIMD_ARG_minus1
-        jmp $NEXT_INSTRUCTION
-    case I32DX
-      code
-        pextrd %[$DEST]_32, $SRC, $SIMD_ARG_minus1
-        jmp $NEXT_INSTRUCTION
-    case I64DX
-      code
-        pextrq $DEST, $SRC, $SIMD_ARG_minus1
-        jmp $NEXT_INSTRUCTION
-    case F32XX
-      code
-        insertps xTEMPA, $SRC, $EXTPS_arg
-        pxor $DEST, $DEST
-        cvtss2sd $DEST, xTEMPA
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
-    case F64XX
-      code
-        pextrq rTEMPA, $SRC, $SIMD_ARG_minus1
-        movq $DEST, rTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-
-instruction pack
-  operand
-    type simd-format-discriminator
-    sub simd-format-sse-params
-    sub simd-format-pick-complex
-  operand
-    type xmmx
-    $DEST $VALUE
-  operand
-    type xmmx
-    $SRC $VALUE
-  select-template
-    case F32XX
-      code
-        pxor $DEST, $DEST
-      vcode $SIMD_ARG
-        1 cvtsd2ss $DEST, $SRC~0
-        2 cvtsd2ss xTEMPA, $SRC~1
-        2 insertps $DEST, xTEMPA, 16
-        3 cvtsd2ss xTEMPA, $SRC~2
-        3 insertps $DEST, xTEMPA, 32
-        4 cvtsd2ss xTEMPA, $SRC~3
-        4 insertps $DEST, xTEMPA, 48
-      code
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
-    case I32XX
-      vcode $SIMD_ARG
-        1 insertps xTEMPB, $SRC~0, 0
-        2 insertps xTEMPB, $SRC~1, 16
-        3 insertps xTEMPB, $SRC~2, 32
-        4 insertps xTEMPB, $SRC~3, 48
-      code
-        movdqa $DEST, xTEMPB
-        pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
-
-instruction unpack
-  operand
-    type simd-format-discriminator
-    sub simd-format-sse-params
-    sub simd-format-pick-complex
-  operand
-    type xmmx
-    $DEST $VALUE
-  operand
-    type xmmx
-    $SRC $VALUE
-  select-template
-    case F32XX
-      vcode $SIMD_ARG
-        1 insertps xTEMPA, $SRC, 14
-        1 pxor $DEST~0, $DEST~0
-        1 cvtss2sd $DEST~0, xTEMPA
-        2 insertps xTEMPA, $SRC, 78
-        2 pxor $DEST~1, $DEST~1
-        2 cvtss2sd $DEST~1, xTEMPA
-        3 insertps xTEMPA, $SRC, 142
-        3 pxor $DEST~2, $DEST~2
-        3 cvtss2sd $DEST~2, xTEMPA
-        4 insertps xTEMPA, $SRC, 206
-        4 pxor $DEST~3, $DEST~3
-        4 cvtss2sd $DEST~3, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
-    case I32XX
-      vcode $SIMD_ARG
-        1 insertps $DEST~0, $SRC, 14
-        2 insertps $DEST~1, $SRC, 78
-        3 insertps $DEST~2, $SRC, 142
-        4 insertps $DEST~3, $SRC, 206
-      code
-        pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
-
 subroutine sse-map
   select $SSE_WORD~$RAW_OPERAND
-    case qword.0
+    case q~0
       $SIMD_REG 0
       $SIMD_INDEX 0
-    case qword.1
+    case q~1
       $SIMD_REG 0
       $SIMD_INDEX 1
-    case qword.2
+    case q~2
       $SIMD_REG 1
       $SIMD_INDEX 0
-    case qword.3
+    case q~3
       $SIMD_REG 1
       $SIMD_INDEX 1
-    case qword.4
+    case q~4
       $SIMD_REG 2
       $SIMD_INDEX 0
-    case qword.5
+    case q~5
       $SIMD_REG 2
       $SIMD_INDEX 1
-    case qword.6
+    case q~6
       $SIMD_REG 3
       $SIMD_INDEX 0
-    case qword.7
+    case q~7
       $SIMD_REG 3
       $SIMD_INDEX 1
-    case qword.8
+    case q~8
       $SIMD_REG 4
       $SIMD_INDEX 0
-    case qword.9
+    case q~9
       $SIMD_REG 4
       $SIMD_INDEX 1
-    case qword.10
+    case q~10
       $SIMD_REG 5
       $SIMD_INDEX 0
-    case qword.11
+    case q~11
       $SIMD_REG 5
       $SIMD_INDEX 1
-    case qword.12
+    case q~12
       $SIMD_REG 6
       $SIMD_INDEX 0
-    case qword.13
+    case q~13
       $SIMD_REG 6
       $SIMD_INDEX 1
-    case qword.14
+    case q~14
       $SIMD_REG 7
       $SIMD_INDEX 0
-    case qword.15
+    case q~15
       $SIMD_REG 7
       $SIMD_INDEX 1
-    case qword.16
+    case q~16
       $SIMD_REG 8
       $SIMD_INDEX 0
-    case qword.17
+    case q~17
       $SIMD_REG 8
       $SIMD_INDEX 1
-    case qword.18
+    case q~18
       $SIMD_REG 9
       $SIMD_INDEX 0
-    case qword.19
+    case q~19
       $SIMD_REG 9
       $SIMD_INDEX 1
-    case qword.20
+    case q~20
       $SIMD_REG 10
       $SIMD_INDEX 0
-    case qword.21
+    case q~21
       $SIMD_REG 10
       $SIMD_INDEX 1
-    case qword.22
+    case q~22
       $SIMD_REG 11
       $SIMD_INDEX 0
-    case qword.23
+    case q~23
       $SIMD_REG 11
       $SIMD_INDEX 1
-    case qword.24
+    case q~24
       $SIMD_REG 12
       $SIMD_INDEX 0
-    case qword.25
+    case q~25
       $SIMD_REG 12
       $SIMD_INDEX 1
-    case qword.26
+    case q~26
       $SIMD_REG 13
       $SIMD_INDEX 0
-    case qword.27
+    case q~27
       $SIMD_REG 13
       $SIMD_INDEX 1
     
-    case word.0
+    case w~0
       $SIMD_REG 0
       $SIMD_INDEX 0
-    case word.1
+    case w~1
       $SIMD_REG 0
       $SIMD_INDEX 1
-    case word.2
+    case w~2
       $SIMD_REG 0
       $SIMD_INDEX 2
-    case word.3
+    case w~3
       $SIMD_REG 0
       $SIMD_INDEX 3
-    case word.4
+    case w~4
       $SIMD_REG 1
       $SIMD_INDEX 0
-    case word.5
+    case w~5
       $SIMD_REG 1
       $SIMD_INDEX 1
-    case word.6
+    case w~6
       $SIMD_REG 1
       $SIMD_INDEX 2
-    case word.7
+    case w~7
       $SIMD_REG 1
       $SIMD_INDEX 3
-    case word.8
+    case w~8
       $SIMD_REG 2
       $SIMD_INDEX 0
-    case word.9
+    case w~9
       $SIMD_REG 2
       $SIMD_INDEX 1
-    case word.10
+    case w~10
       $SIMD_REG 2
       $SIMD_INDEX 2
-    case word.11
+    case w~11
       $SIMD_REG 2
       $SIMD_INDEX 3
-    case word.12
+    case w~12
       $SIMD_REG 3
       $SIMD_INDEX 0
-    case word.13
+    case w~13
       $SIMD_REG 3
       $SIMD_INDEX 1
-    case word.14
+    case w~14
       $SIMD_REG 3
       $SIMD_INDEX 2
-    case word.15
+    case w~15
       $SIMD_REG 3
       $SIMD_INDEX 3
-    case word.16
+    case w~16
       $SIMD_REG 4
       $SIMD_INDEX 0
-    case word.17
+    case w~17
       $SIMD_REG 4
       $SIMD_INDEX 1
-    case word.18
+    case w~18
       $SIMD_REG 4
       $SIMD_INDEX 2
-    case word.19
+    case w~19
       $SIMD_REG 4
       $SIMD_INDEX 3
-    case word.20
+    case w~20
       $SIMD_REG 5
       $SIMD_INDEX 0
-    case word.21
+    case w~21
       $SIMD_REG 5
       $SIMD_INDEX 1
-    case word.22
+    case w~22
       $SIMD_REG 5
       $SIMD_INDEX 2
-    case word.23
+    case w~23
       $SIMD_REG 5
       $SIMD_INDEX 3
-    case word.24
+    case w~24
       $SIMD_REG 6
       $SIMD_INDEX 0
-    case word.25
+    case w~25
       $SIMD_REG 6
       $SIMD_INDEX 1
-    case word.26
+    case w~26
       $SIMD_REG 6
       $SIMD_INDEX 2
-    case word.27
+    case w~27
       $SIMD_REG 6
       $SIMD_INDEX 3
-    case word.28
+    case w~28
       $SIMD_REG 7
       $SIMD_INDEX 0
-    case word.29
+    case w~29
       $SIMD_REG 7
       $SIMD_INDEX 1
-    case word.30
+    case w~30
       $SIMD_REG 7
       $SIMD_INDEX 2
-    case word.31
+    case w~31
       $SIMD_REG 7
       $SIMD_INDEX 3
-    case word.32
+    case w~32
       $SIMD_REG 8
       $SIMD_INDEX 0
-    case word.33
+    case w~33
       $SIMD_REG 8
       $SIMD_INDEX 1
-    case word.34
+    case w~34
       $SIMD_REG 8
       $SIMD_INDEX 2
-    case word.35
+    case w~35
       $SIMD_REG 8
       $SIMD_INDEX 3
-    case word.36
+    case w~36
       $SIMD_REG 9
       $SIMD_INDEX 0
-    case word.37
+    case w~37
       $SIMD_REG 9
       $SIMD_INDEX 1
-    case word.38
+    case w~38
       $SIMD_REG 9
       $SIMD_INDEX 2
-    case word.39
+    case w~39
       $SIMD_REG 9
       $SIMD_INDEX 3
-    case word.40
+    case w~40
       $SIMD_REG 10
       $SIMD_INDEX 0
-    case word.41
+    case w~41
       $SIMD_REG 10
       $SIMD_INDEX 1
-    case word.42
+    case w~42
       $SIMD_REG 10
       $SIMD_INDEX 2
-    case word.43
+    case w~43
       $SIMD_REG 10
       $SIMD_INDEX 3
-    case word.44
+    case w~44
       $SIMD_REG 11
       $SIMD_INDEX 0
-    case word.45
+    case w~45
       $SIMD_REG 11
       $SIMD_INDEX 1
-    case word.46
+    case w~46
       $SIMD_REG 11
       $SIMD_INDEX 2
-    case word.47
+    case w~47
       $SIMD_REG 11
       $SIMD_INDEX 3
-    case word.48
+    case w~48
       $SIMD_REG 12
       $SIMD_INDEX 0
-    case word.49
+    case w~49
       $SIMD_REG 12
       $SIMD_INDEX 1
-    case word.50
+    case w~50
       $SIMD_REG 12
       $SIMD_INDEX 2
-    case word.51
+    case w~51
       $SIMD_REG 12
       $SIMD_INDEX 3
-    case word.52
+    case w~52
       $SIMD_REG 13
       $SIMD_INDEX 0
-    case word.53
+    case w~53
       $SIMD_REG 13
       $SIMD_INDEX 1
-    case word.54
+    case w~54
       $SIMD_REG 13
       $SIMD_INDEX 2
-    case word.55
-      $SIMD_REG 13
-      $SIMD_INDEX 3
-    
-    case dword.0
-      $SIMD_REG 0
-      $SIMD_INDEX 0
-    case dword.1
-      $SIMD_REG 0
-      $SIMD_INDEX 1
-    case dword.2
-      $SIMD_REG 0
-      $SIMD_INDEX 2
-    case dword.3
-      $SIMD_REG 0
-      $SIMD_INDEX 3
-    case dword.4
-      $SIMD_REG 1
-      $SIMD_INDEX 0
-    case dword.5
-      $SIMD_REG 1
-      $SIMD_INDEX 1
-    case dword.6
-      $SIMD_REG 1
-      $SIMD_INDEX 2
-    case dword.7
-      $SIMD_REG 1
-      $SIMD_INDEX 3
-    case dword.8
-      $SIMD_REG 2
-      $SIMD_INDEX 0
-    case dword.9
-      $SIMD_REG 2
-      $SIMD_INDEX 1
-    case dword.10
-      $SIMD_REG 2
-      $SIMD_INDEX 2
-    case dword.11
-      $SIMD_REG 2
-      $SIMD_INDEX 3
-    case dword.12
-      $SIMD_REG 3
-      $SIMD_INDEX 0
-    case dword.13
-      $SIMD_REG 3
-      $SIMD_INDEX 1
-    case dword.14
-      $SIMD_REG 3
-      $SIMD_INDEX 2
-    case dword.15
-      $SIMD_REG 3
-      $SIMD_INDEX 3
-    case dword.16
-      $SIMD_REG 4
-      $SIMD_INDEX 0
-    case dword.17
-      $SIMD_REG 4
-      $SIMD_INDEX 1
-    case dword.18
-      $SIMD_REG 4
-      $SIMD_INDEX 2
-    case dword.19
-      $SIMD_REG 4
-      $SIMD_INDEX 3
-    case dword.20
-      $SIMD_REG 5
-      $SIMD_INDEX 0
-    case dword.21
-      $SIMD_REG 5
-      $SIMD_INDEX 1
-    case dword.22
-      $SIMD_REG 5
-      $SIMD_INDEX 2
-    case dword.23
-      $SIMD_REG 5
-      $SIMD_INDEX 3
-    case dword.24
-      $SIMD_REG 6
-      $SIMD_INDEX 0
-    case dword.25
-      $SIMD_REG 6
-      $SIMD_INDEX 1
-    case dword.26
-      $SIMD_REG 6
-      $SIMD_INDEX 2
-    case dword.27
-      $SIMD_REG 6
-      $SIMD_INDEX 3
-    case dword.28
-      $SIMD_REG 7
-      $SIMD_INDEX 0
-    case dword.29
-      $SIMD_REG 7
-      $SIMD_INDEX 1
-    case dword.30
-      $SIMD_REG 7
-      $SIMD_INDEX 2
-    case dword.31
-      $SIMD_REG 7
-      $SIMD_INDEX 3
-    case dword.32
-      $SIMD_REG 8
-      $SIMD_INDEX 0
-    case dword.33
-      $SIMD_REG 8
-      $SIMD_INDEX 1
-    case dword.34
-      $SIMD_REG 8
-      $SIMD_INDEX 2
-    case dword.35
-      $SIMD_REG 8
-      $SIMD_INDEX 3
-    case dword.36
-      $SIMD_REG 9
-      $SIMD_INDEX 0
-    case dword.37
-      $SIMD_REG 9
-      $SIMD_INDEX 1
-    case dword.38
-      $SIMD_REG 9
-      $SIMD_INDEX 2
-    case dword.39
-      $SIMD_REG 9
-      $SIMD_INDEX 3
-    case dword.40
-      $SIMD_REG 10
-      $SIMD_INDEX 0
-    case dword.41
-      $SIMD_REG 10
-      $SIMD_INDEX 1
-    case dword.42
-      $SIMD_REG 10
-      $SIMD_INDEX 2
-    case dword.43
-      $SIMD_REG 10
-      $SIMD_INDEX 3
-    case dword.44
-      $SIMD_REG 11
-      $SIMD_INDEX 0
-    case dword.45
-      $SIMD_REG 11
-      $SIMD_INDEX 1
-    case dword.46
-      $SIMD_REG 11
-      $SIMD_INDEX 2
-    case dword.47
-      $SIMD_REG 11
-      $SIMD_INDEX 3
-    case dword.48
-      $SIMD_REG 12
-      $SIMD_INDEX 0
-    case dword.49
-      $SIMD_REG 12
-      $SIMD_INDEX 1
-    case dword.50
-      $SIMD_REG 12
-      $SIMD_INDEX 2
-    case dword.51
-      $SIMD_REG 12
-      $SIMD_INDEX 3
-    case dword.52
-      $SIMD_REG 13
-      $SIMD_INDEX 0
-    case dword.53
-      $SIMD_REG 13
-      $SIMD_INDEX 1
-    case dword.54
-      $SIMD_REG 13
-      $SIMD_INDEX 2
-    case dword.55
+    case w~55
       $SIMD_REG 13
       $SIMD_INDEX 3
     
-    case byte.0
+    case d~0
       $SIMD_REG 0
       $SIMD_INDEX 0
-    case byte.1
+    case d~1
       $SIMD_REG 0
       $SIMD_INDEX 1
-    case byte.2
+    case d~2
       $SIMD_REG 0
       $SIMD_INDEX 2
-    case byte.3
+    case d~3
       $SIMD_REG 0
       $SIMD_INDEX 3
-    case byte.4
-      $SIMD_REG 0
-      $SIMD_INDEX 4
-    case byte.5
-      $SIMD_REG 0
-      $SIMD_INDEX 5
-    case byte.6
-      $SIMD_REG 0
-      $SIMD_INDEX 6
-    case byte.7
-      $SIMD_REG 0
-      $SIMD_INDEX 7
-    case byte.8
-      $SIMD_REG 0
-      $SIMD_INDEX 8
-    case byte.9
-      $SIMD_REG 0
-      $SIMD_INDEX 9
-    case byte.10
-      $SIMD_REG 0
-      $SIMD_INDEX 10
-    case byte.11
-      $SIMD_REG 0
-      $SIMD_INDEX 11
-    case byte.12
-      $SIMD_REG 0
-      $SIMD_INDEX 12
-    case byte.13
-      $SIMD_REG 0
-      $SIMD_INDEX 13
-    case byte.14
-      $SIMD_REG 0
-      $SIMD_INDEX 14
-    case byte.15
-      $SIMD_REG 0
-      $SIMD_INDEX 15
-    case byte.16
+    case d~4
       $SIMD_REG 1
       $SIMD_INDEX 0
-    case byte.17
+    case d~5
       $SIMD_REG 1
       $SIMD_INDEX 1
-    case byte.18
+    case d~6
       $SIMD_REG 1
       $SIMD_INDEX 2
-    case byte.19
+    case d~7
       $SIMD_REG 1
       $SIMD_INDEX 3
-    case byte.20
-      $SIMD_REG 1
-      $SIMD_INDEX 4
-    case byte.21
-      $SIMD_REG 1
-      $SIMD_INDEX 5
-    case byte.22
-      $SIMD_REG 1
-      $SIMD_INDEX 6
-    case byte.23
-      $SIMD_REG 1
-      $SIMD_INDEX 7
-    case byte.24
-      $SIMD_REG 1
-      $SIMD_INDEX 8
-    case byte.25
-      $SIMD_REG 1
-      $SIMD_INDEX 9
-    case byte.26
-      $SIMD_REG 1
-      $SIMD_INDEX 10
-    case byte.27
-      $SIMD_REG 1
-      $SIMD_INDEX 11
-    case byte.28
-      $SIMD_REG 1
-      $SIMD_INDEX 12
-    case byte.29
-      $SIMD_REG 1
-      $SIMD_INDEX 13
-    case byte.30
-      $SIMD_REG 1
-      $SIMD_INDEX 14
-    case byte.31
-      $SIMD_REG 1
-      $SIMD_INDEX 15
-    case byte.32
+    case d~8
       $SIMD_REG 2
       $SIMD_INDEX 0
-    case byte.33
+    case d~9
       $SIMD_REG 2
       $SIMD_INDEX 1
-    case byte.34
+    case d~10
       $SIMD_REG 2
       $SIMD_INDEX 2
-    case byte.35
+    case d~11
       $SIMD_REG 2
       $SIMD_INDEX 3
-    case byte.36
-      $SIMD_REG 2
-      $SIMD_INDEX 4
-    case byte.37
-      $SIMD_REG 2
-      $SIMD_INDEX 5
-    case byte.38
-      $SIMD_REG 2
-      $SIMD_INDEX 6
-    case byte.39
-      $SIMD_REG 2
-      $SIMD_INDEX 7
-    case byte.40
-      $SIMD_REG 2
-      $SIMD_INDEX 8
-    case byte.41
-      $SIMD_REG 2
-      $SIMD_INDEX 9
-    case byte.42
-      $SIMD_REG 2
-      $SIMD_INDEX 10
-    case byte.43
-      $SIMD_REG 2
-      $SIMD_INDEX 11
-    case byte.44
-      $SIMD_REG 2
-      $SIMD_INDEX 12
-    case byte.45
-      $SIMD_REG 2
-      $SIMD_INDEX 13
-    case byte.46
-      $SIMD_REG 2
-      $SIMD_INDEX 14
-    case byte.47
-      $SIMD_REG 2
-      $SIMD_INDEX 15
-    case byte.48
+    case d~12
       $SIMD_REG 3
       $SIMD_INDEX 0
-    case byte.49
+    case d~13
       $SIMD_REG 3
       $SIMD_INDEX 1
-    case byte.50
+    case d~14
       $SIMD_REG 3
       $SIMD_INDEX 2
-    case byte.51
+    case d~15
       $SIMD_REG 3
       $SIMD_INDEX 3
-    case byte.52
-      $SIMD_REG 3
-      $SIMD_INDEX 4
-    case byte.53
-      $SIMD_REG 3
-      $SIMD_INDEX 5
-    case byte.54
-      $SIMD_REG 3
-      $SIMD_INDEX 6
-    case byte.55
-      $SIMD_REG 3
-      $SIMD_INDEX 7
-    case byte.56
-      $SIMD_REG 3
-      $SIMD_INDEX 8
-    case byte.57
-      $SIMD_REG 3
-      $SIMD_INDEX 9
-    case byte.58
-      $SIMD_REG 3
-      $SIMD_INDEX 10
-    case byte.59
-      $SIMD_REG 3
-      $SIMD_INDEX 11
-    case byte.60
-      $SIMD_REG 3
-      $SIMD_INDEX 12
-    case byte.61
-      $SIMD_REG 3
-      $SIMD_INDEX 13
-    case byte.62
-      $SIMD_REG 3
-      $SIMD_INDEX 14
-    case byte.63
-      $SIMD_REG 3
-      $SIMD_INDEX 15
-    case byte.64
+    case d~16
       $SIMD_REG 4
       $SIMD_INDEX 0
-    case byte.65
+    case d~17
       $SIMD_REG 4
       $SIMD_INDEX 1
-    case byte.66
+    case d~18
       $SIMD_REG 4
       $SIMD_INDEX 2
-    case byte.67
+    case d~19
       $SIMD_REG 4
       $SIMD_INDEX 3
-    case byte.68
-      $SIMD_REG 4
-      $SIMD_INDEX 4
-    case byte.69
-      $SIMD_REG 4
-      $SIMD_INDEX 5
-    case byte.70
-      $SIMD_REG 4
-      $SIMD_INDEX 6
-    case byte.71
-      $SIMD_REG 4
-      $SIMD_INDEX 7
-    case byte.72
-      $SIMD_REG 4
-      $SIMD_INDEX 8
-    case byte.73
-      $SIMD_REG 4
-      $SIMD_INDEX 9
-    case byte.74
-      $SIMD_REG 4
-      $SIMD_INDEX 10
-    case byte.75
-      $SIMD_REG 4
-      $SIMD_INDEX 11
-    case byte.76
-      $SIMD_REG 4
-      $SIMD_INDEX 12
-    case byte.77
-      $SIMD_REG 4
-      $SIMD_INDEX 13
-    case byte.78
-      $SIMD_REG 4
-      $SIMD_INDEX 14
-    case byte.79
-      $SIMD_REG 4
-      $SIMD_INDEX 15
-    case byte.80
+    case d~20
       $SIMD_REG 5
       $SIMD_INDEX 0
-    case byte.81
+    case d~21
       $SIMD_REG 5
       $SIMD_INDEX 1
-    case byte.82
+    case d~22
       $SIMD_REG 5
       $SIMD_INDEX 2
-    case byte.83
+    case d~23
       $SIMD_REG 5
       $SIMD_INDEX 3
-    case byte.84
-      $SIMD_REG 5
-      $SIMD_INDEX 4
-    case byte.85
-      $SIMD_REG 5
-      $SIMD_INDEX 5
-    case byte.86
-      $SIMD_REG 5
-      $SIMD_INDEX 6
-    case byte.87
-      $SIMD_REG 5
-      $SIMD_INDEX 7
-    case byte.88
-      $SIMD_REG 5
-      $SIMD_INDEX 8
-    case byte.89
-      $SIMD_REG 5
-      $SIMD_INDEX 9
-    case byte.90
-      $SIMD_REG 5
-      $SIMD_INDEX 10
-    case byte.91
-      $SIMD_REG 5
-      $SIMD_INDEX 11
-    case byte.92
-      $SIMD_REG 5
-      $SIMD_INDEX 12
-    case byte.93
-      $SIMD_REG 5
-      $SIMD_INDEX 13
-    case byte.94
-      $SIMD_REG 5
-      $SIMD_INDEX 14
-    case byte.95
-      $SIMD_REG 5
-      $SIMD_INDEX 15
-    case byte.96
+    case d~24
       $SIMD_REG 6
       $SIMD_INDEX 0
-    case byte.97
+    case d~25
       $SIMD_REG 6
       $SIMD_INDEX 1
-    case byte.98
+    case d~26
       $SIMD_REG 6
       $SIMD_INDEX 2
-    case byte.99
+    case d~27
       $SIMD_REG 6
       $SIMD_INDEX 3
-    case byte.100
-      $SIMD_REG 6
-      $SIMD_INDEX 4
-    case byte.101
-      $SIMD_REG 6
-      $SIMD_INDEX 5
-    case byte.102
-      $SIMD_REG 6
-      $SIMD_INDEX 6
-    case byte.103
-      $SIMD_REG 6
-      $SIMD_INDEX 7
-    case byte.104
-      $SIMD_REG 6
-      $SIMD_INDEX 8
-    case byte.105
-      $SIMD_REG 6
-      $SIMD_INDEX 9
-    case byte.106
-      $SIMD_REG 6
-      $SIMD_INDEX 10
-    case byte.107
-      $SIMD_REG 6
-      $SIMD_INDEX 11
-    case byte.108
-      $SIMD_REG 6
-      $SIMD_INDEX 12
-    case byte.109
-      $SIMD_REG 6
-      $SIMD_INDEX 13
-    case byte.110
-      $SIMD_REG 6
-      $SIMD_INDEX 14
-    case byte.111
-      $SIMD_REG 6
-      $SIMD_INDEX 15
-    case byte.112
+    case d~28
       $SIMD_REG 7
       $SIMD_INDEX 0
-    case byte.113
+    case d~29
       $SIMD_REG 7
       $SIMD_INDEX 1
-    case byte.114
+    case d~30
       $SIMD_REG 7
       $SIMD_INDEX 2
-    case byte.115
+    case d~31
       $SIMD_REG 7
       $SIMD_INDEX 3
-    case byte.116
-      $SIMD_REG 7
-      $SIMD_INDEX 4
-    case byte.117
-      $SIMD_REG 7
-      $SIMD_INDEX 5
-    case byte.118
-      $SIMD_REG 7
-      $SIMD_INDEX 6
-    case byte.119
-      $SIMD_REG 7
-      $SIMD_INDEX 7
-    case byte.120
-      $SIMD_REG 7
-      $SIMD_INDEX 8
-    case byte.121
-      $SIMD_REG 7
-      $SIMD_INDEX 9
-    case byte.122
-      $SIMD_REG 7
-      $SIMD_INDEX 10
-    case byte.123
-      $SIMD_REG 7
-      $SIMD_INDEX 11
-    case byte.124
-      $SIMD_REG 7
-      $SIMD_INDEX 12
-    case byte.125
-      $SIMD_REG 7
-      $SIMD_INDEX 13
-    case byte.126
-      $SIMD_REG 7
-      $SIMD_INDEX 14
-    case byte.127
-      $SIMD_REG 7
-      $SIMD_INDEX 15
-    case byte.128
+    case d~32
       $SIMD_REG 8
       $SIMD_INDEX 0
-    case byte.129
+    case d~33
       $SIMD_REG 8
       $SIMD_INDEX 1
-    case byte.130
+    case d~34
       $SIMD_REG 8
       $SIMD_INDEX 2
-    case byte.131
+    case d~35
       $SIMD_REG 8
       $SIMD_INDEX 3
-    case byte.132
-      $SIMD_REG 8
-      $SIMD_INDEX 4
-    case byte.133
-      $SIMD_REG 8
-      $SIMD_INDEX 5
-    case byte.134
-      $SIMD_REG 8
-      $SIMD_INDEX 6
-    case byte.135
-      $SIMD_REG 8
-      $SIMD_INDEX 7
-    case byte.136
-      $SIMD_REG 8
-      $SIMD_INDEX 8
-    case byte.137
-      $SIMD_REG 8
-      $SIMD_INDEX 9
-    case byte.138
-      $SIMD_REG 8
-      $SIMD_INDEX 10
-    case byte.139
-      $SIMD_REG 8
-      $SIMD_INDEX 11
-    case byte.140
-      $SIMD_REG 8
-      $SIMD_INDEX 12
-    case byte.141
-      $SIMD_REG 8
-      $SIMD_INDEX 13
-    case byte.142
-      $SIMD_REG 8
-      $SIMD_INDEX 14
-    case byte.143
-      $SIMD_REG 8
-      $SIMD_INDEX 15
-    case byte.144
+    case d~36
       $SIMD_REG 9
       $SIMD_INDEX 0
-    case byte.145
+    case d~37
       $SIMD_REG 9
       $SIMD_INDEX 1
-    case byte.146
+    case d~38
       $SIMD_REG 9
       $SIMD_INDEX 2
-    case byte.147
+    case d~39
       $SIMD_REG 9
       $SIMD_INDEX 3
-    case byte.148
-      $SIMD_REG 9
-      $SIMD_INDEX 4
-    case byte.149
-      $SIMD_REG 9
-      $SIMD_INDEX 5
-    case byte.150
-      $SIMD_REG 9
-      $SIMD_INDEX 6
-    case byte.151
-      $SIMD_REG 9
-      $SIMD_INDEX 7
-    case byte.152
-      $SIMD_REG 9
-      $SIMD_INDEX 8
-    case byte.153
-      $SIMD_REG 9
-      $SIMD_INDEX 9
-    case byte.154
-      $SIMD_REG 9
-      $SIMD_INDEX 10
-    case byte.155
-      $SIMD_REG 9
-      $SIMD_INDEX 11
-    case byte.156
-      $SIMD_REG 9
-      $SIMD_INDEX 12
-    case byte.157
-      $SIMD_REG 9
-      $SIMD_INDEX 13
-    case byte.158
-      $SIMD_REG 9
-      $SIMD_INDEX 14
-    case byte.159
-      $SIMD_REG 9
-      $SIMD_INDEX 15
-    case byte.160
+    case d~40
       $SIMD_REG 10
       $SIMD_INDEX 0
-    case byte.161
+    case d~41
       $SIMD_REG 10
       $SIMD_INDEX 1
-    case byte.162
+    case d~42
       $SIMD_REG 10
       $SIMD_INDEX 2
-    case byte.163
+    case d~43
       $SIMD_REG 10
       $SIMD_INDEX 3
-    case byte.164
-      $SIMD_REG 10
-      $SIMD_INDEX 4
-    case byte.165
-      $SIMD_REG 10
-      $SIMD_INDEX 5
-    case byte.166
-      $SIMD_REG 10
-      $SIMD_INDEX 6
-    case byte.167
-      $SIMD_REG 10
-      $SIMD_INDEX 7
-    case byte.168
-      $SIMD_REG 10
-      $SIMD_INDEX 8
-    case byte.169
-      $SIMD_REG 10
-      $SIMD_INDEX 9
-    case byte.170
-      $SIMD_REG 10
-      $SIMD_INDEX 10
-    case byte.171
-      $SIMD_REG 10
-      $SIMD_INDEX 11
-    case byte.172
-      $SIMD_REG 10
-      $SIMD_INDEX 12
-    case byte.173
-      $SIMD_REG 10
-      $SIMD_INDEX 13
-    case byte.174
-      $SIMD_REG 10
-      $SIMD_INDEX 14
-    case byte.175
-      $SIMD_REG 10
-      $SIMD_INDEX 15
-    case byte.176
+    case d~44
       $SIMD_REG 11
       $SIMD_INDEX 0
-    case byte.177
+    case d~45
       $SIMD_REG 11
       $SIMD_INDEX 1
-    case byte.178
+    case d~46
       $SIMD_REG 11
       $SIMD_INDEX 2
-    case byte.179
+    case d~47
       $SIMD_REG 11
       $SIMD_INDEX 3
-    case byte.180
-      $SIMD_REG 11
-      $SIMD_INDEX 4
-    case byte.181
-      $SIMD_REG 11
-      $SIMD_INDEX 5
-    case byte.182
-      $SIMD_REG 11
-      $SIMD_INDEX 6
-    case byte.183
-      $SIMD_REG 11
-      $SIMD_INDEX 7
-    case byte.184
-      $SIMD_REG 11
-      $SIMD_INDEX 8
-    case byte.185
-      $SIMD_REG 11
-      $SIMD_INDEX 9
-    case byte.186
-      $SIMD_REG 11
-      $SIMD_INDEX 10
-    case byte.187
-      $SIMD_REG 11
-      $SIMD_INDEX 11
-    case byte.188
-      $SIMD_REG 11
-      $SIMD_INDEX 12
-    case byte.189
-      $SIMD_REG 11
-      $SIMD_INDEX 13
-    case byte.190
-      $SIMD_REG 11
-      $SIMD_INDEX 14
-    case byte.191
-      $SIMD_REG 11
-      $SIMD_INDEX 15
-    case byte.192
+    case d~48
       $SIMD_REG 12
       $SIMD_INDEX 0
-    case byte.193
+    case d~49
       $SIMD_REG 12
       $SIMD_INDEX 1
-    case byte.194
+    case d~50
       $SIMD_REG 12
       $SIMD_INDEX 2
-    case byte.195
+    case d~51
       $SIMD_REG 12
       $SIMD_INDEX 3
-    case byte.196
-      $SIMD_REG 12
-      $SIMD_INDEX 4
-    case byte.197
-      $SIMD_REG 12
-      $SIMD_INDEX 5
-    case byte.198
-      $SIMD_REG 12
-      $SIMD_INDEX 6
-    case byte.199
-      $SIMD_REG 12
-      $SIMD_INDEX 7
-    case byte.200
-      $SIMD_REG 12
-      $SIMD_INDEX 8
-    case byte.201
-      $SIMD_REG 12
-      $SIMD_INDEX 9
-    case byte.202
-      $SIMD_REG 12
-      $SIMD_INDEX 10
-    case byte.203
-      $SIMD_REG 12
-      $SIMD_INDEX 11
-    case byte.204
-      $SIMD_REG 12
-      $SIMD_INDEX 12
-    case byte.205
-      $SIMD_REG 12
-      $SIMD_INDEX 13
-    case byte.206
-      $SIMD_REG 12
-      $SIMD_INDEX 14
-    case byte.207
-      $SIMD_REG 12
-      $SIMD_INDEX 15
-    case byte.208
+    case d~52
       $SIMD_REG 13
       $SIMD_INDEX 0
-    case byte.209
+    case d~53
       $SIMD_REG 13
       $SIMD_INDEX 1
-    case byte.210
+    case d~54
       $SIMD_REG 13
       $SIMD_INDEX 2
-    case byte.211
+    case d~55
       $SIMD_REG 13
       $SIMD_INDEX 3
-    case byte.212
+    
+    case b~0
+      $SIMD_REG 0
+      $SIMD_INDEX 0
+    case b~1
+      $SIMD_REG 0
+      $SIMD_INDEX 1
+    case b~2
+      $SIMD_REG 0
+      $SIMD_INDEX 2
+    case b~3
+      $SIMD_REG 0
+      $SIMD_INDEX 3
+    case b~4
+      $SIMD_REG 0
+      $SIMD_INDEX 4
+    case b~5
+      $SIMD_REG 0
+      $SIMD_INDEX 5
+    case b~6
+      $SIMD_REG 0
+      $SIMD_INDEX 6
+    case b~7
+      $SIMD_REG 0
+      $SIMD_INDEX 7
+    case b~8
+      $SIMD_REG 0
+      $SIMD_INDEX 8
+    case b~9
+      $SIMD_REG 0
+      $SIMD_INDEX 9
+    case b~10
+      $SIMD_REG 0
+      $SIMD_INDEX 10
+    case b~11
+      $SIMD_REG 0
+      $SIMD_INDEX 11
+    case b~12
+      $SIMD_REG 0
+      $SIMD_INDEX 12
+    case b~13
+      $SIMD_REG 0
+      $SIMD_INDEX 13
+    case b~14
+      $SIMD_REG 0
+      $SIMD_INDEX 14
+    case b~15
+      $SIMD_REG 0
+      $SIMD_INDEX 15
+    case b~16
+      $SIMD_REG 1
+      $SIMD_INDEX 0
+    case b~17
+      $SIMD_REG 1
+      $SIMD_INDEX 1
+    case b~18
+      $SIMD_REG 1
+      $SIMD_INDEX 2
+    case b~19
+      $SIMD_REG 1
+      $SIMD_INDEX 3
+    case b~20
+      $SIMD_REG 1
+      $SIMD_INDEX 4
+    case b~21
+      $SIMD_REG 1
+      $SIMD_INDEX 5
+    case b~22
+      $SIMD_REG 1
+      $SIMD_INDEX 6
+    case b~23
+      $SIMD_REG 1
+      $SIMD_INDEX 7
+    case b~24
+      $SIMD_REG 1
+      $SIMD_INDEX 8
+    case b~25
+      $SIMD_REG 1
+      $SIMD_INDEX 9
+    case b~26
+      $SIMD_REG 1
+      $SIMD_INDEX 10
+    case b~27
+      $SIMD_REG 1
+      $SIMD_INDEX 11
+    case b~28
+      $SIMD_REG 1
+      $SIMD_INDEX 12
+    case b~29
+      $SIMD_REG 1
+      $SIMD_INDEX 13
+    case b~30
+      $SIMD_REG 1
+      $SIMD_INDEX 14
+    case b~31
+      $SIMD_REG 1
+      $SIMD_INDEX 15
+    case b~32
+      $SIMD_REG 2
+      $SIMD_INDEX 0
+    case b~33
+      $SIMD_REG 2
+      $SIMD_INDEX 1
+    case b~34
+      $SIMD_REG 2
+      $SIMD_INDEX 2
+    case b~35
+      $SIMD_REG 2
+      $SIMD_INDEX 3
+    case b~36
+      $SIMD_REG 2
+      $SIMD_INDEX 4
+    case b~37
+      $SIMD_REG 2
+      $SIMD_INDEX 5
+    case b~38
+      $SIMD_REG 2
+      $SIMD_INDEX 6
+    case b~39
+      $SIMD_REG 2
+      $SIMD_INDEX 7
+    case b~40
+      $SIMD_REG 2
+      $SIMD_INDEX 8
+    case b~41
+      $SIMD_REG 2
+      $SIMD_INDEX 9
+    case b~42
+      $SIMD_REG 2
+      $SIMD_INDEX 10
+    case b~43
+      $SIMD_REG 2
+      $SIMD_INDEX 11
+    case b~44
+      $SIMD_REG 2
+      $SIMD_INDEX 12
+    case b~45
+      $SIMD_REG 2
+      $SIMD_INDEX 13
+    case b~46
+      $SIMD_REG 2
+      $SIMD_INDEX 14
+    case b~47
+      $SIMD_REG 2
+      $SIMD_INDEX 15
+    case b~48
+      $SIMD_REG 3
+      $SIMD_INDEX 0
+    case b~49
+      $SIMD_REG 3
+      $SIMD_INDEX 1
+    case b~50
+      $SIMD_REG 3
+      $SIMD_INDEX 2
+    case b~51
+      $SIMD_REG 3
+      $SIMD_INDEX 3
+    case b~52
+      $SIMD_REG 3
+      $SIMD_INDEX 4
+    case b~53
+      $SIMD_REG 3
+      $SIMD_INDEX 5
+    case b~54
+      $SIMD_REG 3
+      $SIMD_INDEX 6
+    case b~55
+      $SIMD_REG 3
+      $SIMD_INDEX 7
+    case b~56
+      $SIMD_REG 3
+      $SIMD_INDEX 8
+    case b~57
+      $SIMD_REG 3
+      $SIMD_INDEX 9
+    case b~58
+      $SIMD_REG 3
+      $SIMD_INDEX 10
+    case b~59
+      $SIMD_REG 3
+      $SIMD_INDEX 11
+    case b~60
+      $SIMD_REG 3
+      $SIMD_INDEX 12
+    case b~61
+      $SIMD_REG 3
+      $SIMD_INDEX 13
+    case b~62
+      $SIMD_REG 3
+      $SIMD_INDEX 14
+    case b~63
+      $SIMD_REG 3
+      $SIMD_INDEX 15
+    case b~64
+      $SIMD_REG 4
+      $SIMD_INDEX 0
+    case b~65
+      $SIMD_REG 4
+      $SIMD_INDEX 1
+    case b~66
+      $SIMD_REG 4
+      $SIMD_INDEX 2
+    case b~67
+      $SIMD_REG 4
+      $SIMD_INDEX 3
+    case b~68
+      $SIMD_REG 4
+      $SIMD_INDEX 4
+    case b~69
+      $SIMD_REG 4
+      $SIMD_INDEX 5
+    case b~70
+      $SIMD_REG 4
+      $SIMD_INDEX 6
+    case b~71
+      $SIMD_REG 4
+      $SIMD_INDEX 7
+    case b~72
+      $SIMD_REG 4
+      $SIMD_INDEX 8
+    case b~73
+      $SIMD_REG 4
+      $SIMD_INDEX 9
+    case b~74
+      $SIMD_REG 4
+      $SIMD_INDEX 10
+    case b~75
+      $SIMD_REG 4
+      $SIMD_INDEX 11
+    case b~76
+      $SIMD_REG 4
+      $SIMD_INDEX 12
+    case b~77
+      $SIMD_REG 4
+      $SIMD_INDEX 13
+    case b~78
+      $SIMD_REG 4
+      $SIMD_INDEX 14
+    case b~79
+      $SIMD_REG 4
+      $SIMD_INDEX 15
+    case b~80
+      $SIMD_REG 5
+      $SIMD_INDEX 0
+    case b~81
+      $SIMD_REG 5
+      $SIMD_INDEX 1
+    case b~82
+      $SIMD_REG 5
+      $SIMD_INDEX 2
+    case b~83
+      $SIMD_REG 5
+      $SIMD_INDEX 3
+    case b~84
+      $SIMD_REG 5
+      $SIMD_INDEX 4
+    case b~85
+      $SIMD_REG 5
+      $SIMD_INDEX 5
+    case b~86
+      $SIMD_REG 5
+      $SIMD_INDEX 6
+    case b~87
+      $SIMD_REG 5
+      $SIMD_INDEX 7
+    case b~88
+      $SIMD_REG 5
+      $SIMD_INDEX 8
+    case b~89
+      $SIMD_REG 5
+      $SIMD_INDEX 9
+    case b~90
+      $SIMD_REG 5
+      $SIMD_INDEX 10
+    case b~91
+      $SIMD_REG 5
+      $SIMD_INDEX 11
+    case b~92
+      $SIMD_REG 5
+      $SIMD_INDEX 12
+    case b~93
+      $SIMD_REG 5
+      $SIMD_INDEX 13
+    case b~94
+      $SIMD_REG 5
+      $SIMD_INDEX 14
+    case b~95
+      $SIMD_REG 5
+      $SIMD_INDEX 15
+    case b~96
+      $SIMD_REG 6
+      $SIMD_INDEX 0
+    case b~97
+      $SIMD_REG 6
+      $SIMD_INDEX 1
+    case b~98
+      $SIMD_REG 6
+      $SIMD_INDEX 2
+    case b~99
+      $SIMD_REG 6
+      $SIMD_INDEX 3
+    case b~100
+      $SIMD_REG 6
+      $SIMD_INDEX 4
+    case b~101
+      $SIMD_REG 6
+      $SIMD_INDEX 5
+    case b~102
+      $SIMD_REG 6
+      $SIMD_INDEX 6
+    case b~103
+      $SIMD_REG 6
+      $SIMD_INDEX 7
+    case b~104
+      $SIMD_REG 6
+      $SIMD_INDEX 8
+    case b~105
+      $SIMD_REG 6
+      $SIMD_INDEX 9
+    case b~106
+      $SIMD_REG 6
+      $SIMD_INDEX 10
+    case b~107
+      $SIMD_REG 6
+      $SIMD_INDEX 11
+    case b~108
+      $SIMD_REG 6
+      $SIMD_INDEX 12
+    case b~109
+      $SIMD_REG 6
+      $SIMD_INDEX 13
+    case b~110
+      $SIMD_REG 6
+      $SIMD_INDEX 14
+    case b~111
+      $SIMD_REG 6
+      $SIMD_INDEX 15
+    case b~112
+      $SIMD_REG 7
+      $SIMD_INDEX 0
+    case b~113
+      $SIMD_REG 7
+      $SIMD_INDEX 1
+    case b~114
+      $SIMD_REG 7
+      $SIMD_INDEX 2
+    case b~115
+      $SIMD_REG 7
+      $SIMD_INDEX 3
+    case b~116
+      $SIMD_REG 7
+      $SIMD_INDEX 4
+    case b~117
+      $SIMD_REG 7
+      $SIMD_INDEX 5
+    case b~118
+      $SIMD_REG 7
+      $SIMD_INDEX 6
+    case b~119
+      $SIMD_REG 7
+      $SIMD_INDEX 7
+    case b~120
+      $SIMD_REG 7
+      $SIMD_INDEX 8
+    case b~121
+      $SIMD_REG 7
+      $SIMD_INDEX 9
+    case b~122
+      $SIMD_REG 7
+      $SIMD_INDEX 10
+    case b~123
+      $SIMD_REG 7
+      $SIMD_INDEX 11
+    case b~124
+      $SIMD_REG 7
+      $SIMD_INDEX 12
+    case b~125
+      $SIMD_REG 7
+      $SIMD_INDEX 13
+    case b~126
+      $SIMD_REG 7
+      $SIMD_INDEX 14
+    case b~127
+      $SIMD_REG 7
+      $SIMD_INDEX 15
+    case b~128
+      $SIMD_REG 8
+      $SIMD_INDEX 0
+    case b~129
+      $SIMD_REG 8
+      $SIMD_INDEX 1
+    case b~130
+      $SIMD_REG 8
+      $SIMD_INDEX 2
+    case b~131
+      $SIMD_REG 8
+      $SIMD_INDEX 3
+    case b~132
+      $SIMD_REG 8
+      $SIMD_INDEX 4
+    case b~133
+      $SIMD_REG 8
+      $SIMD_INDEX 5
+    case b~134
+      $SIMD_REG 8
+      $SIMD_INDEX 6
+    case b~135
+      $SIMD_REG 8
+      $SIMD_INDEX 7
+    case b~136
+      $SIMD_REG 8
+      $SIMD_INDEX 8
+    case b~137
+      $SIMD_REG 8
+      $SIMD_INDEX 9
+    case b~138
+      $SIMD_REG 8
+      $SIMD_INDEX 10
+    case b~139
+      $SIMD_REG 8
+      $SIMD_INDEX 11
+    case b~140
+      $SIMD_REG 8
+      $SIMD_INDEX 12
+    case b~141
+      $SIMD_REG 8
+      $SIMD_INDEX 13
+    case b~142
+      $SIMD_REG 8
+      $SIMD_INDEX 14
+    case b~143
+      $SIMD_REG 8
+      $SIMD_INDEX 15
+    case b~144
+      $SIMD_REG 9
+      $SIMD_INDEX 0
+    case b~145
+      $SIMD_REG 9
+      $SIMD_INDEX 1
+    case b~146
+      $SIMD_REG 9
+      $SIMD_INDEX 2
+    case b~147
+      $SIMD_REG 9
+      $SIMD_INDEX 3
+    case b~148
+      $SIMD_REG 9
+      $SIMD_INDEX 4
+    case b~149
+      $SIMD_REG 9
+      $SIMD_INDEX 5
+    case b~150
+      $SIMD_REG 9
+      $SIMD_INDEX 6
+    case b~151
+      $SIMD_REG 9
+      $SIMD_INDEX 7
+    case b~152
+      $SIMD_REG 9
+      $SIMD_INDEX 8
+    case b~153
+      $SIMD_REG 9
+      $SIMD_INDEX 9
+    case b~154
+      $SIMD_REG 9
+      $SIMD_INDEX 10
+    case b~155
+      $SIMD_REG 9
+      $SIMD_INDEX 11
+    case b~156
+      $SIMD_REG 9
+      $SIMD_INDEX 12
+    case b~157
+      $SIMD_REG 9
+      $SIMD_INDEX 13
+    case b~158
+      $SIMD_REG 9
+      $SIMD_INDEX 14
+    case b~159
+      $SIMD_REG 9
+      $SIMD_INDEX 15
+    case b~160
+      $SIMD_REG 10
+      $SIMD_INDEX 0
+    case b~161
+      $SIMD_REG 10
+      $SIMD_INDEX 1
+    case b~162
+      $SIMD_REG 10
+      $SIMD_INDEX 2
+    case b~163
+      $SIMD_REG 10
+      $SIMD_INDEX 3
+    case b~164
+      $SIMD_REG 10
+      $SIMD_INDEX 4
+    case b~165
+      $SIMD_REG 10
+      $SIMD_INDEX 5
+    case b~166
+      $SIMD_REG 10
+      $SIMD_INDEX 6
+    case b~167
+      $SIMD_REG 10
+      $SIMD_INDEX 7
+    case b~168
+      $SIMD_REG 10
+      $SIMD_INDEX 8
+    case b~169
+      $SIMD_REG 10
+      $SIMD_INDEX 9
+    case b~170
+      $SIMD_REG 10
+      $SIMD_INDEX 10
+    case b~171
+      $SIMD_REG 10
+      $SIMD_INDEX 11
+    case b~172
+      $SIMD_REG 10
+      $SIMD_INDEX 12
+    case b~173
+      $SIMD_REG 10
+      $SIMD_INDEX 13
+    case b~174
+      $SIMD_REG 10
+      $SIMD_INDEX 14
+    case b~175
+      $SIMD_REG 10
+      $SIMD_INDEX 15
+    case b~176
+      $SIMD_REG 11
+      $SIMD_INDEX 0
+    case b~177
+      $SIMD_REG 11
+      $SIMD_INDEX 1
+    case b~178
+      $SIMD_REG 11
+      $SIMD_INDEX 2
+    case b~179
+      $SIMD_REG 11
+      $SIMD_INDEX 3
+    case b~180
+      $SIMD_REG 11
+      $SIMD_INDEX 4
+    case b~181
+      $SIMD_REG 11
+      $SIMD_INDEX 5
+    case b~182
+      $SIMD_REG 11
+      $SIMD_INDEX 6
+    case b~183
+      $SIMD_REG 11
+      $SIMD_INDEX 7
+    case b~184
+      $SIMD_REG 11
+      $SIMD_INDEX 8
+    case b~185
+      $SIMD_REG 11
+      $SIMD_INDEX 9
+    case b~186
+      $SIMD_REG 11
+      $SIMD_INDEX 10
+    case b~187
+      $SIMD_REG 11
+      $SIMD_INDEX 11
+    case b~188
+      $SIMD_REG 11
+      $SIMD_INDEX 12
+    case b~189
+      $SIMD_REG 11
+      $SIMD_INDEX 13
+    case b~190
+      $SIMD_REG 11
+      $SIMD_INDEX 14
+    case b~191
+      $SIMD_REG 11
+      $SIMD_INDEX 15
+    case b~192
+      $SIMD_REG 12
+      $SIMD_INDEX 0
+    case b~193
+      $SIMD_REG 12
+      $SIMD_INDEX 1
+    case b~194
+      $SIMD_REG 12
+      $SIMD_INDEX 2
+    case b~195
+      $SIMD_REG 12
+      $SIMD_INDEX 3
+    case b~196
+      $SIMD_REG 12
+      $SIMD_INDEX 4
+    case b~197
+      $SIMD_REG 12
+      $SIMD_INDEX 5
+    case b~198
+      $SIMD_REG 12
+      $SIMD_INDEX 6
+    case b~199
+      $SIMD_REG 12
+      $SIMD_INDEX 7
+    case b~200
+      $SIMD_REG 12
+      $SIMD_INDEX 8
+    case b~201
+      $SIMD_REG 12
+      $SIMD_INDEX 9
+    case b~202
+      $SIMD_REG 12
+      $SIMD_INDEX 10
+    case b~203
+      $SIMD_REG 12
+      $SIMD_INDEX 11
+    case b~204
+      $SIMD_REG 12
+      $SIMD_INDEX 12
+    case b~205
+      $SIMD_REG 12
+      $SIMD_INDEX 13
+    case b~206
+      $SIMD_REG 12
+      $SIMD_INDEX 14
+    case b~207
+      $SIMD_REG 12
+      $SIMD_INDEX 15
+    case b~208
+      $SIMD_REG 13
+      $SIMD_INDEX 0
+    case b~209
+      $SIMD_REG 13
+      $SIMD_INDEX 1
+    case b~210
+      $SIMD_REG 13
+      $SIMD_INDEX 2
+    case b~211
+      $SIMD_REG 13
+      $SIMD_INDEX 3
+    case b~212
       $SIMD_REG 13
       $SIMD_INDEX 4
-    case byte.213
+    case b~213
       $SIMD_REG 13
       $SIMD_INDEX 5
-    case byte.214
+    case b~214
       $SIMD_REG 13
       $SIMD_INDEX 6
-    case byte.215
+    case b~215
       $SIMD_REG 13
       $SIMD_INDEX 7
-    case byte.216
+    case b~216
       $SIMD_REG 13
       $SIMD_INDEX 8
-    case byte.217
+    case b~217
       $SIMD_REG 13
       $SIMD_INDEX 9
-    case byte.218
+    case b~218
       $SIMD_REG 13
       $SIMD_INDEX 10
-    case byte.219
+    case b~219
       $SIMD_REG 13
       $SIMD_INDEX 11
-    case byte.220
+    case b~220
       $SIMD_REG 13
       $SIMD_INDEX 12
-    case byte.221
+    case b~221
       $SIMD_REG 13
       $SIMD_INDEX 13
-    case byte.222
+    case b~222
       $SIMD_REG 13
       $SIMD_INDEX 14
-    case byte.223
+    case b~223
       $SIMD_REG 13
       $SIMD_INDEX 15
+    

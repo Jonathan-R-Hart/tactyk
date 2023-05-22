@@ -2,6 +2,9 @@
 tactyk-visa - add a generic selector
   This uses string interpolation (against local variables) to generate the select token.
 
+More simd refactoring
+  simd handling is to expand on the concept of polymorphism and vectorized operations based on register lexical orderings.
+
 20 May 2023
 Add templates to load, store, block-load, block-store instructions for handling [full] 128-bit xmm fields.
   Add test coverage for the new variants
