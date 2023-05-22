@@ -102,6 +102,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     tactyk_dblock__put(ctx->operator_table, "symbol", tactyk_emit__Symbol);
 
+    tactyk_dblock__put(ctx->operator_table, "select", tactyk_emit__Select);
     tactyk_dblock__put(ctx->operator_table, "select-operand", tactyk_emit__SelectOp);
     tactyk_dblock__put(ctx->operator_table, "select-template", tactyk_emit__SelectTemplate);
     tactyk_dblock__put(ctx->operator_table, "select-kw", tactyk_emit__SelectKeyword);
@@ -461,6 +462,13 @@ bool tactyk_emit__Flags(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
         warn("EMIT -- no conditional statements accepted", data);
     }
     return true;
+}
+bool tactyk_emit__Select(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    ctx->select_token = tactyk_emit__fetch_var(ctx, NULL, data->token->next);
+    if (ctx->select_token == NULL) {
+        ctx->select_token = tactyk_dblock__from_c_string("[[ NULL ]]");
+    }
+    return tactyk_emit__ExecSelector(ctx, data);
 }
 bool tactyk_emit__SelectOp(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     ctx->select_token = ctx->pl_operand_raw;
