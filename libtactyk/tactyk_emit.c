@@ -535,14 +535,16 @@ bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock
         error("EMIT -- Not enough arguments", ctx->active_command->pl_code);
     }
     ctx->pl_operand_raw = ctx->pl_operand_raw->next;
-    tactyk_dblock__put(ctx->local_vars, "RAW_OPERAND", ctx->pl_operand_raw);
     
     if (ctx->pl_operand_raw != NULL) {
         ctx->pl_operand_resolved = tactyk_emit__fetch_var(ctx, NULL, ctx->pl_operand_raw);
-        tactyk_dblock__put(ctx->local_vars, "RESOLVED_OPERAND", ctx->pl_operand_raw);
+        tactyk_dblock__put(ctx->local_vars, "$RAW_OPERAND", ctx->pl_operand_raw);
+        tactyk_dblock__put(ctx->local_vars, "$RESOLVED_OPERAND", ctx->pl_operand_raw);
     }
-    else {
-        ctx->pl_operand_resolved = tactyk_dblock__from_c_string("[[ NULL ]]");
+    else { 
+        struct tactyk_dblock__DBlock *op_resolved = tactyk_dblock__from_c_string("[[ NULL ]]");
+        tactyk_dblock__put(ctx->local_vars, "$RAW_OPERAND", op_resolved);
+        ctx->pl_operand_resolved = op_resolved;
     }
 
     // Prevent temp vars from leaking.  In most cases, it doesn't matter, as a successfully applied typespec overwrite what is generally expected.
