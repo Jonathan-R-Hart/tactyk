@@ -147,13 +147,22 @@ instruction xassign
     case XF32I XF32C
       sub sse-insps-arg--Szero
       code
+      sub sse-insps-arg--Szero
         $LD_A_IMMEDIATE
         cvtsi2ss xTEMPA, rTEMPA_32
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
-    
+    case XF32F XF32Cf
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsi2ss xTEMPA, rTEMPA_32
+        insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
     case XF64X
       code
         movq rTEMPA, $SRC
@@ -214,6 +223,16 @@ instruction xassign
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
+    case XF64F XF64Cf
+      sub sse-qword-put
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        $QPUTOP $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    
     case XXF32
       sub sse-insps-arg--Dzero
       code
@@ -247,6 +266,13 @@ instruction xassign
       code
         $LD_A_IMMEDIATE
         cvtsi2sd $DEST, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF XCf
+      sub sse-qword-put
+      code
+        $LD_A_IMMEDIATE
+        movq $DEST~$DAUG, rTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     
@@ -296,6 +322,16 @@ instruction xassign
         pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
+    case XI8F XI16F XI32F XI64F XI8Cf XI16Cf XI32Cf XI64Cf
+      sub sse-qword-put
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2si rTEMPA, xTEMPA
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
     
     case DXF32
       sub sse-insps-arg--Dzero
@@ -325,7 +361,15 @@ instruction xassign
         mov $DEST, rTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
-      
+    case DF DCf
+      sub sse-qword-put
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2si $DEST, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
 
 instruction insert
   operand
