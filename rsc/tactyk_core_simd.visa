@@ -133,7 +133,7 @@ instruction xassign
       sub sse-insps-arg--Szero
       code
         pextr$SSW rTEMPA$SRXT,  $SRC~$SAUG, $SIDX
-        cvtsi2ss xTEMPA, rTEMPA_32
+        cvtsi2ss xTEMPA, rTEMPA$SRXT
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
