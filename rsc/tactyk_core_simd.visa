@@ -252,20 +252,23 @@ instruction xassign
       sub sse-qword-put
       code
         pextr$SSW rTEMPA$SRXT, $SRC~$SAUG, $SIDX
+        pxor $DEST, $DEST
         cvtsi2sd $DEST, rTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     case XX
       code
-        movq $DEST, $SRC
+        movdqa $DEST, $SRC
         jmp $NEXT_INSTRUCTION
     case XD
       code
+        pxor $DEST, $DEST
         cvtsi2sd $DEST, $SRC
         jmp $NEXT_INSTRUCTION
     case XI XC
       code
         $LD_A_IMMEDIATE
+        pxor $DEST, $DEST
         cvtsi2sd $DEST, rTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
