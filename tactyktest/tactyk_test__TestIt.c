@@ -192,6 +192,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_dblock__put(test_functions, "CONTINUE", tactyk_test__CONTINUE);
     tactyk_dblock__put(test_functions, "RETURN", tactyk_test__RETURN);
     tactyk_dblock__put(test_functions, "RESUME", tactyk_test__RESUME);
+    tactyk_dblock__put(test_functions, "EXIT", tactyk_test__EXIT);
     tactyk_dblock__put(test_functions, "XMM-DISPLAYMODE", tactyk_test__XMM_DISPLAYMODE);
 
     base_tests = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_test_entry));

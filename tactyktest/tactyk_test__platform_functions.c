@@ -104,6 +104,10 @@ uint64_t tactyk_test__RESUME(struct tactyk_dblock__DBlock *spec) {
     return TACTYK_TESTSTATE__PASS;
 }
 
+uint64_t tactyk_test__EXIT(struct tactyk_dblock__DBlock *spec) {
+    return TACTYK_TESTSTATE__EXIT;
+}
+
 uint64_t tactyk_test__TEST(struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *td = spec->child;
     while (td != NULL) {
