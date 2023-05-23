@@ -5,6 +5,14 @@ tactyk-visa - add a generic selector
 More simd refactoring
   simd handling is to expand on the concept of polymorphism and vectorized operations based on register lexical orderings.
 
+new instruction:  "xassign"
+  xassign is intended to partly to supersede/replace extract & insert, and partly to test static xmm packed element indirection
+    static xmm packed element indirection essentially allows the entire xmm register file to be treated as a semi-circular array of 8/16/32/64 bit items.
+    Individual items are referenced as a register, a data type, and an integer offset.
+    The offset is divided by the number of elements per register
+      The resulting integer part is used to select another register [based on the lexical ordering of xmm register aliases].
+      The resulting remainder is used to index the packed word within the selected register.
+    This is intended to help simplify tactyk scripts, especially when setting up vectorized/simd logic
 20 May 2023
 Add templates to load, store, block-load, block-store instructions for handling [full] 128-bit xmm fields.
   Add test coverage for the new variants

@@ -56,9 +56,25 @@ subroutine sse-insps-arg--Dzero
     case 3
       $INSPS_arg 192
 
+subroutine sse-qword-put
+  select $DIDX
+    case 0
+      $QPUTOP movsd
+    case 1
+      $QPUTOP movlhps
+
+subroutine sse-qword-get
+  select $SIDX
+    case 0
+      $QGETOP movsd
+    case 1
+      $QGETOP movhlps
+
 
 instruction xassign
   $SSE_WORD X
+  $DSW X
+  $SSW X
   $DAUG 0
   $DIDX 0
   $SAUG 0
@@ -73,6 +89,9 @@ instruction xassign
     type sse-map
     $DAUG $SSE_REG
     $DIDX $SSE_INDEX
+    $DSW $SSE_WORD
+    $DRXT $SSE_REG_EXT
+    $SSE_WORD X
   operand
     type xmmx data const fconst integer float
     $SRC $VALUE
@@ -84,18 +103,20 @@ instruction xassign
     type sse-map
     $SAUG $SSE_REG
     $SIDX $SSE_INDEX
+    $SSW $SSE_WORD
+    $SRXT $SSE_REG_EXT
   select-template
-    case XF32XF32 XI32XI32 XI32XI64
-      sub sse-insps-arg--direct
-      code
-        insertps $DEST~$DAUG, $SRC~$SAUG, $INSPS_arg
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case XF32X
       sub sse-insps-arg--Szero
       code
         cvtsd2ss xTEMPA, $SRC
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32XF32
+      sub sse-insps-arg--direct
+      code
+        insertps $DEST~$DAUG, $SRC~$SAUG, $INSPS_arg
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
     case XF32XF64
@@ -109,13 +130,114 @@ instruction xassign
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
     case XF32XI64 XF32XI32 XF32XI16 XF32XI8
-      sub sse-insps-arg--Dzero
-      $INSPS_arg_dest $INSPS_arg
+      sub sse-insps-arg--Szero
       code
-        pextr$SSE_WORD rTEMPA,  $SRC~$SAUG, $SIDX
+        pextr$SSW rTEMPA,  $SRC~$SAUG, $SIDX
         cvtsi2ss xTEMPA, rTEMPA_32
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
         pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32D
+      sub sse-insps-arg--Szero
+      code
+        cvtsi2ss xTEMPA, $SRC
+        insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32I XF32C
+      sub sse-insps-arg--Szero
+      code
+        $LD_A_IMMEDIATE
+        cvtsi2ss xTEMPA, rTEMPA_32
+        insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case XF64X
+      code
+        movq rTEMPA, $SRC
+        pinsrq $DEST~$DAUG, rTEMPA, $DIDX
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64XF32
+      sub sse-insps-arg--Dzero
+      sub sse-qword-put
+      code
+        insertps xTEMPA, $SRC~$SAUG, $INSPS_arg
+        cvtss2sd xTEMPA, xTEMPA
+        $QPUTOP $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64XF64
+      select $DIDX~$SIDX
+        case 0~0
+          code
+            movsd $DEST~$DAUG, $SRC~$SAUG
+            jmp $NEXT_INSTRUCTION
+        case 1~0
+          code
+            movlhps $DEST~$DAUG, $SRC~$SAUG
+            jmp $NEXT_INSTRUCTION
+        case 0~1
+          code
+            movhlps $DEST~$DAUG, $SRC~$SAUG
+            jmp $NEXT_INSTRUCTION
+        case 1~1
+          code
+            movhlps xTEMPA, $SRC~$SAUG
+            movlhps $DEST~$DAUG, xTEMPA
+            pxor xTEMPA, xTEMPA
+            jmp $NEXT_INSTRUCTION
+    case XF64D
+      sub sse-qword-put
+      code
+        cvtsi2sd xTEMPA, $SRC
+        $QPUTOP $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64I XF64C
+      sub sse-qword-put
+      code
+        $LD_A_IMMEDIATE
+        cvtsi2sd xTEMPA, rTEMPA
+        $QPUTOP $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64XI64 XF64XI32 XF64XI16 XF64XI8
+      sub sse-qword-put
+      code
+        pextr$SSW rTEMPA, $SRC~$SAUG, $SIDX
+        cvtsi2sd xTEMPA, rTEMPA
+        $QPUTOP $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XXF32
+      sub sse-insps-arg--Dzero
+      code
+        insertps xTEMPA, $SRC~$SAUG, $INSPS_arg
+        movq $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XXF64
+      sub sse-qword-get
+      code
+        $QGETOP xTEMPA, $SRC~$SAUG
+        movq $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XXI64 XXI32 XXI16 XXI8
+      sub sse-qword-put
+      code
+        pextr$SSW rTEMPA, $SRC~$SAUG, $SIDX
+        cvtsi2sd $DEST, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XX
+      code
+        movq $DEST, $SRC
         jmp $NEXT_INSTRUCTION
     case XD
       code
@@ -126,6 +248,72 @@ instruction xassign
         $LD_A_IMMEDIATE
         cvtsi2sd $DEST, rTEMPA
         xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case XI8X XI16X XI32X XI64X
+      code
+        cvtsd2si rTEMPA, $SRC~$SAUG
+        pinsr$DSW $DEST~$DAUG, rTEMPA$SSE_REG_EXT
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI8XI8 XI16XI8 XI32XI8 XI64XI8  XI8XI16 XI16XI16 XI32XI16 XI64XI16  XI8XI32 XI16XI32 XI32XI32 XI64XI132  XI8XI64 XI16XI64 XI32XI64 XI64XI64
+      code
+        pextr$SSW %[rTEMPA]$SRXT, $SRC~$SAUG, $SIDX
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI8XF32 XI16XF32 XI32XF32 XI64XF32
+      sub sse-insps-arg--Dzero
+      code
+        insertps xTEMPA, $SRC~$SAUG, $INSPS_arg
+        cvtss2si rTEMPA, xTEMPA
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI8XF64 XI16XF64 XI32XF64 XI64XF64
+      sub sse-qword-get
+      code
+        $QGETOP xTEMPA, $SRC~$SAUG
+        cvtsd2si rTEMPA, xTEMPA
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI8X XI16X XI32X XI64X
+      code
+        cvtsd2si rTEMPA, $SRC~$SAUG
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI8D XI16D XI32D XI64D
+      code
+        pinsr$DSW $DEST~$DAUG, %[$SRC]$DRXT, $DIDX
+        jmp $NEXT_INSTRUCTION
+    case XI8C XI16C XI32C XI64C  XI8I XI16I XI32I XI64I
+      code
+        $LD_A_IMMEDIATE
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case DXF32
+      sub sse-insps-arg--Dzero
+      code
+        insertps xTEMPA, $SRC~$SAUG, $INSPS_arg
+        cvtss2si $DEST, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DXF64
+      sub sse-qword-get
+      code
+        $QGETOP xTEMPA, $SRC~$SAUG
+        cvtsd2si $DEST, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DXI8 DXI16 DXI32 DXI64
+      code
+        pextr$SSW %[$DEST]$SRXT, $SRC~$SAUG, $SIDX
         jmp $NEXT_INSTRUCTION
     case DD
       code 
@@ -406,26 +594,36 @@ typespec simd-format-discriminator
       $SSE_WORD q
     case i8 ui8 int8 uint8
       $SSE_WORD b
+      $SSE_REG_EXT _32
     case i16 ui16 int16 uint16
       $SSE_WORD w
+      $SSE_REG_EXT _32
     case i32 ui32 int32 uint32
       $SSE_WORD d
+      $SSE_REG_EXT _32
     case i64 ui64 int64 uint64
       $SSE_WORD q
+      $SSE_REG_EXT _64
     case int8.1 i8.1 uint8.1 ui8.1 int8.2 i8.2 uint8.2 ui8.2 int8.3 i8.3 uint8.3 ui8.3 int8.4 i8.4 uint8.4 ui8.4 int8.5 i8.5 uint8.5 ui8.5 int8.6 i8.6 uint8.6 ui8.6
       $SSE_WORD b
+      $SSE_REG_EXT _32
     case int8.7 i8.7 uint8.7 ui8.7 int8.8 i8.8 uint8.8 ui8.8 int8.9 i8.9 uint8.9 ui8.9 int8.10 i8.10 uint8.10 ui8.10 int8.11 i8.11 uint8.11 ui8.11 int8.12 i8.12
       $SSE_WORD b
     case uint8.12 ui8.12 int8.13 i8.13 uint8.13 ui8.13 int8.14 i8.14 uint8.14 ui8.14 int8.15 i8.15 uint8.15 ui8.15 int8.16 i8.16 uint8.16 ui8.16
       $SSE_WORD b
+      $SSE_REG_EXT _32
     case int16.1 i16.1 uint16.1 ui16.1 int16.2 i16.2 uint16.2 ui16.2 int16.3 i16.3 uint16.3 ui16.3 int16.4 i16.4 uint16.4 ui16.4
       $SSE_WORD w
+      $SSE_REG_EXT _32
     case int16.5 i16.5 uint16.5 ui16.5 int16.6 i16.6 uint16.6 ui16.6 int16.7 i16.7 uint16.7 ui16.7 int16.8 i16.8 uint16.8 ui16.8
       $SSE_WORD w
+      $SSE_REG_EXT _32
     case int32.1 i32.1 uint32.1 ui32.1 int32.2 i32.2 uint32.2 ui32.2 int32.3 i32.3 uint32.3 ui32.3 int32.4 i32.4 uint32.4 ui32.4
       $SSE_WORD d
+      $SSE_REG_EXT _32
     case int64.1 i64.1 uint64.1 ui64.1 int64.2 i64.2 uint64.2 ui64.2
       $SSE_WORD q
+      $SSE_REG_EXT _64
 
 subroutine simd-format-pick
   select-operand
@@ -838,6 +1036,9 @@ subroutine simd-format-sse-params
       $SSE_UCLASS q
       $SSE_CLASS sq
 
+# the sse element mapping "typespec"
+# This is an encoding of a set of integer division + modulo operations
+#   If there is a decision to include mathematical operators and raw bounds checking in tactyk-visa, this can be replaced with a much shorter subroutine
 typespec sse-map
   select $SSE_WORD~$RAW_OPERAND
     case q~0
