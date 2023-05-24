@@ -403,3 +403,44 @@ instruction unpack
       code
         pxor xTEMPB, xTEMPB
         jmp $NEXT_INSTRUCTION
+
+instruction transpose
+  operand
+    type xmmx
+    $M $VALUE
+  operand
+    type simd-format-discriminator
+    sub simd-format-pick
+  operand
+    select-operand
+      case 4 4x4
+        pick M4x4
+  select-template
+    case XF32M4x4 XI32M4x4
+      code
+        movdqa xTEMPA, $M~1
+        movdqa xTEMPB, $M~3
+        insertps $M~1, $M~0,    0b01000000
+        insertps $M~0, xTEMPA,  0b00010000
+        insertps $M~1, $M~2,    0b01100000
+        insertps $M~2, xTEMPA,  0b10010000
+        insertps $M~3, $M~0,    0b11000000
+        insertps $M~0, xTEMPB,  0b00110000
+        insertps $M~3, $M~2,    0b11100000
+        insertps $M~2, xTEMPB,  0b10110000
+        
+        movdqa xTEMPA, $M~0
+        insertps $M~0, $M~2,    0b00100000
+        insertps $M~2, xTEMPA,  0b10000000
+        insertps $M~3, $M~1,    0b11010000
+        insertps $M~1, xTEMPB,  0b01110000
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+
+
+
+
+
+
+

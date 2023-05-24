@@ -2,6 +2,11 @@
 Complete xassign test coverage
 remove insert and extract instructions, revise tests to use xassign
 
+Add a matrix transposition instruction: "transpose"
+  This accepts a 4x4 matrix (encoded as packed 32-bit values arranged on xmm registers [in lexical order]) and applies an in-place tranposition to its input.
+    (flip between row-major and column-major order)
+  This is expected to be a fairly common operation needed by secondary optimizations (mainly handling of 3d matrix transformations)
+
 23 May 2023
 tactyk-test - add an explitic text exit function
   This terminates a test script early (and is intended only as a to help repurposing test scripts)

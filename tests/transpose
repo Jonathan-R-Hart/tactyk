@@ -1,0 +1,84 @@
+# TEST:  transpose
+#
+# Matrix transposition instruction
+#
+# Virtual-ISA: tactyk_core
+# Templates:
+#   transpose xmmx-f32-4x4 (XF32M4x4)
+#   transpose xmmx-i32-4x4 (XF32M4x4)
+
+PROGRAM
+  TR_f32:
+    xassign xA float32 0 1
+    xassign xA float32 1 2
+    xassign xA float32 2 3
+    xassign xA float32 3 4
+    xassign xB float32 0 5
+    xassign xB float32 1 6
+    xassign xB float32 2 7
+    xassign xB float32 3 8
+    xassign xC float32 0 9
+    xassign xC float32 1 10
+    xassign xC float32 2 11
+    xassign xC float32 3 12
+    xassign xD float32 0 13
+    xassign xD float32 1 14
+    xassign xD float32 2 15
+    xassign xD float32 3 16
+    exit
+  
+  TR_i32:
+    xassign xA int32 0 1
+    xassign xA int32 1 2
+    xassign xA int32 2 3
+    xassign xA int32 3 4
+    xassign xB int32 0 5
+    xassign xB int32 1 6
+    xassign xB int32 2 7
+    xassign xB int32 3 8
+    xassign xC int32 0 9
+    xassign xC int32 1 10
+    xassign xC int32 2 11
+    xassign xC int32 3 12
+    xassign xD int32 0 13
+    xassign xD int32 1 14
+    xassign xD int32 2 15
+    xassign xD int32 3 16
+    exit
+  
+  TR_transposeit:
+    transpose xA float32 4x4
+    exit
+
+XMM-DISPLAYMODE float32
+EXEC TR_f32
+TEST
+  xA float32 1 2 3 4
+  xB float32 5 6 7 8
+  xC float32 9 10 11 12
+  xD float32 13 14 15 16
+
+EXEC TR_transposeit
+TEST
+  xA float32 1 5 9 13
+  xB float32 2 6 10 14
+  xC float32 3 7 11 15
+  xD float32 4 8 12 16
+  
+XMM-DISPLAYMODE int32
+EXEC TR_i32
+TEST
+  xA int32 1 2 3 4
+  xB int32 5 6 7 8
+  xC int32 9 10 11 12
+  xD int32 13 14 15 16
+
+EXEC TR_transposeit
+TEST
+  xA int32 1 5 9 13
+  xB int32 2 6 10 14
+  xC int32 3 7 11 15
+  xD int32 4 8 12 16
+
+
+
