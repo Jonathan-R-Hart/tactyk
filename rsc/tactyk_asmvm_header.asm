@@ -524,7 +524,7 @@
         %endrep %1
     %endmacro
     
-    struc regbank
+    struc rbtactyk
         qwords prog,lwcsi,mcsi,tempa,tempc,tempd,addr1,addr2,addr3,addr4,a,b,c,d,e,f
         owords xa,xb,xc,xd, xe,xf,xg,xh, xi,xj,xk,xl, xm,xn,xo,xp
         qwords, fs,gs
@@ -724,73 +724,73 @@
 
     %macro load_context 1
         wrfsbase %1
-        mov rLWCSI, fs:[context.registers + regbank.lwcsi + random_const_FS]
-        mov rMCSI, fs:[context.registers + regbank.mcsi + random_const_FS]
-        mov rADDR1, fs:[context.registers + regbank.addr1 + random_const_FS]
-        mov rADDR2, fs:[context.registers + regbank.addr2 + random_const_FS]
-        mov rADDR3, fs:[context.registers + regbank.addr3 + random_const_FS]
-        mov rADDR4, fs:[context.registers + regbank.addr4 + random_const_FS]
-        mov rA, fs:[context.registers + regbank.a + random_const_FS]
-        mov rB, fs:[context.registers + regbank.b + random_const_FS]
-        mov rC, fs:[context.registers + regbank.c + random_const_FS]
-        mov rD, fs:[context.registers + regbank.d + random_const_FS]
-        mov rE, fs:[context.registers + regbank.e + random_const_FS]
-        mov rF, fs:[context.registers + regbank.f + random_const_FS]
+        mov rLWCSI, fs:[context.registers + rbtactyk.lwcsi + random_const_FS]
+        mov rMCSI, fs:[context.registers + rbtactyk.mcsi + random_const_FS]
+        mov rADDR1, fs:[context.registers + rbtactyk.addr1 + random_const_FS]
+        mov rADDR2, fs:[context.registers + rbtactyk.addr2 + random_const_FS]
+        mov rADDR3, fs:[context.registers + rbtactyk.addr3 + random_const_FS]
+        mov rADDR4, fs:[context.registers + rbtactyk.addr4 + random_const_FS]
+        mov rA, fs:[context.registers + rbtactyk.a + random_const_FS]
+        mov rB, fs:[context.registers + rbtactyk.b + random_const_FS]
+        mov rC, fs:[context.registers + rbtactyk.c + random_const_FS]
+        mov rD, fs:[context.registers + rbtactyk.d + random_const_FS]
+        mov rE, fs:[context.registers + rbtactyk.e + random_const_FS]
+        mov rF, fs:[context.registers + rbtactyk.f + random_const_FS]
         mov rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
         add rTEMPA, fs:[context.microcontext_stack_offset + random_const_FS]
         sub rTEMPA, random_const_GS
         wrgsbase rTEMPA
 
-        movdqu xmm0, fs:[context.registers + regbank.xa  + random_const_FS]
-        movdqu xmm1, fs:[context.registers + regbank.xb  + random_const_FS]
-        movdqu xmm2, fs:[context.registers + regbank.xc  + random_const_FS]
-        movdqu xmm3, fs:[context.registers + regbank.xd  + random_const_FS]
-        movdqu xmm4, fs:[context.registers + regbank.xe  + random_const_FS]
-        movdqu xmm5, fs:[context.registers + regbank.xf  + random_const_FS]
-        movdqu xmm6, fs:[context.registers + regbank.xg  + random_const_FS]
-        movdqu xmm7, fs:[context.registers + regbank.xh  + random_const_FS]
-        movdqu xmm8, fs:[context.registers + regbank.xi  + random_const_FS]
-        movdqu xmm9, fs:[context.registers + regbank.xj  + random_const_FS]
-        movdqu xmm10, fs:[context.registers + regbank.xk  + random_const_FS]
-        movdqu xmm11, fs:[context.registers + regbank.xl  + random_const_FS]
-        movdqu xmm12, fs:[context.registers + regbank.xm  + random_const_FS]
-        movdqu xmm13, fs:[context.registers + regbank.xn  + random_const_FS]
-        movdqu xmm14, fs:[context.registers + regbank.xo  + random_const_FS]
-        movdqu xmm15, fs:[context.registers + regbank.xp  + random_const_FS]
+        movdqu xmm0, fs:[context.registers + rbtactyk.xa  + random_const_FS]
+        movdqu xmm1, fs:[context.registers + rbtactyk.xb  + random_const_FS]
+        movdqu xmm2, fs:[context.registers + rbtactyk.xc  + random_const_FS]
+        movdqu xmm3, fs:[context.registers + rbtactyk.xd  + random_const_FS]
+        movdqu xmm4, fs:[context.registers + rbtactyk.xe  + random_const_FS]
+        movdqu xmm5, fs:[context.registers + rbtactyk.xf  + random_const_FS]
+        movdqu xmm6, fs:[context.registers + rbtactyk.xg  + random_const_FS]
+        movdqu xmm7, fs:[context.registers + rbtactyk.xh  + random_const_FS]
+        movdqu xmm8, fs:[context.registers + rbtactyk.xi  + random_const_FS]
+        movdqu xmm9, fs:[context.registers + rbtactyk.xj  + random_const_FS]
+        movdqu xmm10, fs:[context.registers + rbtactyk.xk  + random_const_FS]
+        movdqu xmm11, fs:[context.registers + rbtactyk.xl  + random_const_FS]
+        movdqu xmm12, fs:[context.registers + rbtactyk.xm  + random_const_FS]
+        movdqu xmm13, fs:[context.registers + rbtactyk.xn  + random_const_FS]
+        movdqu xmm14, fs:[context.registers + rbtactyk.xo  + random_const_FS]
+        movdqu xmm15, fs:[context.registers + rbtactyk.xp  + random_const_FS]
     %endmacro
 
     %macro store_context 0
-        mov fs:[context.registers + regbank.lwcsi + random_const_FS], rLWCSI
-        mov fs:[context.registers + regbank.mcsi + random_const_FS], rMCSI
-        mov fs:[context.registers + regbank.addr1 + random_const_FS], rADDR1
-        mov fs:[context.registers + regbank.addr2 + random_const_FS], rADDR2
-        mov fs:[context.registers + regbank.addr3 + random_const_FS], rADDR3
-        mov fs:[context.registers + regbank.addr4 + random_const_FS], rADDR4
-        mov fs:[context.registers + regbank.a + random_const_FS], rA
-        mov fs:[context.registers + regbank.b + random_const_FS], rB
-        mov fs:[context.registers + regbank.c + random_const_FS], rC
-        mov fs:[context.registers + regbank.d + random_const_FS], rD
-        mov fs:[context.registers + regbank.e + random_const_FS], rE
-        mov fs:[context.registers + regbank.f + random_const_FS], rF
+        mov fs:[context.registers + rbtactyk.lwcsi + random_const_FS], rLWCSI
+        mov fs:[context.registers + rbtactyk.mcsi + random_const_FS], rMCSI
+        mov fs:[context.registers + rbtactyk.addr1 + random_const_FS], rADDR1
+        mov fs:[context.registers + rbtactyk.addr2 + random_const_FS], rADDR2
+        mov fs:[context.registers + rbtactyk.addr3 + random_const_FS], rADDR3
+        mov fs:[context.registers + rbtactyk.addr4 + random_const_FS], rADDR4
+        mov fs:[context.registers + rbtactyk.a + random_const_FS], rA
+        mov fs:[context.registers + rbtactyk.b + random_const_FS], rB
+        mov fs:[context.registers + rbtactyk.c + random_const_FS], rC
+        mov fs:[context.registers + rbtactyk.d + random_const_FS], rD
+        mov fs:[context.registers + rbtactyk.e + random_const_FS], rE
+        mov fs:[context.registers + rbtactyk.f + random_const_FS], rF
         ; rdgsbase rTEMPA
         ; mov fs:[context.microcontext_stack_address + random_const_FS], rTEMPA
         
-        movdqu fs:[context.registers + regbank.xa + random_const_FS ], xmm0
-        movdqu fs:[context.registers + regbank.xb + random_const_FS ], xmm1
-        movdqu fs:[context.registers + regbank.xc + random_const_FS ], xmm2
-        movdqu fs:[context.registers + regbank.xd + random_const_FS ], xmm3
-        movdqu fs:[context.registers + regbank.xe + random_const_FS ], xmm4
-        movdqu fs:[context.registers + regbank.xf + random_const_FS ], xmm5
-        movdqu fs:[context.registers + regbank.xg + random_const_FS ], xmm6
-        movdqu fs:[context.registers + regbank.xh + random_const_FS ], xmm7
-        movdqu fs:[context.registers + regbank.xi + random_const_FS ], xmm8
-        movdqu fs:[context.registers + regbank.xj + random_const_FS ], xmm9
-        movdqu fs:[context.registers + regbank.xk + random_const_FS ], xmm10
-        movdqu fs:[context.registers + regbank.xl + random_const_FS ], xmm11
-        movdqu fs:[context.registers + regbank.xm + random_const_FS ], xmm12
-        movdqu fs:[context.registers + regbank.xn + random_const_FS ], xmm13
-        movdqu fs:[context.registers + regbank.xo + random_const_FS ], xmm14
-        movdqu fs:[context.registers + regbank.xp + random_const_FS ], xmm15
+        movdqu fs:[context.registers + rbtactyk.xa + random_const_FS ], xmm0
+        movdqu fs:[context.registers + rbtactyk.xb + random_const_FS ], xmm1
+        movdqu fs:[context.registers + rbtactyk.xc + random_const_FS ], xmm2
+        movdqu fs:[context.registers + rbtactyk.xd + random_const_FS ], xmm3
+        movdqu fs:[context.registers + rbtactyk.xe + random_const_FS ], xmm4
+        movdqu fs:[context.registers + rbtactyk.xf + random_const_FS ], xmm5
+        movdqu fs:[context.registers + rbtactyk.xg + random_const_FS ], xmm6
+        movdqu fs:[context.registers + rbtactyk.xh + random_const_FS ], xmm7
+        movdqu fs:[context.registers + rbtactyk.xi + random_const_FS ], xmm8
+        movdqu fs:[context.registers + rbtactyk.xj + random_const_FS ], xmm9
+        movdqu fs:[context.registers + rbtactyk.xk + random_const_FS ], xmm10
+        movdqu fs:[context.registers + rbtactyk.xl + random_const_FS ], xmm11
+        movdqu fs:[context.registers + rbtactyk.xm + random_const_FS ], xmm12
+        movdqu fs:[context.registers + rbtactyk.xn + random_const_FS ], xmm13
+        movdqu fs:[context.registers + rbtactyk.xo + random_const_FS ], xmm14
+        movdqu fs:[context.registers + rbtactyk.xp + random_const_FS ], xmm15
     %endmacro
 
     ; zero data/address registers and memory locations which augment context state.
@@ -798,18 +798,18 @@
     ;   The undefined behavior mainly just affects data stashes (other buffers are reset by clearing index values)
     %macro reset_context 1
 
-        mov qword [%1+context.registers+regbank.temp], 0
-        mov qword [%1+context.registers+regbank.mcsi], 0
-        mov qword [%1+context.registers+regbank.addr1], 0
-        mov qword [%1+context.registers+regbank.addr2], 0
-        mov qword [%1+context.registers+regbank.addr3], 0
-        mov qword [%1+context.registers+regbank.addr4], 0
-        mov qword [%1+context.registers+regbank.a], 0
-        mov qword [%1+context.registers+regbank.b], 0
-        mov qword [%1+context.registers+regbank.c], 0
-        mov qword [%1+context.registers+regbank.d], 0
-        mov qword [%1+context.registers+regbank.e], 0
-        mov qword [%1+context.registers+regbank.f], 0
+        mov qword [%1+context.registers+rbtactyk.temp], 0
+        mov qword [%1+context.registers+rbtactyk.mcsi], 0
+        mov qword [%1+context.registers+rbtactyk.addr1], 0
+        mov qword [%1+context.registers+rbtactyk.addr2], 0
+        mov qword [%1+context.registers+rbtactyk.addr3], 0
+        mov qword [%1+context.registers+rbtactyk.addr4], 0
+        mov qword [%1+context.registers+rbtactyk.a], 0
+        mov qword [%1+context.registers+rbtactyk.b], 0
+        mov qword [%1+context.registers+rbtactyk.c], 0
+        mov qword [%1+context.registers+rbtactyk.d], 0
+        mov qword [%1+context.registers+rbtactyk.e], 0
+        mov qword [%1+context.registers+rbtactyk.f], 0
 
         mov qword [%1+context.addr1], 0
         mov qword [%1+context.addr1_element_bound], 0
