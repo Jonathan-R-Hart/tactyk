@@ -12,6 +12,10 @@ xassign test coverge
 
 Use a declared data structure for context state management (both native and tactyk)
 
+new instruction: "float-to-int--cast-mode"
+  This sets flags which control which operation float-to-int conversion functions perform
+  functions are:  "truncate" (default), "round", "round-down", and "round-up"
+
 22 May 2023
 tactyk-visa - add a generic selector
   This uses string interpolation (against local variables) to generate the select token.

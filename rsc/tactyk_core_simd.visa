@@ -1,4 +1,26 @@
 
+instruction float-to-int--cast-mode
+  operand
+    select-operand
+      case trunc truncate
+        $CONV_FLAGS 0x00006000
+      case round round-near
+        $CONV_FLAGS 0x00000000
+      case up round-up
+        $CONV_FLAGS 0x00004000
+      case down round-down
+        $CONV_FLAGS 0x00002000
+  code
+    stmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
+    mov rTEMPA_32, fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
+    ;mov rC, rTEMPA
+    and rTEMPA_32, 0xffff9fff
+    or rTEMPA_32, $CONV_FLAGS
+    ;mov rD, rTEMPA
+    mov fs:[context.registers + rbtactyk.mxcsr + random_const_FS ], rTEMPA_32
+    ldmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS]
+    jmp $NEXT_INSTRUCTION
+
 subroutine sse-insps-arg--direct
   select $SIDX~$DIDX
     case 0~0
