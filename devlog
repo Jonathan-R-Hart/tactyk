@@ -1,3 +1,7 @@
+24 May 2023
+Complete xassign test coverage
+remove insert and extract instructions, revise tests to use xassign
+
 23 May 2023
 tactyk-test - add an explitic text exit function
   This terminates a test script early (and is intended only as a to help repurposing test scripts)
