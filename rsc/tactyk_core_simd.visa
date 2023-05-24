@@ -385,6 +385,10 @@ instruction xassign
         mov $DEST, rTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
+    case DX
+      code 
+        cvtsd2si $DEST, $SRC
+        jmp $NEXT_INSTRUCTION
     case DF DCf
       sub sse-qword-put
       code
