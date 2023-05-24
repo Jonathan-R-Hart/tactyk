@@ -411,12 +411,12 @@ instruction transpose
   operand
     type simd-format-discriminator
     sub simd-format-pick
-  operand
+  opt-operand
     select-operand
       case 4 4x4
         pick M4x4
   select-template
-    case XF32M4x4 XI32M4x4
+    case XF32M4x4 XI32M4x4 XF32 XI32
       code
         movdqa xTEMPA, $M~1
         movdqa xTEMPB, $M~3
