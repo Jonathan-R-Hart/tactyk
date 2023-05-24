@@ -1,0 +1,701 @@
+# TEST:  xassign
+#
+# assign to int8 slot in xmm register
+#
+# Virtual-ISA: tactyk_core
+# Templates:
+#   xassign xmmx-I8-data (XI8D)
+#   xassign xmmx-I8-const (XI8C)
+#   xassign xmmx-I8-integer (XI8I)
+#   xassign xmmx-I8-float (XI8F)
+#   xassign xmmx-I8-fconst (XI8Cf)
+#   xassign xmmx-I8-xmmx (XI8X)
+#   xassign xmmx-I8-xmmx-F32 (XI8XF32)
+#   xassign xmmx-I8-xmmx-F64 (XI8XF32)
+#   xassign xmmx-I8-xmmx-I8 (XI8XI8)
+#   xassign xmmx-I8-xmmx-I8 (XI8XI16)
+#   xassign xmmx-I8-xmmx-I64 (XI8XI32)
+#   xassign xmmx-I8-xmmx-I64 (XI8XI64)
+#
+
+PROGRAM
+  
+  const CN3300 -3300
+  const CN330  -330
+  const CN33   -33
+  const C33     33
+  const C330    330
+  const C3300   3300
+  const CfN5555.0  -5555.0
+  const CfN555.5   -555.5
+  const CfN55.55   -55.55
+  const Cf55.55     55.55
+  const Cf555.5     555.5
+  const Cf5555.0    5555.0
+  
+  # general reset function
+  #   This uses int64 value 1.0 as default to verify that xmm register content is cleared by instructions which implicitly should reset it.
+  #    (mainly when using an untyped write)
+  RESET:
+    spread rA 0 0 0 0 0 0
+    xassign xA int32 0 1
+    xassign xA int32 1 2
+    xassign xA int32 2 3
+    xassign xA int32 3 4
+    xassign xB xA
+    xassign xC xA
+    xassign xD xA
+    xassign xE xA
+    xassign xF xA
+    xassign xG xA
+    xassign xH xA
+    xassign xI xA
+    xassign xJ xA
+    xassign xK xA
+    xassign xL xA
+    xassign xM xA
+    xassign xN xA
+    lwreturn
+  
+  XASSIGN_prepare_basic:
+    lwcall RESET
+    exit
+  
+  XASSIGN_data:
+    spread rA -1100 -110 -11 11 110 1100
+    xassign xA int8 0 rA
+    xassign xB int8 1 rB
+    xassign xC int8 2 rC
+    xassign xD int8 3 rD
+    xassign xE int8 4 rE
+    xassign xF int8 5 rF
+    xassign xG int8 10 rA
+    xassign xH int8 11 rB
+    xassign xI int8 12 rC
+    xassign xJ int8 13 rD
+    xassign xK int8 14 rE
+    xassign xL int8 15 rF
+    exit
+  
+  XASSIGN_int:
+    xassign xG int8 0 -2200
+    xassign xH int8 1 -220
+    xassign xI int8 2 -22
+    xassign xJ int8 3  22
+    xassign xK int8 4  220
+    xassign xL int8 5  2200
+    xassign xM int8 6 -2200
+    xassign xN int8 7 -220
+    xassign xA int8 8 -22
+    xassign xB int8 9  22
+    xassign xC int8 10  220
+    xassign xD int8 11  2200
+    exit
+  
+  XASSIGN_const:
+    xassign xM int8 0 CN3300
+    xassign xN int8 5 CN330
+    xassign xA int8 10 CN33
+    xassign xB int8 15 C33
+    xassign xC int8 20 C330
+    xassign xD int8 25 C3300
+    exit
+  
+  XASSIGN_float:
+    xassign xE int8 0 -4444.0
+    xassign xF int8 3 -444.4
+    xassign xG int8 6 -44.44
+    xassign xH int8 9  44.44
+    xassign xI int8 12  444.4
+    xassign xJ int8 15  4444.0
+    exit
+
+  XASSIGN_fconst:
+    xassign xK int8 0 CfN5555.0
+    xassign xL int8 1 CfN555.5
+    xassign xM int8 2 CfN55.55
+    xassign xN int8 3 Cf55.55
+    xassign xA int8 4 Cf555.5
+    xassign xB int8 5 Cf5555.0
+    exit
+
+  XASSIGN_prepare_xmmx:
+    lwcall RESET
+    assign xA 4444.5555
+    assign xB 5555.6666
+    assign xC 6666.7777
+    assign xD 7777.8888
+    exit
+
+  XASSIGN_xmmx:
+    xassign xE int8 0 xA
+    xassign xE int8 1 xB
+    xassign xE int8 2 xC
+    xassign xE int8 3 xD
+    xassign xE int8 4 xD
+    xassign xE int8 5 xC
+    xassign xE int8 6 xB
+    xassign xE int8 7 xA
+    xassign xE int8 9 xB
+    xassign xE int8 15 xA
+    exit
+  
+  XASSIGN_prepare_xf32:
+    lwcall RESET
+    xassign xA float32 0 121.515
+    xassign xA float32 1 232.515
+    xassign xA float32 2 343.515
+    xassign xA float32 3 454.515
+    exit
+  
+  XASSIGN_xf32:
+    xassign xB int8 3 xA float32 0
+    xassign xB int8 2 xA float32 1
+    xassign xB int8 1 xA float32 2
+    xassign xB int8 0 xA float32 3
+    xassign xB int8 4 xA float32 0
+    xassign xB int8 5 xA float32 1
+    xassign xB int8 6 xA float32 2
+    xassign xB int8 7 xA float32 3
+    xassign xB int8 8 xN float32 4
+    xassign xB int8 9 xN float32 6
+    xassign xB int8 10 xN float32 5
+    xassign xB int8 11 xN float32 7
+    xassign xE int8 0 xN float32 4
+    xassign xE int8 1 xN float32 5
+    xassign xE int8 2 xN float32 6
+    xassign xE int8 3 xN float32 7
+    exit
+
+  XASSIGN_prepare_xf64:
+    lwcall RESET
+    xassign xA float64 0 565.51515
+    xassign xA float64 1 676.51515
+    exit
+
+  XASSIGN_xf64:
+    xassign xB int8 0 xA float64 0
+    xassign xC int8 0 xA float64 1
+    xassign xD int8 0 xN float64 2
+    xassign xE int8 1 xN float64 3
+    xassign xF int8 1 xM float64 4
+    xassign xG int8 1 xM float64 5
+    xassign xH int8 2 xL float64 6
+    xassign xI int8 2 xL float64 7
+    xassign xJ int8 2 xK float64 8
+    xassign xK int8 3 xK float64 9
+    xassign xL int8 3 xJ float64 10
+    xassign xM int8 3 xJ float64 11
+    xassign xN int8 0 xI float64 12
+    exit
+
+  XASSIGN_prepare_i8:
+    lwcall RESET
+    xassign xA int8 0 11
+    xassign xA int8 1 22
+    xassign xA int8 2 33
+    xassign xA int8 3 44
+    xassign xA int8 4 55
+    xassign xA int8 5 66
+    xassign xA int8 6 77
+    xassign xA int8 7 88
+    xassign xA int8 8 99
+    xassign xA int8 9 110
+    xassign xA int8 10 121
+    xassign xA int8 11 132
+    xassign xA int8 12 143
+    xassign xA int8 13 154
+    xassign xA int8 14 165
+    xassign xA int8 15 176
+    exit
+  
+  XASSIGN_i8:
+    xassign xB int8 0 xA int8 0
+    xassign xC int8 0 xA int8 1
+    xassign xD int8 4 xA int8 2
+    xassign xE int8 1 xA int8 3
+    xassign xF int8 1 xN int8 20
+    xassign xG int8 5 xM int8 37
+    xassign xH int8 2 xK int8 70
+    xassign xI int8 2 xG int8 135
+    xassign xJ int8 6 xC int8 200
+    xassign xK int8 3 xA int8 9
+    xassign xL int8 3 xA int8 10
+    xassign xM int8 7 xA int8 11
+    xassign xN int8 0 xA int8 12
+    exit
+  
+  XASSIGN_prepare_i16:
+    lwcall RESET
+    xassign xA int16 0 1111
+    xassign xA int16 1 2222
+    xassign xA int16 2 3333
+    xassign xA int16 3 4444
+    xassign xA int16 4 5555
+    xassign xA int16 5 6666
+    xassign xA int16 6 7777
+    xassign xA int16 7 8888
+    exit
+
+  XASSIGN_i16:
+    xassign xB int8 0 xA int16 0
+    xassign xC int8 0 xA int16 1
+    xassign xD int8 4 xA int16 2
+    xassign xE int8 1 xA int16 3
+    xassign xF int8 1 xN int16 12
+    xassign xG int8 5 xN int16 13
+    xassign xH int8 2 xN int16 14
+    xassign xI int8 2 xN int16 15
+    xassign xJ int8 6 xM int16 16
+    xassign xK int8 3 xM int16 17
+    xassign xL int8 3 xM int16 18
+    xassign xM int8 7 xM int16 19
+    xassign xN int8 0 xA int16 4
+    exit
+
+  XASSIGN_prepare_i32:
+    lwcall RESET
+    xassign xA int32 0 11111111
+    xassign xA int32 1 22222222
+    xassign xA int32 2 33333333
+    xassign xA int32 3 44444444
+    exit
+
+  XASSIGN_i32:
+    xassign xB int8 0 xA int32 0
+    xassign xC int8 0 xA int32 1
+    xassign xD int8 4 xA int32 2
+    xassign xE int8 1 xA int32 3
+    xassign xF int8 1 xN int32 4
+    xassign xG int8 5 xN int32 5
+    xassign xH int8 2 xN int32 6
+    xassign xI int8 2 xN int32 7
+    xassign xJ int8 6 xM int32 8
+    xassign xK int8 3 xM int32 9
+    xassign xL int8 3 xM int32 10
+    xassign xM int8 7 xM int32 11
+    xassign xN int8 0 xL int32 12
+    exit
+
+  XASSIGN_prepare_i64:
+    lwcall RESET
+    xassign xA int64 0 1111111111111111
+    xassign xA int64 1 2222222222222222
+    exit
+
+  XASSIGN_i64:
+    xassign xB int8 0 xA int64 0
+    xassign xC int8 0 xA int64 1
+    xassign xD int8 4 xN int64 2
+    xassign xE int8 1 xN int64 3
+    xassign xF int8 1 xM int64 4
+    xassign xG int8 5 xM int64 5
+    xassign xH int8 2 xL int64 6
+    xassign xI int8 2 xL int64 7
+    xassign xJ int8 6 xK int64 8
+    xassign xK int8 3 xK int64 9
+    xassign xL int8 3 xJ int64 10
+    xassign xM int8 7 xJ int64 11
+    xassign xN int8 0 xI int64 12
+    exit
+
+XMM-DISPLAYMODE int32
+EXEC XASSIGN_prepare_basic
+TEST
+  rA 0
+  rB 0
+  rC 0
+  rD 0
+  rE 0
+  rF 0
+  xA int32 1 2 3 4
+  xB int32 1 2 3 4
+  xC int32 1 2 3 4
+  xD int32 1 2 3 4
+  xE int32 1 2 3 4
+  xF int32 1 2 3 4
+  xG int32 1 2 3 4
+  xH int32 1 2 3 4
+  xI int32 1 2 3 4
+  xJ int32 1 2 3 4
+  xK int32 1 2 3 4
+  xL int32 1 2 3 4
+  xM int32 1 2 3 4
+  xN int32 1 2 3 4
+  lwcstack 0 20
+
+EXEC XASSIGN_data
+TEST
+  rA -1100
+  rB -110
+  rC -11
+  rD 11
+  rE 110
+  rF 1100
+  xA int64 h.00000002000000b4 h.0000000400000003
+  xB int64 h.0000000200009201 h.0000000400000003
+  xC int64 h.0000000200f50001 h.0000000400000003
+  xD int64 h.000000020b000001 h.0000000400000003
+  xE int64 h.0000006e00000001 h.0000000400000003
+  xF int64 h.00004c0200000001 h.0000000400000003
+  xG int64 h.0000000200000001 h.0000000400b40003
+  xH int64 h.0000000200000001 h.0000000492000003
+  xI int64 h.0000000200000001 h.000000f500000003
+  xJ int64 h.0000000200000001 h.00000b0400000003
+  xK int64 h.0000000200000001 h.006e000400000003
+  xL int64 h.0000000200000001 h.4c00000400000003
+
+EXEC XASSIGN_prepare_basic
+TEST
+  rA 0
+  rB 0
+  rC 0
+  rD 0
+  rE 0
+  rF 0
+  xA int32 1 2 3 4
+  xB int32 1 2 3 4
+  xC int32 1 2 3 4
+  xD int32 1 2 3 4
+  xE int32 1 2 3 4
+  xF int32 1 2 3 4
+  xG int32 1 2 3 4
+  xH int32 1 2 3 4
+  xI int32 1 2 3 4
+  xJ int32 1 2 3 4
+  xK int32 1 2 3 4
+  xL int32 1 2 3 4
+  xM int32 1 2 3 4
+  xN int32 1 2 3 4
+  lwcstack 0 20
+
+EXEC XASSIGN_int
+TEST
+  xG int64 h.0000000200000068 h.0000000400000003
+  xH int64 h.0000000200002401 h.0000000400000003
+  xI int64 h.0000000200ea0001 h.0000000400000003
+  xJ int64 h.0000000216000001 h.0000000400000003
+  xK int64 h.000000dc00000001 h.0000000400000003
+  xL int64 h.0000980200000001 h.0000000400000003
+  xM int64 h.0068000200000001 h.0000000400000003
+  xN int64 h.2400000200000001 h.0000000400000003
+  xA int64 h.0000000200000001 h.00000004000000ea
+  xB int64 h.0000000200000001 h.0000000400001603
+  xC int64 h.0000000200000001 h.0000000400dc0003
+  xD int64 h.0000000200000001 h.0000000498000003
+
+EXEC XASSIGN_prepare_basic
+TEST
+  rA 0
+  rB 0
+  rC 0
+  rD 0
+  rE 0
+  rF 0
+  xA int32 1 2 3 4
+  xB int32 1 2 3 4
+  xC int32 1 2 3 4
+  xD int32 1 2 3 4
+  xE int32 1 2 3 4
+  xF int32 1 2 3 4
+  xG int32 1 2 3 4
+  xH int32 1 2 3 4
+  xI int32 1 2 3 4
+  xJ int32 1 2 3 4
+  xK int32 1 2 3 4
+  xL int32 1 2 3 4
+  xM int32 1 2 3 4
+  xN int32 1 2 3 4
+  lwcstack 0 20
+
+EXEC XASSIGN_const
+TEST
+  xM int64 h.000000020000001c h.0000000400000003
+  xN int64 h.0000b60200000001 h.0000000400000003
+  xA int64 h.0000000200000001 h.0000000400df0003
+  xB int64 h.0000000200000001 h.2100000400000003
+  xD int64 h.0000004a00000001 h.0000000400000003
+  xE int64 h.0000000200000001 h.000000040000e403
+
+EXEC XASSIGN_float
+TEST
+  xE int64 h.00000002000000a4 h.000000040000e403
+  xF int64 h.0000000244000001 h.0000000400000003
+  xG int64 h.00d4000200000001 h.0000000400000003
+  xH int64 h.0000000200000001 h.0000000400002c03
+  xI int64 h.0000000200000001 h.000000bc00000003
+  xJ int64 h.0000000200000001 h.5c00000400000003
+
+EXEC XASSIGN_fconst
+TEST
+  # xassign xK int8 0 CfN5555.0
+  # xassign xL int8 1 CfN555.5
+  # xassign xM int8 2 CfN55.55
+  # xassign xN int8 3 Cf55.55
+  # xassign xA int8 4 Cf555.5
+  # xassign xB int8 5 Cf5555.0
+  
+  xK int64 h.000000020000004d h.0000000400000003
+  xL int64 h.000000020000d501 h.0000000400000003
+  xM int64 h.0000000200c9001c h.0000000400000003
+  xN int64 h.0000b60237000001 h.0000000400000003
+  xA int64 h.0000002b00000001 h.0000000400df0003
+  xB int64 h.0000b30200000001 h.2100000400000003
+
+EXEC XASSIGN_prepare_xmmx
+TEST
+  rA 0
+  rB 0
+  rC 0
+  rD 0
+  rE 0
+  rF 0
+  xA 4444.5555
+  xB 5555.6666
+  xC 6666.7777
+  xD 7777.8888
+  xE int32 1 2 3 4
+  xF int32 1 2 3 4
+  xG int32 1 2 3 4
+  xH int32 1 2 3 4
+  xI int32 1 2 3 4
+  xJ int32 1 2 3 4
+  xK int32 1 2 3 4
+  xL int32 1 2 3 4
+  xM int32 1 2 3 4
+  xN int32 1 2 3 4
+  lwcstack 0 70
+
+EXEC XASSIGN_xmmx
+TEST
+  xE int64 h.5cb30a61610ab35c h.5c0000040000b303
+
+EXEC XASSIGN_prepare_xf32
+TEST
+  rA 0
+  rB 0
+  rC 0
+  rD 0
+  rE 0
+  rF 0
+  xB int32 1 2 3 4
+  xC int32 1 2 3 4
+  xD int32 1 2 3 4
+  xE int32 1 2 3 4
+  xF int32 1 2 3 4
+  xG int32 1 2 3 4
+  xH int32 1 2 3 4
+  xI int32 1 2 3 4
+  xJ int32 1 2 3 4
+  xK int32 1 2 3 4
+  xL int32 1 2 3 4
+  xM int32 1 2 3 4
+  xN int32 1 2 3 4
+  lwcstack 0 87
+  xA float32 121.515 232.515 343.515 454.515
+
+EXEC XASSIGN_xf32
+TEST
+  xB int64 h.c657e87979e857c6 h.00000004c6e85779
+  xE int64 h.00000002c657e879 h.0000000400000003
+
+EXEC XASSIGN_prepare_xf64
+TEST
+  rA 0
+  rA 0
+  rB 0
+  rC 0
+  rD 0
+  rE 0
+  rF 0
+  xB int32 1 2 3 4
+  xC int32 1 2 3 4
+  xD int32 1 2 3 4
+  xE int32 1 2 3 4
+  xF int32 1 2 3 4
+  xG int32 1 2 3 4
+  xH int32 1 2 3 4
+  xI int32 1 2 3 4
+  xJ int32 1 2 3 4
+  xK int32 1 2 3 4
+  xL int32 1 2 3 4
+  xM int32 1 2 3 4
+  xN int32 1 2 3 4
+  lwcstack 0 110
+  xA float64 565.51515 676.51515
+
+EXEC XASSIGN_xf64
+TEST
+  xB int64 h.0000000200000035 h.0000000400000003
+  xC int64 h.00000002000000a4 h.0000000400000003
+  xD int64 h.0000000200000035 h.0000000400000003
+  xE int64 h.000000020000a401 h.0000000400000003
+  xF int64 h.0000000200003501 h.0000000400000003
+  xG int64 h.000000020000a401 h.0000000400000003
+  xH int64 h.0000000200350001 h.0000000400000003
+  xI int64 h.0000000200a40001 h.0000000400000003
+  xJ int64 h.0000000200350001 h.0000000400000003
+  xK int64 h.00000002a4000001 h.0000000400000003
+  xL int64 h.0000000235000001 h.0000000400000003
+  xM int64 h.00000002a4000001 h.0000000400000003
+  xN int64 h.0000000200000035 h.0000000400000003
+
+EXEC XASSIGN_prepare_i8
+TEST
+  rA 0
+  rB 0
+  rC 0
+  rD 0
+  rE 0
+  rF 0
+  xB int32 1 2 3 4
+  xC int32 1 2 3 4
+  xD int32 1 2 3 4
+  xE int32 1 2 3 4
+  xF int32 1 2 3 4
+  xG int32 1 2 3 4
+  xH int32 1 2 3 4
+  xI int32 1 2 3 4
+  xJ int32 1 2 3 4
+  xK int32 1 2 3 4
+  xL int32 1 2 3 4
+  xM int32 1 2 3 4
+  xN int32 1 2 3 4
+  lwcstack 0 128
+  xA int64 h.584d42372c21160b h.b0a59a8f84796e63
+
+EXEC XASSIGN_i8
+TEST
+  xB int64 h.000000020000000b h.0000000400000003
+  xC int64 h.0000000200000016 h.0000000400000003
+  xD int64 h.0000002100000001 h.0000000400000003
+  xE int64 h.0000000200002c01 h.0000000400000003
+  xF int64 h.0000000200003701 h.0000000400000003
+  xG int64 h.0000420200000001 h.0000000400000003
+  xH int64 h.00000002004d0001 h.0000000400000003
+  xI int64 h.0000000200580001 h.0000000400000003
+  xJ int64 h.0063000200000001 h.0000000400000003
+  xK int64 h.000000026e000001 h.0000000400000003
+  xL int64 h.0000000279000001 h.0000000400000003
+  xM int64 h.8400000200000001 h.0000000400000003
+  xN int64 h.000000020000008f h.0000000400000003
+
+EXEC XASSIGN_prepare_i16
+TEST
+  rA 0
+  rB 0
+  rC 0
+  rD 0
+  rE 0
+  rF 0
+  xB int32 1 2 3 4
+  xC int32 1 2 3 4
+  xD int32 1 2 3 4
+  xE int32 1 2 3 4
+  xF int32 1 2 3 4
+  xG int32 1 2 3 4
+  xH int32 1 2 3 4
+  xI int32 1 2 3 4
+  xJ int32 1 2 3 4
+  xK int32 1 2 3 4
+  xL int32 1 2 3 4
+  xM int32 1 2 3 4
+  xN int32 1 2 3 4
+  lwcstack 0 160
+  xA int64 h.115C0D0508AE0457 h.22B81E611A0A15B3
+
+EXEC XASSIGN_i16
+TEST
+  xB int64 h.0000000200000057 h.0000000400000003
+  xC int64 h.00000002000000ae h.0000000400000003
+  xD int64 h.0000000500000001 h.0000000400000003
+  xE int64 h.0000000200005c01 h.0000000400000003
+  xF int64 h.000000020000b301 h.0000000400000003
+  xG int64 h.00000a0200000001 h.0000000400000003
+  xH int64 h.0000000200610001 h.0000000400000003
+  xI int64 h.0000000200b80001 h.0000000400000003
+  xJ int64 h.0057000200000001 h.0000000400000003
+  xK int64 h.00000002ae000001 h.0000000400000003
+  xL int64 h.0000000205000001 h.0000000400000003
+  xM int64 h.5c00000200000001 h.0000000400000003
+  xN int64 h.00000002000000b3 h.0000000400000003
+  
+EXEC XASSIGN_prepare_i32
+TEST
+  rA 0
+  rB 0
+  rC 0
+  rD 0
+  rE 0
+  rF 0
+  xB int32 1 2 3 4
+  xC int32 1 2 3 4
+  xD int32 1 2 3 4
+  xE int32 1 2 3 4
+  xF int32 1 2 3 4
+  xG int32 1 2 3 4
+  xH int32 1 2 3 4
+  xI int32 1 2 3 4
+  xJ int32 1 2 3 4
+  xK int32 1 2 3 4
+  xL int32 1 2 3 4
+  xM int32 1 2 3 4
+  xN int32 1 2 3 4
+  lwcstack 0 184
+  xA int32 11111111 22222222 33333333 44444444
+
+EXEC XASSIGN_i32
+TEST
+  xB int64 h.00000002000000c7 h.0000000400000003
+  xC int64 h.000000020000008e h.0000000400000003
+  xD int64 h.0000005500000001 h.0000000400000003
+  xE int64 h.0000000200001c01 h.0000000400000003
+  xF int64 h.000000020000c701 h.0000000400000003
+  xG int64 h.00008e0200000001 h.0000000400000003
+  xH int64 h.0000000200550001 h.0000000400000003
+  xI int64 h.00000002001c0001 h.0000000400000003
+  xJ int64 h.00c7000200000001 h.0000000400000003
+  xK int64 h.000000028e000001 h.0000000400000003
+  xL int64 h.0000000255000001 h.0000000400000003
+  xM int64 h.1c00000200000001 h.0000000400000003
+  xN int64 h.00000002000000c7 h.0000000400000003
+
+EXEC XASSIGN_prepare_i64
+TEST
+  rA 0
+  rB 0
+  rC 0
+  rD 0
+  rE 0
+  rF 0
+  xB int32 1 2 3 4
+  xC int32 1 2 3 4
+  xD int32 1 2 3 4
+  xE int32 1 2 3 4
+  xF int32 1 2 3 4
+  xG int32 1 2 3 4
+  xH int32 1 2 3 4
+  xI int32 1 2 3 4
+  xJ int32 1 2 3 4
+  xK int32 1 2 3 4
+  xL int32 1 2 3 4
+  xM int32 1 2 3 4
+  xN int32 1 2 3 4
+  lwcstack 0 204
+  xA int64 1111111111111111 2222222222222222
+
+EXEC XASSIGN_i64
+TEST
+  xB int64 h.00000002000000c7 h.0000000400000003
+  xC int64 h.000000020000008e h.0000000400000003
+  xD int64 h.000000c700000001 h.0000000400000003
+  xE int64 h.0000000200008e01 h.0000000400000003
+  xF int64 h.000000020000c701 h.0000000400000003
+  xG int64 h.00008e0200000001 h.0000000400000003
+  xH int64 h.0000000200c70001 h.0000000400000003
+  xI int64 h.00000002008e0001 h.0000000400000003
+  xJ int64 h.00c7000200000001 h.0000000400000003
+  xK int64 h.000000028e000001 h.0000000400000003
+  xL int64 h.00000002c7000001 h.0000000400000003
+  xM int64 h.8e00000200000001 h.0000000400000003
+  xN int64 h.00000002000000c7 h.0000000400000003

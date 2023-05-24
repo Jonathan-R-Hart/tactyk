@@ -518,20 +518,6 @@ TEST
 
 EXEC XASSIGN_xf64
 TEST
-  #  xassign xB int16 0 xA float64 0
-  #  xassign xC int16 0 xA float64 1
-  #  xassign xD int16 0 xN float64 2
-  #  xassign xE int16 1 xN float64 3
-  #  xassign xF int16 1 xM float64 4
-  #  xassign xG int16 1 xM float64 5
-  #  xassign xH int16 2 xL float64 6
-  #  xassign xI int16 2 xL float64 7
-  #  xassign xJ int16 2 xK float64 8
-  #  xassign xK int16 3 xK float64 9
-  #  xassign xL int16 3 xJ float64 10
-  #  xassign xM int16 3 xJ float64 11
-  #  xassign xN int16 0 xI float64 12
-
   xB int64 h.0000000200000235 h.0000000400000003
   xC int64 h.00000002000002a4 h.0000000400000003
   xD int64 h.0000000200000235 h.0000000400000003
