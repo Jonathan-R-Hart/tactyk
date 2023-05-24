@@ -1,21 +1,21 @@
 # TEST:  xassign
 #
-# assign to int32 slot in xmm register
+# assign to int64 slot in xmm register
 #
 # Virtual-ISA: tactyk_core
 # Templates:
-#   xassign xmmx-I32-data (XI32D)
-#   xassign xmmx-I32-const (XI32C)
-#   xassign xmmx-I32-integer (XI32I)
-#   xassign xmmx-I32-float (XI32F)
-#   xassign xmmx-I32-fconst (XI32Cf)
-#   xassign xmmx-I32-xmmx (XI32X)
-#   xassign xmmx-I32-xmmx-F32 (XI32XF32)
-#   xassign xmmx-I32-xmmx-F64 (XI32XF32)
-#   xassign xmmx-I32-xmmx-I8 (XI32XI8)
-#   xassign xmmx-I32-xmmx-I16 (XI32XI16)
-#   xassign xmmx-I32-xmmx-I32 (XI32XI32)
-#   xassign xmmx-I32-xmmx-I64 (XI32XI64)
+#   xassign xmmx-I64-data (XI64D)
+#   xassign xmmx-I64-const (XI64C)
+#   xassign xmmx-I64-integer (XI64I)
+#   xassign xmmx-I64-float (XI64F)
+#   xassign xmmx-I64-fconst (XI64Cf)
+#   xassign xmmx-I64-xmmx (XI64X)
+#   xassign xmmx-I64-xmmx-F32 (XI64XF32)
+#   xassign xmmx-I64-xmmx-F64 (XI64XF32)
+#   xassign xmmx-I64-xmmx-I8 (XI64XI8)
+#   xassign xmmx-I64-xmmx-I16 (XI64XI16)
+#   xassign xmmx-I64-xmmx-I32 (XI64XI32)
+#   xassign xmmx-I64-xmmx-I64 (XI64XI64)
 
 PROGRAM
   
