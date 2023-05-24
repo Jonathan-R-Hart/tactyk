@@ -13,10 +13,8 @@ instruction float-to-int--cast-mode
   code
     stmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
     mov rTEMPA_32, fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
-    ;mov rC, rTEMPA
     and rTEMPA_32, 0xffff9fff
     or rTEMPA_32, $CONV_FLAGS
-    ;mov rD, rTEMPA
     mov fs:[context.registers + rbtactyk.mxcsr + random_const_FS ], rTEMPA_32
     ldmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS]
     jmp $NEXT_INSTRUCTION
