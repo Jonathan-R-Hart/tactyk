@@ -672,6 +672,7 @@
         rdgsbase r13
         mov [%1 + context.runtime_registers + rbnative.fs], r12
         mov [%1 + context.runtime_registers + rbnative.gs], r13
+        stmxcsr [%1 + context.runtime_registers + rbnative.mxcsr]
         
         ; supposedly not needed:
         ;movdqu [%1 + context.runtime_registers + rbnative.xmm0  ], xmm0
@@ -702,6 +703,7 @@
         mov rsp, [%1 + context.runtime_registers + rbnative.rsp]
         mov r12, [%1 + context.runtime_registers + rbnative.r12]
         mov r13, [%1 + context.runtime_registers + rbnative.r13]
+        ldmxcsr [%1 + context.runtime_registers + rbnative.mxcsr]
 
         ; supposedly not needed:
         ;movdqu xmm0,  [%1 + context.runtime_registers + rbnative.xmm0  ]
@@ -757,6 +759,14 @@
         movdqu xmm13, fs:[context.registers + rbtactyk.xn  + random_const_FS]
         movdqu xmm14, fs:[context.registers + rbtactyk.xo  + random_const_FS]
         movdqu xmm15, fs:[context.registers + rbtactyk.xp  + random_const_FS]
+        mov rTEMPA_32, fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
+        cmp rTEMPA, 0
+        jne .ldctx_restoremxcsr
+        stmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
+        jmp .ldctx_end
+        .ldctx_restoremxcsr:
+        ldmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
+        .ldctx_end:
     %endmacro
 
     %macro store_context 0
@@ -791,6 +801,7 @@
         movdqu fs:[context.registers + rbtactyk.xn + random_const_FS ], xmm13
         movdqu fs:[context.registers + rbtactyk.xo + random_const_FS ], xmm14
         movdqu fs:[context.registers + rbtactyk.xp + random_const_FS ], xmm15
+        stmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
     %endmacro
 
     ; zero data/address registers and memory locations which augment context state.
