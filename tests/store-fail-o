@@ -59,87 +59,87 @@ PROGRAM
   
   INIT:
     bind addr1 mm
-    insert int64.1 xA h.7654321076543210
+    xassign xA int64 0 h.7654321076543210
     exit
   
   st_B128ADX_neg:
-    insert int64.1 xA h.7654321076543211
+    xassign xA int64 0 h.7654321076543211
     assign b -1
     store oword addr1 b xA
     exit
   st_B128ADX_zero:
-    insert int64.1 xA h.7654321076543212
+    xassign xA int64 0 h.7654321076543212
     assign b 0
     store oword addr1 b xA
     exit
   st_B128ADX_edge:
-    insert int64.1 xA h.7654321076543213
+    xassign xA int64 0 h.7654321076543213
     assign b 4
     store oword addr1 b xA
     exit
   st_B128ADX_cross:
-    insert int64.1 xA h.7654321076543214
+    xassign xA int64 0 h.7654321076543214
     assign b 5
     store oword addr1 b xA
     exit
   st_B128ADX_far:
-    insert int64.1 xA h.7654321076543215
+    xassign xA int64 0 h.7654321076543215
     assign b 19
     store oword addr1 b xA
     exit
   st_B128ADX_beyond:
-    insert int64.1 xA h.7654321076543216
+    xassign xA int64 0 h.7654321076543216
     assign b 20
     store oword addr1 b xA
     exit
   
   st_B128AIX_neg:
-    insert int64.1 xA h.7654321076543217
+    xassign xA int64 0 h.7654321076543217
     store oword addr1 -1 xA
     exit
   st_B128AIX_zero:
-    insert int64.1 xA h.7654321076543218
+    xassign xA int64 0 h.7654321076543218
     store oword addr1 0 xA
     exit
   st_B128AIX_edge:
-    insert int64.1 xA h.7654321076543219
+    xassign xA int64 0 h.7654321076543219
     store oword addr1 4 xA
     exit
   st_B128AIX_cross:
-    insert int64.1 xA h.7654321076543220
+    xassign xA int64 0 h.7654321076543220
     store oword addr1 5 xA
     exit
   st_B128AIX_far:
-    insert int64.1 xA h.7654321076543221
+    xassign xA int64 0 h.7654321076543221
     store oword addr1 19 xA
     exit
   st_B128AIX_beyond:
-    insert int64.1 xA h.7654321076543222
+    xassign xA int64 0 h.7654321076543222
     store oword addr1 20 xA
     exit
   
   st_B128ACX_neg:
-    insert int64.1 xA h.7654321076543223
+    xassign xA int64 0 h.7654321076543223
     store oword addr1 CN1 xA
     exit
   st_B128ACX_zero:
-    insert int64.1 xA h.7654321076543224
+    xassign xA int64 0 h.7654321076543224
     store oword addr1 C0 xA
     exit
   st_B128ACX_edge:
-    insert int64.1 xA h.7654321076543225
+    xassign xA int64 0 h.7654321076543225
     store oword addr1 C4 xA
     exit
   st_B128ACX_cross:
-    insert int64.1 xA h.7654321076543226
+    xassign xA int64 0 h.7654321076543226
     store oword addr1 C5 xA
     exit
   st_B128ACX_far:
-    insert int64.1 xA h.7654321076543227
+    xassign xA int64 0 h.7654321076543227
     store oword addr1 C19 xA
     exit
   st_B128ACX_beyond:
-    insert int64.1 xA h.7654321076543228
+    xassign xA int64 0 h.7654321076543228
     store oword addr1 C20 xA
     exit
 

@@ -44,19 +44,19 @@ PROGRAM
     assign xK 11.99
     assign xL 12.00
     assign xM 13.01
-    insert float64.2 xA 111.0
-    insert float64.2 xB 222.0
-    insert float64.2 xC 333.0
-    insert float64.2 xD 444.0
-    insert float64.2 xE 555.0
-    insert float64.2 xF 666.0
-    insert float64.2 xG 777.0
-    insert float64.2 xH 888.0
-    insert float64.2 xI 999.0
-    insert float64.2 xJ 101010.0
-    insert float64.2 xK 111111.0
-    insert float64.2 xL 222222.0
-    insert float64.2 xM 333333.0
+    xassign xA float64 1 111
+    xassign xB float64 1 222
+    xassign xC float64 1 333
+    xassign xD float64 1 444
+    xassign xE float64 1 555
+    xassign xF float64 1 666
+    xassign xG float64 1 777
+    xassign xH float64 1 888
+    xassign xI float64 1 999
+    xassign xJ float64 1 101010
+    xassign xK float64 1 111111
+    xassign xL float64 1 222222
+    xassign xM float64 1 333333
     assign a 0
     store oword addr1 rA xA
     add rA 16
@@ -99,19 +99,19 @@ PROGRAM
     mul xK 3.33
     mul xL 3.33
     mul xM 3.33
-    insert float64.2 xA 1111.0
-    insert float64.2 xB 1222.0
-    insert float64.2 xC 1333.0
-    insert float64.2 xD 1444.0
-    insert float64.2 xE 1555.0
-    insert float64.2 xF 1666.0
-    insert float64.2 xG 1777.0
-    insert float64.2 xH 1888.0
-    insert float64.2 xI 1999.0
-    insert float64.2 xJ 1101010.0
-    insert float64.2 xK 1111111.0
-    insert float64.2 xL 1222222.0
-    insert float64.2 xM 1333333.0
+    xassign xA float64 1 1111
+    xassign xB float64 1 1222
+    xassign xC float64 1 1333
+    xassign xD float64 1 1444
+    xassign xE float64 1 1555
+    xassign xF float64 1 1666
+    xassign xG float64 1 1777
+    xassign xH float64 1 1888
+    xassign xI float64 1 1999
+    xassign xJ float64 1 1101010
+    xassign xK float64 1 1111111
+    xassign xL float64 1 1222222
+    xassign xM float64 1 1333333
     store oword addr1 0 xA
     store oword addr1 16 xB
     store oword addr1 32 xC
@@ -141,19 +141,19 @@ PROGRAM
     mul xK 100
     mul xL 100
     mul xM 100
-    insert float64.2 xA 2111.0
-    insert float64.2 xB 2222.0
-    insert float64.2 xC 2333.0
-    insert float64.2 xD 2444.0
-    insert float64.2 xE 2555.0
-    insert float64.2 xF 2666.0
-    insert float64.2 xG 2777.0
-    insert float64.2 xH 2888.0
-    insert float64.2 xI 2999.0
-    insert float64.2 xJ 2101010.0
-    insert float64.2 xK 2111111.0
-    insert float64.2 xL 2222222.0
-    insert float64.2 xM 2333333.0
+    xassign xA float64 1 2111
+    xassign xB float64 1 2222
+    xassign xC float64 1 2333
+    xassign xD float64 1 2444
+    xassign xE float64 1 2555
+    xassign xF float64 1 2666
+    xassign xG float64 1 2777
+    xassign xH float64 1 2888
+    xassign xI float64 1 2999
+    xassign xJ float64 1 2101010
+    xassign xK float64 1 2111111
+    xassign xL float64 1 2222222
+    xassign xM float64 1 2333333
     store oword addr1 C0 xA
     store oword addr1 C16 xB
     store oword addr1 C32 xC

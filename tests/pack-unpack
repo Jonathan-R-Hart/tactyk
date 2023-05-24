@@ -9,8 +9,8 @@
 
 PROGRAM
   TEST_unpack_int32:
-    insert int64.1 xJ h.7766554433221100
-    insert int64.2 xJ h.ffeeddccbbaa9988
+    xassign xJ int64 0 h.7766554433221100
+    xassign xJ int64 1 h.ffeeddccbbaa9988
     unpack int32.4 xB xJ
     unpack int32.3 xF xJ
     unpack int32.2 xN xJ

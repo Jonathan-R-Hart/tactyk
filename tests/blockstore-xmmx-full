@@ -53,20 +53,20 @@ PROGRAM
     assign xL 12.11
     assign xM 13.12
     assign xN 14.13
-    insert float64.2 xA 1.02
-    insert float64.2 xB 2.03
-    insert float64.2 xC 3.04
-    insert float64.2 xD 4.05
-    insert float64.2 xE 5.06
-    insert float64.2 xF 6.07
-    insert float64.2 xG 7.08
-    insert float64.2 xH 8.09
-    insert float64.2 xI 9.10
-    insert float64.2 xJ 10.11
-    insert float64.2 xK 11.12
-    insert float64.2 xL 12.13
-    insert float64.2 xM 13.14
-    insert float64.2 xN 14.01
+    xassign xA float64 1 1.02
+    xassign xB float64 1 2.03
+    xassign xC float64 1 3.04
+    xassign xD float64 1 4.05
+    xassign xE float64 1 5.06
+    xassign xF float64 1 6.07
+    xassign xG float64 1 7.08
+    xassign xH float64 1 8.09
+    xassign xI float64 1 9.10
+    xassign xJ float64 1 10.11
+    xassign xK float64 1 11.12
+    xassign xL float64 1 12.13
+    xassign xM float64 1 13.14
+    xassign xN float64 1 14.01
     exit
   
   BLKSTORE_int:
