@@ -527,6 +527,17 @@
     struc regbank
         qwords prog,lwcsi,mcsi,tempa,tempc,tempd,addr1,addr2,addr3,addr4,a,b,c,d,e,f
         owords xa,xb,xc,xd, xe,xf,xg,xh, xi,xj,xk,xl, xm,xn,xo,xp
+        qwords, fs,gs
+        dwords mxcsr
+        unused:  resd 27
+    endstruc
+
+    struc rbnative
+        qwords rax,rbx,rcx,rdx, rbp,rsp, rsi,rdi, r8,r9,r10,r11,r12,r13,r14,r15
+        owords xmm0,xmm1,xmm2,xmm3, xmm4,xmm5,xmm6,xmm7, xmm8,xmm9,xmm10,xmm11, xmm12,xmm13,xmm14,xmm15
+        qwords, fs,gs
+        dwords mxcsr
+        unused:  resd 27
     endstruc
 
     struc tvmstackentry
@@ -620,8 +631,8 @@
         
         owords fpu_a, fpu_b, fpu_c, fpu_d,  fpu_e, fpu_f, fpu_g, fpu_h
 
-        .registers:  resq 48
-        .runtime_registers:  resq 48
+        .registers:  resq 64
+        .runtime_registers:  resq 64
     endstruc
     
     %unmacro dwords 1-*
@@ -650,65 +661,65 @@
     ; runtime registers do not belong to tactyk, and so do not use internal tactyk names
     ; The only thing that matters here is that they get correctly stored and restored.
     %macro store_runtimecontext 1
-        mov [%1 + context.runtime_registers + 0], rbx
-        mov [%1 + context.runtime_registers + 8], rbp
-        mov [%1 + context.runtime_registers + 16], rsp
-        mov [%1 + context.runtime_registers + 24], r12
-        mov [%1 + context.runtime_registers + 32], r13
-        mov [%1 + context.runtime_registers + 40], r14
-        mov [%1 + context.runtime_registers + 48], r15
+        mov [%1 + context.runtime_registers + rbnative.rbx], rbx
+        mov [%1 + context.runtime_registers + rbnative.rbp], rbp
+        mov [%1 + context.runtime_registers + rbnative.rsp], rsp
+        mov [%1 + context.runtime_registers + rbnative.r12], r12
+        mov [%1 + context.runtime_registers + rbnative.r13], r13
+        mov [%1 + context.runtime_registers + rbnative.r14], r14
+        mov [%1 + context.runtime_registers + rbnative.r15], r15
         rdfsbase r12
         rdgsbase r13
-        mov [%1 + context.runtime_registers + 56], r12
-        mov [%1 + context.runtime_registers + 64], r13
+        mov [%1 + context.runtime_registers + rbnative.fs], r12
+        mov [%1 + context.runtime_registers + rbnative.gs], r13
         
         ; supposedly not needed:
-        ;movdqu [%1 + context.runtime_registers + 128+0   ], xmm0
-        ;movdqu [%1 + context.runtime_registers + 128+8   ], xmm1
-        ;movdqu [%1 + context.runtime_registers + 128+16  ], xmm2
-        ;movdqu [%1 + context.runtime_registers + 128+32  ], xmm3
-        ;movdqu [%1 + context.runtime_registers + 128+40  ], xmm4
-        ;movdqu [%1 + context.runtime_registers + 128+48  ], xmm5
-        ;movdqu [%1 + context.runtime_registers + 128+56  ], xmm6
-        ;movdqu [%1 + context.runtime_registers + 128+64  ], xmm7
-        ;movdqu [%1 + context.runtime_registers + 128+72  ], xmm8
-        ;movdqu [%1 + context.runtime_registers + 128+80  ], xmm9
-        ;movdqu [%1 + context.runtime_registers + 128+88  ], xmm10
-        ;movdqu [%1 + context.runtime_registers + 128+96  ], xmm11
-        ;movdqu [%1 + context.runtime_registers + 128+104 ], xmm12
-        ;movdqu [%1 + context.runtime_registers + 128+112 ], xmm13
-        ;movdqu [%1 + context.runtime_registers + 128+120 ], xmm14
-        ;movdqu [%1 + context.runtime_registers + 128+128 ], xmm15
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm0  ], xmm0
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm1  ], xmm1
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm2  ], xmm2
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm3  ], xmm3
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm4  ], xmm4
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm5  ], xmm5
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm6  ], xmm6
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm7  ], xmm7
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm8  ], xmm8
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm9  ], xmm9
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm10 ], xmm10
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm11 ], xmm11
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm12 ], xmm12
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm13 ], xmm13
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm14 ], xmm14
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm15 ], xmm15
     %endmacro
 
     %macro load_runtimecontext 1
-        mov r12, [%1 + context.runtime_registers + 56]
-        mov r13, [%1 + context.runtime_registers + 64]
+        mov r12, [%1 + context.runtime_registers + rbnative.fs]
+        mov r13, [%1 + context.runtime_registers + rbnative.gs]
         wrfsbase r12
         wrgsbase r13
-        mov rbx, [%1 + context.runtime_registers + 0]
-        mov rbp, [%1 + context.runtime_registers + 8]
-        mov rsp, [%1 + context.runtime_registers + 16]
-        mov r12, [%1 + context.runtime_registers + 24]
-        mov r13, [%1 + context.runtime_registers + 32]
+        mov rbx, [%1 + context.runtime_registers + rbnative.rbx]
+        mov rbp, [%1 + context.runtime_registers + rbnative.rbp]
+        mov rsp, [%1 + context.runtime_registers + rbnative.rsp]
+        mov r12, [%1 + context.runtime_registers + rbnative.r12]
+        mov r13, [%1 + context.runtime_registers + rbnative.r13]
 
         ; supposedly not needed:
-        ;movdqu xmm0,  [%1 + context.runtime_registers + 128+0   ]
-        ;movdqu xmm1,  [%1 + context.runtime_registers + 128+8   ]
-        ;movdqu xmm2,  [%1 + context.runtime_registers + 128+16  ]
-        ;movdqu xmm3,  [%1 + context.runtime_registers + 128+32  ]
-        ;movdqu xmm4,  [%1 + context.runtime_registers + 128+40  ]
-        ;movdqu xmm5,  [%1 + context.runtime_registers + 128+48  ]
-        ;movdqu xmm6,  [%1 + context.runtime_registers + 128+56  ]
-        ;movdqu xmm7,  [%1 + context.runtime_registers + 128+64  ]
-        ;movdqu xmm8,  [%1 + context.runtime_registers + 128+72  ]
-        ;movdqu xmm9,  [%1 + context.runtime_registers + 128+80  ]
-        ;movdqu xmm10, [%1 + context.runtime_registers + 128+88  ]
-        ;movdqu xmm11, [%1 + context.runtime_registers + 128+96  ]
-        ;movdqu xmm12, [%1 + context.runtime_registers + 128+104 ]
-        ;movdqu xmm13, [%1 + context.runtime_registers + 128+112 ]
-        ;movdqu xmm14, [%1 + context.runtime_registers + 128+120 ]
-        ;movdqu xmm15, [%1 + context.runtime_registers + 128+128 ]
+        ;movdqu xmm0,  [%1 + context.runtime_registers + rbnative.xmm0  ]
+        ;movdqu xmm1,  [%1 + context.runtime_registers + rbnative.xmm1  ]
+        ;movdqu xmm2,  [%1 + context.runtime_registers + rbnative.xmm2  ]
+        ;movdqu xmm3,  [%1 + context.runtime_registers + rbnative.xmm3  ]
+        ;movdqu xmm4,  [%1 + context.runtime_registers + rbnative.xmm4  ]
+        ;movdqu xmm5,  [%1 + context.runtime_registers + rbnative.xmm5  ]
+        ;movdqu xmm6,  [%1 + context.runtime_registers + rbnative.xmm6  ]
+        ;movdqu xmm7,  [%1 + context.runtime_registers + rbnative.xmm7  ]
+        ;movdqu xmm8,  [%1 + context.runtime_registers + rbnative.xmm8  ]
+        ;movdqu xmm9,  [%1 + context.runtime_registers + rbnative.xmm9  ]
+        ;movdqu xmm10, [%1 + context.runtime_registers + rbnative.xmm10 ]
+        ;movdqu xmm11, [%1 + context.runtime_registers + rbnative.xmm11 ]
+        ;movdqu xmm12, [%1 + context.runtime_registers + rbnative.xmm12 ]
+        ;movdqu xmm13, [%1 + context.runtime_registers + rbnative.xmm13 ]
+        ;movdqu xmm14, [%1 + context.runtime_registers + rbnative.xmm14 ]
+        ;movdqu xmm15, [%1 + context.runtime_registers + rbnative.xmm15 ]
     %endmacro
 
     %macro load_context 1
@@ -833,8 +844,8 @@
         rdfsbase rax
         add rax, random_const_FS
         load_runtimecontext rax
-        mov r14, [rax + context.runtime_registers + 40]
-        mov r15, [rax + context.runtime_registers + 48]
+        mov r14, [rax + context.runtime_registers + rbnative.r14 ]
+        mov r15, [rax + context.runtime_registers + rbnative.r15 ]
         mov rax, STATUS_HALT
         ret
     %endmacro
@@ -845,8 +856,8 @@
         rdfsbase rax
         add rax, random_const_FS
         load_runtimecontext rax
-        mov r14, [rax + context.runtime_registers + 40]
-        mov r15, [rax + context.runtime_registers + 48]
+        mov r14, [rax + context.runtime_registers + rbnative.r14 ]
+        mov r15, [rax + context.runtime_registers + rbnative.r15 ]
         mov rax, %1
         ret
     %endmacro
