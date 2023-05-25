@@ -7,6 +7,15 @@ Add a matrix transposition instruction: "transpose"
     (flip between row-major and column-major order)
   This is expected to be a fairly common operation needed by secondary optimizations (mainly handling of 3d matrix transformations)
 
+SUPER SIMD!
+  This is a large collection of "vectorized" SIMD-based operations
+  These instructions apply simd operations to sets of XMM registers (and may be thought of as SIMD on a larger scale than x86-sse extensions offer).
+    The larger scale is basically intended to help math-heavy programs overcome some of the performance penalties incurred by tactyk binary executable randomization
+  These instructions accept many formats (and internally apply conversions to match the output)
+  Instructions: are as follows:
+    xadd, xsub, xmul, xdiv, xsqrt, xmin, and xmax (basically the xmm floating point opreators)
+  TODO:  Integer operations.
+
 23 May 2023
 tactyk-test - add an explitic text exit function
   This terminates a test script early (and is intended only as a to help repurposing test scripts)
