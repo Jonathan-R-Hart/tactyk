@@ -53,6 +53,18 @@ instruction xassign
     $SIDX $SSE_INDEX
     $SSW $SSE_WORD
     $SRXT $SSE_REG_EXT
+  opt-operand
+    type xmmx data const fconst integer float
+    $SRC_2 $VALUE
+    scramble rTEMPA $LD_B_IMMEDIATE
+  opt-operand
+    type xmmx data const fconst integer float
+    $SRC_3 $VALUE
+    scramble rTEMPA $LD_C_IMMEDIATE
+  opt-operand
+    type xmmx data const fconst integer float
+    $SRC_4 $VALUE
+    scramble rTEMPA $LD_D_IMMEDIATE
   select-template
     case XF32X
       sub sse-insps-arg--Szero
@@ -326,7 +338,77 @@ instruction xassign
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
-
+    case XFF XFCf XCfF XCfCf  XII XIC XCI XCC
+      code
+        $LD_A_IMMEDIATE
+        movq $DEST, rTEMPA
+        $LD_B_IMMEDIATE
+        pinsrq $DEST, rTEMPA, 1
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XFFFF XFFFCf XFFCfF XFFCfCf  XFCfFF XFCfFCf XFCfCfF XFCfCfCf  XCfFFF XCfFFCf XCfFCfF XCfFCfCf  XCfCfFF XCfCfFCf XCfCfCfF XCfCfCfCf
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPB, xTEMPA
+        $LD_B_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPA, xTEMPA
+        insertps xTEMPB, xTEMPA, 0b00010000
+        $LD_C_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPA, xTEMPA
+        insertps xTEMPB, xTEMPA, 0b00100000
+        $LD_D_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPA, xTEMPA
+        insertps xTEMPB, xTEMPA, 0b00110000
+        movdqa $DEST, xTEMPB
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    case XIIII XIIIC XIICI XIICC  XICII XICIC XICCI XICCC  XCIII XCIIC XCICI XCICC  XCCII XCCIC XCCCI XCCCC
+      code
+        $LD_A_IMMEDIATE
+        movq $DEST, rTEMPA
+        $LD_B_IMMEDIATE
+        pinsrd $DEST, rTEMPA_32, 1
+        $LD_C_IMMEDIATE
+        pinsrd $DEST, rTEMPA_32, 2
+        $LD_D_IMMEDIATE
+        pinsrd $DEST, rTEMPA_32, 3
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XDD
+      code
+        movq $DEST, $SRC
+        pinsrq $DEST, $SRC_2, 1
+        jmp $NEXT_INSTRUCTION
+    case XDDDD
+      code
+        movq $DEST, $SRC
+        pinsrd $DEST, %[$SRC_2]_32, 1
+        pinsrd $DEST, %[$SRC_3]_32, 2
+        pinsrd $DEST, %[$SRC_4]_32, 3
+        jmp $NEXT_INSTRUCTION
+    case XXX
+      code
+        movq $DEST, $SRC
+        movlhps $DEST, $SRC_2
+        jmp $NEXT_INSTRUCTION
+    case XXXXX
+      code
+        cvtsd2ss $DEST, $SRC
+        cvtsd2ss xTEMPA, $SRC_2
+        insertps $DEST, xTEMPA, 0b00010000
+        cvtsd2ss xTEMPA, $SRC_3
+        insertps $DEST, xTEMPA, 0b00100000
+        cvtsd2ss xTEMPA, $SRC_4
+        insertps $DEST, xTEMPA, 0b00110000
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+      
 instruction pack
   operand
     type simd-format-discriminator

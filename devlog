@@ -1,3 +1,20 @@
+25 Mat 2023
+Expand xassign
+  templates for assigning directly setting all fields fields
+  Typing is implicit:
+    xmm-dest + Two integers -> packed 64-bit integers
+    xmm-dest + Two data registers -> packed 64-bit integers
+    xmm-dest + Four integers -> packed 32-bit integers
+    xmm-dest + Four data registers -> packed 32-bit integers
+    xmm-dest + Two floating point numbers -> packed 64-bit floats
+    xmm-dest + Two xmm registers ->  packed 64-bit floats
+    xmm-dest + Four floating point numbers -> packed 32-bit floats
+    xmm-dest + Four xmm registers ->  packed 32-bit floats
+  Integers and integer-constants are integerchangable
+  Likewise, floating point numbers and floating point constants are interchangeable
+  floating point numbers can not be mixed with integers for this (xassign configuration is heavy enough already)
+  NOTE:  floating point numbers are differentiated from integers by the presence of a decimal point. 
+
 24 May 2023
 Complete xassign test coverage
 remove insert and extract instructions, revise tests to use xassign
