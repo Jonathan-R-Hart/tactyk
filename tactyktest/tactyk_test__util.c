@@ -25,6 +25,7 @@ bool tactyk_test__approximately_eq(double a, double b, double precision) {
     else if (b == 0) {
         return fabs(a) < precision;
     }
+    //printf("pchk ... prec=%0.15f a=%f b=%f a/b=%0.15f 1-a/b=%0.15f\n", precision, a,b, a/b, 1.0-(a/b));
     return ( fabs(1.0-(a/b)) <= precision);
 }
 

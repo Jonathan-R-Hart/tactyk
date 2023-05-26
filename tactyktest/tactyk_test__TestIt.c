@@ -42,7 +42,7 @@ struct tactyk_dblock__DBlock *test_functions;
 struct tactyk_dblock__DBlock *DEFAULT_NAME;
 
 double DEFAULT_PRECISION_F64 = DBL_EPSILON * 131072.0;           // eps * 2**17
-double DEFAULT_PRECISION_F32 = DBL_EPSILON * 536870912.0;        // eps * 2**29
+double DEFAULT_PRECISION_F32 = DBL_EPSILON * 4294967296.0;        // eps * 2**32
 
 struct tactyk_dblock__DBlock **active_test_spec;
 
