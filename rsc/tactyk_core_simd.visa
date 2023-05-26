@@ -581,14 +581,14 @@ subroutine x-binary-op
     case XI XC
       code
         $LD_A_IMMEDIATE
-        cvdsi2sd xTEMPA, rTEMPA
+        cvtsi2sd xTEMPA, rTEMPA
         %[$XOP]sd $A, xTEMPA
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     case XD
       code
-        cvdsi2sd xTEMPA, $B
+        cvtsi2sd xTEMPA, $B
         %[$XOP]sd $A, xTEMPA
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
