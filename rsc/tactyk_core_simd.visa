@@ -707,7 +707,7 @@ subroutine x-binary-op
         jmp $NEXT_INSTRUCTION
     case XF32XF32
       code
-        %[$XOP]ss $A, $B
+        %[$XOP]ps $A, $B
         jmp $NEXT_INSTRUCTION
     case XF32XF64
       code

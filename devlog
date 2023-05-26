@@ -1,4 +1,6 @@
 26 May 2023
+partial test coverage for xadd (add to 64-bit floating point scalar and add to 4-element 32-bit floating point vector)
+
 tactyk-test - Reduce precision of 32-bit floating point tests a bit more
 
 25 May 2023

@@ -178,6 +178,7 @@ PROGRAM
     xassign xL 1.2 120.0
     xassign xM 1.3 130.0
     xassign xN 1.4 140.0
+    exit
   
   *XF64:
     assign xA 5
