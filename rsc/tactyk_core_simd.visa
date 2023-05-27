@@ -1041,8 +1041,6 @@ subroutine x-binary-op
     case VXvD
       code
         cvtsi2sd xTEMPA, $B
-        movddup xTEMPA, xTEMPA
-        movsldup xTEMPA, xTEMPA
       vcode $QTY
         1 %[$XOP]sd $A~0, xTEMPA
         2 %[$XOP]sd $A~1, xTEMPA
