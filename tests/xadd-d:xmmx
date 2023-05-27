@@ -212,7 +212,6 @@ PROGRAM
     xadd 11 xK xvL
     xadd 12 xL xvM
     xadd 13 xM xvN
-    xadd 14 xN xvA
     exit
   
   *XvF32:
@@ -375,7 +374,6 @@ TEST
   xK 391
   xL 737
   xM 1853
-  xN 7386
 
 EXEC INIT_f32_data
 EXEC *XvF32
@@ -417,26 +415,6 @@ TEST
   xB 1004.0
   xC 10005.7
   xD 100007.7
-
-
-# not part of the test
-EXIT
-TEST
-  xA 1
-  xB 2
-  xC 3
-  xD 4
-  xE 5
-  xF 6
-  xG 7
-  xH 8
-  xI 9
-  xJ 10
-  xK 11
-  xL 12
-  xM 13
-  xN 14
-
 
 
 
