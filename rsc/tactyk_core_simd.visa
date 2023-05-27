@@ -1484,6 +1484,27 @@ subroutine x-binary-op
       code
         pxor xTEMPA, xTEMPA
         jmp $NEXT_INSTRUCTION
+    case VXvF64X
+      code
+        movddup xTEMPA, $B
+      vcode $QTY
+        1 %[$XOP]pd $A~0, xTEMPA
+        2 %[$XOP]pd $A~1, xTEMPA
+        3 %[$XOP]pd $A~2, xTEMPA
+        4 %[$XOP]pd $A~3, xTEMPA
+        5 %[$XOP]pd $A~4, xTEMPA
+        6 %[$XOP]pd $A~5, xTEMPA
+        7 %[$XOP]pd $A~6, xTEMPA
+        8 %[$XOP]pd $A~7, xTEMPA
+        9 %[$XOP]pd $A~8, xTEMPA
+        10 %[$XOP]pd $A~9, xTEMPA
+        11 %[$XOP]pd $A~10, xTEMPA
+        12 %[$XOP]pd $A~11, xTEMPA
+        13 %[$XOP]pd $A~12, xTEMPA
+        14 %[$XOP]pd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
     case VXvF64XF32
       code
         cvtps2pd xTEMPA, $B
