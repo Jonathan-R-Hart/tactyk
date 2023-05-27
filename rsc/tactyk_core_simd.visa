@@ -1667,9 +1667,4 @@ instruction xmax
   $XOP max
   sub x-binary-op
 
-instruction xsqrt
-  $XOP sqrt
-  sub x-binary-op
-
-
 
