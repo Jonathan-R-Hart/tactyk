@@ -1,3 +1,6 @@
+27 May 2023
+partial test coverage for xadd (packed 64-bit target functions)
+
 26 May 2023
 partial test coverage for xadd (add to 64-bit floating point scalar and add to 4-element 32-bit floating point vector)
 

@@ -1,0 +1,420 @@
+# TEST:  xadd
+#
+# SUPER-simd addition, 4-element 32-bit float vector target
+#
+# Virtual-ISA: tactyk_core
+# Templates:
+#   xadd xmmx[f32]-float       (XF XCf)
+#   xadd xmmx[f32]-integer     (XI XC)
+#   xadd xmmx[f32]-data        (XD)
+#   xadd xmmx[f32]-xmmx        (XX)
+#   xadd xmmx[f32]-xmmx[f32]   (XXF32)
+#   xadd xmmx[f32]-xmmx[f64]   (XXF64)
+#   xadd xmmx[f32]-xmmx[v]     (XXv)
+#   xadd xmmx[f32]-xmmx[vf32]  (XXvF32)
+#   xadd xmmx[f32]-xmmx[vf64]  (XXvF64)
+#
+# TARGETS:
+# X:     64-bit float
+# XF32:  packed 32-bit floats
+# XF64:  packed 64-bit floats
+# Xv:    vector 64-bit float
+# XvF32: vector packed 32-bit floats
+# XvF64: vector packed 64-bit floats
+#
+# case VX*F VX*Cf
+# case VX*I VX*C
+# case VX*D
+# case VX*X
+# case VX*XF32
+# case VX*XF64
+# case VX*Xv
+# case VX*XvF32
+# case VX*XvF64
+## case VX*I8
+## case VX*I16
+## case VX*I32
+## case VX*I64
+
+XMM-DISPLAYMODE float64
+PROGRAM
+  
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C5 5
+  const C6 6
+  const C7 7
+  const Cf0.1 0.1
+  const Cf1.1 1.1
+  const Cf2.1 2.1
+  const Cf3.1 3.1
+  const Cf4.1 4.1
+  const Cf5.1 5.1
+  const Cf6.1 6.1
+  const Cf7.1 7.1
+  
+  INIT:
+    xassign xA 0.01  100.0
+    xassign xB 0.02  200.0
+    xassign xC 0.03  300.0
+    xassign xD 0.04  400.0
+    xassign xE 0.05  500.0
+    xassign xF 0.06  600.0
+    xassign xG 0.07  700.0
+    xassign xH 0.08  800.0
+    xassign xI 0.09  900.0
+    xassign xJ 0.10 1000.0
+    xassign xK 0.11 1100.0
+    xassign xL 0.12 1200.0
+    xassign xM 0.13 1300.0
+    xassign xN 0.14 1400.0
+    exit
+  
+  *F:
+    xadd xA float64 1.5
+    xadd xB float64 2.8
+    xadd xC float64 -31.3
+    xadd xD float64 0.1
+    xadd xE float64 41.4234
+    xadd xF float64 532.54
+    xadd xG float64 2341.542
+    xadd xH float64 Cf0.1
+    xadd xI float64 Cf1.1
+    xadd xJ float64 Cf2.1
+    xadd xK float64 Cf3.1
+    xadd xL float64 Cf4.1
+    xadd xM float64 Cf5.1
+    xadd xN float64 Cf6.1
+    exit
+  
+  *I:
+    xadd xA float64 10
+    xadd xB float64 11
+    xadd xC float64 100
+    xadd xD float64 101
+    xadd xE float64 256
+    xadd xF float64 512
+    xadd xG float64 10000
+    xadd xH float64 C1
+    xadd xI float64 C2
+    xadd xJ float64 C3
+    xadd xK float64 C4
+    xadd xL float64 C5
+    xadd xM float64 C6
+    xadd xN float64 C7
+    exit
+  
+  *D:
+    spread rA 1 2 3 4 5 6
+    xadd xA float64 rA
+    xadd xB float64 rB
+    xadd xC float64 rC
+    xadd xD float64 rD
+    xadd xE float64 rE
+    xadd xF float64 rF
+    xadd xG float64 rF
+    xadd xH float64 rF
+    xadd xI float64 rF
+    xadd xJ float64 rE
+    xadd xK float64 rD
+    xadd xL float64 rC
+    xadd xM float64 rB
+    xadd xN float64 rA
+    exit
+  
+  *X:
+    assign xA -50.0 0.0
+    assign xB   5.0 0.0
+    assign xC  -5.0 0.0
+    assign xD  50.0 0.0
+    xadd xE float64 xA
+    xadd xF float64 xA
+    xadd xG float64 xB
+    xadd xH float64 xB
+    xadd xI float64 xC
+    xadd xJ float64 xC
+    xadd xK float64 xD
+    xadd xL float64 xD
+    xadd xM float64 xB
+    xadd xN float64 xC
+    exit
+  
+  *XF32:
+    xassign xA 0.1  10.0  1000.0  100000.0
+    xassign xB 0.2  20.0  2000.0  200000.0
+    xassign xC 0.3  30.0  3000.0  300000.0
+    xassign xD 0.4  40.0  4000.0  400000.0
+    xadd xE float64 xA float32
+    xadd xF float64 xA float32
+    xadd xG float64 xB float32
+    xadd xH float64 xB float32
+    xadd xI float64 xC float32
+    xadd xJ float64 xC float32
+    xadd xK float64 xD float32
+    xadd xL float64 xD float32
+    xadd xM float64 xB float32
+    xadd xN float64 xC float32
+    exit
+  
+  *XF64:
+    xadd xA float64 xH float64
+    xadd xB float64 xI float64
+    xadd xC float64 xJ float64
+    xadd xD float64 xK float64
+    xadd xE float64 xL float64
+    xadd xF float64 xM float64
+    xadd xG float64 xN float64
+    xadd xH float64 xA float64
+    xadd xI float64 xB float64
+    xadd xJ float64 xC float64
+    xadd xK float64 xD float64
+    xadd xL float64 xE float64
+    xadd xM float64 xF float64
+    xadd xN float64 xG float64
+    exit
+    
+  *Xv:
+    assign xA -10.0 0.0
+    assign xB   1.0 0.0
+    assign xC   2.0 0.0
+    assign xD  10.0 0.0
+    xadd 1 xE float64 xvA
+    xadd 1 xF float64 xvB
+    xadd 2 xG float64 xvB
+    xadd 2 xH float64 xvC
+    xadd 2 xI float64 xvA
+    xadd 3 xJ float64 xvA
+    xadd 3 xK float64 xvA
+    xadd 3 xL float64 xvB
+    xadd 4 xM float64 xvA
+    xadd 4 xN float64 xvA
+    exit
+  
+  *XvF32:
+    xassign xA -10.0  5.0    999.0 999.0
+    xassign xB   1.0 -1.0    999.0 999.0
+    xassign xC   2.0  0.0    999.0 999.0
+    xassign xD  10.0  4.0    999.0 999.0
+    xadd 1 xE float64 xvA float32
+    xadd 1 xF float64 xvB float32
+    xadd 2 xG float64 xvB float32
+    xadd 2 xH float64 xvC float32
+    xadd 2 xI float64 xvA float32
+    xadd 3 xJ float64 xvA float32
+    xadd 3 xK float64 xvA float32
+    xadd 3 xL float64 xvB float32
+    xadd 4 xM float64 xvA float32
+    xadd 4 xN float64 xvA float32
+    exit
+
+  *XvF64:
+    xadd 1 xA float64 xvB float64
+    xadd 2 xB float64 xvC float64
+    xadd 3 xC float64 xvD float64
+    xadd 4 xD float64 xvE float64
+    xadd 5 xE float64 xvF float64
+    xadd 6 xF float64 xvG float64
+    xadd 7 xG float64 xvH float64
+    xadd 8 xH float64 xvI float64
+    xadd 9 xI float64 xvJ float64
+    xadd 10 xJ float64 xvK float64
+    xadd 11 xK float64 xvL float64
+    xadd 12 xL float64 xvM float64
+    xadd 13 xM float64 xvN float64
+    exit
+
+#  xA float64     0.01       100.0
+#  xB float64     0.02       200.0
+#  xC float64     0.03       300.0
+#  xD float64     0.04       400.0
+#  xE float64     0.05       500.0
+#  xF float64     0.06       600.0
+#  xG float64     0.07       700.0
+#  xH float64     0.08       800.0
+#  xI float64     0.09       900.0
+#  xJ float64     0.10      1000.0
+#  xK float64     0.11      1100.0
+#  xL float64     0.12      1200.0
+#  xM float64     0.13      1300.0
+#  xN float64     0.14      1400.0
+
+EXEC INIT
+EXEC *F
+TEST
+  xA float64     1.51    101.5
+  xB float64     2.82    202.8
+  xC float64   -31.27    268.7
+  xD float64     0.14    400.1
+  xE float64  41.4734 541.4234
+  xF float64   532.60  1132.54
+  xG float64 2341.612 3041.542
+  xH float64     0.18    800.1
+  xI float64     1.19    901.1
+  xJ float64     2.20   1002.1
+  xK float64     3.21   1103.1
+  xL float64     4.22   1204.1
+  xM float64     5.23   1305.1
+  xN float64     6.24   1406.1
+
+EXEC INIT
+EXEC *I
+TEST
+  xA float64    10.01       110.0
+  xB float64    11.02       211.0
+  xC float64   100.03       400.0
+  xD float64   101.04       501.0
+  xE float64   256.05       756.0
+  xF float64   512.06      1112.0
+  xG float64 10000.07     10700.0
+  xH float64     1.08       801.0
+  xI float64     2.09       902.0
+  xJ float64     3.10      1003.0
+  xK float64     4.11      1104.0
+  xL float64     5.12      1205.0
+  xM float64     6.13      1306.0
+  xN float64     7.14      1407.0
+
+EXEC INIT
+EXEC *D
+TEST
+  rA 1
+  rB 2
+  rC 3
+  rD 4
+  rE 5
+  rF 6
+  
+  xA float64     1.01       101.0
+  xB float64     2.02       202.0
+  xC float64     3.03       303.0
+  xD float64     4.04       404.0
+  xE float64     5.05       505.0
+  xF float64     6.06       606.0
+  xG float64     6.07       706.0
+  xH float64     6.08       806.0
+  xI float64     6.09       906.0
+  xJ float64     5.10      1005.0
+  xK float64     4.11      1104.0
+  xL float64     3.12      1203.0
+  xM float64     2.13      1302.0
+  xN float64     1.14      1401.0
+
+EXEC INIT
+EXEC *X
+TEST
+  xA -50
+  xB 5
+  xC -5
+  xD 50
+  
+  xE float64   -49.95       450.0
+  xF float64   -49.94       550.0
+  xG float64     5.07       705.0
+  xH float64     5.08       805.0
+  xI float64    -4.91       895.0
+  xJ float64    -4.90       995.0
+  xK float64    50.11      1150.0
+  xL float64    50.12      1250.0
+  xM float64     5.13      1305.0
+  xN float64    -4.86      1395.0
+
+EXEC INIT
+EXEC *XF32
+TEST
+  xA float32 0.1  10.0  1000.0  100000.0
+  xB float32 0.2  20.0  2000.0  200000.0
+  xC float32 0.3  30.0  3000.0  300000.0
+  xD float32 0.4  40.0  4000.0  400000.0
+  xE float32+     0.15       510.0
+  xF float32+     0.16       610.0
+  xG float32+     0.27       720.0
+  xH float32+     0.28       820.0
+  xI float32+     0.39       930.0
+  xJ float32+     0.40      1030.0
+  xK float32+     0.51      1140.0
+  xL float32+     0.52      1240.0
+  xM float32+     0.33      1320.0
+  xN float32+     0.44      1430.0
+
+EXEC INIT
+EXEC *XF64
+TEST
+  xA float64     0.09       900.0
+  xB float64     0.11      1100.0
+  xC float64     0.13      1300.0
+  xD float64     0.15      1500.0
+  xE float64     0.17      1700.0
+  xF float64     0.19      1900.0
+  xG float64     0.21      2100.0
+  xH float64     0.17      1700.0
+  xI float64     0.20      2000.0
+  xJ float64     0.23      2300.0
+  xK float64     0.26      2600.0
+  xL float64     0.29      2900.0
+  xM float64     0.32      3200.0
+  xN float64     0.35      3500.0
+
+EXEC INIT
+EXEC *Xv
+TEST
+  xA -10.0
+  xB 1.0
+  xC 2.0
+  xD 10.0
+  
+  xE float64    -9.95       490.0
+  xF float64     1.06       601.0
+  xG float64     3.07       703.0
+  xH float64    12.08       812.0
+  xI float64    -8.91       891.0
+  xJ float64    -6.90       993.0
+  xK float64    -6.89      1093.0
+  xL float64    13.12      1213.0
+  xM float64     3.13      1303.0
+  xN float64     3.14      1403.0
+
+EXEC INIT
+EXEC *XvF32
+TEST
+  xA float32 -10.0  5.0    999.0 999.0
+  xB float32   1.0 -1.0    999.0 999.0
+  xC float32   2.0  0.0    999.0 999.0
+  xD float32  10.0  4.0    999.0 999.0
+  
+  xE float64    -9.95       505.0
+  xF float64     1.06       599.0
+  xG float64     3.07       699.0
+  xH float64    12.08       804.0
+  xI float64    -8.91       904.0
+  xJ float64    -6.90      1004.0
+  xK float64    -6.89      1104.0
+  xL float64    13.12      1203.0
+  xM float64     3.13      1308.0
+  xN float64     3.14      1408.0
+
+
+EXEC INIT
+EXEC *XvF64
+TEST
+  xA float64     0.03       300.0
+  xB float64     0.09       900.0
+  xC float64     0.18      1800.0
+  xD float64     0.30      3000.0
+  xE float64     0.45      4500.0
+  xF float64     0.63      6300.0
+  xG float64     0.84      8400.0
+  xH float64     0.89      8900.0
+  xI float64     1.29     12900.0
+  xJ float64     2.28     22800.0
+  xK float64     3.91     39100.0
+  xL float64     7.37     73700.0
+  xM float64    18.53    185300.0
+
+
+
+
+
+
