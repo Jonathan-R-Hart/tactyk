@@ -602,6 +602,29 @@ subroutine x-binary-op
       code
         %[$XOP]sd $A, $B
         jmp $NEXT_INSTRUCTION
+    case VXvF VXvCf
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+      vcode $QTY
+        1 %[$XOP]sd $A~0, xTEMPA
+        2 %[$XOP]sd $A~1, xTEMPA
+        3 %[$XOP]sd $A~2, xTEMPA
+        4 %[$XOP]sd $A~3, xTEMPA
+        5 %[$XOP]sd $A~4, xTEMPA
+        6 %[$XOP]sd $A~5, xTEMPA
+        7 %[$XOP]sd $A~6, xTEMPA
+        8 %[$XOP]sd $A~7, xTEMPA
+        9 %[$XOP]sd $A~8, xTEMPA
+        10 %[$XOP]sd $A~9, xTEMPA
+        11 %[$XOP]sd $A~10, xTEMPA
+        12 %[$XOP]sd $A~11, xTEMPA
+        13 %[$XOP]sd $A~12, xTEMPA
+        14 %[$XOP]sd $A~13, xTEMPA
+      code
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
     case VXXv VXXvF64
       vcode $QTY
         1 %[$XOP]sd $A, $B~0
