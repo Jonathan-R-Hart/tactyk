@@ -966,6 +966,8 @@ subroutine x-binary-op
         12 %[$XOP]pd $A, $B~11
         13 %[$XOP]pd $A, $B~12
         14 %[$XOP]pd $A, $B~13
+      code
+        jmp $NEXT_INSTRUCTION
     
     case VXvF VXvCf
       code
