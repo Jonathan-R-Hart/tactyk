@@ -1203,7 +1203,7 @@ subroutine x-binary-op
         jmp $NEXT_INSTRUCTION
     case VXvF32D
       code
-        cvtsi2ss xTEMPA, rTEMPA
+        cvtsi2ss xTEMPA, $B
         movddup xTEMPA, xTEMPA
         movsldup xTEMPA, xTEMPA
       vcode $QTY
@@ -1368,46 +1368,46 @@ subroutine x-binary-op
         jmp $NEXT_INSTRUCTION
     case VXvF32XvF64
       vcode $QTY
-        1 cvtsd2ss xTEMPA, $B~0
+        1 cvtpd2ps xTEMPA, $B~0
         1 movddup xTEMPA, xTEMPA
         1 %[$XOP]ps $A~0, xTEMPA
-        2 cvtsd2ss xTEMPA, $B~1
+        2 cvtpd2ps xTEMPA, $B~1
         2 movddup xTEMPA, xTEMPA
         2 %[$XOP]ps $A~1, xTEMPA
-        3 cvtsd2ss xTEMPA, $B~2
+        3 cvtpd2ps xTEMPA, $B~2
         3 movddup xTEMPA, xTEMPA
         3 %[$XOP]ps $A~2, xTEMPA
-        4 cvtsd2ss xTEMPA, $B~3
+        4 cvtpd2ps xTEMPA, $B~3
         4 movddup xTEMPA, xTEMPA
         4 %[$XOP]ps $A~3, xTEMPA
-        5 cvtsd2ss xTEMPA, $B~4
+        5 cvtpd2ps xTEMPA, $B~4
         5 movddup xTEMPA, xTEMPA
         5 %[$XOP]ps $A~4, xTEMPA
-        6 cvtsd2ss xTEMPA, $B~5
+        6 cvtpd2ps xTEMPA, $B~5
         6 movddup xTEMPA, xTEMPA
         6 %[$XOP]ps $A~5, xTEMPA
-        7 cvtsd2ss xTEMPA, $B~6
+        7 cvtpd2ps xTEMPA, $B~6
         7 movddup xTEMPA, xTEMPA
         7 %[$XOP]ps $A~6, xTEMPA
-        8 cvtsd2ss xTEMPA, $B~7
+        8 cvtpd2ps xTEMPA, $B~7
         8 movddup xTEMPA, xTEMPA
         8 %[$XOP]ps $A~7, xTEMPA
-        9 cvtsd2ss xTEMPA, $B~8
+        9 cvtpd2ps xTEMPA, $B~8
         9 movddup xTEMPA, xTEMPA
         9 %[$XOP]ps $A~8, xTEMPA
-        10 cvtsd2ss xTEMPA, $B~9
+        10 cvtpd2ps xTEMPA, $B~9
         10 movddup xTEMPA, xTEMPA
         10 %[$XOP]ps $A~9, xTEMPA
-        11 cvtsd2ss xTEMPA, $B~10
+        11 cvtpd2ps xTEMPA, $B~10
         11 movddup xTEMPA, xTEMPA
         11 %[$XOP]ps $A~10, xTEMPA
-        12 cvtsd2ss xTEMPA, $B~11
+        12 cvtpd2ps xTEMPA, $B~11
         12 movddup xTEMPA, xTEMPA
         12 %[$XOP]ps $A~11, xTEMPA
-        13 cvtsd2ss xTEMPA, $B~12
+        13 cvtpd2ps xTEMPA, $B~12
         13 movddup xTEMPA, xTEMPA
         13 %[$XOP]ps $A~12, xTEMPA
-        14 cvtsd2ss xTEMPA, $B~13
+        14 cvtpd2ps xTEMPA, $B~13
         14 movddup xTEMPA, xTEMPA
         14 %[$XOP]ps $A~13, xTEMPA
       code
