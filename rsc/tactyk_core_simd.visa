@@ -1079,10 +1079,7 @@ subroutine x-binary-op
         jmp $NEXT_INSTRUCTION
     case VXvXF32
       code
-        $LD_A_IMMEDIATE
-        movq xTEMPA, rTEMPA
-        cvtsd2ss xTEMPA, $B
-        
+        cvtss2sd xTEMPA, $B
       vcode $QTY
         1 %[$XOP]sd $A~0, xTEMPA
         2 %[$XOP]sd $A~1, xTEMPA
