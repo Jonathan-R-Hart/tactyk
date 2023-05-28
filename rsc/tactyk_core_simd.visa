@@ -1651,7 +1651,8 @@ instruction xduplicate
     5 movdqa $DEST~4, $SRC~4
     6 movdqa $DEST~5, $SRC~5
     7 movdqa $DEST~6, $SRC~6
-  code jmp $NEXT_INSTRUCTION
+  code
+    jmp $NEXT_INSTRUCTION
 
 
 
