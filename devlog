@@ -8,6 +8,8 @@ tactyk-test - Reduce precision of 32-bit floating point tests a bit more
 Remove instruction xsqrt.  "square-root" (the x87 fpu one) should suffice for now.  
   (Will probably reconsider this if/when there is a decision to add a collection of math functions using SSE instructions)
 
+tactyk-core-math - add dot product and cross product instructions, move transpose function to math module
+
 25 May 2023
 Expand xassign
   templates for assigning directly setting all fields fields

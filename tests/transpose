@@ -4,8 +4,8 @@
 #
 # Virtual-ISA: tactyk_core
 # Templates:
-#   transpose xmmx-f32-4x4 (XF32M4x4)
-#   transpose xmmx-i32-4x4 (XF32M4x4)
+#   transpose xmmx-f32-4x4 (XF32)
+#   transpose xmmx-i32-4x4 (XF32)
 
 PROGRAM
   TR_f32:
@@ -47,7 +47,7 @@ PROGRAM
     exit
   
   TR_transposeit:
-    transpose xA float32 4x4
+    transpose xA
     exit
 
 XMM-DISPLAYMODE float32

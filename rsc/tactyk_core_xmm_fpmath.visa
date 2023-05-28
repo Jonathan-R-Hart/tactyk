@@ -634,3 +634,103 @@ extend instruction if select-template
       pxor xTEMPA, xTEMPA
       pxor xTEMPB, xTEMPB
       jmp $JTARGET
+
+instruction transpose
+  opt-operand
+    select-operand
+      case 32 i32 int32 f32 float32
+        pick Fmt32
+  operand
+    type xmmx
+    $M $VALUE
+  select-template
+    case Fmt32X X
+      code
+        movdqa xTEMPA, $M~1
+        movdqa xTEMPB, $M~3
+        insertps $M~1, $M~0,    0b01000000
+        insertps $M~0, xTEMPA,  0b00010000
+        insertps $M~1, $M~2,    0b01100000
+        insertps $M~2, xTEMPA,  0b10010000
+        insertps $M~3, $M~0,    0b11000000
+        insertps $M~0, xTEMPB,  0b00110000
+        insertps $M~3, $M~2,    0b11100000
+        insertps $M~2, xTEMPB,  0b10110000
+        
+        movdqa xTEMPA, $M~0
+        insertps $M~0, $M~2,    0b00100000
+        insertps $M~2, xTEMPA,  0b10000000
+        insertps $M~3, $M~1,    0b11010000
+        insertps $M~1, xTEMPB,  0b01110000
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+
+instruction dot
+  opt-operand
+    select-operand
+      case f32 f32.4
+        pick F32.4
+  operand
+    type xmmx
+    $DEST $VALUE
+  opt-operand
+    select-operand
+      case 0
+       $INS_ARG 0b00000000
+      case 1
+        $INS_ARG 0b00010000
+      case 2
+        $INS_ARG 0b00100000
+      case 3
+        $INS_ARG 0b00110000
+    pick I
+  operand
+    type xmmx
+    $A $VALUE
+  operand
+    type xmmx
+    $B $VALUE
+  select-template
+    case F32.4XXX XXX
+      code
+        movdqa xTEMPA, $A
+        dpps xTEMPA, $B, 0xf1
+        cvtss2sd $DEST, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case F32.4XIXX XIXX
+      code
+        movdqa xTEMPA, $A
+        dpps xTEMPA, $B, 0xf1
+        insertps $DEST, xTEMPA, $INS_ARG
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+
+instruction cross
+  opt-operand
+    select-operand
+      case f32 f32.3
+        pick F32
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type xmmx
+    $A $VALUE
+  operand
+    type xmmx
+    $B $VALUE
+  select-template
+    case XXX F32XXX
+      code
+        pshufd xTEMPA, $A, 0b11010010
+        pshufd xTEMPB, $B, 0b11001001
+        mulps  xTEMPB, xTEMPA
+        pshufd xTEMPA, $B, 0b11010010
+        pshufd $DEST,  $A, 0b11001001
+        mulps $DEST, xTEMPA
+        subps $DEST, xTEMPB
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
