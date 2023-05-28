@@ -29,7 +29,22 @@ typespec ssimd-xvector
     case xvn xvN
       value xN
   pick Xv
-
+typespec ssimd-quantity-half
+  select-operand
+    case 1
+      value 1
+    case 2
+      value 2
+    case 3
+      value 3
+    case 4
+      value 4
+    case 5
+      value 5
+    case 6
+      value 6
+    case 7
+      value 7
 typespec ssimd-quantity
   select-operand
     case 1

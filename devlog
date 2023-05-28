@@ -10,6 +10,9 @@ Remove instruction xsqrt.  "square-root" (the x87 fpu one) should suffice for no
 
 tactyk-core-math - add dot product and cross product instructions, move transpose function to math module
 
+tactyk-code-simd - "xduplicate" instruction - this copies up to 7 xmm registers from a source xmm register to a destination xmm register
+  to a destination position (based on lexical ordering).
+
 25 May 2023
 Expand xassign
   templates for assigning directly setting all fields fields
