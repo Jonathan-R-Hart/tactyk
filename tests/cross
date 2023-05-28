@@ -1,0 +1,38 @@
+# TEST:  cross
+#
+# Vector cross product computation
+#
+# Virtual-ISA: tactyk_core
+# Templates:
+#   cross [f32]-xmmx-xmmx-xmmx    (F32XXX)
+
+PROGRAM
+  INIT:
+    xassign xA 1.0 0.0 0.0 0.0
+    xassign xB 0.0 1.0 0.0 0.0
+    xassign xC 0.0 0.0 1.0 0.0
+    xassign xD 1.0 1.0 0.0 0.0
+    xassign xE 1.0 0.0 1.0 0.0
+    xassign xF 0.0 1.0 1.0 0.0
+    xassign xG 1.0 2.0 3.0 0.1
+    xassign xH -5.0 2.0 12.0 0.0
+    xassign xI -0.5  2.25      1.1  12.0
+    xassign xJ  6.1  3.33   -2.125  0.0
+    exit
+
+  doSTUFF:
+    cross xK xA xB
+    cross xL xA xC
+    cross xM xB xC
+    cross xN xG xH
+    exit
+
+XMM-DISPLAYMODE float32
+EXEC INIT
+EXEC doSTUFF
+TEST
+  xK float32  0   0   1   0
+  xL float32  0  -1   0   0
+  xM float32  1   0   0   0
+  xN float32 18 -27  12   0
+
