@@ -693,171 +693,227 @@ typespec sse-map
     case d~0
       $SSE_REG 0
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~1
       $SSE_REG 0
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~2
       $SSE_REG 0
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~3
       $SSE_REG 0
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~4
       $SSE_REG 1
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~5
       $SSE_REG 1
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~6
       $SSE_REG 1
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~7
       $SSE_REG 1
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~8
       $SSE_REG 2
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~9
       $SSE_REG 2
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~10
       $SSE_REG 2
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~11
       $SSE_REG 2
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~12
       $SSE_REG 3
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~13
       $SSE_REG 3
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~14
       $SSE_REG 3
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~15
       $SSE_REG 3
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~16
       $SSE_REG 4
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~17
       $SSE_REG 4
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~18
       $SSE_REG 4
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~19
       $SSE_REG 4
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~20
       $SSE_REG 5
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~21
       $SSE_REG 5
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~22
       $SSE_REG 5
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~23
       $SSE_REG 5
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~24
       $SSE_REG 6
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~25
       $SSE_REG 6
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~26
       $SSE_REG 6
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~27
       $SSE_REG 6
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~28
       $SSE_REG 7
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~29
       $SSE_REG 7
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~30
       $SSE_REG 7
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~31
       $SSE_REG 7
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~32
       $SSE_REG 8
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~33
       $SSE_REG 8
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~34
       $SSE_REG 8
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~35
       $SSE_REG 8
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~36
       $SSE_REG 9
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~37
       $SSE_REG 9
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~38
       $SSE_REG 9
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~39
       $SSE_REG 9
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~40
       $SSE_REG 10
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~41
       $SSE_REG 10
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~42
       $SSE_REG 10
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~43
       $SSE_REG 10
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~44
       $SSE_REG 11
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~45
       $SSE_REG 11
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~46
       $SSE_REG 11
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~47
       $SSE_REG 11
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~48
       $SSE_REG 12
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~49
       $SSE_REG 12
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~50
       $SSE_REG 12
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~51
       $SSE_REG 12
       $SSE_INDEX 3
+      $INSPS_arg 48
     case d~52
       $SSE_REG 13
       $SSE_INDEX 0
+      $INSPS_arg 0
     case d~53
       $SSE_REG 13
       $SSE_INDEX 1
+      $INSPS_arg 16
     case d~54
       $SSE_REG 13
       $SSE_INDEX 2
+      $INSPS_arg 32
     case d~55
       $SSE_REG 13
       $SSE_INDEX 3
+      $INSPS_arg 48
     
     case w~0
       $SSE_REG 0
@@ -1868,4 +1924,4 @@ typespec sse-map
     case b~223
       $SSE_REG 13
       $SSE_INDEX 15
-    
+
