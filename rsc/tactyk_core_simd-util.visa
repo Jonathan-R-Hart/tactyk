@@ -606,114 +606,114 @@ typespec xmmf64
   select-operand
       case x0.f64.0 xmm0.f64.0 xa.f64.0 xA.f64.0
         value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        $QPUTOP movq
+        $QGETOP movq
       case x0.f64.1 xmm0.f64.1 xa.f64.1 xA.f64.1
         value xA
         $QPUTOP movlhps
         $QGETOP movhlps
       case x1.f64.0 xmm1.f64.0 xb.f64.0 xB.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xB
+        $QPUTOP movq
+        $QGETOP movq
       case x1.f64.1 xmm1.f64.1 xb.f64.1 xB.f64.1
-        value xA
+        value xB
         $QPUTOP movlhps
         $QGETOP movhlps
       case x2.f64.0 xmm2.f64.0 xc.f64.0 xC.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xC
+        $QPUTOP movq
+        $QGETOP movq
       case x2.f64.1 xmm2.f64.1 xc.f64.1 xC.f64.1
-        value xA
+        value xC
         $QPUTOP movlhps
         $QGETOP movhlps
       case x3.f64.0 xmm3.f64.0 xd.f64.0 xD.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xD
+        $QPUTOP movq
+        $QGETOP movq
       case x3.f64.1 xmm3.f64.1 xd.f64.1 xD.f64.1
-        value xA
+        value xD
         $QPUTOP movlhps
         $QGETOP movhlps
       case x4.f64.0 xmm4.f64.0 xe.f64.0 xE.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xE
+        $QPUTOP movq
+        $QGETOP movq
       case x4.f64.1 xmm4.f64.1 xe.f64.1 xE.f64.1
-        value xA
+        value xE
         $QPUTOP movlhps
         $QGETOP movhlps
       case x5.f64.0 xmm5.f64.0 xf.f64.0 xF.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xF
+        $QPUTOP movq
+        $QGETOP movq
       case x5.f64.1 xmm5.f64.1 xf.f64.1 xF.f64.1
-        value xA
+        value xF
         $QPUTOP movlhps
         $QGETOP movhlps
       case x6.f64.0 xmm6.f64.0 xg.f64.0 xG.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xG
+        $QPUTOP movq
+        $QGETOP movq
       case x6.f64.1 xmm6.f64.1 xg.f64.1 xG.f64.1
-        value xA
+        value xG
         $QPUTOP movlhps
         $QGETOP movhlps
       case x7.f64.0 xmm7.f64.0 xh.f64.0 xH.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xH
+        $QPUTOP movq
+        $QGETOP movq
       case x7.f64.1 xmm7.f64.1 xh.f64.1 xH.f64.1
-        value xA
+        value xH
         $QPUTOP movlhps
         $QGETOP movhlps
       case x8.f64.0 xmm8.f64.0 xi.f64.0 xI.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xI
+        $QPUTOP movq
+        $QGETOP movq
       case x8.f64.1 xmm8.f64.1 xi.f64.1 xI.f64.1
-        value xA
+        value xI
         $QPUTOP movlhps
         $QGETOP movhlps
       case x9.f64.0 xmm9.f64.0 xj.f64.0 xJ.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xJ
+        $QPUTOP movq
+        $QGETOP movq
       case x9.f64.1 xmm9.f64.1 xj.f64.1 xJ.f64.1
-        value xA
+        value xJ
         $QPUTOP movlhps
         $QGETOP movhlps
       case x10.f64.0 xmm10.f64.0 xk.f64.0 xK.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xK
+        $QPUTOP movq
+        $QGETOP movq
       case x10.f64.1 xmm10.f64.1 xk.f64.1 xK.f64.1
-        value xA
+        value xK
         $QPUTOP movlhps
         $QGETOP movhlps
       case x11.f64.0 xmm11.f64.0 xl.f64.0 xL.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xL
+        $QPUTOP movq
+        $QGETOP movq
       case x11.f64.1 xmm11.f64.1 xl.f64.1 xL.f64.1
-        value xA
+        value xL
         $QPUTOP movlhps
         $QGETOP movhlps
       case x12.f64.0 xmm12.f64.0 xm.f64.0 xM.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xM
+        $QPUTOP movq
+        $QGETOP movq
       case x12.f64.1 xmm12.f64.1 xm.f64.1 xM.f64.1
-        value xA
+        value xM
         $QPUTOP movlhps
         $QGETOP movhlps
       case x13.f64.0 xmm13.f64.0 xn.f64.0 xN.f64.0
-        value xA
-        $QPUTOP movsd
-        $QGETOP movsd
+        value xN
+        $QPUTOP movq
+        $QGETOP movq
       case x13.f64.1 xmm13.f64.1 xn.f64.1 xN.f64.1
-        value xA
+        value xN
         $QPUTOP movlhps
         $QGETOP movhlps
   pick Xf64

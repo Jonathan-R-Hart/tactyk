@@ -1720,6 +1720,7 @@ instruction xcompute
     $DIDX $SSE_INDEX
     $DSW $SSE_WORD
     $DRXT $SSE_REG_EXT
+  
   select-template
     case X
       code $FOOTER
@@ -1742,7 +1743,7 @@ instruction xcompute
         pxor xTEMPA, xTEMPA
         pxor xTEMPB, xTEMPB
         jmp $NEXT_INSTRUCTION
-    
+  
   composite 16
     operand
       type xcompute-op xmmf32 xmmf64 xmmx data float fconst integer const

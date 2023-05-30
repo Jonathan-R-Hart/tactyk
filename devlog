@@ -6,9 +6,6 @@ Add xcompute instruction
   For each value in the list, it applies the active arithmetic function using the value as the 2nd operand (and the accumulated balue as the 1st)
   If it encounters an arithmetic function, it uses it as the active function (starts with addition).
   This is intended to be a straightforward mechanism for simple calculations.
-  NOTE:  this instruciton partially violates one of the arguably paranoid security constraints - it produces a contiguous chunk of executable bytes with a 
-         higher level of script influence than most (or all) other instructions, and so may need to be omitted in maximally paranoid modes 
-         (or rewritten to insert extra junk).
   sub-instruction list:
     add - set the active function to add
     sub - set the active function to subtract
@@ -19,6 +16,12 @@ Add xcompute instruction
     <register> - load a register value and apply the active function
     <int float int-const float-const> load a constant and apply the active function
     <xmm-register>.<fmt>.<index> load a value from an xmm register containind packed fields and apply the active function
+  NOTE:  this instruciton partially violates one of the arguably paranoid security constraints - it produces a contiguous chunk of executable bytes with a 
+         higher level of script influence than most (or all) other instructions, and so may need to be omitted in maximally paranoid modes 
+         (or rewritten to insert extra junk).
+  NOTE 2: This might seem misclassified as a "simd" instruction, its placement has more to do with its ability to handle packed fields (and thus to augment actual SIMD code)
+         If at some point, the underlying instruction extender is improved to handle more complex situations, it may be reclassified, renamed to "compute", and have the
+         packed field handling moved to a separate module (variable-length parameter list with parameter handlers that affect subsequent parameter handlers)
 
 29 May 2023
 Add a matrix transformation example using the new SIMD instructions
