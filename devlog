@@ -1,4 +1,26 @@
-29 May 2029
+30 May 2023
+Add xcompute instruction
+  4-function calculator
+  This accepts an arbitrary list of arithmetic functions, constants, data registers, xmm registers, and packed xmm register slots (32-bit and 64-bit floating point formats)
+  and generates an instruction which evaluates list items from left to right.
+  For each value in the list, it applies the active arithmetic function using the value as the 2nd operand (and the accumulated balue as the 1st)
+  If it encounters an arithmetic function, it uses it as the active function (starts with addition).
+  This is intended to be a straightforward mechanism for simple calculations.
+  NOTE:  this instruciton partially violates one of the arguably paranoid security constraints - it produces a contiguous chunk of executable bytes with a 
+         higher level of script influence than most (or all) other instructions, and so may need to be omitted in maximally paranoid modes 
+         (or rewritten to insert extra junk).
+  sub-instruction list:
+    add - set the active function to add
+    sub - set the active function to subtract
+    mul - set the active function to multiply
+    div - set the active function to divide
+    ~sub - set the active function to subtract with reversed operand order
+    ~div - set the active function to divide with reversed operand order
+    <register> - load a register value and apply the active function
+    <int float int-const float-const> load a constant and apply the active function
+    <xmm-register>.<fmt>.<index> load a value from an xmm register containind packed fields and apply the active function
+
+29 May 2023
 Add a matrix transformation example using the new SIMD instructions
   It packs the entire matrix onto 4 xmm registers (using the 32-bit packed floating point format)
   It does not rely on either the stash or a memblock

@@ -29,7 +29,7 @@ typespec ssimd-xvector
     case xvn xvN
       value xN
   pick Xv
-typespec ssimd-quantity-half
+typespec ssimd-int-1-7
   select-operand
     case 1
       value 1
@@ -45,7 +45,7 @@ typespec ssimd-quantity-half
       value 6
     case 7
       value 7
-typespec ssimd-quantity
+typespec ssimd-int-1-14
   select-operand
     case 1
       value 1
@@ -599,6 +599,357 @@ subroutine simd-format-sse-params
       $SIMD_ARG_minus1 1
       $SSE_UCLASS q
       $SSE_CLASS sq
+
+# Yet more syntax for expressing packed xmm register slots
+#   This one does not conflict with integer data types. 
+typespec xmmf64
+  select-operand
+      case x0.f64.0 xmm0.f64.0 xa.f64.0 xA.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x0.f64.1 xmm0.f64.1 xa.f64.1 xA.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x1.f64.0 xmm1.f64.0 xb.f64.0 xB.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x1.f64.1 xmm1.f64.1 xb.f64.1 xB.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x2.f64.0 xmm2.f64.0 xc.f64.0 xC.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x2.f64.1 xmm2.f64.1 xc.f64.1 xC.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x3.f64.0 xmm3.f64.0 xd.f64.0 xD.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x3.f64.1 xmm3.f64.1 xd.f64.1 xD.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x4.f64.0 xmm4.f64.0 xe.f64.0 xE.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x4.f64.1 xmm4.f64.1 xe.f64.1 xE.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x5.f64.0 xmm5.f64.0 xf.f64.0 xF.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x5.f64.1 xmm5.f64.1 xf.f64.1 xF.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x6.f64.0 xmm6.f64.0 xg.f64.0 xG.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x6.f64.1 xmm6.f64.1 xg.f64.1 xG.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x7.f64.0 xmm7.f64.0 xh.f64.0 xH.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x7.f64.1 xmm7.f64.1 xh.f64.1 xH.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x8.f64.0 xmm8.f64.0 xi.f64.0 xI.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x8.f64.1 xmm8.f64.1 xi.f64.1 xI.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x9.f64.0 xmm9.f64.0 xj.f64.0 xJ.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x9.f64.1 xmm9.f64.1 xj.f64.1 xJ.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x10.f64.0 xmm10.f64.0 xk.f64.0 xK.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x10.f64.1 xmm10.f64.1 xk.f64.1 xK.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x11.f64.0 xmm11.f64.0 xl.f64.0 xL.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x11.f64.1 xmm11.f64.1 xl.f64.1 xL.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x12.f64.0 xmm12.f64.0 xm.f64.0 xM.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x12.f64.1 xmm12.f64.1 xm.f64.1 xM.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x13.f64.0 xmm13.f64.0 xn.f64.0 xN.f64.0
+        value xA
+        $QPUTOP movsd
+        $QGETOP movsd
+      case x13.f64.1 xmm13.f64.1 xn.f64.1 xN.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+  pick Xf64
+
+typespec xmmf32
+  select-operand
+    case x0.f32.0 xmm0.f32.0 xa.f32.0 xA.f32.0
+      value xA
+      $INSPS_arg 0
+      $EXTPS_arg 0
+      $EXTPS_arg 0
+    case x1.f32.0 xmm1.f32.0 xb.f32.0 xB.f32.0
+      value xB
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x2.f32.0 xmm2.f32.0 xc.f32.0 xC.f32.0
+      value xC
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x3.f32.0 xmm3.f32.0 xd.f32.0 xD.f32.0
+      value xD
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x4.f32.0 xmm4.f32.0 xe.f32.0 xE.f32.0
+      value xE
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x5.f32.0 xmm5.f32.0 xf.f32.0 xF.f32.0
+      value xF
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x6.f32.0 xmm6.f32.0 xg.f32.0 xG.f32.0
+      value xG
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x7.f32.0 xmm7.f32.0 xh.f32.0 xH.f32.0
+      value xH
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x8.f32.0 xmm8.f32.0 xi.f32.0 xI.f32.0
+      value xI
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x9.f32.0 xmm9.f32.0 xj.f32.0 xJ
+      value xJ
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x10.f32.0 xmm10.f32.0 xk.f32.0 xK.f32.0
+      value xK
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x11.f32.0 xmm11.f32.0 xl.f32.0 xL.f32.0
+      value xL
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x12.f32.0 xmm12.f32.0 xm.f32.0 xM.f32.0
+      value xM
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x13.f32.0 xmm13.f32.0 xn.f32.0 xN.f32.0
+      value xN
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    
+    case x0.f32.1 xmm0.f32.1 xa.f32.1 xA.f32.1
+      value xA
+      $INSPS_arg 16
+      $EXTPS_arg 646
+      $EXTPS_arg 64
+    case x1.f32.1 xmm1.f32.1 xb.f32.1 xB.f32.1
+      value xB
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x2.f32.1 xmm2.f32.1 xc.f32.1 xC.f32.1
+      value xC
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x3.f32.1 xmm3.f32.1 xd.f32.1 xD.f32.1
+      value xD
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x4.f32.1 xmm4.f32.1 xe.f32.1 xE.f32.1
+      value xE
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x5.f32.1 xmm5.f32.1 xf.f32.1 xF.f32.1
+      value xF
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x6.f32.1 xmm6.f32.1 xg.f32.1 xG.f32.1
+      value xG
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x7.f32.1 xmm7.f32.1 xh.f32.1 xH.f32.1
+      value xH
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x8.f32.1 xmm8.f32.1 xi.f32.1 xI.f32.1
+      value xI
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x9.f32.1 xmm9.f32.1 xj.f32.1 xJ
+      value xJ
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x10.f32.1 xmm10.f32.1 xk.f32.1 xK.f32.1
+      value xK
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x11.f32.1 xmm11.f32.1 xl.f32.1 xL.f32.1
+      value xL
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x12.f32.1 xmm12.f32.1 xm.f32.1 xM.f32.1
+      value xM
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x13.f32.1 xmm13.f32.1 xn.f32.1 xN.f32.1
+      value xN
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    
+    case x0.f32.2 xmm0.f32.2 xa.f32.2 xA.f32.2
+      value xA
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x1.f32.2 xmm1.f32.2 xb.f32.2 xB.f32.2
+      value xB
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x2.f32.2 xmm2.f32.2 xc.f32.2 xC.f32.2
+      value xC
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x3.f32.2 xmm3.f32.2 xd.f32.2 xD.f32.2
+      value xD
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x4.f32.2 xmm4.f32.2 xe.f32.2 xE.f32.2
+      value xE
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x5.f32.2 xmm5.f32.2 xf.f32.2 xF.f32.2
+      value xF
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x6.f32.2 xmm6.f32.2 xg.f32.2 xG.f32.2
+      value xG
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x7.f32.2 xmm7.f32.2 xh.f32.2 xH.f32.2
+      value xH
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x8.f32.2 xmm8.f32.2 xi.f32.2 xI.f32.2
+      value xI
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x9.f32.2 xmm9.f32.2 xj.f32.2 xJ
+      value xJ
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x10.f32.2 xmm10.f32.2 xk.f32.2 xK.f32.2
+      value xK
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x11.f32.2 xmm11.f32.2 xl.f32.2 xL.f32.2
+      value xL
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x12.f32.2 xmm12.f32.2 xm.f32.2 xM.f32.2
+      value xM
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x13.f32.2 xmm13.f32.2 xn.f32.2 xN.f32.2
+      value xN
+      $INSPS_arg 32
+      $EXTPS_arg 128
+
+    case x0.f32.3 xmm0.f32.3 xa.f32.3 xA.f32.3
+      value xA
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x1.f32.3 xmm1.f32.3 xb.f32.3 xB.f32.3
+      value xB
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x2.f32.3 xmm2.f32.3 xc.f32.3 xC.f32.3
+      value xC
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x3.f32.3 xmm3.f32.3 xd.f32.3 xD.f32.3
+      value xD
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x4.f32.3 xmm4.f32.3 xe.f32.3 xE.f32.3
+      value xE
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x5.f32.3 xmm5.f32.3 xf.f32.3 xF.f32.3
+      value xF
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x6.f32.3 xmm6.f32.3 xg.f32.3 xG.f32.3
+      value xG
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x7.f32.3 xmm7.f32.3 xh.f32.3 xH.f32.3
+      value xH
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x8.f32.3 xmm8.f32.3 xi.f32.3 xI.f32.3
+      value xI
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x9.f32.3 xmm9.f32.3 xj.f32.3 xJ
+      value xJ
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x10.f32.3 xmm10.f32.3 xk.f32.3 xK.f32.3
+      value xK
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x11.f32.3 xmm11.f32.3 xl.f32.3 xL.f32.3
+      value xL
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x12.f32.3 xmm12.f32.3 xm.f32.3 xM.f32.3
+      value xM
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x13.f32.3 xmm13.f32.3 xn.f32.3 xN.f32.3
+      value xN
+      $INSPS_arg 48
+      $EXTPS_arg 192
+  pick Xf32
 
 # the sse element mapping "typespec"
 # This is an encoding of a set of integer division + modulo operations

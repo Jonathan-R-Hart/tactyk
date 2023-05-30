@@ -502,7 +502,7 @@ subroutine x-binary-op
   $SSE_CLASS_A sd
   $SSE_CLASS_B sd
   opt-operand
-    type ssimd-quantity
+    type ssimd-int-1-14
     $QTY $VALUE
   operand
     type ssimd-xvector xmmx
@@ -1635,7 +1635,7 @@ instruction xmax
 instruction xduplicate
   $QTY 1
   opt-operand
-    type ssimd-quantity-half
+    type ssimd-int-1-7
     $QTY $VALUE
   operand
     type ssimd-xvector xmmx
@@ -1654,13 +1654,174 @@ instruction xduplicate
   code
     jmp $NEXT_INSTRUCTION
 
+subroutine x-packed-op-32--step
+  opt-operand
+    select-operand
+      case 0
+        code
+          insertps, xTEMPB, $SRC, 0
+          cvtss2sd xTEMPB, xTEMPB
+          %[$XOP]sd xTEMPA, xTEMPB
+      case 1
+        code
+          insertps, xTEMPB, $SRC, 16
+          cvtss2sd xTEMPB, xTEMPB
+          %[$XOP]sd xTEMPA, xTEMPB
+      case 2
+        code
+          insertps, xTEMPB, $SRC, 32
+          cvtss2sd xTEMPB, xTEMPB
+          %[$XOP]sd xTEMPA, xTEMPB
+      case 3
+        code
+          insertps, xTEMPB, $SRC, 48
+          cvtss2sd xTEMPB, xTEMPB
+          %[$XOP]sd xTEMPA, xTEMPB
 
+typespec xcompute-op
+  select-operand
+    case add
+      $XCOP add
+      $XCMODE norm
+    case sub
+      $XCOP sub
+      $XCMODE norm
+    case mul
+      $XCOP mul
+      $XCMODE norm
+    case div
+      $XCOP div
+      $XCMODE norm
+    case ~div
+      $XCOP div
+      $XCMODE rev
+    case ~sub
+      $XCOP sub
+      $XCMODE rev
+  pick O
 
-
-
-
-
-
+instruction xcompute
+  $XCOP add
+  $XCMODE norm
+  $DO_INIT true
+  $DAUG 0
+  $DIDX 0
+  $SAUG 0
+  $SIDX 0
+  operand
+    type xmmx
+    $DEST $VALUE
+  opt-operand
+    type simd-format-discriminator
+    sub simd-format-pick
+  opt-operand
+    type sse-map
+    $DAUG $SSE_REG
+    $DIDX $SSE_INDEX
+    $DSW $SSE_WORD
+    $DRXT $SSE_REG_EXT
+  select-template
+    case X
+      code $FOOTER
+        movdqa $DEST, xTEMPA
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    case XF32
+      sub sse-insps-arg--Szero
+      code $FOOTER
+        cvtsd2ss xTEMPA, xTEMPA
+        insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    case XF64
+      sub sse-qword-put
+      code $FOOTER
+        $QPUTOP $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    
+  composite 16
+    operand
+      type xcompute-op xmmf32 xmmf64 xmmx data float fconst integer const
+      $B $VALUE
+      scramble rTEMPC $LD_B_IMMEDIATE
+    select $XCMODE
+      case norm
+        select-template
+          case X
+            code
+              %[$XCOP]sd xTEMPA, $B
+          case O
+            #do nothing.
+          case D
+            code
+              cvtsi2sd xTEMPB, $B
+              %[$XCOP]sd xTEMPA, xTEMPB
+          case I C
+            code
+              $LD_B_IMMEDIATE
+              cvtsi2sd xTEMPB, rTEMPC
+              xor rTEMPC, rTEMPC
+              %[$XCOP]sd xTEMPA, xTEMPB
+          case F Cf
+            code
+              $LD_B_IMMEDIATE
+              movq xTEMPB, rTEMPC
+              xor rTEMPC, rTEMPC
+              %[$XCOP]sd xTEMPA, xTEMPB
+          case Xf32
+            code
+              insertps xTEMPB, $B, $EXTPS_arg
+              cvtss2sd xTEMPB, xTEMPB
+              %[$XCOP]sd xTEMPA, xTEMPB
+          case Xf64
+            code
+              $QGETOP xTEMPB, $B
+              %[$XCOP]sd xTEMPA, xTEMPB
+      case rev
+        select-template
+          case X
+            code
+              movq xTEMPB, $B
+              %[$XCOP]sd xTEMPB, xTEMPA
+              movq xTEMPA, xTEMPB
+          case O
+            #do nothing.
+          case D
+            code
+              cvtsi2sd xTEMPB, $B
+              %[$XCOP]sd xTEMPB, xTEMPA
+              movq xTEMPA, xTEMPB
+          case I C
+            code
+              $LD_B_IMMEDIATE
+              cvtsi2sd xTEMPB, rTEMPC
+              xor rTEMPC, rTEMPC
+              %[$XCOP]sd xTEMPB, xTEMPA
+              movq xTEMPA, xTEMPB
+          case F Cf
+            code
+              $LD_B_IMMEDIATE
+              movq xTEMPB, rTEMPC
+              xor rTEMPC, rTEMPC
+              %[$XCOP]sd xTEMPB, xTEMPA
+              movq xTEMPA, xTEMPB
+          case Xf32
+            code
+              insertps xTEMPB, $B, $EXTPS_arg
+              cvtss2sd xTEMPB, xTEMPB
+              %[$XCOP]sd xTEMPB, xTEMPA
+              movq xTEMPA, xTEMPB
+          case Xf64
+            code
+              $QGETOP xTEMPB, $B
+              %[$XCOP]sd xTEMPB, xTEMPA
+              movq xTEMPA, xTEMPB
+  code
+    $FOOTER
 
 
 

@@ -605,9 +605,9 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
     uint64_t opcount = 0;
     struct tactyk_dblock__DBlock *cfrag = tactyk_dblock__new(4096);
     ctx->active_command->asm_code = cfrag;
+    tactyk_dblock__clear(ctx->code_template);
 
     while ( (ctx->pl_operand_raw != NULL) || (opcount < max_ops) ) {
-
         if (!tactyk_emit__ExecSubroutine(ctx, vopcfg)) {
             if (ctx->pl_operand_raw == NULL) {
                 break;
@@ -617,14 +617,13 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
                 return false;
             }
         }
-
         if (cfrag->length > 0) {
             code_fragments[opcount] = cfrag;
             cfrag = tactyk_dblock__new(4096);
             ctx->active_command->asm_code = cfrag;
             opcount += 1;
-            tactyk_dblock__clear(ctx->code_template);
         }
+        tactyk_dblock__clear(ctx->code_template);
 
         for (uint64_t i = 0; i < opcount; i++) {
             struct tactyk_dblock__DBlock *cfrag_a = code_fragments[i];
