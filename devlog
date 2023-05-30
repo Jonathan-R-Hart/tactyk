@@ -1,3 +1,9 @@
+29 May 2029
+Add a matrix transformation example using the new SIMD instructions
+  It packs the entire matrix onto 4 xmm registers (using the 32-bit packed floating point format)
+  It does not rely on either the stash or a memblock
+  It does not modify registers used for inputs (thoguh it does use a bit of hackery to handle the perspective transform).
+
 26-27 May 2023
 test coverage for xadd (packed 64-bit target functions)
   For the time being, I'm going to make a lot of presumptions and allow the "xadd" test to also stand in as a test of xsub, xmul, xdiv, xmin, and xmax

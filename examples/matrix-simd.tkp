@@ -1,0 +1,261 @@
+# TACTYK-in-3D Matrix math component - SIMD version
+#
+# This is a rewrite of the 3D transformation matrix program/component.  
+#   The oler version used simple arithmetic operators.  
+#   This one makes use of TACTYK SIMD capabilities, and thus is able to use simpler logic, keeps everything on the registers (no memblcoks or stash), 
+#     and does not clobber input parameters.
+#   The cost is reduced precision (due to a switch to 32-bit floating point numbers).
+#
+# Matrices are computed by creating an identity matrix (or loading whatever initial matrix), then applying a series of transforms to produce 
+# a composite matrix.  Each transform is equivalent to creating a transformation matrix, them multiplying the current transform by the created transform.
+#
+# In theory, this could be a native module in C, but I'd really like to get into the sandboxed part of the sandbox.
+#   And (at least if binary executable randomization is at some point disabled), the context switch overhead is likely to exceed
+#   the performance advantage for native compilation (these functions aren't particularly complex), so it probably will be
+#   preferable to keep this in the sandbox.
+#
+# This was adapted/ported from the Matrix math components from THREE.js ( https://threejs.org/ )
+# THREE.js in turn appears to have referenced https://www.euclideanspace.com/
+#
+
+MAIN:
+  lwcall MATRIX__IDENTITY
+  spread xA 2.0 3.0 4.0 0.0
+  lwcall MATRIX__TRANSLATE
+  spread xA 1.0 10.0 1.0 1.0
+  lwcall MATRIX__SCALE
+  spread xA 0.25 -0.75 8.0 -0.333
+  lwcall VECTOR__NORMALIZE
+  lwcall MATRIX__ROTATE__ANGLE_AXIS
+  spread xA 1000.0 10000.0 100000.0 0.0
+  lwcall MATRIX__TRANSLATE
+  spread xA -10.0 20.0 -30.0 40.0 -50.0 60.0
+  lwcall MATRIX__PERSPECTIVE
+  tcall print-newline
+  lwcall MATRIX__PRINT
+  tcall print-newline
+  exit
+
+# normalize a 3D vector
+# Input:
+#   xA xB xC - Vector components
+#
+# output:
+#   xa xB xC - Normalized vector components
+#
+# clobbers:
+#   xK xL xM xN
+VECTOR__NORMALIZE:
+  assign xN 0
+  xduplicate 3 xK xA
+  xmul 3 xvK xvK
+  xadd 3 xN xvK
+  square-root xN
+  xdiv 3 xvA xN
+  lwreturn
+
+# Instantiate MATRIX with an identity matrix
+#
+# output:
+#   xG xH xI xJ - matrix columns (packed 32-bit floats)
+MATRIX__IDENTITY:
+  xassign xG 1.0 0.0 0.0 0.0
+  xassign xH 0.0 1.0 0.0 0.0
+  xassign xI 0.0 0.0 1.0 0.0
+  xassign xJ 0.0 0.0 0.0 1.0
+  lwreturn
+
+# Combine a scaling transform with a matrix
+# input:
+#   xA xB xC xD - vector components of the scaling transform
+#   xG xH xI xJ - matrix columns (packed 32-bit floats)
+# otuput:
+#   xG xH xI xJ - matrix columns (packed 32-bit floats)
+# clobbers:
+#   xF
+MATRIX__SCALE:
+  pack float32 xF xA
+  xmul 4 xvG float32 xF float32
+  lwreturn
+MATRIX__SCALE_v:
+  xmul 4 xvG float32 xA float32
+  lwreturn
+
+# Combine a translation transform with a matrix 
+# input:
+#   xA xB xC xD - vector components of the scaling transform
+#   xG xH xI xJ - matrix columns (packed 32-bit floats)
+# otuput:
+#   xG xH xI xJ - matrix columns (packed 32-bit floats)
+# clobbers:
+#   xF
+MATRIX__TRANSLATE:
+  pack float32 xF xA
+  xadd xJ float32 xF float32
+  lwreturn
+MATRIX__TRANSLATE_v:
+  xadd xJ float32 xA float32
+  lwreturn
+
+# Combine an angle-axis rotation transform with a matrix 
+# input:
+#   xA xB xC - vector components of the axis
+#   xD       - angle of rotation around the axis (in radians)
+#   xG xH xI xJ - matrix columns (packed 32-bit floats)
+# otuput:
+#   xG xH xI xJ - matrix columns (packed 32-bit floats)
+# clobbers:
+#   xE xF xK xL xM xN
+MATRIX__ROTATE__ANGLE_AXIS:
+  xassign xK 0.0 0.0 0.0 0.0
+  xassign xL 0.0 0.0 0.0 0.0
+  xassign xM 0.0 0.0 0.0 0.0
+  xassign xN 0.0 0.0 0.0 0.0
+  xassign xE xA xB xC xN
+  xadd 3 xvK float32 xE float32
+  xmul 3 xvK float32 xvA
+  sine_and_cosine xE xF xD
+  assign xN 1.0
+  sub xN xF
+  xmul 3 xvK float32 xN
+  assign xN 0.0
+
+  mul xC -1.0
+  xassign xN xN xC xB xN
+  mul xC -1.0
+  xmul xN float32 xE
+  xassign xN float32 0 xF
+  xassign xN float32 3 0.0
+  xadd xK float32 xN float32
+  
+  mul xA -1.0
+  xassign xN xC xN xA xN
+  mul xA -1.0
+  xmul xN float32 xE
+  xassign xN float32 1 xF
+  xassign xN float32 3 0.0
+  xadd xL float32 xN float32
+
+  mul xB -1.0
+  xassign xN xB xA xN xN
+  mul xB -1.0
+  xmul xN float32 xE
+  xassign xN float32 2 xF
+  xassign xN float32 3 0.0
+  xadd xM float32 xN float32
+  
+  xassign xN 0.0 0.0 0.0 1.0
+  lwcall MATRIX__MULTIPLY_MATRICES__TRANSPOSED
+  lwreturn
+
+# Multiply two matrices
+# input:
+#   xG xH xI xJ - matrix B columns (packed 32-bit floats)
+#   xA xB xC xD - matrix A columns (packed 32-bit floats)
+# otuput:
+#   xG xH xI xJ - matrix columns (packed 32-bit floats)
+# clobbers:
+#   xE xK xL xM xN
+#
+# alternatively, the "TRANSPOSED" variant may be used if the 2nd matrix is 
+#   pre-transposed and placed on registers [xk xL xM xN] elsewhere
+MATRIX__MULTIPLY_MATRICES:
+  xduplicate 4 xK xA
+  transpose f32 xK
+MATRIX__MULTIPLY_MATRICES__TRANSPOSED:
+  dot f32 xE 0 xG xK
+  dot f32 xE 1 xG xL
+  dot f32 xE 2 xG xM
+  dot f32 xE 3 xG xN
+  xassign xG xE
+  dot f32 xE 0 xH xK
+  dot f32 xE 1 xH xL
+  dot f32 xE 2 xH xM
+  dot f32 xE 3 xH xN
+  xassign xH xE
+  dot f32 xE 0 xI xK
+  dot f32 xE 1 xI xL
+  dot f32 xE 2 xI xM
+  dot f32 xE 3 xI xN
+  xassign xI xE
+  dot f32 xE 0 xJ xK
+  dot f32 xE 1 xJ xL
+  dot f32 xE 2 xJ xM
+  dot f32 xE 3 xJ xN
+  xassign xJ xE
+  lwreturn
+
+# Combine a 3D perspective transform with a matrix 
+# input:
+#   xA - left plane
+#   xB - right plane
+#   xC - top plane
+#   xD - bottom plane
+#   xE - near plane
+#   xF - far plane
+#   xG xH xI xJ - matrix columns (packed 32-bit floats)
+# output:
+#   xG xH xI xJ - matrix columns (packed 32-bit floats)
+# clobbers:
+#   xK xL xM xN
+MATRIX__PERSPECTIVE:
+  xassign xN xB xC xE xF
+  xassign xM xA xD xF xE
+  xassign xL xM
+  xadd xM float32 xN float32
+  xsub xN float32 xL float32
+  assign xK xE
+  mul xK 2.0
+  xassign xL float32 0 xK
+  xassign xL float32 1 xK
+  assign xK xE
+  mul xK xF
+  mul xK -2.0
+  xassign xL float32 3 xK
+  
+  xdiv xL float32 xN float32
+  xdiv xM float32 xN float32
+  
+  xassign xM float32 3 xL float32 3
+  xassign xN 0 0
+  xassign xN float32 2 -1.0
+  xassign xK 0 0
+  xassign xK float32 0 xL float32 0
+  xassign xK float32 2 xM float32 0
+  xassign xL float32 2 xM float32 1
+  xassign xL float32 0 0.0
+  xassign xL float32 3 0.0
+  xassign xM float32 0 0.0
+  xassign xM float32 1 0.0
+  
+  lwcall MATRIX__MULTIPLY_MATRICES__TRANSPOSED
+  lwreturn
+
+# Debug-print matrix (in row-major order)
+#
+# input:
+#   xG xH xI xJ - matrix columns (packed 32-bit floats)
+# clobbers:
+#   xK xL xM xN
+MATRIX__PRINT:
+  transpose 32 xG
+  unpack float32.4 xK xG
+  lwcall MATRIX__PRINT_line
+  unpack float32.4 xK xH
+  lwcall MATRIX__PRINT_line
+  unpack float32.4 xK xI
+  lwcall MATRIX__PRINT_line
+  unpack float32.4 xK xJ
+  lwcall MATRIX__PRINT_line
+  transpose 32 xG
+  lwreturn
+MATRIX__PRINT_line:
+  tcall print-float-xk
+  tcall print-space
+  tcall print-float-xl
+  tcall print-space
+  tcall print-float-xm
+  tcall print-space
+  tcall print-float-xn
+  tcall print-newline
+  lwreturn
