@@ -765,7 +765,7 @@
         stmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
         mov rTEMPA_32, fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
         and rTEMPA_32, 0xffff9fff
-        or rTEMPA_32,  0x00006000
+        ; or rTEMPA_32,  0x00006000
         mov fs:[context.registers + rbtactyk.mxcsr + random_const_FS ], rTEMPA_32
         ldmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS]
         jmp .ldctx_end

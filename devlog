@@ -1,3 +1,9 @@
+31 May 2023
+Add matrix inversion function to the matrix-simd example
+
+Reinstate "round" conversion mode (and force it).
+Use truncating conversion instructions for converting floating point numbers to integers.
+
 30 May 2023
 Add "xcompute" instruction
   4-function calculator
