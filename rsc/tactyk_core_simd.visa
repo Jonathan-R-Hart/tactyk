@@ -1824,5 +1824,49 @@ instruction xcompute
   code
     $FOOTER
 
+typespec shuffle-slot32
+  select-operand
+    case 0
+      value 00
+    case 1
+      value 01
+    case 2
+      value 10
+    case 3
+      value 11
+instruction shuffle
+  operand
+    select-operand
+      case 32 f32 i32
+        pick Fmt32
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type xmmx
+    $SRC $VALUE
+  operand
+    type shuffle-slot32
+    $A $VALUE
+  operand
+    type shuffle-slot32
+    $B $VALUE
+  operand
+    type shuffle-slot32
+    $C $VALUE
+  operand
+    type shuffle-slot32
+    $D $VALUE
+  select-template
+    case Fmt32XX
+      code
+        pshufd $DEST, $SRC, 0b$D$C$B$A
+        jmp $NEXT_INSTRUCTION
+
+
+
+
+
+
 
 

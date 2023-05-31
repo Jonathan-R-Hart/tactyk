@@ -1,5 +1,5 @@
 30 May 2023
-Add xcompute instruction
+Add "xcompute" instruction
   4-function calculator
   This accepts an arbitrary list of arithmetic functions, constants, data registers, xmm registers, and packed xmm register slots (32-bit and 64-bit floating point formats)
   and generates an instruction which evaluates list items from left to right.
@@ -22,6 +22,10 @@ Add xcompute instruction
   NOTE 2: This might seem misclassified as a "simd" instruction, its placement has more to do with its ability to handle packed fields (and thus to augment actual SIMD code)
          If at some point, the underlying instruction extender is improved to handle more complex situations, it may be reclassified, renamed to "compute", and have the
          packed field handling moved to a separate module (variable-length parameter list with parameter handlers that affect subsequent parameter handlers)
+
+Add "shuffle" instruction
+This rearranges the packed 32-bit fields on a register
+  For now, only 32-bit fields are supported.  At some future time, this is to be extended to include variants for 8,16, and 64 bit packed fields.
 
 29 May 2023
 Add a matrix transformation example using the new SIMD instructions

@@ -34,6 +34,11 @@ MAIN:
   tcall print-newline
   lwcall MATRIX__PRINT
   tcall print-newline
+  assign rA 'INVERSE:
+  tcall print-text-a
+  tcall print-newline
+  lwcall MATRIX__INVERT
+  lwcall MATRIX__PRINT
   exit
 
 # normalize a 3D vector
@@ -229,6 +234,9 @@ MATRIX__PERSPECTIVE:
   xassign xM float32 1 0.0
   
   lwcall MATRIX__MULTIPLY_MATRICES__TRANSPOSED
+  lwreturn
+
+MATRIX__INVERT:
   lwreturn
 
 # Debug-print matrix (in row-major order)
