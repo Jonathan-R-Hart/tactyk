@@ -18,27 +18,64 @@
 # THREE.js in turn appears to have referenced https://www.euclideanspace.com/
 #
 
+PRINTIT:
+  tcall print-text-a
+  tcall print-newline
+  lwcall MATRIX__PRINT
+  tcall print-newline
+  lwreturn
+
 MAIN:
+  
+  tcall print-newline
+
   lwcall MATRIX__IDENTITY
+  assign rA 'IDENTITY
+  lwcall PRINTIT
+  
   spread xA 2.0 3.0 4.0 0.0
   lwcall MATRIX__TRANSLATE
+  
+  assign rA 'TX-2,3,4
+  lwcall PRINTIT
+  
   spread xA 1.0 10.0 1.0 1.0
   lwcall MATRIX__SCALE
+  assign rA 'SC-Y*10
+  lwcall PRINTIT
+  
   spread xA 0.25 -0.75 8.0 -0.333
   lwcall VECTOR__NORMALIZE
   lwcall MATRIX__ROTATE__ANGLE_AXIS
+  
+  assign rA 'ROTATE!
+  lwcall PRINTIT
+  
   spread xA 1000.0 10000.0 100000.0 0.0
   lwcall MATRIX__TRANSLATE
+
+  assign rA 'TX-more
+  lwcall PRINTIT
+  
   spread xA -10.0 20.0 -30.0 40.0 -50.0 60.0
   lwcall MATRIX__PERSPECTIVE
+  
+  assign rA '3D-view
+  lwcall PRINTIT
+  
   tcall print-newline
-  lwcall MATRIX__PRINT
-  tcall print-newline
-  assign rA 'INVERSE:
+  
+  assign rA '~MATRIX
+  lwcall MATRIX__INVERT
+  lwcall PRINTIT
+  
+  assign rA '~~MATRIX
+  lwcall MATRIX__INVERT
+  lwcall PRINTIT
+  
+  assign rA 'Goodbye!
   tcall print-text-a
   tcall print-newline
-  lwcall MATRIX__INVERT
-  lwcall MATRIX__PRINT
   exit
 
 # normalize a 3D vector
@@ -236,7 +273,195 @@ MATRIX__PERSPECTIVE:
   lwcall MATRIX__MULTIPLY_MATRICES__TRANSPOSED
   lwreturn
 
+# Compute an inverse matrix
+# input:
+#   xG xH xI xJ - matrix columns (packed 32-bit floats)
+# output:
+#   xA xB xC xD - matrix columns (packed 32-bit floats)
+# clobbers:
+#   xF xL xM xN
 MATRIX__INVERT:
+  xassign xK xG
+  
+  # For each matrix component, compute a partial product
+  # Each partial product is the sum of all submatrix diagonal and antidiagonal products (excluding the row and column which the partial product belongs to)
+  # Partial products are then multiplied by a "fudge" row (which inverts a few partial products to get working results for reasons I don't fully understand) 
+  # The matrix determinant is obtained by multiplying the first column of partial products with the first column in the input matrix,
+  # Each partial product is divided by the determinant, yielding an inverted matrix.
+  # Finally, the inverted matrix is transposed and returned
+  
+  # column 0
+  shuffle f32 xL xH 1 2 3 0
+  shuffle f32 xM xI 2 3 0 1
+  shuffle f32 xN xJ 3 0 1 2
+  xmul 2 xL float32 xvM float32
+  xassign xF xL
+  
+  shuffle f32 xL xH 2 3 0 1
+  shuffle f32 xM xI 3 0 1 2
+  shuffle f32 xN xJ 1 2 3 0
+  xmul 2 xL float32 xvM float32
+  xadd xF float32 xL float32
+  
+  shuffle f32 xL xH 3 0 1 2
+  shuffle f32 xM xI 1 2 3 0
+  shuffle f32 xN xJ 2 3 0 1
+  xmul 2 xL float32 xvM float32
+  xadd xF float32 xL float32
+
+  shuffle f32 xL xH 1 2 3 0
+  shuffle f32 xM xI 3 0 1 2
+  shuffle f32 xN xJ 2 3 0 1
+  xmul 2 xL float32 xvM float32
+  xsub xF float32 xL float32
+
+  shuffle f32 xL xH 2 3 0 1
+  shuffle f32 xM xI 1 2 3 0
+  shuffle f32 xN xJ 3 0 1 2
+  xmul 2 xL float32 xvM float32
+  xsub xF float32 xL float32
+
+  shuffle f32 xL xH 3 0 1 2
+  shuffle f32 xM xI 2 3 0 1
+  shuffle f32 xN xJ 1 2 3 0
+  xmul 2 xL float32 xvM float32
+  xsub xF float32 xL float32
+  
+  xassign xA 1.0 -1.0 1.0 -1.0
+  xmul xA float32 xF float32
+
+  # column 1
+  shuffle f32 xL xG 1 2 3 0
+  shuffle f32 xM xI 3 0 1 2
+  shuffle f32 xN xJ 2 3 0 1
+  xmul 2 xL float32 xvM float32
+  xassign xF xL
+
+  shuffle f32 xL xG 2 3 0 1
+  shuffle f32 xM xI 1 2 3 0
+  shuffle f32 xN xJ 3 0 1 2
+  xmul 2 xL float32 xvM float32
+  xadd xF float32 xL float32
+  
+  shuffle f32 xL xG 3 0 1 2
+  shuffle f32 xM xI 2 3 0 1
+  shuffle f32 xN xJ 1 2 3 0
+  xmul 2 xL float32 xvM float32
+  xadd xF float32 xL float32
+
+  shuffle f32 xL xG 1 2 3 0
+  shuffle f32 xM xI 2 3 0 1
+  shuffle f32 xN xJ 3 0 1 2
+  xmul 2 xL float32 xvM float32
+  xsub xF float32 xL float32
+
+  shuffle f32 xL xG 2 3 0 1
+  shuffle f32 xM xI 3 0 1 2
+  shuffle f32 xN xJ 1 2 3 0
+  xmul 2 xL float32 xvM float32
+  xsub xF float32 xL float32
+
+  shuffle f32 xL xG 3 0 1 2
+  shuffle f32 xM xI 1 2 3 0
+  shuffle f32 xN xJ 2 3 0 1
+  xmul 2 xL float32 xvM float32
+  xsub xF float32 xL float32
+
+  xassign xB 1.0 -1.0 1.0 -1.0
+  xmul xB float32 xF float32
+  
+  # column 2
+  shuffle f32 xL xH 1 2 3 0
+  shuffle f32 xM xG 3 0 1 2
+  shuffle f32 xN xJ 2 3 0 1
+  xmul 2 xL float32 xvM float32
+  xassign xF xL
+
+  shuffle f32 xL xH 2 3 0 1
+  shuffle f32 xM xG 1 2 3 0
+  shuffle f32 xN xJ 3 0 1 2
+  xmul 2 xL float32 xvM float32
+  xadd xF float32 xL float32
+  
+  shuffle f32 xL xH 3 0 1 2
+  shuffle f32 xM xG 2 3 0 1
+  shuffle f32 xN xJ 1 2 3 0
+  xmul 2 xL float32 xvM float32
+  xadd xF float32 xL float32
+
+  shuffle f32 xL xH 1 2 3 0
+  shuffle f32 xM xG 2 3 0 1
+  shuffle f32 xN xJ 3 0 1 2
+  xmul 2 xL float32 xvM float32
+  xsub xF float32 xL float32
+
+  shuffle f32 xL xH 2 3 0 1
+  shuffle f32 xM xG 3 0 1 2
+  shuffle f32 xN xJ 1 2 3 0
+  xmul 2 xL float32 xvM float32
+  xsub xF float32 xL float32
+
+  shuffle f32 xL xH 3 0 1 2
+  shuffle f32 xM xG 1 2 3 0
+  shuffle f32 xN xJ 2 3 0 1
+  xmul 2 xL float32 xvM float32
+  xsub xF float32 xL float32
+
+  xassign xC 1.0 -1.0 1.0 -1.0
+  xmul xC float32 xF float32
+  
+  # column 3
+  shuffle f32 xL xG 1 2 3 0
+  shuffle f32 xM xH 2 3 0 1
+  shuffle f32 xN xI 3 0 1 2
+  xmul 2 xL float32 xvM float32
+  xassign xF xL
+  
+  shuffle f32 xL xG 2 3 0 1
+  shuffle f32 xM xH 3 0 1 2
+  shuffle f32 xN xI 1 2 3 0
+  xmul 2 xL float32 xvM float32
+  xadd xF float32 xL float32
+  
+  shuffle f32 xL xG 3 0 1 2
+  shuffle f32 xM xH 1 2 3 0
+  shuffle f32 xN xI 2 3 0 1
+  xmul 2 xL float32 xvM float32
+  xadd xF float32 xL float32
+
+  shuffle f32 xL xG 1 2 3 0
+  shuffle f32 xM xH 3 0 1 2
+  shuffle f32 xN xI 2 3 0 1
+  xmul 2 xL float32 xvM float32
+  xsub xF float32 xL float32
+
+  shuffle f32 xL xG 2 3 0 1
+  shuffle f32 xM xH 1 2 3 0
+  shuffle f32 xN xI 3 0 1 2
+  xmul 2 xL float32 xvM float32
+  xsub xF float32 xL float32
+
+  shuffle f32 xL xG 3 0 1 2
+  shuffle f32 xM xH 2 3 0 1
+  shuffle f32 xN xI 1 2 3 0
+  xmul 2 xL float32 xvM float32
+  xsub xF float32 xL float32
+  
+  xassign xD -1.0  1.0 -1.0  1.0
+  xmul xD float32 xF float32
+  
+  xassign xF xG
+  xmul xF float32 xA float32
+  xcompute xF add xF.f32.0 xF.f32.1 xF.f32.2 xF.f32.3
+  
+  xdiv 4 xvA float32 xF
+  
+  transpose 32 xG
+  xduplicate 4 xG xA
+  
+  # assign rA 1
+  # tcall dump-dispmode
+  # tcall dump-ctx
   lwreturn
 
 # Debug-print matrix (in row-major order)
