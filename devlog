@@ -1,3 +1,12 @@
+1 Jun 2023
+Add "compute" instruction
+  This is an instruction comparable to "xcompute" which uses high-precision floating point operations (x87 fpu)
+  It is loosely similar to xcompute, in that it allows an arbitrary sequence of operators which are evaluated from left to right and which passively applies a mathematical operator
+    for each value or referenced register.
+  It accepts xmm registers, data registers, constants, and stash entries
+  It does not include a mechanism for accessing xmm packed field slots (That's a "MAYBE" feature)
+  It is able to access up to 4 transient variables on the FPU stack (used for complex calculations, does not persist beyond the end of the instruction)
+
 31 May 2023
 Add matrix inversion function to the matrix-simd example
 
