@@ -644,6 +644,35 @@ Unusual variants:
   assign address-offset integer
     offset an address register by an integer immediate
 
+spread destination [literals ...]
+  assign 1-6 integer literals to a data register group
+  OR assign 1-14 floating point literals to an xmmx register group
+  This is intended to make various forms of initialization easier to code.
+typespecs:
+  destination:            data xmmx
+  literals:               integer float
+Variants:
+  spread DI
+  spread DII
+  spread DIII
+  spread DIIII
+  spread DIIIII
+  spread DIIIIII
+  spread XF
+  spread XFF
+  spread XFFF
+  spread XFFFF
+  spread XFFFFF
+  spread XFFFFFF
+  spread XFFFFFFF
+  spread XFFFFFFFF
+  spread XFFFFFFFFF
+  spread XFFFFFFFFFF
+  spread XFFFFFFFFFFF
+  spread XFFFFFFFFFFFF
+  spread XFFFFFFFFFFFFF
+  spread XFFFFFFFFFFFFFF
+
 shift-left destination source
 Apply a bitwise left shift to a data register
 Typespecs:
