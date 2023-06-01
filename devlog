@@ -9,6 +9,8 @@ Add "compute" instruction
 
 Documentation for "Super-SIMD" instructions and "xmm-fpmath" instructions
 
+Update "tactyk-core" documentation to cover block-load and block-store instructions
+
 tactyk-test - Add checks for 64-bit and 80-bit floating point values in the stash test.
 
 31 May 2023

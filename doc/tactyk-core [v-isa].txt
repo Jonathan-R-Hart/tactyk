@@ -57,6 +57,29 @@ Assigned variables:
   $VALUE                xmm register name
 template-selector:  'X'
 
+xmmx-full
+  A variant of the xmmx register selector which also provides a hint that the full 128 bits of the register should be used
+  (most instructions affecting xmmx registers only affect the lower 64 bits)
+  This is used for overloading certain instructions to allow them to optionally use wider data types
+Accpeted values:
+  xx0 xxmm0 xxa xxA
+  xx1 xxmm1 xxb xxB
+  xx2 xxmm2 xxc xxC
+  xx3 xxmm3 xxd xxD
+  xx4 xxmm4 xxe xxE
+  xx5 xxmm5 xxf xxF
+  xx6 xxmm6 xxg xxG
+  xx7 xxmm7 xxh xxH
+  xx8 xxmm8 xxi xxI
+  xx9 xxmm9 xxj xxJ
+  xx10 xxmm10 xxk xxK
+  xx11 xxmm11 xxl xxL
+  xx12 xxmm12 xxm xxM
+  xx13 xxmm13 xxn xxN
+Assigned variables:
+  $VALUE                xmm register name
+template-selector:  'Xx'
+
 word
   select a word size
 Accepted values:
@@ -274,6 +297,19 @@ Assigned variables:
   $VECFMT               vector format (the suffix to attach to said vectorized isntructions)
 template-selector: N/A  (no need for one)
 
+block-quantity
+  integer 1-14 with parameters needed to support operations on register groups
+accepted values:
+  1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Assigned variales:
+  $QTY                          integer quantity (accepted interger literal)
+  $ELEMENT_BOUND_MODIFIER_64    Bounds check modifier for 8-byte words  ($QTY*8 - 1)
+  $ELEMENT_BOUND_MODIFIER_128   Bounds check modifier for 16-byte words ($QTY*16 - 1)
+template-selector:
+  'Bqs' if quanity equal to or less than 6
+  'Bql'  if quanitty equal to or greater than 7
+  The use of two template-selectors helps to bake in an assertion that quantity should not exceed 6 for data-register groups consisting
+
 
 INSTRUCTIONS
 
@@ -354,7 +390,7 @@ Variants:
   load float data addr const
 
 store word-size address-register element-offset source-register
-Take a value form a register and store it into a memblock.
+Take a value from a register and store it into a memblock.
 Typespecs:
   word-size:              word
   address-register:       addr
@@ -377,6 +413,45 @@ Variants:
   store float addr data
   store float addr integer
   store float addr const
+
+block-load block-size destination-register address-register element-offset
+  Fetch data from a memblock and load it onto a register-group
+  Word size is implicit and (determined by how a register is referenced)
+Typespecs:
+  block-size:             block-quanity
+  destination-register:   data xmmx xmmx-full
+  address-register:       addr
+  element-offset:         data integer const
+Variants:
+  block-load block-quantity data addr data
+  block-load block-quantity data addr integer
+  block-load block-quantity data addr const
+  block-load block-quantity xmmx addr data
+  block-load block-quantity xmmx addr integer
+  block-load block-quantity xmmx addr const
+  block-load block-quantity xmmx-full addr data
+  block-load block-quantity xmmx-full addr integer
+  block-load block-quantity xmmx-full addr const
+
+
+block-store block-size address-register element-offset source-register
+  Take values from a register group and store them into a memblock.
+  Word size is implicit and (determined by how a register is referenced)
+Typespecs:
+  block-size:             block-quanity
+  address-register:       addr
+  element-offset:         data integer const
+  source-register:        data xmmx xmmx-full
+Variants:
+  block-store block-quantity addr data data
+  block-store block-quantity addr integer data
+  block-store block-quantity addr const data
+  block-store block-quantity addr data xmmx
+  block-store block-quantity addr integer xmmx
+  block-store block-quantity addr const xmmx
+  block-store block-quantity addr data xmmx-full
+  block-store block-quantity addr integer xmmx-full
+  block-store block-quantity addr const xmmx-full
 
 pop destination-register address-register
 Treating a memblock as a stack, pop a value off a stack and load it onto a data register.
