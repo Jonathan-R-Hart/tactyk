@@ -7,7 +7,7 @@ Add "compute" instruction
   It does not include a mechanism for accessing xmm packed field slots (That's a "MAYBE" feature)
   It is able to access up to 4 transient variables on the FPU stack (used for complex calculations, does not persist beyond the end of the instruction)
 
-Documentation for "Super-SIMD" instructions
+Documentation for "Super-SIMD" instructions and "xmm-fpmath" instructions
 
 tactyk-test - Add checks for 64-bit and 80-bit floating point values in the stash test.
 

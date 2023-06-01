@@ -415,7 +415,7 @@ Variants:
 
 add a b
 Add the value b or value of register b onto the value of register a
-If either operand is a floating point nubmer, the operation will be performed using xmm registers
+If either operand is a floating point number, the operation will be performed using xmm registers
 Typespecs:
   a:                      data xmmx
   b:                      data xmmx const fconst integer float
@@ -435,7 +435,7 @@ Variants:
 
 sub a b
 Subtract the value b or value of register b from value of register a
-If either operand is a floating point nubmer, the operation will be performed using xmm registers
+If either operand is a floating point number, the operation will be performed using xmm registers
 Typespecs:
   a:                      data xmmx
   b:                      data xmmx const fconst integer float
@@ -455,7 +455,7 @@ Variants:
 
 mul a b
 Multiply the value of register a by value b or value of register b
-If either operand is a floating point nubmer, the operation will be performed using xmm registers
+If either operand is a floating point number, the operation will be performed using xmm registers
 Typespecs:
   a:                      data xmmx
   b:                      data xmmx const fconst integer float
@@ -475,7 +475,7 @@ Variants:
 
 div a b div-zero-branch
 Divide the value of register a by value b or value of register b
-If either operand is a floating point nubmer, the operation will be performed using xmm registers
+If either operand is a floating point number, the operation will be performed using xmm registers
 If dividing a data register and a "div-zero-branch" operand is provided, it will jump to the specified branch target if the value of b is zero.
 If dividing a data register and a "div-zero-branch" is not provided, then it will set status to "DIVISION_BY_ZERO" and terminate execution if the value of b is zero.
 Floating point division by zero is unchecked (supposedly it doesn't cause floating point exceptions)
@@ -780,13 +780,6 @@ typespecs:
   Nothing!
 Variants:
   tvmreturn
-
-cpuclocks
-This is a diagnostic function which reads CPU cycle count and writes it to a diagnostic proprety.
-Its results are not accessible to scripts.
-Its purpose is to aid in performance testing.
-This will probably be removed in favor of simply expecting that performance testing be conducted exclusively in native code with a conventional
-high-resolution timer.
 
 stash   OPT-swap dest-0 source-0 ? OPT-swap dest-1 source-1 ? ... ? OPT-swap dest-15 source-15
 Transfer data between registers and the stash or transfer data within the stash

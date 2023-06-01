@@ -1,0 +1,224 @@
+TACTYK-core simd-math miscellaneous/support instructions
+
+square-root a OPT-b
+  Compute the square root of a 64-bit floating point value
+  The single-register version is a unary operator which replaces the value of the input register
+  The two-register version is a binary operator which takes input from register 'b' and writes output to register 'a'
+Typespecs:
+  a:    xmmx
+  b:    xmmx
+Variants
+  square-root a
+  square-root a b
+
+transpose format matrix
+  Matrix transposition operator
+  This shuffles the packed 32-bit fields of 4 consecutive xmmx registers to apply a diagonal flip transform
+  The format specifier is optional and defaults to a packed 32-bit format (either floating point or integer).
+Typespecs:
+  format [custom]:
+    32 i32 f32 float32
+      template-selector: 'Fmt32'
+  matrix:   xmmx
+Augmented interface:
+  Register Group:
+    matrix~0
+    matrix~1
+    matrix~2
+    matrix~3
+Variants:
+  transpose format xmmx
+  transpose xmmx
+
+dot format dest a b
+  Compute the dot product of two vectors
+  inputs a and b are xmmx registers which hold packed 32-bit fields.
+  the format specifier is optional and defaults to 4-elements of the packed 32-bit floating point format.
+Typespecs:
+  format [custom]:
+    f32 f32.4
+      template-selector: 'F32.4'
+  dest:   xmmx
+  a:      xmmx
+  b:      xmmx
+Variants:
+  dot f32.4 xmmx xmmx xmmx
+  dot xmmx xmmx xmmx
+
+cross format dest a b
+  Compute the cross product of two vectors
+  inputs a and b are xmmx registers which hold packed 32-bit fields.
+  the format specifier is optional and defaults to 3-elements of the packed 32-bit floating point format.
+Typespecs:
+  format [custom]:
+    f32 f32.3
+      template-selector: 'F32'
+  dest:   xmmx
+  a:      xmmx
+  b:      xmmx
+Variants:
+  cross f32 xmmx xmmx xmmx
+  cross xmmx xmmx xmmx
+
+
+INSTRUCTION EXTENTIONS
+
+(this section duplicates select portions of the tactyk-core virtual-ISA documentation)
+
+instruction extention:  load word-size dest addr offset
+  Extentions to the load instruction to cover data transfer operations from memblocks to xmm registers
+Typespecs:
+  word-size:    word
+  dest:         xmmx
+  addr:         address
+  offset:       data const integer
+Variants
+  load float64 xmmx addr integer
+  load float64 xmmx addr const
+  load float64 xmmx addr data
+  load bits128 xmmx addr integer
+  load bits128 xmmx addr const
+  load bits128 xmmx addr data
+  load float32 xmmx addr integer
+  load float32 xmmx addr const
+  load float32 xmmx addr data
+
+instruction extention:  store word-size addr offset source
+  Extentions to the store instruction to cover data transfer operations from xmm registers to memblocks
+Typespecs:
+  word-size:    word
+  addr:         address
+  offset:       data const integer
+  source:       xmmx
+Variants
+  store float64 addr integer xmmx
+  store float64 addr const xmmx
+  store float64 addr data xmmx
+  store bits128 addr integer xmmx
+  store bits128 addr const xmmx
+  store bits128 addr data xmmx
+  store float32 addr integer xmmx
+  store float32 addr const xmmx
+  store float32 addr data xmmx
+
+add a b
+Add the value b or value of register b onto the value of register a
+If either operand is a floating point number, the operation will be performed using xmm registers
+Typespecs:
+  a:                      data xmmx
+  b:                      data xmmx const fconst integer float
+Variants:
+  add data data
+  add data integer
+  add data const
+  add data float
+  add data fconst
+  add data xmmx
+  add xmmx xmmx
+  add xmmx data
+  add xmmx integer
+  add xmmx const
+  add xmmx float
+  add xmmx fconst
+
+sub a b
+Subtract the value b or value of register b from value of register a
+If either operand is a floating point number, the operation will be performed using xmm registers
+Typespecs:
+  a:                      data xmmx
+  b:                      data xmmx const fconst integer float
+Variants:
+  sub data data
+  sub data integer
+  sub data const
+  sub data float
+  sub data fconst
+  sub data xmmx
+  sub xmmx xmmx
+  sub xmmx data
+  sub xmmx integer
+  sub xmmx const
+  sub xmmx float
+  sub xmmx fconst
+
+instruction extention:  mul a b
+  Multiply the value of register a by value b or value of register b
+  If either operand is a floating point number, the operation will be performed using xmm registers
+Typespecs:
+  a:                      data xmmx
+  b:                      data xmmx const fconst integer float
+Variants:
+  mul data data
+  mul data integer
+  mul data const
+  mul data float
+  mul data fconst
+  mul data xmmx
+  mul xmmx xmmx
+  mul xmmx data
+  mul xmmx integer
+  mul xmmx const
+  mul xmmx float
+  mul xmmx fconst
+
+instruction extention:  div a b div-zero-branch
+  Divide the value of register a by value b or value of register b
+  If either operand is a floating point number, the operation will be performed using xmm registers
+  If dividing a data register and a "div-zero-branch" operand is provided, it will jump to the specified branch target if the value of b is zero.
+  If dividing a data register and a "div-zero-branch" is not provided, then it will set status to "DIVISION_BY_ZERO" and terminate execution if the value of b is zero.
+  Floating point division by zero is unchecked (supposedly it doesn't cause floating point exceptions)
+Typespecs:
+  a:                      data xmmx
+  b:                      data xmmx const fconst integer float
+  div-zero-branch:        branch
+Variants:
+  div data data
+  div data integer
+  div data const
+  div data float
+  div data fconst
+  div data xmmx
+  div xmmx xmmx
+  div xmmx data
+  div xmmx integer
+  div xmmx const
+  div xmmx float
+  div xmmx fconst
+  div data data div-zero-branch
+  div data integer div-zero-branch
+  div data const div-zero-branch
+  div data float div-zero-branch
+  div data fconst div-zero-branch
+  div data xmmx div-zero-branch
+
+instruction extention:  if OPT-format a cmp b branch
+  Perform a conditional branch
+Typespecs:
+  OPT-vec-format:         vec-float-format
+    This assigns an instruction suffix for use with floating-point/SSE2 comparisons
+    This is implicit in all variants (though irrelevant in integer-based comparators)
+  a:                      data xmmx integer const fconst float
+  cmp:                    comparator
+  b:                      data xmmx integer const fconst float
+  branch:                 branch
+Variants:
+  if data comparator data branch
+  if data comparator integer branch
+  if data comparator const branch
+  if data comparator float branch
+  if data comparator fconst branch
+  if integer comparator data branch
+  if const comparator data branch
+  if float comparator data branch
+  if fconst comparator data branch
+  if xmmx comparator xmmx branch
+  if xmmx comparator data branch
+  if xmmx comparator float branch
+  if xmmx comparator fconst branch
+  if xmmx comparator integer branch
+  if xmmx comparator const branch
+  if float comparator xmmx branch
+  if fconst comparator xmmx branch
+  if data comparator xmmx branch
+  if integer comparator xmmx branch
+  if const comparator xmmx branch
