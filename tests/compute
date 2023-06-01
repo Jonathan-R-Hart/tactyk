@@ -1,0 +1,72 @@
+# TEST:  compute
+# 
+# Virtual-ISA: tactyk_core
+# Templates:
+#   compute xmmx-*[compute-op xmmx data float fconst integer const stash addr-offset]
+#   compute data-*[compute-op xmmx data float fconst integer const stash addr-offset]
+#   compute stash-*[compute-op xmmx data float fconst integer const stash addr-offset]
+#   
+
+PROGRAM
+  const C10000 10000
+  const C20000 20000
+  const C30000 30000
+  const C40000 40000
+  const C50000 50000
+
+  const Cf100000.1 100000.1
+  const Cf200000.2 200000.2
+  const Cf300000.3 300000.3
+  const Cf400000.4 400000.4
+  const Cf500000.5 500000.5
+  
+  INIT:
+    spread rA 100 120 140
+    spread xA 1.2 2.4 3.8 4.16
+
+    # sqrt ((120+140) × ((1.2+100+1234+50000+400000.4)/2.5))
+    compute xE add xA rA 1234 C50000 Cf400000.4 div 2.5 ->x load rC add rB mul <-x sqrt
+    compute xF 1.75 round
+    compute xG 3 atan 4
+    compute xH add 16 32 log2
+    compute xI 8.9 mod 100
+    
+    compute rF load 5 ~div 50
+    compute xN 555.555
+    compute sAl 0.123
+    compute sAh 321.456 ~sub 100
+    compute sB 9999.31234234234234234
+    
+    #     w :=  0.123 / 555.555
+    #     x :=  pi * pi
+    #     y := 15
+    #     z := -221.456
+    #     100 + x + y + x + w
+    #     100 + (9999.31234234234234234 / 555.555) + (pi * pi) + (15) + (-221.456)
+    compute sC sB div xN ->w load CONST_PI mul . ->x load 15 ->y load sAh ->z load rA add <-x <-y <-z <-w
+    exit
+
+XMM-DISPLAYMODE float64
+EXEC INIT
+TEST
+  rA 100
+  rB 120
+  rC 140
+  xA 1.2
+  xB 2.4
+  xC 3.8
+  xD 4.16
+  xE 6851.197151
+  xF 2
+  xG 0.6435011087932844
+  xH 5.584962500721157
+  xI 2.1
+  xN 555.555
+  rF 10
+  
+  stash al float64 0.123
+  stash ah float64 -221.456
+  stash b float80 9999.31234234234234234
+  stash c float80 -78.587615383914210168522296356911205652043087949546
+
+
