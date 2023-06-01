@@ -1,0 +1,164 @@
+Tactyk-core "Super-SIMD" instructions
+
+  This is a set of functions for performing vectorized operations, for preparing and invoking simd instructions, and for using SIMD instructions with many registers at once (the "super" aspect).  
+
+CONCEPTS
+
+Register Groups - Several instructions treat sets of xmm and data registers as an array.  These instructions accept an integer quantity and the name of the register to start at.  Lexical order is used, and if the last register is reached, it wraps around to the first.  Register groups are used primarilly for vectorized operations.
+
+Examples
+  A block of 4 data registers starting at rC: [ rC rD rE rF ]
+  A block of 7 xmm registers starting at xJ: [ xJ xK xL xM xN xA xB ]
+
+INSTRUCTIONS
+
+xassign dest OPT-dest-format OPT-dest-slot source OPT-source-format OPT-source-slot
+  A specialized assignment operator for manipulating individual fields within xmmx registers containing packed data.
+  This is further specialized in that the source and/or destination may be offset from the specified source and destination by providing a slot identifier which
+    is "out of bounds" for the specified format.  (essentially addressing slots within a Register Group)
+  
+  formats:
+    float32  - packed 32-bit float
+    float64  - packed 64-bit float
+    int32    - packed 32-bit integer
+    int64    - packed 64-bit integer
+  
+  If no format is specified, this reverts to scalar 64-bit floating point field 
+    (behaves similarly to assign instruction, but does forcibly clear the upper portion of the xmm register)
+
+xassign dest a b c d
+  This loads/packs 32-bit fields onto an xmmx register.
+  dest and source are xmmx registers.
+  There are four sub-variants:  
+    the "data" subvariant accepts four data registers and loads them into packed int-32 fields
+    the "xmmx" subvariant accepts four xmmx registers and loads them into packed float-32 fields
+    the "int-const" subvariant accepts any combination of integer literals and integer constants and loads them into packed int-32 fields
+    the "float-const" subvariant accepts any combination of float literals and float constants and loads them into packed float-32 fields
+  Officially it's an "xassign" variant, but practically, it's a distinct instruction which just overloads the name.
+
+xassign dest a b
+  This loads/packs 64-bit fields onto an xmmx register.
+  (similar to the immediately above xassign variant)
+  Officially it's an "xassign" variant, but practically, it's a distinct instruction which just overloads the name.
+  
+
+pack format destination source
+  Read a block of xmmx registers and convert the values to a packed format
+  destination:  xmmx register to place the packed value onto
+  source:  first xmmx register to read. 
+  format:  base type and number of fields to pack
+    int32.2 -   2 32-bit packed integer fields
+    int32.3 -   3 32-bit packed integer fields
+    int32.4 -   4 32-bit packed integer fields
+    int32 -     4 32-bit packed integer fields
+    float32.2 - 2 32-bit packed floating point fields
+    float32.3 - 3 32-bit packed floating point fields
+    float32.4 - 4 32-bit packed floating point fields
+    float32 -   4 32-bit packed floating point fields
+  If floating point format, the source registers are assumed to be 64-bit floating point [and will be converted to 32-bit floating point values]
+  If an integer format, the source registers are assumed to be 64-bit integer [and will be converted by truncation to 32-bit integer values]
+  
+unpack format destination source
+  Read a packed xmmx register and write the values onto a block of registers
+  destination:  first xmmx register in the register group to write to
+  source:  xmmx register to read. 
+  format:  base type and number of fields to unpack
+    int32.2 -   2 32-bit packed integer fields
+    int32.3 -   3 32-bit packed integer fields
+    int32.4 -   4 32-bit packed integer fields
+    int32 -     4 32-bit packed integer fields
+    float32.2 - 2 32-bit packed floating point fields
+    float32.3 - 3 32-bit packed floating point fields
+    float32.4 - 4 32-bit packed floating point fields
+    float32 -   4 32-bit packed floating point fields
+  If a floating point format, the unpacked values will be converted to 64-bit floating point values
+
+x-binary-op OPT-quantity dest OPT-dest-format source OPT-source-format
+  These are vectorized operations.
+  The operation varies greatly based on dest/source types and specified formats
+  
+  available operators:  xadd, xsub, xmul, xdiv, xmin, xmax
+  
+  The destination and source types are as follows:
+    data register (rA rB ... rF)
+    xmmx register (xA xB ... xN)
+    vector-xmmx register (xvA xvB ... xvN)
+      This must also be prefixed by a quantity specifiny how wide the vectorized opreation should be (how many registers to operate on)
+
+  The formats may be any of:
+    scalar float64
+    packed float64
+    packed float32
+    packed int8
+    packed int16
+    packed int32
+    packed int64
+  
+  If either the source register or the destination register are referenced as "vector" registers, then the operation will be vectorized.
+  This vectorization is accomplised by repeating the operation for each vector register.
+  
+  If the source register is a vector reference and the destination register is a normal reference, then the operation is as follows:
+    dest := op( ... op(op(op(dest, source0), source1), source2) ... , source0)
+  
+  If the source register is a normal reference and the destination register is a vector reference, then the operation is as follows:
+    dest0 := op(dest0, source)
+    dest1 := op(dest1, source)
+    dest2 := op(dest2, source)
+    ...
+    destN := op(destN, source)
+  If both the source register and the destination register are vector references, then the operation is as follows:
+    dest0 := op(dest0, source0)
+    dest1 := op(dest1, source1)
+    dest2 := op(dest2, source2)
+    ...
+    destN := op(destN, sourceN)
+  If both the source register and the destination register are regular references, then the operation is as follows:
+    dest0 := op(dest, source)
+  
+  If the data formats are mismatched, then data from the source register(s) will be converted into the format used by the destination register.
+  If the source format is not packed or has fewer slots than the destination, then it will be downcast to match the smaller format and copied to fill the packed type.
+  If the destination format is not packed or has fewer slots than the source, then the source fields will be upcasted with upper fields ignored/omitted.
+  
+  additionally, the source may be a literal or constant numeric type 
+
+
+xcompute dest OPT-dest-format OPT-dest-slot [expression ...]
+  This is a custom mathematical expression evaluator.
+  The expression to evalueate is a sequence consisting of any combination of operators, literal/constant values, registers, and packed-register field references
+  The expression is evaluated from left to right.
+  Each value in the sequence is loaded and a [modal] mathematical operator is used to combine it with an accumulator.
+  The default mathematical operator is addition.
+  When a mathematical operator appears in the sequence, it changes which mathematical operator is used for combining inputs with the accumulator.
+  At the end of the expression, the value of the accumulator is written to whatever is referenced by the destination parameter.
+  
+  The behavior is roughly analogous to that of a simple 4-function calculator.  
+  It has no notion of order of operations and handles everything in order.
+  It is intended to supplement SIMD code by allowing simple scalar arithmetic to be performed using arbitrary fields within packed data, without incurring 
+    a need to unpack or repack the data.
+  
+  opreators:
+    add:  addition
+    sub:  subtraction
+    mul:  multiplication
+    div:  division
+    ~sub:  subtraction with reversed operand order
+    ~div:  division with reversed operand order
+  
+  xcompute is also simular to the "compute" instruction 
+    xcompute has limited arithemetical capabilities and low precision (SSE instructions)
+    xcompute has the ability to access packed fields (whereas compute only handles simple scalar formats)
+    compute has more operators and uses high-precision 80-bit floating point computations (x87 FPU)
+  
+shuffle format destination source A B C D
+  Re-arrange packed fields.
+  Both destination and source are xmmx registers
+  The parameters, [A B C D] are the fields from the source register to write to the destination register
+  Each field parameter is an integer reference to a packed field within the source register
+  Only 32-bit packed fields are supported at present.
+
+
+
+
+
+
+
