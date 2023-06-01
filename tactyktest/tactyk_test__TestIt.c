@@ -27,6 +27,7 @@ struct tactyk_asmvm__Stack *shadow_ctx_stack;
 uint32_t *shadow_lwcall_stack;
 double precision_f32;
 double precision_f64;
+long double precision_f80;
 uint64_t callback_id;
 uint64_t ccall_args[6];
 int64_t ccall_retval;
@@ -41,7 +42,8 @@ struct tactyk_dblock__DBlock *test_functions;
 
 struct tactyk_dblock__DBlock *DEFAULT_NAME;
 
-double DEFAULT_PRECISION_F64 = DBL_EPSILON * 131072.0;           // eps * 2**17
+long double DEFAULT_PRECISION_F80 = DBL_EPSILON * 1.0;                 // eps * 1
+double DEFAULT_PRECISION_F64 = DBL_EPSILON * 131072.0;            // eps * 2**17
 double DEFAULT_PRECISION_F32 = DBL_EPSILON * 4294967296.0;        // eps * 2**32
 
 struct tactyk_dblock__DBlock **active_test_spec;
@@ -180,6 +182,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     programs = tactyk_dblock__new_table(64);
     shadow_memblock_sets = tactyk_dblock__new_table(64);
     DEFAULT_NAME = tactyk_dblock__from_safe_c_string("DEFAULT");
+    precision_f80 = DEFAULT_PRECISION_F80;
     precision_f64 = DEFAULT_PRECISION_F64;
     precision_f32 = DEFAULT_PRECISION_F32;
     test_functions = tactyk_dblock__new_table(64);

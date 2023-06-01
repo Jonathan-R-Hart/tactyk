@@ -1028,8 +1028,6 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
     
     if (tactyk_dblock__equals_c_string(fieldtype_token, "float64")) {
         val_token = val_token->next;
-        printf("stash-f64 chk:  ");
-        tactyk_dblock__println(val_token);
         double fval = 0;
         if (!tactyk_dblock__try_parsedouble(&fval, val_token)) {
             char buf[64];
@@ -1158,6 +1156,61 @@ uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_
         STASH_FBTEST(s29)
         STASH_FBTEST(s30)
         STASH_FBTEST(s31)
+    }
+    else if (tactyk_dblock__equals_c_string(fieldtype_token, "float80")) {
+        val_token = val_token->next;
+        long double fval = 0;
+        if (!tactyk_dblock__try_parselongdouble(&fval, val_token)) {
+            char buf[64];
+            tactyk_dblock__export_cstring(buf, 64, val_token);
+            snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "[stash] not a floating-point number: %s", buf);
+            return TACTYK_TESTSTATE__TEST_ERROR;
+        }
+        
+        #define STASH_FLTEST(NAME) \
+        else if (strncmp(fn, #NAME, 64) == 0) { \
+            if (tactyk_test__approximately_eq__longdbl(fval, rstash->NAME.f80, precision_f80)) { \
+                shstash->NAME.f80 = rstash->NAME.f80; \
+                field_matched = true; \
+            } \
+            else { \
+                sprintf(test_state->report, "deviation at stash entry #%ju, field %s, expected:%Lf observed:%Lf", ofs, #NAME, fval, rstash->NAME.f80); \
+                return TACTYK_TESTSTATE__FAIL; \
+            } \
+        }
+        if (false) {}
+        STASH_FLTEST(a)
+        STASH_FLTEST(b)
+        STASH_FLTEST(c)
+        STASH_FLTEST(d)
+        STASH_FLTEST(e)
+        STASH_FLTEST(f)
+        STASH_FLTEST(g)
+        STASH_FLTEST(h)
+        STASH_FLTEST(i)
+        STASH_FLTEST(j)
+        STASH_FLTEST(k)
+        STASH_FLTEST(l)
+        STASH_FLTEST(m)
+        STASH_FLTEST(n)
+        STASH_FLTEST(o)
+        STASH_FLTEST(p)
+        STASH_FLTEST(q)
+        STASH_FLTEST(r)
+        STASH_FLTEST(s)
+        STASH_FLTEST(t)
+        STASH_FLTEST(u)
+        STASH_FLTEST(v)
+        STASH_FLTEST(w)
+        STASH_FLTEST(x)
+        STASH_FLTEST(y)
+        STASH_FLTEST(z)
+        STASH_FLTEST(s26)
+        STASH_FLTEST(s27)
+        STASH_FLTEST(s28)
+        STASH_FLTEST(s29)
+        STASH_FLTEST(s30)
+        STASH_FLTEST(s31)
     }
     else {
 

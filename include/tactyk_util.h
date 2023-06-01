@@ -28,6 +28,7 @@ bool tactyk_util__try_parseint(int64_t *out, char *str, bool permissive);
 bool tactyk_util__is_uintstring(char* str);
 bool tactyk_util__try_parseuint(uint64_t *out, char *str, bool permissive);
 bool tactyk_util__try_parsedouble(double *out, char *str, uint64_t max_len);
+bool tactyk_util__try_parselongdouble(long double *out, char *str, uint64_t str_len);
 void tactyk_util__lcase(char *txt, int32_t max_length);
 void tactyk_util__ucase(char *txt, int32_t max_length);
 uint64_t tactyk_util__rand_range(uint64_t range);

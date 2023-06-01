@@ -39,6 +39,7 @@ extern struct tactyk_asmvm__Stack *shadow_ctx_stack;
 extern uint32_t *shadow_lwcall_stack;
 extern double precision_f32;
 extern double precision_f64;
+extern long double precision_f80;
 extern uint64_t callback_id;
 extern uint64_t ccall_args[6];
 extern int64_t ccall_retval;
@@ -151,6 +152,7 @@ void tactyk_test__reset_state(struct tactyk_test__Status *tstate);
 void tactyk_test__await_start(struct tactyk_test__Status *tstate);
 
 bool tactyk_test__approximately_eq(double a, double b, double precision);
+bool tactyk_test__approximately_eq__longdbl(long double a, long double b, long double precision);
 
 uint64_t read_spec__binary_data(struct tactyk_dblock__DBlock **out, struct tactyk_dblock__DBlock *spec);
 

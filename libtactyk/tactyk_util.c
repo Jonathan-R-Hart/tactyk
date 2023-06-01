@@ -116,6 +116,21 @@ bool tactyk_util__try_parsedouble(double *out, char *str, uint64_t str_len) {
         return false;
     }
 }
+bool tactyk_util__try_parselongdouble(long double *out, char *str, uint64_t str_len) {
+    char *tail = NULL;
+    char *end = &str[str_len];
+    errno = 0;
+    *out = strtold(str, &tail);
+    if (tail != end) {
+        return false;
+    }
+    if (errno == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
 
 bool tactyk_util__try_parseuint(uint64_t *out, char *str, bool permissive) {
     int32_t len = strlen(str);
