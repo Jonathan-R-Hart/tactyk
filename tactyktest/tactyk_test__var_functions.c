@@ -1006,165 +1006,301 @@ uint64_t tactyk_test__TEST_LWCALL_STACK(struct tactyk_test_entry *entry, struct 
 uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *ofs_token = spec->token->next;
     struct tactyk_dblock__DBlock *fieldname_token = ofs_token->next;
+    struct tactyk_dblock__DBlock *val_token = fieldname_token->next;
     
     uint64_t ofs = 0;
     if (!tactyk_dblock__try_parseuint(&ofs, ofs_token)) {
         ofs = vmctx->reg.rMCSI;
         fieldname_token = ofs_token;
+        val_token = fieldname_token->next;
     }
     else if (ofs >= TACTYK_ASMVM__MCTX_STACK_SIZE) {
         snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "mctx stack offset is out of bounds: %ju", ofs);
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
-
-    struct tactyk_dblock__DBlock *val_token = fieldname_token->next;
-
+    struct tactyk_asmvm__MicrocontextStash *rstash = &vmctx->microcontext_stack[ofs];
     struct tactyk_asmvm__MicrocontextStash *shstash = &shadow_mctxstack[ofs];
-
     char fn[64];
     tactyk_dblock__export_cstring(fn, 64, fieldname_token);
-
-    int64_t ival = 0;
-    int64_t ival2 = 0;
-
     bool field_matched = false;
-
-    if (tactyk_dblock__getchar(val_token, 0) == '\'') {
-        char buf[256];
-        tactyk_dblock__export_cstring(buf, 256, val_token);
-        memcpy(&ival, &buf[1], 8);
-        memcpy(&ival2, &buf[9], 8);
+    
+    struct tactyk_dblock__DBlock *fieldtype_token = val_token;
+    
+    if (tactyk_dblock__equals_c_string(fieldtype_token, "float64")) {
+        val_token = val_token->next;
+        printf("stash-f64 chk:  ");
+        tactyk_dblock__println(val_token);
+        double fval = 0;
+        if (!tactyk_dblock__try_parsedouble(&fval, val_token)) {
+            char buf[64];
+            tactyk_dblock__export_cstring(buf, 64, val_token);
+            snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "[stash] not a floating-point number: %s", buf);
+            return TACTYK_TESTSTATE__TEST_ERROR;
+        }
+        
+        #define STASH_FTEST(NAME, FIELD) \
+        else if (strncmp(fn, #NAME, 64) == 0) { \
+            if (tactyk_test__approximately_eq(fval, rstash->FIELD, precision_f64)) { \
+                shstash->FIELD = rstash->FIELD; \
+                field_matched = true; \
+            } \
+            else { \
+                sprintf(test_state->report, "deviation at stash entry #%ju, field %s, expected:%f observed:%f", ofs, #NAME, fval, rstash->FIELD); \
+                return TACTYK_TESTSTATE__FAIL; \
+            } \
+        }
+        #define STASH_FBTEST(NAME) \
+        else if (strncmp(fn, #NAME, 64) == 0) { \
+            if (tactyk_test__approximately_eq(fval, rstash->NAME.f64[0], precision_f64)) { \
+                shstash->NAME.f64[0] = rstash->NAME.f64[0]; \
+                shstash->NAME.f64[1] = 0; \
+                field_matched = true; \
+            } \
+            else { \
+                sprintf(test_state->report, "deviation at stash entry #%ju, field %s, expected:%f observed:%f", ofs, #NAME, fval, rstash->NAME.f64[0]); \
+                return TACTYK_TESTSTATE__FAIL; \
+            } \
+        }
+        if (false) {}
+        STASH_FTEST(al, a.f64[0])
+        STASH_FTEST(ah, a.f64[1])
+        STASH_FTEST(bl, b.f64[0])
+        STASH_FTEST(bh, b.f64[1])
+        STASH_FTEST(cl, c.f64[0])
+        STASH_FTEST(ch, c.f64[1])
+        STASH_FTEST(dl, d.f64[0])
+        STASH_FTEST(dh, d.f64[1])
+        STASH_FTEST(el, e.f64[0])
+        STASH_FTEST(eh, e.f64[1])
+        STASH_FTEST(fl, f.f64[0])
+        STASH_FTEST(fh, f.f64[1])
+        STASH_FTEST(gl, g.f64[0])
+        STASH_FTEST(gh, g.f64[1])
+        STASH_FTEST(hl, h.f64[0])
+        STASH_FTEST(hh, h.f64[1])
+        STASH_FTEST(il, i.f64[0])
+        STASH_FTEST(ih, i.f64[1])
+        STASH_FTEST(jl, j.f64[0])
+        STASH_FTEST(jh, j.f64[1])
+        STASH_FTEST(kl, k.f64[0])
+        STASH_FTEST(kh, k.f64[1])
+        STASH_FTEST(ll, l.f64[0])
+        STASH_FTEST(lh, l.f64[1])
+        STASH_FTEST(ml, m.f64[0])
+        STASH_FTEST(mh, m.f64[1])
+        STASH_FTEST(nl, n.f64[0])
+        STASH_FTEST(nh, n.f64[1])
+        STASH_FTEST(ol, o.f64[0])
+        STASH_FTEST(oh, o.f64[1])
+        STASH_FTEST(pl, p.f64[0])
+        STASH_FTEST(ph, p.f64[1])
+        STASH_FTEST(ql, q.f64[0])
+        STASH_FTEST(qh, q.f64[1])
+        STASH_FTEST(rl, r.f64[0])
+        STASH_FTEST(rh, r.f64[1])
+        STASH_FTEST(sl, s.f64[0])
+        STASH_FTEST(sh, s.f64[1])
+        STASH_FTEST(tl, t.f64[0])
+        STASH_FTEST(th, t.f64[1])
+        STASH_FTEST(ul, u.f64[0])
+        STASH_FTEST(uh, u.f64[1])
+        STASH_FTEST(vl, v.f64[0])
+        STASH_FTEST(vh, v.f64[1])
+        STASH_FTEST(wl, w.f64[0])
+        STASH_FTEST(wh, w.f64[1])
+        STASH_FTEST(xl, x.f64[0])
+        STASH_FTEST(xh, x.f64[1])
+        STASH_FTEST(yl, y.f64[0])
+        STASH_FTEST(yh, y.f64[1])
+        STASH_FTEST(zl, z.f64[0])
+        STASH_FTEST(zh, z.f64[1])
+        STASH_FTEST(s26l, s26.f64[0])
+        STASH_FTEST(s26h, s26.f64[1])
+        STASH_FTEST(s27l, s27.f64[0])
+        STASH_FTEST(s27h, s27.f64[1])
+        STASH_FTEST(s28l, s28.f64[0])
+        STASH_FTEST(s28h, s28.f64[1])
+        STASH_FTEST(s29l, s29.f64[0])
+        STASH_FTEST(s29h, s29.f64[1])
+        STASH_FTEST(s30l, s30.f64[0])
+        STASH_FTEST(s30h, s30.f64[1])
+        STASH_FTEST(s31l, s31.f64[0])
+        STASH_FTEST(s31h, s31.f64[1])
+        STASH_FBTEST(a)
+        STASH_FBTEST(b)
+        STASH_FBTEST(c)
+        STASH_FBTEST(d)
+        STASH_FBTEST(e)
+        STASH_FBTEST(f)
+        STASH_FBTEST(g)
+        STASH_FBTEST(h)
+        STASH_FBTEST(i)
+        STASH_FBTEST(j)
+        STASH_FBTEST(k)
+        STASH_FBTEST(l)
+        STASH_FBTEST(m)
+        STASH_FBTEST(n)
+        STASH_FBTEST(o)
+        STASH_FBTEST(p)
+        STASH_FBTEST(q)
+        STASH_FBTEST(r)
+        STASH_FBTEST(s)
+        STASH_FBTEST(t)
+        STASH_FBTEST(u)
+        STASH_FBTEST(v)
+        STASH_FBTEST(w)
+        STASH_FBTEST(x)
+        STASH_FBTEST(y)
+        STASH_FBTEST(z)
+        STASH_FBTEST(s26)
+        STASH_FBTEST(s27)
+        STASH_FBTEST(s28)
+        STASH_FBTEST(s29)
+        STASH_FBTEST(s30)
+        STASH_FBTEST(s31)
     }
     else {
-        tactyk_dblock__try_parseint(&ival, val_token);
+
+        int64_t ival = 0;
+        int64_t ival2 = 0;
+
+        if (tactyk_dblock__getchar(val_token, 0) == '\'') {
+            char buf[256];
+            tactyk_dblock__export_cstring(buf, 256, val_token);
+            memcpy(&ival, &buf[1], 8);
+            memcpy(&ival2, &buf[9], 8);
+        }
+        else {
+            tactyk_dblock__try_parseint(&ival, val_token);
+        }
+
+        #define STASH_TEST(NAME, FIELD) \
+        else if (strncmp(fn, #NAME, 64) == 0) { \
+            shstash->FIELD = ival; \
+            field_matched = true; \
+        }
+        #define STASH_ATEST(NAME, FIELD, TYPE) \
+        else if (strncmp(fn, NAME, 64) == 0) { \
+            shstash->FIELD = (TYPE)ival; \
+            field_matched = true; \
+        }
+
+        #define STASH_BTEST(NAME) \
+        else if (strncmp(fn, #NAME, 64) == 0) { \
+            shstash->NAME.i64[0] = ival; \
+            shstash->NAME.i64[1] = ival2; \
+            field_matched = true; \
+        }
+        if (false) {}
+        STASH_TEST(al, a.i64[0])
+        STASH_TEST(ah, a.i64[1])
+        STASH_TEST(bl, b.i64[0])
+        STASH_TEST(bh, b.i64[1])
+        STASH_TEST(cl, c.i64[0])
+        STASH_TEST(ch, c.i64[1])
+        STASH_TEST(dl, d.i64[0])
+        STASH_TEST(dh, d.i64[1])
+        STASH_TEST(el, e.i64[0])
+        STASH_TEST(eh, e.i64[1])
+
+        STASH_TEST(fl, f.i64[0])
+        STASH_TEST(fh, f.i64[1])
+        STASH_TEST(gl, g.i64[0])
+        STASH_TEST(gh, g.i64[1])
+        STASH_TEST(hl, h.i64[0])
+        STASH_TEST(hh, h.i64[1])
+        STASH_TEST(il, i.i64[0])
+        STASH_TEST(ih, i.i64[1])
+        STASH_TEST(jl, j.i64[0])
+        STASH_TEST(jh, j.i64[1])
+
+        STASH_TEST(kl, k.i64[0])
+        STASH_TEST(kh, k.i64[1])
+        STASH_TEST(ll, l.i64[0])
+        STASH_TEST(lh, l.i64[1])
+        STASH_TEST(ml, m.i64[0])
+        STASH_TEST(mh, m.i64[1])
+        STASH_TEST(nl, n.i64[0])
+        STASH_TEST(nh, n.i64[1])
+        STASH_TEST(ol, o.i64[0])
+        STASH_TEST(oh, o.i64[1])
+
+        STASH_TEST(pl, p.i64[0])
+        STASH_TEST(ph, p.i64[1])
+        STASH_TEST(ql, q.i64[0])
+        STASH_TEST(qh, q.i64[1])
+        STASH_TEST(rl, r.i64[0])
+        STASH_TEST(rh, r.i64[1])
+        STASH_TEST(sl, s.i64[0])
+        STASH_TEST(sh, s.i64[1])
+        STASH_TEST(tl, t.i64[0])
+        STASH_TEST(th, t.i64[1])
+
+        STASH_TEST(ul, u.i64[0])
+        STASH_TEST(uh, u.i64[1])
+        STASH_TEST(vl, v.i64[0])
+        STASH_TEST(vh, v.i64[1])
+        STASH_TEST(wl, w.i64[0])
+        STASH_TEST(wh, w.i64[1])
+        STASH_TEST(xl, x.i64[0])
+        STASH_TEST(xh, x.i64[1])
+        STASH_TEST(yl, y.i64[0])
+        STASH_TEST(yh, y.i64[1])
+
+        STASH_TEST(zl, z.i64[0])
+        STASH_TEST(zh, z.i64[1])
+        
+        STASH_TEST(s26l, s26.i64[0])
+        STASH_TEST(s26h, s26.i64[1])
+        STASH_TEST(s27l, s27.i64[0])
+        STASH_TEST(s27h, s27.i64[1])
+        STASH_TEST(s28l, s28.i64[0])
+        STASH_TEST(s28h, s28.i64[1])
+        STASH_TEST(s29l, s29.i64[0])
+        STASH_TEST(s29h, s29.i64[1])
+        STASH_TEST(s30l, s30.i64[0])
+        STASH_TEST(s30h, s30.i64[1])
+        STASH_TEST(s31l, s31.i64[0])
+        STASH_TEST(s31h, s31.i64[1])
+
+        STASH_BTEST(a)
+        STASH_BTEST(b)
+        STASH_BTEST(c)
+        STASH_BTEST(d)
+        STASH_BTEST(e)
+        STASH_BTEST(f)
+        STASH_BTEST(g)
+        STASH_BTEST(h)
+        STASH_BTEST(i)
+        STASH_BTEST(j)
+        STASH_BTEST(k)
+        STASH_BTEST(l)
+        STASH_BTEST(m)
+        STASH_BTEST(n)
+        STASH_BTEST(o)
+        STASH_BTEST(p)
+        STASH_BTEST(q)
+        STASH_BTEST(r)
+        STASH_BTEST(s)
+        STASH_BTEST(t)
+        STASH_BTEST(u)
+        STASH_BTEST(v)
+        STASH_BTEST(w)
+        STASH_BTEST(x)
+        STASH_BTEST(y)
+        STASH_BTEST(z)
+        STASH_BTEST(s26)
+        STASH_BTEST(s27)
+        STASH_BTEST(s28)
+        STASH_BTEST(s29)
+        STASH_BTEST(s30)
+        STASH_BTEST(s31)
+
+        #undef STASH_TEST
+        #undef STASH_ATEST
+        #undef STASH_BTEST
     }
-
-    #define STASH_TEST(NAME, FIELD) \
-    else if (strncmp(fn, #NAME, 64) == 0) { \
-        shstash->FIELD = ival; \
-        field_matched = true; \
-    }
-    #define STASH_ATEST(NAME, FIELD, TYPE) \
-    else if (strncmp(fn, NAME, 64) == 0) { \
-        shstash->FIELD = (TYPE)ival; \
-        field_matched = true; \
-    }
-
-    #define STASH_BTEST(NAME) \
-    else if (strncmp(fn, #NAME, 64) == 0) { \
-        shstash->NAME.i64[0] = ival; \
-        shstash->NAME.i64[1] = ival2; \
-        field_matched = true; \
-    }
-    if (false) {}
-    STASH_TEST(al, a.i64[0])
-    STASH_TEST(ah, a.i64[1])
-    STASH_TEST(bl, b.i64[0])
-    STASH_TEST(bh, b.i64[1])
-    STASH_TEST(cl, c.i64[0])
-    STASH_TEST(ch, c.i64[1])
-    STASH_TEST(dl, d.i64[0])
-    STASH_TEST(dh, d.i64[1])
-    STASH_TEST(el, e.i64[0])
-    STASH_TEST(eh, e.i64[1])
-
-    STASH_TEST(fl, f.i64[0])
-    STASH_TEST(fh, f.i64[1])
-    STASH_TEST(gl, g.i64[0])
-    STASH_TEST(gh, g.i64[1])
-    STASH_TEST(hl, h.i64[0])
-    STASH_TEST(hh, h.i64[1])
-    STASH_TEST(il, i.i64[0])
-    STASH_TEST(ih, i.i64[1])
-    STASH_TEST(jl, j.i64[0])
-    STASH_TEST(jh, j.i64[1])
-
-    STASH_TEST(kl, k.i64[0])
-    STASH_TEST(kh, k.i64[1])
-    STASH_TEST(ll, l.i64[0])
-    STASH_TEST(lh, l.i64[1])
-    STASH_TEST(ml, m.i64[0])
-    STASH_TEST(mh, m.i64[1])
-    STASH_TEST(nl, n.i64[0])
-    STASH_TEST(nh, n.i64[1])
-    STASH_TEST(ol, o.i64[0])
-    STASH_TEST(oh, o.i64[1])
-
-    STASH_TEST(pl, p.i64[0])
-    STASH_TEST(ph, p.i64[1])
-    STASH_TEST(ql, q.i64[0])
-    STASH_TEST(qh, q.i64[1])
-    STASH_TEST(rl, r.i64[0])
-    STASH_TEST(rh, r.i64[1])
-    STASH_TEST(sl, s.i64[0])
-    STASH_TEST(sh, s.i64[1])
-    STASH_TEST(tl, t.i64[0])
-    STASH_TEST(th, t.i64[1])
-
-    STASH_TEST(ul, u.i64[0])
-    STASH_TEST(uh, u.i64[1])
-    STASH_TEST(vl, v.i64[0])
-    STASH_TEST(vh, v.i64[1])
-    STASH_TEST(wl, w.i64[0])
-    STASH_TEST(wh, w.i64[1])
-    STASH_TEST(xl, x.i64[0])
-    STASH_TEST(xh, x.i64[1])
-    STASH_TEST(yl, y.i64[0])
-    STASH_TEST(yh, y.i64[1])
-
-    STASH_TEST(zl, z.i64[0])
-    STASH_TEST(zh, z.i64[1])
     
-    STASH_TEST(s26l, s26.i64[0])
-    STASH_TEST(s26h, s26.i64[1])
-    STASH_TEST(s27l, s27.i64[0])
-    STASH_TEST(s27h, s27.i64[1])
-    STASH_TEST(s28l, s28.i64[0])
-    STASH_TEST(s28h, s28.i64[1])
-    STASH_TEST(s29l, s29.i64[0])
-    STASH_TEST(s29h, s29.i64[1])
-    STASH_TEST(s30l, s30.i64[0])
-    STASH_TEST(s30h, s30.i64[1])
-    STASH_TEST(s31l, s31.i64[0])
-    STASH_TEST(s31h, s31.i64[1])
-
-    STASH_BTEST(a)
-    STASH_BTEST(b)
-    STASH_BTEST(c)
-    STASH_BTEST(d)
-    STASH_BTEST(e)
-    STASH_BTEST(f)
-    STASH_BTEST(g)
-    STASH_BTEST(h)
-    STASH_BTEST(i)
-    STASH_BTEST(j)
-    STASH_BTEST(k)
-    STASH_BTEST(l)
-    STASH_BTEST(m)
-    STASH_BTEST(n)
-    STASH_BTEST(o)
-    STASH_BTEST(p)
-    STASH_BTEST(q)
-    STASH_BTEST(r)
-    STASH_BTEST(s)
-    STASH_BTEST(t)
-    STASH_BTEST(u)
-    STASH_BTEST(v)
-    STASH_BTEST(w)
-    STASH_BTEST(x)
-    STASH_BTEST(y)
-    STASH_BTEST(z)
-    STASH_BTEST(s26)
-    STASH_BTEST(s27)
-    STASH_BTEST(s28)
-    STASH_BTEST(s29)
-    STASH_BTEST(s30)
-    STASH_BTEST(s31)
-
-    #undef STASH_TEST
-    #undef STASH_ATEST
-    #undef STASH_BTEST
-
     if (!field_matched) {
         sprintf(test_state->report, "unrecognized mctx field: '%s'", fn);
         return TACTYK_TESTSTATE__TEST_ERROR;

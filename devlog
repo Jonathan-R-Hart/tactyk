@@ -7,6 +7,8 @@ Add "compute" instruction
   It does not include a mechanism for accessing xmm packed field slots (That's a "MAYBE" feature)
   It is able to access up to 4 transient variables on the FPU stack (used for complex calculations, does not persist beyond the end of the instruction)
 
+tactyk-test - Allow testing for 64-bit floating point values in the stash test.
+
 31 May 2023
 Add matrix inversion function to the matrix-simd example
 
