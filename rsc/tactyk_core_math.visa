@@ -220,7 +220,7 @@ typespec compute-op
     case atan
       $COMPUTE_OP fpatan
     case mod
-      $COMPUTE_OP fprem1
+      $COMPUTE_OP fprem
     
     # apply the passive function using the accumulator vale for both operands 
     case .
@@ -296,10 +296,6 @@ typespec compute-op
       code
         fldpi
         $COMPUTE_OP $COMPUTE_ARG
-    case CONST_E
-      code
-        flde
-        $COMPUTE_OP $COMPUTE_ARG
   pick .
 
 instruction compute
@@ -338,7 +334,7 @@ instruction compute
   
   composite 16
     operand
-      type compute-op xmmx data float fconst integer const
+      type compute-op xmmx data  stash-item stash-item-low stash-item-high  float fconst integer const
       $SRC $VALUE
       scramble rTEMPC $LD_B_IMMEDIATE
     select-template
@@ -349,10 +345,10 @@ instruction compute
           $COMPUTE_OP $COMPUTE_ARG
       case Si
         code
-          fld iword gs:[microcontext.$DEST+random_const_GS]
+          fld tword gs:[microcontext.$SRC+random_const_GS]
       case Sil Sih
         code
-          fld qword gs:[microcontext.$DEST+random_const_GS]
+          fld qword gs:[microcontext.$SRC+random_const_GS]
       case D
         code
           mov fs:[context.fpu_a + random_const_FS], $SRC
