@@ -1,0 +1,2278 @@
+typespec ssimd-xvector
+  select-operand
+    case xva xvA
+      value xA
+    case xvb xvB
+      value xB
+    case xvc xvC
+      value xC
+    case xvd xvD
+      value xD
+    case xve xvE
+      value xE
+    case xvf xvF
+      value xF
+    case xvg xvG
+      value xG
+    case xvh xvH
+      value xH
+    case xvi xvI
+      value xI
+    case xvj xvJ
+      value xJ
+    case xvk xvK
+      value xK
+    case xvl xvL
+      value xL
+    case xvm xvM
+      value xM
+    case xvn xvN
+      value xN
+  pick Xv
+typespec ssimd-int-1-7
+  select-operand
+    case 1
+      value 1
+    case 2
+      value 2
+    case 3
+      value 3
+    case 4
+      value 4
+    case 5
+      value 5
+    case 6
+      value 6
+    case 7
+      value 7
+typespec ssimd-int-1-14
+  select-operand
+    case 1
+      value 1
+    case 2
+      value 2
+    case 3
+      value 3
+    case 4
+      value 4
+    case 5
+      value 5
+    case 6
+      value 6
+    case 7
+      value 7
+    case 8
+      value 8
+    case 9
+      value 9
+    case 10
+      value 10
+    case 11
+      value 11
+    case 12
+      value 12
+    case 13
+      value 13
+    case 14
+      value 14
+  pick V
+
+subroutine sse-insps-arg--direct
+  select $SIDX~$DIDX
+    case 0~0
+      $INSPS_arg 0
+    case 0~1
+      $INSPS_arg 16
+    case 0~2
+      $INSPS_arg 32
+    case 0~3
+      $INSPS_arg 48
+    case 1~0
+      $INSPS_arg 64
+    case 1~1
+      $INSPS_arg 80
+    case 1~2
+      $INSPS_arg 96
+    case 1~3
+      $INSPS_arg 112
+    case 2~0
+      $INSPS_arg 128
+    case 2~1
+      $INSPS_arg 144
+    case 2~2
+      $INSPS_arg 160
+    case 2~3
+      $INSPS_arg 176
+    case 3~0
+      $INSPS_arg 192
+    case 3~1
+      $INSPS_arg 208
+    case 3~2
+      $INSPS_arg 224
+    case 3~3
+      $INSPS_arg 240
+
+subroutine sse-insps-arg--Szero
+  select $DIDX
+    case 0
+      $INSPS_arg 0
+    case 1
+      $INSPS_arg 16
+    case 2
+      $INSPS_arg 32
+    case 3
+      $INSPS_arg 48
+
+subroutine sse-insps-arg--Dzero
+  select $SIDX
+    case 0
+      $INSPS_arg 0
+    case 1
+      $INSPS_arg 64
+    case 2
+      $INSPS_arg 128
+    case 3
+      $INSPS_arg 192
+
+subroutine sse-qword-put
+  select $DIDX
+    case 0
+      $QPUTOP movsd
+    case 1
+      $QPUTOP movlhps
+
+subroutine sse-qword-get
+  select $SIDX
+    case 0
+      $QGETOP movsd
+    case 1
+      $QGETOP movhlps
+
+typespec simd-format-discriminator
+  select-operand
+    case float32.1 f32.1 float32.2 f32.2 float32.3 f32.3 float32.4 f32.4 f32 float32
+      $SSE_WORD d
+    case float64.1 f64.1 float64.2 f64.2 f64 float64
+      $SSE_WORD q
+    case i8 ui8 int8 uint8
+      $SSE_WORD b
+      $SSE_REG_EXT _32
+    case i16 ui16 int16 uint16
+      $SSE_WORD w
+      $SSE_REG_EXT _32
+    case i32 ui32 int32 uint32
+      $SSE_WORD d
+      $SSE_REG_EXT _32
+    case i64 ui64 int64 uint64
+      $SSE_WORD q
+      $SSE_REG_EXT _64
+    case int8.1 i8.1 uint8.1 ui8.1 int8.2 i8.2 uint8.2 ui8.2 int8.3 i8.3 uint8.3 ui8.3 int8.4 i8.4 uint8.4 ui8.4 int8.5 i8.5 uint8.5 ui8.5 int8.6 i8.6 uint8.6 ui8.6
+      $SSE_WORD b
+      $SSE_REG_EXT _32
+    case int8.7 i8.7 uint8.7 ui8.7 int8.8 i8.8 uint8.8 ui8.8 int8.9 i8.9 uint8.9 ui8.9 int8.10 i8.10 uint8.10 ui8.10 int8.11 i8.11 uint8.11 ui8.11 int8.12 i8.12
+      $SSE_WORD b
+      $SSE_REG_EXT _32
+    case uint8.12 ui8.12 int8.13 i8.13 uint8.13 ui8.13 int8.14 i8.14 uint8.14 ui8.14 int8.15 i8.15 uint8.15 ui8.15 int8.16 i8.16 uint8.16 ui8.16
+      $SSE_WORD b
+      $SSE_REG_EXT _32
+    case int16.1 i16.1 uint16.1 ui16.1 int16.2 i16.2 uint16.2 ui16.2 int16.3 i16.3 uint16.3 ui16.3 int16.4 i16.4 uint16.4 ui16.4
+      $SSE_WORD w
+      $SSE_REG_EXT _32
+    case int16.5 i16.5 uint16.5 ui16.5 int16.6 i16.6 uint16.6 ui16.6 int16.7 i16.7 uint16.7 ui16.7 int16.8 i16.8 uint16.8 ui16.8
+      $SSE_WORD w
+      $SSE_REG_EXT _32
+    case int32.1 i32.1 uint32.1 ui32.1 int32.2 i32.2 uint32.2 ui32.2 int32.3 i32.3 uint32.3 ui32.3 int32.4 i32.4 uint32.4 ui32.4
+      $SSE_WORD d
+      $SSE_REG_EXT _32
+    case int64.1 i64.1 uint64.1 ui64.1 int64.2 i64.2 uint64.2 ui64.2
+      $SSE_WORD q
+      $SSE_REG_EXT _64
+
+subroutine simd-format-pick
+  select-operand
+    case float32.1 f32.1 float32.2 f32.2 float32.3 f32.3 float32.4 f32.4 f32 float32
+      pick F32
+    case float64.1 f64.1 float64.2 f64.2 f64 float64
+      pick F64
+    case i8 ui8 int8 uint8
+      pick I8
+    case i16 ui16 int16 uint16
+      pick I16
+    case i32 ui32 int32 uint32
+      pick I32
+    case i64 ui64 int64 uint64
+      pick I64
+    case int8.1 i8.1 uint8.1 ui8.1 int8.2 i8.2 uint8.2 ui8.2 int8.3 i8.3 uint8.3 ui8.3 int8.4 i8.4 uint8.4 ui8.4 int8.5 i8.5 uint8.5 ui8.5
+      pick I8
+    case int8.6 i8.6 uint8.6 ui8.6 int8.7 i8.7 uint8.7 ui8.7 int8.8 i8.8 uint8.8 ui8.8 int8.9 i8.9 uint8.9 ui8.9 int8.10 i8.10 uint8.10 ui8.10
+      pick I8
+    case int8.11 i8.11 uint8.11 ui8.11 int8.12 i8.12 uint8.12 ui8.12 int8.13 i8.13 uint8.13 ui8.13 int8.14 i8.14 uint8.14 ui8.14 int8.15 i8.15 uint8.15 ui8.15
+      pick I8
+    case int8.16 i8.16 uint8.16 ui8.16
+      pick I8
+    case int16.1 i16.1 uint16.1 ui16.1 int16.2 i16.2 uint16.2 ui16.2 int16.3 i16.3 uint16.3 ui16.3 int16.4 i16.4 uint16.4 ui16.4
+      pick I16
+    case int16.5 i16.5 uint16.5 ui16.5 int16.6 i16.6 uint16.6 ui16.6 int16.7 i16.7 uint16.7 ui16.7 int16.8 i16.8 uint16.8 ui16.8
+      pick I16
+    case int32.1 i32.1 uint32.1 ui32.1 int32.2 i32.2 uint32.2 ui32.2 int32.3 i32.3 uint32.3 ui32.3 int32.4 i32.4 uint32.4 ui32.4
+      pick I32
+    case int64.1 i64.1 uint64.1 ui64.1 int64.2 i64.2 uint64.2 ui64.2
+      pick I64
+
+subroutine simd-format-pick-simple
+  select-operand
+    case float32.1 f32.1 float32.2 f32.2 float32.3 f32.3 float32.4 f32.4
+      pick F
+    case float64.1 f64.1 float64.2 f64.2
+      pick F
+    case int8.1 i8.1 uint8.1 ui8.1 int8.2 i8.2 uint8.2 ui8.2 int8.3 i8.3 uint8.3 ui8.3 int8.4 i8.4 uint8.4 ui8.4 int8.5 i8.5 uint8.5 ui8.5
+      pick I
+    case int8.6 i8.6 uint8.6 ui8.6 int8.7 i8.7 uint8.7 ui8.7 int8.8 i8.8 uint8.8 ui8.8 int8.9 i8.9 uint8.9 ui8.9 int8.10 i8.10 uint8.10 ui8.10
+      pick I
+
+    case int8.11 i8.11 uint8.11 ui8.11 int8.12 i8.12 uint8.12 ui8.12 int8.13 i8.13 uint8.13 ui8.13 int8.14 i8.14 uint8.14 ui8.14 int8.15 i8.15 uint8.15 ui8.15
+      pick I
+    case int8.16 i8.16 uint8.16 ui8.16 int16.1 i16.1 uint16.1 ui16.1 int16.2 i16.2 uint16.2 ui16.2 int16.3 i16.3 uint16.3 ui16.3 int16.4 i16.4 uint16.4 ui16.4
+      pick I
+    case int16.5 i16.5 uint16.5 ui16.5 int16.6 i16.6 uint16.6 ui16.6 int16.7 i16.7 uint16.7 ui16.7 int16.8 i16.8 uint16.8 ui16.8
+      pick I
+    case int32.1 i32.1 uint32.1 ui32.1 int32.2 i32.2 uint32.2 ui32.2 int32.3 i32.3 uint32.3 ui32.3 int32.4 i32.4 uint32.4 ui32.4
+      pick I
+    case int64.1 i64.1 uint64.1 ui64.1 int64.2 i64.2 uint64.2 ui64.2
+      pick I
+
+subroutine simd-format-sse-params
+  select-operand
+    case float32.1 f32.1
+      $SIMD_ARG 1
+      $SIMD_ARG_minus1 0
+      $SSE_CLASS ss
+      $INSPS_arg 0
+      $EXTPS_arg 14
+    case float32.2 f32.2
+      $SIMD_ARG 2
+      $SIMD_ARG_minus1 1
+      $SSE_CLASS ps
+      $INSPS_arg 16
+      $EXTPS_arg 78
+    case float32.3 f32.3
+      $SIMD_ARG 3
+      $SIMD_ARG_minus1 2
+      $SSE_CLASS ps
+      $INSPS_arg 32
+      $EXTPS_arg 142
+    case float32.4 f32.4 float32 f32
+      $SIMD_ARG 4
+      $SIMD_ARG_minus1 3
+      $SSE_CLASS ps
+      $INSPS_arg 48
+      $EXTPS_arg 206
+    case float64.1 f64.1
+      $SIMD_ARG 1
+      $SIMD_ARG_minus1 0
+      $SSE_CLASS sd
+    case float64.2 f64.2 float64 f64
+      $SIMD_ARG 2
+      $SIMD_ARG_minus1 1
+      $SSE_CLASS pd
+    
+    case uint8.1 ui8.1
+      $SIMD_ARG 1
+      $SIMD_ARG_minus1 0
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.2 ui8.2
+      $SIMD_ARG 2
+      $SIMD_ARG_minus1 1
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.3 ui8.3
+      $SIMD_ARG 3
+      $SIMD_ARG_minus1 2
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.4 ui8.4
+      $SIMD_ARG 4
+      $SIMD_ARG_minus1 3
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.5 ui8.5
+      $SIMD_ARG 5
+      $SIMD_ARG_minus1 4
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.6 ui8.6
+      $SIMD_ARG 6
+      $SIMD_ARG_minus1 5
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.7 ui8.7
+      $SIMD_ARG 7
+      $SIMD_ARG_minus1 6
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.8 ui8.8
+      $SIMD_ARG 8
+      $SIMD_ARG_minus1 7
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.9 ui8.9
+      $SIMD_ARG 9
+      $SIMD_ARG_minus1 8
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.10 ui8.10
+      $SIMD_ARG 10
+      $SIMD_ARG_minus1 9
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.11 ui8.11
+      $SIMD_ARG 11
+      $SIMD_ARG_minus1 10
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.12 ui8.12
+      $SIMD_ARG 12
+      $SIMD_ARG_minus1 11
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.13 ui8.13
+      $SIMD_ARG 13
+      $SIMD_ARG_minus1 12
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.14 ui8.14
+      $SIMD_ARG 14
+      $SIMD_ARG_minus1 13
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.15 ui8.15 uint8 ui8
+      $SIMD_ARG 15
+      $SIMD_ARG_minus1 14
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    case uint8.16 ui8.16 uint8 ui8
+      $SIMD_ARG 16
+      $SIMD_ARG_minus1 15
+      $SSE_UCLASS b
+      $SSE_CLASS ub
+    
+    case int8.1 i8.1
+      $SIMD_ARG 1
+      $SIMD_ARG_minus1 0
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.2 i8.2
+      $SIMD_ARG 2
+      $SIMD_ARG_minus1 1
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.3 i8.3
+      $SIMD_ARG 3
+      $SIMD_ARG_minus1 2
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.4 i8.4
+      $SIMD_ARG 4
+      $SIMD_ARG_minus1 3
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.5 i8.5
+      $SIMD_ARG 5
+      $SIMD_ARG_minus1 4
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.6 i8.6
+      $SIMD_ARG 6
+      $SIMD_ARG_minus1 5
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.7 i8.7
+      $SIMD_ARG 7
+      $SIMD_ARG_minus1 6
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.8 i8.8
+      $SIMD_ARG 8
+      $SIMD_ARG_minus1 7
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.9 i8.9
+      $SIMD_ARG 9
+      $SIMD_ARG_minus1 8
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.10 i8.10
+      $SIMD_ARG 10
+      $SIMD_ARG_minus1 9
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.11 i8.11
+      $SIMD_ARG 11
+      $SIMD_ARG_minus1 10
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.12 i8.12
+      $SIMD_ARG 12
+      $SIMD_ARG_minus1 11
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.13 i8.13
+      $SIMD_ARG 13
+      $SIMD_ARG_minus1 12
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.14 i8.14
+      $SIMD_ARG 14
+      $SIMD_ARG_minus1 13
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.15 i8.15 int8 i8
+      $SIMD_ARG 15
+      $SIMD_ARG_minus1 14
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    case int8.16 i8.16 int8 i8
+      $SIMD_ARG 16
+      $SIMD_ARG_minus1 15
+      $SSE_UCLASS b
+      $SSE_CLASS sb
+    
+    case uint16.1 ui16.1
+      $SIMD_ARG 1
+      $SIMD_ARG_minus1 0
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+    case uint16.2 ui16.2
+      $SIMD_ARG 2
+      $SIMD_ARG_minus1 1
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+    case uint16.3 ui16.3
+      $SIMD_ARG 3
+      $SIMD_ARG_minus1 2
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+    case uint16.4 ui16.4
+      $SIMD_ARG 4
+      $SIMD_ARG_minus1 3
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+    case uint16.5 ui16.5
+      $SIMD_ARG 5
+      $SIMD_ARG_minus1 4
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+    case uint16.6 ui16.6
+      $SIMD_ARG 6
+      $SIMD_ARG_minus1 5
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+    case uint16.7 ui16.7
+      $SIMD_ARG 7
+      $SIMD_ARG_minus1 6
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+    case uint16.8 ui16.8 uint16 ui16
+      $SIMD_ARG 8
+      $SIMD_ARG_minus1 7
+      $SSE_UCLASS w
+      $SSE_CLASS uw
+    
+    case int16.1 i16.1
+      $SIMD_ARG 1
+      $SIMD_ARG_minus1 0
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+    case int16.2 i16.2
+      $SIMD_ARG 2
+      $SIMD_ARG_minus1 1
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+    case int16.3 i16.3
+      $SIMD_ARG 3
+      $SIMD_ARG_minus1 2
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+    case int16.4 i16.4
+      $SIMD_ARG 4
+      $SIMD_ARG_minus1 3
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+    case int16.5 i16.5
+      $SIMD_ARG 5
+      $SIMD_ARG_minus1 4
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+    case int16.6 i16.6
+      $SIMD_ARG 6
+      $SIMD_ARG_minus1 5
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+    case int16.7 i16.7
+      $SIMD_ARG 7
+      $SIMD_ARG_minus1 6
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+    case int16.8 i16.8 int16 i16
+      $SIMD_ARG 8
+      $SIMD_ARG_minus1 7
+      $SSE_UCLASS w
+      $SSE_CLASS sw
+    
+    case uint32.1 ui32.1
+      $SIMD_ARG 1
+      $SIMD_ARG_minus1 0
+      $SSE_UCLASS d
+      $SSE_CLASS ud
+      $INSPS_arg 0
+      $EXTPS_arg 14
+    case uint32.2 ui32.2
+      $SIMD_ARG 2
+      $SIMD_ARG_minus1 1
+      $SSE_UCLASS d
+      $SSE_CLASS ud
+      $INSPS_arg 16
+      $EXTPS_arg 78
+    case uint32.3 ui32.3
+      $SIMD_ARG 3
+      $SIMD_ARG_minus1 2
+      $SSE_UCLASS d
+      $SSE_CLASS ud
+      $INSPS_arg 32
+      $EXTPS_arg 142
+    case uint32.4 ui32.4 uint32 ui32
+      $SIMD_ARG 4
+      $SIMD_ARG_minus1 3
+      $SSE_UCLASS d
+      $SSE_CLASS ud
+      $INSPS_arg 48
+      $EXTPS_arg 208
+    
+    case int32.1 i32.1
+      $SIMD_ARG 1
+      $SIMD_ARG_minus1 0
+      $SSE_UCLASS d
+      $SSE_CLASS sd
+      $INSPS_arg 0
+      $EXTPS_arg 14
+    case int32.2 i32.2
+      $SIMD_ARG 2
+      $SIMD_ARG_minus1 1
+      $SSE_UCLASS d
+      $SSE_CLASS sd
+      $INSPS_arg 16
+      $EXTPS_arg 78
+    case int32.3 i32.3
+      $SIMD_ARG 3
+      $SIMD_ARG_minus1 2
+      $SSE_UCLASS d
+      $SSE_CLASS sd
+      $INSPS_arg 32
+      $EXTPS_arg 142
+    case int32.4 i32.4 int32 i32
+      $SIMD_ARG 4
+      $SIMD_ARG_minus1 3
+      $SSE_UCLASS d
+      $SSE_CLASS sd
+      $INSPS_arg 48
+      $EXTPS_arg 208
+    
+    case uint64.1 ui64.1
+      $SIMD_ARG 1
+      $SIMD_ARG_minus1 0
+      $SSE_UCLASS q
+      $SSE_CLASS uq
+    case uint64.2 ui64.2 uint64 ui64
+      $SIMD_ARG 2
+      $SIMD_ARG_minus1 1
+      $SSE_UCLASS q
+      $SSE_CLASS uq
+    
+    case int64.1 i64.1
+      $SIMD_ARG 1
+      $SIMD_ARG_minus1 0
+      $SSE_UCLASS q
+      $SSE_CLASS sq
+    case int64.2 i64.2 int64 i64
+      $SIMD_ARG 2
+      $SIMD_ARG_minus1 1
+      $SSE_UCLASS q
+      $SSE_CLASS sq
+
+# Yet more syntax for expressing packed xmm register slots
+#   This one does not conflict with integer data types. 
+typespec xmmf64
+  select-operand
+      case x0.f64.0 xmm0.f64.0 xa.f64.0 xA.f64.0
+        value xA
+        $QPUTOP movq
+        $QGETOP movq
+      case x0.f64.1 xmm0.f64.1 xa.f64.1 xA.f64.1
+        value xA
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x1.f64.0 xmm1.f64.0 xb.f64.0 xB.f64.0
+        value xB
+        $QPUTOP movq
+        $QGETOP movq
+      case x1.f64.1 xmm1.f64.1 xb.f64.1 xB.f64.1
+        value xB
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x2.f64.0 xmm2.f64.0 xc.f64.0 xC.f64.0
+        value xC
+        $QPUTOP movq
+        $QGETOP movq
+      case x2.f64.1 xmm2.f64.1 xc.f64.1 xC.f64.1
+        value xC
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x3.f64.0 xmm3.f64.0 xd.f64.0 xD.f64.0
+        value xD
+        $QPUTOP movq
+        $QGETOP movq
+      case x3.f64.1 xmm3.f64.1 xd.f64.1 xD.f64.1
+        value xD
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x4.f64.0 xmm4.f64.0 xe.f64.0 xE.f64.0
+        value xE
+        $QPUTOP movq
+        $QGETOP movq
+      case x4.f64.1 xmm4.f64.1 xe.f64.1 xE.f64.1
+        value xE
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x5.f64.0 xmm5.f64.0 xf.f64.0 xF.f64.0
+        value xF
+        $QPUTOP movq
+        $QGETOP movq
+      case x5.f64.1 xmm5.f64.1 xf.f64.1 xF.f64.1
+        value xF
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x6.f64.0 xmm6.f64.0 xg.f64.0 xG.f64.0
+        value xG
+        $QPUTOP movq
+        $QGETOP movq
+      case x6.f64.1 xmm6.f64.1 xg.f64.1 xG.f64.1
+        value xG
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x7.f64.0 xmm7.f64.0 xh.f64.0 xH.f64.0
+        value xH
+        $QPUTOP movq
+        $QGETOP movq
+      case x7.f64.1 xmm7.f64.1 xh.f64.1 xH.f64.1
+        value xH
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x8.f64.0 xmm8.f64.0 xi.f64.0 xI.f64.0
+        value xI
+        $QPUTOP movq
+        $QGETOP movq
+      case x8.f64.1 xmm8.f64.1 xi.f64.1 xI.f64.1
+        value xI
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x9.f64.0 xmm9.f64.0 xj.f64.0 xJ.f64.0
+        value xJ
+        $QPUTOP movq
+        $QGETOP movq
+      case x9.f64.1 xmm9.f64.1 xj.f64.1 xJ.f64.1
+        value xJ
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x10.f64.0 xmm10.f64.0 xk.f64.0 xK.f64.0
+        value xK
+        $QPUTOP movq
+        $QGETOP movq
+      case x10.f64.1 xmm10.f64.1 xk.f64.1 xK.f64.1
+        value xK
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x11.f64.0 xmm11.f64.0 xl.f64.0 xL.f64.0
+        value xL
+        $QPUTOP movq
+        $QGETOP movq
+      case x11.f64.1 xmm11.f64.1 xl.f64.1 xL.f64.1
+        value xL
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x12.f64.0 xmm12.f64.0 xm.f64.0 xM.f64.0
+        value xM
+        $QPUTOP movq
+        $QGETOP movq
+      case x12.f64.1 xmm12.f64.1 xm.f64.1 xM.f64.1
+        value xM
+        $QPUTOP movlhps
+        $QGETOP movhlps
+      case x13.f64.0 xmm13.f64.0 xn.f64.0 xN.f64.0
+        value xN
+        $QPUTOP movq
+        $QGETOP movq
+      case x13.f64.1 xmm13.f64.1 xn.f64.1 xN.f64.1
+        value xN
+        $QPUTOP movlhps
+        $QGETOP movhlps
+  pick Xf64
+
+typespec xmmf32
+  select-operand
+    case x0.f32.0 xmm0.f32.0 xa.f32.0 xA.f32.0
+      value xA
+      $INSPS_arg 0
+      $EXTPS_arg 0
+      $EXTPS_arg 0
+    case x1.f32.0 xmm1.f32.0 xb.f32.0 xB.f32.0
+      value xB
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x2.f32.0 xmm2.f32.0 xc.f32.0 xC.f32.0
+      value xC
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x3.f32.0 xmm3.f32.0 xd.f32.0 xD.f32.0
+      value xD
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x4.f32.0 xmm4.f32.0 xe.f32.0 xE.f32.0
+      value xE
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x5.f32.0 xmm5.f32.0 xf.f32.0 xF.f32.0
+      value xF
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x6.f32.0 xmm6.f32.0 xg.f32.0 xG.f32.0
+      value xG
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x7.f32.0 xmm7.f32.0 xh.f32.0 xH.f32.0
+      value xH
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x8.f32.0 xmm8.f32.0 xi.f32.0 xI.f32.0
+      value xI
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x9.f32.0 xmm9.f32.0 xj.f32.0 xJ
+      value xJ
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x10.f32.0 xmm10.f32.0 xk.f32.0 xK.f32.0
+      value xK
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x11.f32.0 xmm11.f32.0 xl.f32.0 xL.f32.0
+      value xL
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x12.f32.0 xmm12.f32.0 xm.f32.0 xM.f32.0
+      value xM
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    case x13.f32.0 xmm13.f32.0 xn.f32.0 xN.f32.0
+      value xN
+      $INSPS_arg 0
+      $EXTPS_arg 0
+    
+    case x0.f32.1 xmm0.f32.1 xa.f32.1 xA.f32.1
+      value xA
+      $INSPS_arg 16
+      $EXTPS_arg 646
+      $EXTPS_arg 64
+    case x1.f32.1 xmm1.f32.1 xb.f32.1 xB.f32.1
+      value xB
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x2.f32.1 xmm2.f32.1 xc.f32.1 xC.f32.1
+      value xC
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x3.f32.1 xmm3.f32.1 xd.f32.1 xD.f32.1
+      value xD
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x4.f32.1 xmm4.f32.1 xe.f32.1 xE.f32.1
+      value xE
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x5.f32.1 xmm5.f32.1 xf.f32.1 xF.f32.1
+      value xF
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x6.f32.1 xmm6.f32.1 xg.f32.1 xG.f32.1
+      value xG
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x7.f32.1 xmm7.f32.1 xh.f32.1 xH.f32.1
+      value xH
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x8.f32.1 xmm8.f32.1 xi.f32.1 xI.f32.1
+      value xI
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x9.f32.1 xmm9.f32.1 xj.f32.1 xJ
+      value xJ
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x10.f32.1 xmm10.f32.1 xk.f32.1 xK.f32.1
+      value xK
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x11.f32.1 xmm11.f32.1 xl.f32.1 xL.f32.1
+      value xL
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x12.f32.1 xmm12.f32.1 xm.f32.1 xM.f32.1
+      value xM
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    case x13.f32.1 xmm13.f32.1 xn.f32.1 xN.f32.1
+      value xN
+      $INSPS_arg 16
+      $EXTPS_arg 64
+    
+    case x0.f32.2 xmm0.f32.2 xa.f32.2 xA.f32.2
+      value xA
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x1.f32.2 xmm1.f32.2 xb.f32.2 xB.f32.2
+      value xB
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x2.f32.2 xmm2.f32.2 xc.f32.2 xC.f32.2
+      value xC
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x3.f32.2 xmm3.f32.2 xd.f32.2 xD.f32.2
+      value xD
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x4.f32.2 xmm4.f32.2 xe.f32.2 xE.f32.2
+      value xE
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x5.f32.2 xmm5.f32.2 xf.f32.2 xF.f32.2
+      value xF
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x6.f32.2 xmm6.f32.2 xg.f32.2 xG.f32.2
+      value xG
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x7.f32.2 xmm7.f32.2 xh.f32.2 xH.f32.2
+      value xH
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x8.f32.2 xmm8.f32.2 xi.f32.2 xI.f32.2
+      value xI
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x9.f32.2 xmm9.f32.2 xj.f32.2 xJ
+      value xJ
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x10.f32.2 xmm10.f32.2 xk.f32.2 xK.f32.2
+      value xK
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x11.f32.2 xmm11.f32.2 xl.f32.2 xL.f32.2
+      value xL
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x12.f32.2 xmm12.f32.2 xm.f32.2 xM.f32.2
+      value xM
+      $INSPS_arg 32
+      $EXTPS_arg 128
+    case x13.f32.2 xmm13.f32.2 xn.f32.2 xN.f32.2
+      value xN
+      $INSPS_arg 32
+      $EXTPS_arg 128
+
+    case x0.f32.3 xmm0.f32.3 xa.f32.3 xA.f32.3
+      value xA
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x1.f32.3 xmm1.f32.3 xb.f32.3 xB.f32.3
+      value xB
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x2.f32.3 xmm2.f32.3 xc.f32.3 xC.f32.3
+      value xC
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x3.f32.3 xmm3.f32.3 xd.f32.3 xD.f32.3
+      value xD
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x4.f32.3 xmm4.f32.3 xe.f32.3 xE.f32.3
+      value xE
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x5.f32.3 xmm5.f32.3 xf.f32.3 xF.f32.3
+      value xF
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x6.f32.3 xmm6.f32.3 xg.f32.3 xG.f32.3
+      value xG
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x7.f32.3 xmm7.f32.3 xh.f32.3 xH.f32.3
+      value xH
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x8.f32.3 xmm8.f32.3 xi.f32.3 xI.f32.3
+      value xI
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x9.f32.3 xmm9.f32.3 xj.f32.3 xJ
+      value xJ
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x10.f32.3 xmm10.f32.3 xk.f32.3 xK.f32.3
+      value xK
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x11.f32.3 xmm11.f32.3 xl.f32.3 xL.f32.3
+      value xL
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x12.f32.3 xmm12.f32.3 xm.f32.3 xM.f32.3
+      value xM
+      $INSPS_arg 48
+      $EXTPS_arg 192
+    case x13.f32.3 xmm13.f32.3 xn.f32.3 xN.f32.3
+      value xN
+      $INSPS_arg 48
+      $EXTPS_arg 192
+  pick Xf32
+
+# the sse element mapping "typespec"
+# This is an encoding of a set of integer division + modulo operations
+#   If there is a decision to include mathematical operators and raw bounds checking in tactyk-visa, this can be replaced with a much shorter subroutine
+typespec sse-map
+  select $SSE_WORD~$RAW_OPERAND
+    case q~0
+      $SSE_REG 0
+      $SSE_INDEX 0
+    case q~1
+      $SSE_REG 0
+      $SSE_INDEX 1
+    case q~2
+      $SSE_REG 1
+      $SSE_INDEX 0
+    case q~3
+      $SSE_REG 1
+      $SSE_INDEX 1
+    case q~4
+      $SSE_REG 2
+      $SSE_INDEX 0
+    case q~5
+      $SSE_REG 2
+      $SSE_INDEX 1
+    case q~6
+      $SSE_REG 3
+      $SSE_INDEX 0
+    case q~7
+      $SSE_REG 3
+      $SSE_INDEX 1
+    case q~8
+      $SSE_REG 4
+      $SSE_INDEX 0
+    case q~9
+      $SSE_REG 4
+      $SSE_INDEX 1
+    case q~10
+      $SSE_REG 5
+      $SSE_INDEX 0
+    case q~11
+      $SSE_REG 5
+      $SSE_INDEX 1
+    case q~12
+      $SSE_REG 6
+      $SSE_INDEX 0
+    case q~13
+      $SSE_REG 6
+      $SSE_INDEX 1
+    case q~14
+      $SSE_REG 7
+      $SSE_INDEX 0
+    case q~15
+      $SSE_REG 7
+      $SSE_INDEX 1
+    case q~16
+      $SSE_REG 8
+      $SSE_INDEX 0
+    case q~17
+      $SSE_REG 8
+      $SSE_INDEX 1
+    case q~18
+      $SSE_REG 9
+      $SSE_INDEX 0
+    case q~19
+      $SSE_REG 9
+      $SSE_INDEX 1
+    case q~20
+      $SSE_REG 10
+      $SSE_INDEX 0
+    case q~21
+      $SSE_REG 10
+      $SSE_INDEX 1
+    case q~22
+      $SSE_REG 11
+      $SSE_INDEX 0
+    case q~23
+      $SSE_REG 11
+      $SSE_INDEX 1
+    case q~24
+      $SSE_REG 12
+      $SSE_INDEX 0
+    case q~25
+      $SSE_REG 12
+      $SSE_INDEX 1
+    case q~26
+      $SSE_REG 13
+      $SSE_INDEX 0
+    case q~27
+      $SSE_REG 13
+      $SSE_INDEX 1
+    
+    case d~0
+      $SSE_REG 0
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~1
+      $SSE_REG 0
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~2
+      $SSE_REG 0
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~3
+      $SSE_REG 0
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~4
+      $SSE_REG 1
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~5
+      $SSE_REG 1
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~6
+      $SSE_REG 1
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~7
+      $SSE_REG 1
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~8
+      $SSE_REG 2
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~9
+      $SSE_REG 2
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~10
+      $SSE_REG 2
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~11
+      $SSE_REG 2
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~12
+      $SSE_REG 3
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~13
+      $SSE_REG 3
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~14
+      $SSE_REG 3
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~15
+      $SSE_REG 3
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~16
+      $SSE_REG 4
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~17
+      $SSE_REG 4
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~18
+      $SSE_REG 4
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~19
+      $SSE_REG 4
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~20
+      $SSE_REG 5
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~21
+      $SSE_REG 5
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~22
+      $SSE_REG 5
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~23
+      $SSE_REG 5
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~24
+      $SSE_REG 6
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~25
+      $SSE_REG 6
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~26
+      $SSE_REG 6
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~27
+      $SSE_REG 6
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~28
+      $SSE_REG 7
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~29
+      $SSE_REG 7
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~30
+      $SSE_REG 7
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~31
+      $SSE_REG 7
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~32
+      $SSE_REG 8
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~33
+      $SSE_REG 8
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~34
+      $SSE_REG 8
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~35
+      $SSE_REG 8
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~36
+      $SSE_REG 9
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~37
+      $SSE_REG 9
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~38
+      $SSE_REG 9
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~39
+      $SSE_REG 9
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~40
+      $SSE_REG 10
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~41
+      $SSE_REG 10
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~42
+      $SSE_REG 10
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~43
+      $SSE_REG 10
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~44
+      $SSE_REG 11
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~45
+      $SSE_REG 11
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~46
+      $SSE_REG 11
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~47
+      $SSE_REG 11
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~48
+      $SSE_REG 12
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~49
+      $SSE_REG 12
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~50
+      $SSE_REG 12
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~51
+      $SSE_REG 12
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    case d~52
+      $SSE_REG 13
+      $SSE_INDEX 0
+      $INSPS_arg 0
+    case d~53
+      $SSE_REG 13
+      $SSE_INDEX 1
+      $INSPS_arg 16
+    case d~54
+      $SSE_REG 13
+      $SSE_INDEX 2
+      $INSPS_arg 32
+    case d~55
+      $SSE_REG 13
+      $SSE_INDEX 3
+      $INSPS_arg 48
+    
+    case w~0
+      $SSE_REG 0
+      $SSE_INDEX 0
+    case w~1
+      $SSE_REG 0
+      $SSE_INDEX 1
+    case w~2
+      $SSE_REG 0
+      $SSE_INDEX 2
+    case w~3
+      $SSE_REG 0
+      $SSE_INDEX 3
+    case w~4
+      $SSE_REG 0
+      $SSE_INDEX 4
+    case w~5
+      $SSE_REG 0
+      $SSE_INDEX 5
+    case w~6
+      $SSE_REG 0
+      $SSE_INDEX 6
+    case w~7
+      $SSE_REG 0
+      $SSE_INDEX 7
+    case w~8
+      $SSE_REG 1
+      $SSE_INDEX 0
+    case w~9
+      $SSE_REG 1
+      $SSE_INDEX 1
+    case w~10
+      $SSE_REG 1
+      $SSE_INDEX 2
+    case w~11
+      $SSE_REG 1
+      $SSE_INDEX 3
+    case w~12
+      $SSE_REG 1
+      $SSE_INDEX 4
+    case w~13
+      $SSE_REG 1
+      $SSE_INDEX 5
+    case w~14
+      $SSE_REG 1
+      $SSE_INDEX 6
+    case w~15
+      $SSE_REG 1
+      $SSE_INDEX 7
+    case w~16
+      $SSE_REG 2
+      $SSE_INDEX 0
+    case w~17
+      $SSE_REG 2
+      $SSE_INDEX 1
+    case w~18
+      $SSE_REG 2
+      $SSE_INDEX 2
+    case w~19
+      $SSE_REG 2
+      $SSE_INDEX 3
+    case w~20
+      $SSE_REG 2
+      $SSE_INDEX 4
+    case w~21
+      $SSE_REG 2
+      $SSE_INDEX 5
+    case w~22
+      $SSE_REG 2
+      $SSE_INDEX 6
+    case w~23
+      $SSE_REG 2
+      $SSE_INDEX 7
+    case w~24
+      $SSE_REG 3
+      $SSE_INDEX 0
+    case w~25
+      $SSE_REG 3
+      $SSE_INDEX 1
+    case w~26
+      $SSE_REG 3
+      $SSE_INDEX 2
+    case w~27
+      $SSE_REG 3
+      $SSE_INDEX 3
+    case w~28
+      $SSE_REG 3
+      $SSE_INDEX 4
+    case w~29
+      $SSE_REG 3
+      $SSE_INDEX 5
+    case w~30
+      $SSE_REG 3
+      $SSE_INDEX 6
+    case w~31
+      $SSE_REG 3
+      $SSE_INDEX 7
+    case w~32
+      $SSE_REG 4
+      $SSE_INDEX 0
+    case w~33
+      $SSE_REG 4
+      $SSE_INDEX 1
+    case w~34
+      $SSE_REG 4
+      $SSE_INDEX 2
+    case w~35
+      $SSE_REG 4
+      $SSE_INDEX 3
+    case w~36
+      $SSE_REG 4
+      $SSE_INDEX 4
+    case w~37
+      $SSE_REG 4
+      $SSE_INDEX 5
+    case w~38
+      $SSE_REG 4
+      $SSE_INDEX 6
+    case w~39
+      $SSE_REG 4
+      $SSE_INDEX 7
+    case w~40
+      $SSE_REG 5
+      $SSE_INDEX 0
+    case w~41
+      $SSE_REG 5
+      $SSE_INDEX 1
+    case w~42
+      $SSE_REG 5
+      $SSE_INDEX 2
+    case w~43
+      $SSE_REG 5
+      $SSE_INDEX 3
+    case w~44
+      $SSE_REG 5
+      $SSE_INDEX 4
+    case w~45
+      $SSE_REG 5
+      $SSE_INDEX 5
+    case w~46
+      $SSE_REG 5
+      $SSE_INDEX 6
+    case w~47
+      $SSE_REG 5
+      $SSE_INDEX 7
+    case w~48
+      $SSE_REG 6
+      $SSE_INDEX 0
+    case w~49
+      $SSE_REG 6
+      $SSE_INDEX 1
+    case w~50
+      $SSE_REG 6
+      $SSE_INDEX 2
+    case w~51
+      $SSE_REG 6
+      $SSE_INDEX 3
+    case w~52
+      $SSE_REG 6
+      $SSE_INDEX 4
+    case w~53
+      $SSE_REG 6
+      $SSE_INDEX 5
+    case w~54
+      $SSE_REG 6
+      $SSE_INDEX 6
+    case w~55
+      $SSE_REG 6
+      $SSE_INDEX 7
+    case w~56
+      $SSE_REG 7
+      $SSE_INDEX 0
+    case w~57
+      $SSE_REG 7
+      $SSE_INDEX 1
+    case w~58
+      $SSE_REG 7
+      $SSE_INDEX 2
+    case w~59
+      $SSE_REG 7
+      $SSE_INDEX 3
+    case w~60
+      $SSE_REG 7
+      $SSE_INDEX 4
+    case w~61
+      $SSE_REG 7
+      $SSE_INDEX 5
+    case w~62
+      $SSE_REG 7
+      $SSE_INDEX 6
+    case w~63
+      $SSE_REG 7
+      $SSE_INDEX 7
+    case w~64
+      $SSE_REG 8
+      $SSE_INDEX 0
+    case w~65
+      $SSE_REG 8
+      $SSE_INDEX 1
+    case w~66
+      $SSE_REG 8
+      $SSE_INDEX 2
+    case w~67
+      $SSE_REG 8
+      $SSE_INDEX 3
+    case w~68
+      $SSE_REG 8
+      $SSE_INDEX 4
+    case w~69
+      $SSE_REG 8
+      $SSE_INDEX 5
+    case w~70
+      $SSE_REG 8
+      $SSE_INDEX 6
+    case w~71
+      $SSE_REG 8
+      $SSE_INDEX 7
+    case w~72
+      $SSE_REG 9
+      $SSE_INDEX 0
+    case w~73
+      $SSE_REG 9
+      $SSE_INDEX 1
+    case w~74
+      $SSE_REG 9
+      $SSE_INDEX 2
+    case w~75
+      $SSE_REG 9
+      $SSE_INDEX 3
+    case w~76
+      $SSE_REG 9
+      $SSE_INDEX 4
+    case w~77
+      $SSE_REG 9
+      $SSE_INDEX 5
+    case w~78
+      $SSE_REG 9
+      $SSE_INDEX 6
+    case w~79
+      $SSE_REG 9
+      $SSE_INDEX 7
+    case w~80
+      $SSE_REG 10
+      $SSE_INDEX 0
+    case w~81
+      $SSE_REG 10
+      $SSE_INDEX 1
+    case w~82
+      $SSE_REG 10
+      $SSE_INDEX 2
+    case w~83
+      $SSE_REG 10
+      $SSE_INDEX 3
+    case w~84
+      $SSE_REG 10
+      $SSE_INDEX 4
+    case w~85
+      $SSE_REG 10
+      $SSE_INDEX 5
+    case w~86
+      $SSE_REG 10
+      $SSE_INDEX 6
+    case w~87
+      $SSE_REG 10
+      $SSE_INDEX 7
+    case w~88
+      $SSE_REG 11
+      $SSE_INDEX 0
+    case w~89
+      $SSE_REG 11
+      $SSE_INDEX 1
+    case w~90
+      $SSE_REG 11
+      $SSE_INDEX 2
+    case w~91
+      $SSE_REG 11
+      $SSE_INDEX 3
+    case w~92
+      $SSE_REG 11
+      $SSE_INDEX 4
+    case w~93
+      $SSE_REG 11
+      $SSE_INDEX 5
+    case w~94
+      $SSE_REG 11
+      $SSE_INDEX 6
+    case w~95
+      $SSE_REG 11
+      $SSE_INDEX 7
+    case w~96
+      $SSE_REG 12
+      $SSE_INDEX 0
+    case w~97
+      $SSE_REG 12
+      $SSE_INDEX 1
+    case w~98
+      $SSE_REG 12
+      $SSE_INDEX 2
+    case w~99
+      $SSE_REG 12
+      $SSE_INDEX 3
+    case w~100
+      $SSE_REG 12
+      $SSE_INDEX 4
+    case w~101
+      $SSE_REG 12
+      $SSE_INDEX 5
+    case w~102
+      $SSE_REG 12
+      $SSE_INDEX 6
+    case w~103
+      $SSE_REG 12
+      $SSE_INDEX 7
+    case w~104
+      $SSE_REG 13
+      $SSE_INDEX 0
+    case w~105
+      $SSE_REG 13
+      $SSE_INDEX 1
+    case w~106
+      $SSE_REG 13
+      $SSE_INDEX 2
+    case w~107
+      $SSE_REG 13
+      $SSE_INDEX 3
+    case w~108
+      $SSE_REG 13
+      $SSE_INDEX 4
+    case w~109
+      $SSE_REG 13
+      $SSE_INDEX 5
+    case w~110
+      $SSE_REG 13
+      $SSE_INDEX 6
+    case w~111
+      $SSE_REG 13
+      $SSE_INDEX 7
+    
+    case b~0
+      $SSE_REG 0
+      $SSE_INDEX 0
+    case b~1
+      $SSE_REG 0
+      $SSE_INDEX 1
+    case b~2
+      $SSE_REG 0
+      $SSE_INDEX 2
+    case b~3
+      $SSE_REG 0
+      $SSE_INDEX 3
+    case b~4
+      $SSE_REG 0
+      $SSE_INDEX 4
+    case b~5
+      $SSE_REG 0
+      $SSE_INDEX 5
+    case b~6
+      $SSE_REG 0
+      $SSE_INDEX 6
+    case b~7
+      $SSE_REG 0
+      $SSE_INDEX 7
+    case b~8
+      $SSE_REG 0
+      $SSE_INDEX 8
+    case b~9
+      $SSE_REG 0
+      $SSE_INDEX 9
+    case b~10
+      $SSE_REG 0
+      $SSE_INDEX 10
+    case b~11
+      $SSE_REG 0
+      $SSE_INDEX 11
+    case b~12
+      $SSE_REG 0
+      $SSE_INDEX 12
+    case b~13
+      $SSE_REG 0
+      $SSE_INDEX 13
+    case b~14
+      $SSE_REG 0
+      $SSE_INDEX 14
+    case b~15
+      $SSE_REG 0
+      $SSE_INDEX 15
+    case b~16
+      $SSE_REG 1
+      $SSE_INDEX 0
+    case b~17
+      $SSE_REG 1
+      $SSE_INDEX 1
+    case b~18
+      $SSE_REG 1
+      $SSE_INDEX 2
+    case b~19
+      $SSE_REG 1
+      $SSE_INDEX 3
+    case b~20
+      $SSE_REG 1
+      $SSE_INDEX 4
+    case b~21
+      $SSE_REG 1
+      $SSE_INDEX 5
+    case b~22
+      $SSE_REG 1
+      $SSE_INDEX 6
+    case b~23
+      $SSE_REG 1
+      $SSE_INDEX 7
+    case b~24
+      $SSE_REG 1
+      $SSE_INDEX 8
+    case b~25
+      $SSE_REG 1
+      $SSE_INDEX 9
+    case b~26
+      $SSE_REG 1
+      $SSE_INDEX 10
+    case b~27
+      $SSE_REG 1
+      $SSE_INDEX 11
+    case b~28
+      $SSE_REG 1
+      $SSE_INDEX 12
+    case b~29
+      $SSE_REG 1
+      $SSE_INDEX 13
+    case b~30
+      $SSE_REG 1
+      $SSE_INDEX 14
+    case b~31
+      $SSE_REG 1
+      $SSE_INDEX 15
+    case b~32
+      $SSE_REG 2
+      $SSE_INDEX 0
+    case b~33
+      $SSE_REG 2
+      $SSE_INDEX 1
+    case b~34
+      $SSE_REG 2
+      $SSE_INDEX 2
+    case b~35
+      $SSE_REG 2
+      $SSE_INDEX 3
+    case b~36
+      $SSE_REG 2
+      $SSE_INDEX 4
+    case b~37
+      $SSE_REG 2
+      $SSE_INDEX 5
+    case b~38
+      $SSE_REG 2
+      $SSE_INDEX 6
+    case b~39
+      $SSE_REG 2
+      $SSE_INDEX 7
+    case b~40
+      $SSE_REG 2
+      $SSE_INDEX 8
+    case b~41
+      $SSE_REG 2
+      $SSE_INDEX 9
+    case b~42
+      $SSE_REG 2
+      $SSE_INDEX 10
+    case b~43
+      $SSE_REG 2
+      $SSE_INDEX 11
+    case b~44
+      $SSE_REG 2
+      $SSE_INDEX 12
+    case b~45
+      $SSE_REG 2
+      $SSE_INDEX 13
+    case b~46
+      $SSE_REG 2
+      $SSE_INDEX 14
+    case b~47
+      $SSE_REG 2
+      $SSE_INDEX 15
+    case b~48
+      $SSE_REG 3
+      $SSE_INDEX 0
+    case b~49
+      $SSE_REG 3
+      $SSE_INDEX 1
+    case b~50
+      $SSE_REG 3
+      $SSE_INDEX 2
+    case b~51
+      $SSE_REG 3
+      $SSE_INDEX 3
+    case b~52
+      $SSE_REG 3
+      $SSE_INDEX 4
+    case b~53
+      $SSE_REG 3
+      $SSE_INDEX 5
+    case b~54
+      $SSE_REG 3
+      $SSE_INDEX 6
+    case b~55
+      $SSE_REG 3
+      $SSE_INDEX 7
+    case b~56
+      $SSE_REG 3
+      $SSE_INDEX 8
+    case b~57
+      $SSE_REG 3
+      $SSE_INDEX 9
+    case b~58
+      $SSE_REG 3
+      $SSE_INDEX 10
+    case b~59
+      $SSE_REG 3
+      $SSE_INDEX 11
+    case b~60
+      $SSE_REG 3
+      $SSE_INDEX 12
+    case b~61
+      $SSE_REG 3
+      $SSE_INDEX 13
+    case b~62
+      $SSE_REG 3
+      $SSE_INDEX 14
+    case b~63
+      $SSE_REG 3
+      $SSE_INDEX 15
+    case b~64
+      $SSE_REG 4
+      $SSE_INDEX 0
+    case b~65
+      $SSE_REG 4
+      $SSE_INDEX 1
+    case b~66
+      $SSE_REG 4
+      $SSE_INDEX 2
+    case b~67
+      $SSE_REG 4
+      $SSE_INDEX 3
+    case b~68
+      $SSE_REG 4
+      $SSE_INDEX 4
+    case b~69
+      $SSE_REG 4
+      $SSE_INDEX 5
+    case b~70
+      $SSE_REG 4
+      $SSE_INDEX 6
+    case b~71
+      $SSE_REG 4
+      $SSE_INDEX 7
+    case b~72
+      $SSE_REG 4
+      $SSE_INDEX 8
+    case b~73
+      $SSE_REG 4
+      $SSE_INDEX 9
+    case b~74
+      $SSE_REG 4
+      $SSE_INDEX 10
+    case b~75
+      $SSE_REG 4
+      $SSE_INDEX 11
+    case b~76
+      $SSE_REG 4
+      $SSE_INDEX 12
+    case b~77
+      $SSE_REG 4
+      $SSE_INDEX 13
+    case b~78
+      $SSE_REG 4
+      $SSE_INDEX 14
+    case b~79
+      $SSE_REG 4
+      $SSE_INDEX 15
+    case b~80
+      $SSE_REG 5
+      $SSE_INDEX 0
+    case b~81
+      $SSE_REG 5
+      $SSE_INDEX 1
+    case b~82
+      $SSE_REG 5
+      $SSE_INDEX 2
+    case b~83
+      $SSE_REG 5
+      $SSE_INDEX 3
+    case b~84
+      $SSE_REG 5
+      $SSE_INDEX 4
+    case b~85
+      $SSE_REG 5
+      $SSE_INDEX 5
+    case b~86
+      $SSE_REG 5
+      $SSE_INDEX 6
+    case b~87
+      $SSE_REG 5
+      $SSE_INDEX 7
+    case b~88
+      $SSE_REG 5
+      $SSE_INDEX 8
+    case b~89
+      $SSE_REG 5
+      $SSE_INDEX 9
+    case b~90
+      $SSE_REG 5
+      $SSE_INDEX 10
+    case b~91
+      $SSE_REG 5
+      $SSE_INDEX 11
+    case b~92
+      $SSE_REG 5
+      $SSE_INDEX 12
+    case b~93
+      $SSE_REG 5
+      $SSE_INDEX 13
+    case b~94
+      $SSE_REG 5
+      $SSE_INDEX 14
+    case b~95
+      $SSE_REG 5
+      $SSE_INDEX 15
+    case b~96
+      $SSE_REG 6
+      $SSE_INDEX 0
+    case b~97
+      $SSE_REG 6
+      $SSE_INDEX 1
+    case b~98
+      $SSE_REG 6
+      $SSE_INDEX 2
+    case b~99
+      $SSE_REG 6
+      $SSE_INDEX 3
+    case b~100
+      $SSE_REG 6
+      $SSE_INDEX 4
+    case b~101
+      $SSE_REG 6
+      $SSE_INDEX 5
+    case b~102
+      $SSE_REG 6
+      $SSE_INDEX 6
+    case b~103
+      $SSE_REG 6
+      $SSE_INDEX 7
+    case b~104
+      $SSE_REG 6
+      $SSE_INDEX 8
+    case b~105
+      $SSE_REG 6
+      $SSE_INDEX 9
+    case b~106
+      $SSE_REG 6
+      $SSE_INDEX 10
+    case b~107
+      $SSE_REG 6
+      $SSE_INDEX 11
+    case b~108
+      $SSE_REG 6
+      $SSE_INDEX 12
+    case b~109
+      $SSE_REG 6
+      $SSE_INDEX 13
+    case b~110
+      $SSE_REG 6
+      $SSE_INDEX 14
+    case b~111
+      $SSE_REG 6
+      $SSE_INDEX 15
+    case b~112
+      $SSE_REG 7
+      $SSE_INDEX 0
+    case b~113
+      $SSE_REG 7
+      $SSE_INDEX 1
+    case b~114
+      $SSE_REG 7
+      $SSE_INDEX 2
+    case b~115
+      $SSE_REG 7
+      $SSE_INDEX 3
+    case b~116
+      $SSE_REG 7
+      $SSE_INDEX 4
+    case b~117
+      $SSE_REG 7
+      $SSE_INDEX 5
+    case b~118
+      $SSE_REG 7
+      $SSE_INDEX 6
+    case b~119
+      $SSE_REG 7
+      $SSE_INDEX 7
+    case b~120
+      $SSE_REG 7
+      $SSE_INDEX 8
+    case b~121
+      $SSE_REG 7
+      $SSE_INDEX 9
+    case b~122
+      $SSE_REG 7
+      $SSE_INDEX 10
+    case b~123
+      $SSE_REG 7
+      $SSE_INDEX 11
+    case b~124
+      $SSE_REG 7
+      $SSE_INDEX 12
+    case b~125
+      $SSE_REG 7
+      $SSE_INDEX 13
+    case b~126
+      $SSE_REG 7
+      $SSE_INDEX 14
+    case b~127
+      $SSE_REG 7
+      $SSE_INDEX 15
+    case b~128
+      $SSE_REG 8
+      $SSE_INDEX 0
+    case b~129
+      $SSE_REG 8
+      $SSE_INDEX 1
+    case b~130
+      $SSE_REG 8
+      $SSE_INDEX 2
+    case b~131
+      $SSE_REG 8
+      $SSE_INDEX 3
+    case b~132
+      $SSE_REG 8
+      $SSE_INDEX 4
+    case b~133
+      $SSE_REG 8
+      $SSE_INDEX 5
+    case b~134
+      $SSE_REG 8
+      $SSE_INDEX 6
+    case b~135
+      $SSE_REG 8
+      $SSE_INDEX 7
+    case b~136
+      $SSE_REG 8
+      $SSE_INDEX 8
+    case b~137
+      $SSE_REG 8
+      $SSE_INDEX 9
+    case b~138
+      $SSE_REG 8
+      $SSE_INDEX 10
+    case b~139
+      $SSE_REG 8
+      $SSE_INDEX 11
+    case b~140
+      $SSE_REG 8
+      $SSE_INDEX 12
+    case b~141
+      $SSE_REG 8
+      $SSE_INDEX 13
+    case b~142
+      $SSE_REG 8
+      $SSE_INDEX 14
+    case b~143
+      $SSE_REG 8
+      $SSE_INDEX 15
+    case b~144
+      $SSE_REG 9
+      $SSE_INDEX 0
+    case b~145
+      $SSE_REG 9
+      $SSE_INDEX 1
+    case b~146
+      $SSE_REG 9
+      $SSE_INDEX 2
+    case b~147
+      $SSE_REG 9
+      $SSE_INDEX 3
+    case b~148
+      $SSE_REG 9
+      $SSE_INDEX 4
+    case b~149
+      $SSE_REG 9
+      $SSE_INDEX 5
+    case b~150
+      $SSE_REG 9
+      $SSE_INDEX 6
+    case b~151
+      $SSE_REG 9
+      $SSE_INDEX 7
+    case b~152
+      $SSE_REG 9
+      $SSE_INDEX 8
+    case b~153
+      $SSE_REG 9
+      $SSE_INDEX 9
+    case b~154
+      $SSE_REG 9
+      $SSE_INDEX 10
+    case b~155
+      $SSE_REG 9
+      $SSE_INDEX 11
+    case b~156
+      $SSE_REG 9
+      $SSE_INDEX 12
+    case b~157
+      $SSE_REG 9
+      $SSE_INDEX 13
+    case b~158
+      $SSE_REG 9
+      $SSE_INDEX 14
+    case b~159
+      $SSE_REG 9
+      $SSE_INDEX 15
+    case b~160
+      $SSE_REG 10
+      $SSE_INDEX 0
+    case b~161
+      $SSE_REG 10
+      $SSE_INDEX 1
+    case b~162
+      $SSE_REG 10
+      $SSE_INDEX 2
+    case b~163
+      $SSE_REG 10
+      $SSE_INDEX 3
+    case b~164
+      $SSE_REG 10
+      $SSE_INDEX 4
+    case b~165
+      $SSE_REG 10
+      $SSE_INDEX 5
+    case b~166
+      $SSE_REG 10
+      $SSE_INDEX 6
+    case b~167
+      $SSE_REG 10
+      $SSE_INDEX 7
+    case b~168
+      $SSE_REG 10
+      $SSE_INDEX 8
+    case b~169
+      $SSE_REG 10
+      $SSE_INDEX 9
+    case b~170
+      $SSE_REG 10
+      $SSE_INDEX 10
+    case b~171
+      $SSE_REG 10
+      $SSE_INDEX 11
+    case b~172
+      $SSE_REG 10
+      $SSE_INDEX 12
+    case b~173
+      $SSE_REG 10
+      $SSE_INDEX 13
+    case b~174
+      $SSE_REG 10
+      $SSE_INDEX 14
+    case b~175
+      $SSE_REG 10
+      $SSE_INDEX 15
+    case b~176
+      $SSE_REG 11
+      $SSE_INDEX 0
+    case b~177
+      $SSE_REG 11
+      $SSE_INDEX 1
+    case b~178
+      $SSE_REG 11
+      $SSE_INDEX 2
+    case b~179
+      $SSE_REG 11
+      $SSE_INDEX 3
+    case b~180
+      $SSE_REG 11
+      $SSE_INDEX 4
+    case b~181
+      $SSE_REG 11
+      $SSE_INDEX 5
+    case b~182
+      $SSE_REG 11
+      $SSE_INDEX 6
+    case b~183
+      $SSE_REG 11
+      $SSE_INDEX 7
+    case b~184
+      $SSE_REG 11
+      $SSE_INDEX 8
+    case b~185
+      $SSE_REG 11
+      $SSE_INDEX 9
+    case b~186
+      $SSE_REG 11
+      $SSE_INDEX 10
+    case b~187
+      $SSE_REG 11
+      $SSE_INDEX 11
+    case b~188
+      $SSE_REG 11
+      $SSE_INDEX 12
+    case b~189
+      $SSE_REG 11
+      $SSE_INDEX 13
+    case b~190
+      $SSE_REG 11
+      $SSE_INDEX 14
+    case b~191
+      $SSE_REG 11
+      $SSE_INDEX 15
+    case b~192
+      $SSE_REG 12
+      $SSE_INDEX 0
+    case b~193
+      $SSE_REG 12
+      $SSE_INDEX 1
+    case b~194
+      $SSE_REG 12
+      $SSE_INDEX 2
+    case b~195
+      $SSE_REG 12
+      $SSE_INDEX 3
+    case b~196
+      $SSE_REG 12
+      $SSE_INDEX 4
+    case b~197
+      $SSE_REG 12
+      $SSE_INDEX 5
+    case b~198
+      $SSE_REG 12
+      $SSE_INDEX 6
+    case b~199
+      $SSE_REG 12
+      $SSE_INDEX 7
+    case b~200
+      $SSE_REG 12
+      $SSE_INDEX 8
+    case b~201
+      $SSE_REG 12
+      $SSE_INDEX 9
+    case b~202
+      $SSE_REG 12
+      $SSE_INDEX 10
+    case b~203
+      $SSE_REG 12
+      $SSE_INDEX 11
+    case b~204
+      $SSE_REG 12
+      $SSE_INDEX 12
+    case b~205
+      $SSE_REG 12
+      $SSE_INDEX 13
+    case b~206
+      $SSE_REG 12
+      $SSE_INDEX 14
+    case b~207
+      $SSE_REG 12
+      $SSE_INDEX 15
+    case b~208
+      $SSE_REG 13
+      $SSE_INDEX 0
+    case b~209
+      $SSE_REG 13
+      $SSE_INDEX 1
+    case b~210
+      $SSE_REG 13
+      $SSE_INDEX 2
+    case b~211
+      $SSE_REG 13
+      $SSE_INDEX 3
+    case b~212
+      $SSE_REG 13
+      $SSE_INDEX 4
+    case b~213
+      $SSE_REG 13
+      $SSE_INDEX 5
+    case b~214
+      $SSE_REG 13
+      $SSE_INDEX 6
+    case b~215
+      $SSE_REG 13
+      $SSE_INDEX 7
+    case b~216
+      $SSE_REG 13
+      $SSE_INDEX 8
+    case b~217
+      $SSE_REG 13
+      $SSE_INDEX 9
+    case b~218
+      $SSE_REG 13
+      $SSE_INDEX 10
+    case b~219
+      $SSE_REG 13
+      $SSE_INDEX 11
+    case b~220
+      $SSE_REG 13
+      $SSE_INDEX 12
+    case b~221
+      $SSE_REG 13
+      $SSE_INDEX 13
+    case b~222
+      $SSE_REG 13
+      $SSE_INDEX 14
+    case b~223
+      $SSE_REG 13
+      $SSE_INDEX 15
+

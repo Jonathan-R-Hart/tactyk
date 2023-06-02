@@ -1,0 +1,98 @@
+# TEST:  pack-unpack
+#
+# Virtual-ISA: tactyk_core
+# Templates:
+#   pack simdformat.f32-xmmx-xmmx
+#   pack simdformat.i32-xmmx-xmmx
+#   unpack simdformat.f32-xmmx-xmmx
+#   unpack simdformat.i32-xmmx-xmmx
+
+PROGRAM
+  TEST_unpack_int32:
+    xassign xJ int64 0 h.7766554433221100
+    xassign xJ int64 1 h.ffeeddccbbaa9988
+    unpack int32.4 xB xJ
+    unpack int32.3 xF xJ
+    unpack int32.2 xN xJ
+    exit
+  TEST_pack_int32:
+    pack int32.4 xK xN
+    pack int32.3 xL xD
+    pack int32.2 xM xC
+    exit
+  
+  TEST_pack_float32:
+    assign xA 4.14563
+    assign xB 5.1452
+    assign xC 6.14579
+    assign xD 7.1454
+    assign xE 8.1452468
+    assign xF 9.99999
+    
+    assign xL 1.145134
+    assign xM 2.1454
+    assign xN 3.1451
+    
+    pack float32.4 xG xL
+    pack float32.3 xH xB
+    pack float32.2 xI xE
+    
+    exit
+  TEST_unpack_float32:
+    unpack float32.4 xN xG
+    unpack float32.2 xD xH
+    unpack float32.3 xG xI
+    exit
+
+XMM-DISPLAYMODE int32
+EXEC TEST_unpack_int32
+TEST
+  xJ int64 h.7766554433221100 h.ffeeddccbbaa9988
+  xB int64 h.33221100 0
+  xC int64 h.77665544 0
+  xD int64 h.bbaa9988 0
+  xE int64 h.ffeeddcc 0
+  xF int64 h.33221100 0
+  xG int64 h.77665544 0
+  xH int64 h.bbaa9988 0
+  xN int64 h.33221100 0
+  xA int64 h.77665544 0
+
+EXEC TEST_pack_int32
+TEST
+  xK int64 h.7766554433221100 h.7766554433221100
+  xL int64 h.ffeeddccbbaa9988 h.0000000033221100
+  xM int64 h.bbaa998877665544 h.0000000000000000
+
+XMM-DISPLAYMODE float32
+EXEC TEST_pack_float32
+TEST
+  xA 4.14563
+  xB 5.1452
+  xC 6.14579
+  xD 7.1454
+  xE 8.1452468
+  xF 9.99999
+  xL 1.145134
+  xM 2.1454
+  xN 3.1451
+  xG float32 1.145134 2.1454 3.1451 4.14563
+  xH float32 5.1452 6.14579 7.1454 0
+  xI float32 8.1452468 9.99999 0 0.0
+
+XMM-DISPLAYMODE float64
+EXEC TEST_unpack_float32
+TEST
+  xN float32+ 1.145134
+  xA float32+ 2.1454
+  xB float32+ 3.1451
+  xC float32+ 4.14563
+  xD float32+ 5.1452 
+  xE float32+ 6.14579
+  xG float32+ 8.1452468
+  xH float32+ 9.99999
+  xI float32+ 0
+
+
+
+

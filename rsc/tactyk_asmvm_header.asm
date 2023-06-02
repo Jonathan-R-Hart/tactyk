@@ -135,9 +135,276 @@
     %define rD      r15
     %define rE      r8
     %define rF      r9
+        
+    %define rA~0    rA
+    %define rA~1    rB
+    %define rA~2    rC
+    %define rA~3    rD
+    %define rA~4    rE
+    %define rA~5    rF
+
+    %define rB~0    rB
+    %define rB~1    rC
+    %define rB~2    rD
+    %define rB~3    rE
+    %define rB~4    rF
+    %define rB~5    rA
+
+    %define rC~0    rC
+    %define rC~1    rD
+    %define rC~2    rE
+    %define rC~3    rF
+    %define rC~4    rA
+    %define rC~5    rB
+
+    %define rD~0    rD
+    %define rD~1    rE
+    %define rD~2    rF
+    %define rD~3    rA
+    %define rD~4    rB
+    %define rD~5    rC
+
+    %define rE~0    rE
+    %define rE~1    rF
+    %define rE~2    rA
+    %define rE~3    rB
+    %define rE~4    rC
+    %define rE~5    rD
+
+    %define rF~0    rF
+    %define rF~1    rA
+    %define rF~2    rB
+    %define rF~3    rC
+    %define rF~4    rD
+    %define rF~5    rE
+  
+    %define xA      xmm0
+    %define xB      xmm1
+    %define xC      xmm2
+    %define xD      xmm3
+    %define xE      xmm4
+    %define xF      xmm5
+    %define xG      xmm6
+    %define xH      xmm7
+    %define xI      xmm8
+    %define xJ      xmm9
+    %define xK      xmm10
+    %define xL      xmm11
+    %define xM      xmm12
+    %define xN      xmm13
+    %define xO      xmm14
+    %define xTEMPA  xmm15
+    %define xTEMPB  xmm16
+
+    %define xA~0    xA
+    %define xA~1    xB
+    %define xA~2    xC
+    %define xA~3    xD
+    %define xA~4    xE
+    %define xA~5    xF
+    %define xA~6    xG
+    %define xA~7    xH
+    %define xA~8    xI
+    %define xA~9    xJ
+    %define xA~10   xK
+    %define xA~11   xL
+    %define xA~12   xM
+    %define xA~13   xN
     
-    %define xTEMPA xmm14
-    %define xTEMPB xmm15
+    %define xB~0    xB
+    %define xB~1    xC
+    %define xB~2    xD
+    %define xB~3    xE
+    %define xB~4    xF
+    %define xB~5    xG
+    %define xB~6    xH
+    %define xB~7    xI
+    %define xB~8    xJ
+    %define xB~9    xK
+    %define xB~10   xL
+    %define xB~11   xM
+    %define xB~12   xN
+    %define xB~13   xA
+
+    %define xC~0    xC
+    %define xC~1    xD
+    %define xC~2    xE
+    %define xC~3    xF
+    %define xC~4    xG
+    %define xC~5    xH
+    %define xC~6    xI
+    %define xC~7    xJ
+    %define xC~8    xK
+    %define xC~9    xL
+    %define xC~10   xM
+    %define xC~11   xN
+    %define xC~12   xA
+    %define xC~13   xB
+
+    %define xD~0    xD
+    %define xD~1    xE
+    %define xD~2    xF
+    %define xD~3    xG
+    %define xD~4    xH
+    %define xD~5    xI
+    %define xD~6    xJ
+    %define xD~7    xK
+    %define xD~8    xL
+    %define xD~9    xM
+    %define xD~10   xN
+    %define xD~11   xA
+    %define xD~12   xB
+    %define xD~13   xC
+
+    %define xE~0    xE
+    %define xE~1    xF
+    %define xE~2    xG
+    %define xE~3    xH
+    %define xE~4    xI
+    %define xE~5    xJ
+    %define xE~6    xK
+    %define xE~7    xL
+    %define xE~8    xM
+    %define xE~9    xN
+    %define xE~10   xA
+    %define xE~11   xB
+    %define xE~12   xC
+    %define xE~13   xD
+
+    %define xF~0    xF
+    %define xF~1    xG
+    %define xF~2    xH
+    %define xF~3    xI
+    %define xF~4    xJ
+    %define xF~5    xK
+    %define xF~6    xL
+    %define xF~7    xM
+    %define xF~8    xN
+    %define xF~9    xA
+    %define xF~10   xB
+    %define xF~11   xC
+    %define xF~12   xD
+    %define xF~13   xE
+
+    %define xG~0    xG
+    %define xG~1    xH
+    %define xG~2    xI
+    %define xG~3    xJ
+    %define xG~4    xK
+    %define xG~5    xL
+    %define xG~6    xM
+    %define xG~7    xN
+    %define xG~8    xA
+    %define xG~9    xB
+    %define xG~10   xC
+    %define xG~11   xD
+    %define xG~12   xE
+    %define xG~13   xF
+
+    %define xH~0    xH
+    %define xH~1    xI
+    %define xH~2    xJ
+    %define xH~3    xK
+    %define xH~4    xL
+    %define xH~5    xM
+    %define xH~6    xN
+    %define xH~7    xA
+    %define xH~8    xB
+    %define xH~9    xC
+    %define xH~10   xD
+    %define xH~11   xE
+    %define xH~12   xF
+    %define xH~13   xG
+
+    %define xI~0    xI
+    %define xI~1    xJ
+    %define xI~2    xK
+    %define xI~3    xL
+    %define xI~4    xM
+    %define xI~5    xN
+    %define xI~6    xA
+    %define xI~7    xB
+    %define xI~8    xC
+    %define xI~9    xD
+    %define xI~10   xE
+    %define xI~11   xF
+    %define xI~12   xG
+    %define xI~13   xH
+
+    %define xJ~0    xJ
+    %define xJ~1    xK
+    %define xJ~2    xL
+    %define xJ~3    xM
+    %define xJ~4    xN
+    %define xJ~5    xA
+    %define xJ~6    xB
+    %define xJ~7    xC
+    %define xJ~8    xD
+    %define xJ~9    xE
+    %define xJ~10   xF
+    %define xJ~11   xG
+    %define xJ~12   xH
+    %define xJ~13   xI
+
+    %define xK~0    xK
+    %define xK~1    xL
+    %define xK~2    xM
+    %define xK~3    xN
+    %define xK~4    xA
+    %define xK~5    xB
+    %define xK~6    xC
+    %define xK~7    xD
+    %define xK~8    xE
+    %define xK~9    xF
+    %define xK~10   xG
+    %define xK~11   xH
+    %define xK~12   xI
+    %define xK~13   xJ
+
+    %define xL~0    xL
+    %define xL~1    xM
+    %define xL~2    xN
+    %define xL~3    xA
+    %define xL~4    xB
+    %define xL~5    xC
+    %define xL~6    xD
+    %define xL~7    xE
+    %define xL~8    xF
+    %define xL~9    xG
+    %define xL~10   xH
+    %define xL~11   xI
+    %define xL~12   xJ
+    %define xL~13   xK
+
+    %define xM~0    xM
+    %define xM~1    xN
+    %define xM~2    xA
+    %define xM~3    xB
+    %define xM~4    xC
+    %define xM~5    xD
+    %define xM~6    xE
+    %define xM~7    xF
+    %define xM~8    xG
+    %define xM~9    xH
+    %define xM~10   xI
+    %define xM~11   xJ
+    %define xM~12   xK
+    %define xM~13   xL
+
+    %define xN~0    xN
+    %define xN~1    xA
+    %define xN~2    xB
+    %define xN~3    xC
+    %define xN~4    xD
+    %define xN~5    xE
+    %define xN~6    xF
+    %define xN~7    xG
+    %define xN~8    xH
+    %define xN~9    xI
+    %define xN~10   xJ
+    %define xN~11   xK
+    %define xN~12   xL
+    %define xN~13   xM
     
     %define rMAPPER_8 %[rMAPPER]_8
     %define rMAPPER_16 %[rMAPPER]_16
@@ -257,9 +524,20 @@
         %endrep %1
     %endmacro
     
-    struc regbank
+    struc rbtactyk
         qwords prog,lwcsi,mcsi,tempa,tempc,tempd,addr1,addr2,addr3,addr4,a,b,c,d,e,f
         owords xa,xb,xc,xd, xe,xf,xg,xh, xi,xj,xk,xl, xm,xn,xo,xp
+        qwords, fs,gs
+        dwords mxcsr
+        unused:  resd 27
+    endstruc
+
+    struc rbnative
+        qwords rax,rbx,rcx,rdx, rbp,rsp, rsi,rdi, r8,r9,r10,r11,r12,r13,r14,r15
+        owords xmm0,xmm1,xmm2,xmm3, xmm4,xmm5,xmm6,xmm7, xmm8,xmm9,xmm10,xmm11, xmm12,xmm13,xmm14,xmm15
+        qwords, fs,gs
+        dwords mxcsr
+        unused:  resd 27
     endstruc
 
     struc tvmstackentry
@@ -287,14 +565,6 @@
     endstruc
     
     struc microcontext
-        qwords addr1
-        dwords addr1_element_bound, addr1_array_bound, addr1_memblock_index, addr1_offset
-        qwords addr2
-        dwords addr2_element_bound, addr2_array_bound, addr2_memblock_index, addr2_offset
-        qwords addr3
-        dwords addr3_element_bound, addr3_array_bound, addr3_memblock_index, addr3_offset
-        qwords addr4
-        dwords addr4_element_bound, addr4_array_bound, addr4_memblock_index, addr4_offset
         .a: qwords al, ah
         .b: qwords bl, bh
         .c: qwords cl, ch
@@ -321,6 +591,12 @@
         .x: qwords xl, xh
         .y: qwords yl, yh
         .z: qwords zl, zh
+        .s26: qwords s26l, s26h
+        .s27: qwords s27l, s27h
+        .s28: qwords s28l, s28h
+        .s29: qwords s29l, s29h
+        .s30: qwords s30l, s30h
+        .s31: qwords s31l, s31h
     endstruc
     
     %define microcontext_size_bits 9
@@ -353,10 +629,10 @@
         
         qwords vm, stack, program_map, hl_program_ref, instruction_index, status, signature, extra
         
-        .registers:  resq 48
-        .runtime_registers:  resq 48
-        
-        .diagnostic_out:resq 1024
+        owords fpu_a, fpu_b, fpu_c, fpu_d,  fpu_e, fpu_f, fpu_g, fpu_h
+
+        .registers:  resq 64
+        .runtime_registers:  resq 64
     endstruc
     
     %unmacro dwords 1-*
@@ -385,136 +661,152 @@
     ; runtime registers do not belong to tactyk, and so do not use internal tactyk names
     ; The only thing that matters here is that they get correctly stored and restored.
     %macro store_runtimecontext 1
-        mov [%1 + context.runtime_registers + 0], rbx
-        mov [%1 + context.runtime_registers + 8], rbp
-        mov [%1 + context.runtime_registers + 16], rsp
-        mov [%1 + context.runtime_registers + 24], r12
-        mov [%1 + context.runtime_registers + 32], r13
-        mov [%1 + context.runtime_registers + 40], r14
-        mov [%1 + context.runtime_registers + 48], r15
+        mov [%1 + context.runtime_registers + rbnative.rbx], rbx
+        mov [%1 + context.runtime_registers + rbnative.rbp], rbp
+        mov [%1 + context.runtime_registers + rbnative.rsp], rsp
+        mov [%1 + context.runtime_registers + rbnative.r12], r12
+        mov [%1 + context.runtime_registers + rbnative.r13], r13
+        mov [%1 + context.runtime_registers + rbnative.r14], r14
+        mov [%1 + context.runtime_registers + rbnative.r15], r15
         rdfsbase r12
         rdgsbase r13
-        mov [%1 + context.runtime_registers + 56], r12
-        mov [%1 + context.runtime_registers + 64], r13
+        mov [%1 + context.runtime_registers + rbnative.fs], r12
+        mov [%1 + context.runtime_registers + rbnative.gs], r13
+        stmxcsr [%1 + context.runtime_registers + rbnative.mxcsr]
         
         ; supposedly not needed:
-        ;movdqu [%1 + context.runtime_registers + 128+0   ], xmm0
-        ;movdqu [%1 + context.runtime_registers + 128+8   ], xmm1
-        ;movdqu [%1 + context.runtime_registers + 128+16  ], xmm2
-        ;movdqu [%1 + context.runtime_registers + 128+32  ], xmm3
-        ;movdqu [%1 + context.runtime_registers + 128+40  ], xmm4
-        ;movdqu [%1 + context.runtime_registers + 128+48  ], xmm5
-        ;movdqu [%1 + context.runtime_registers + 128+56  ], xmm6
-        ;movdqu [%1 + context.runtime_registers + 128+64  ], xmm7
-        ;movdqu [%1 + context.runtime_registers + 128+72  ], xmm8
-        ;movdqu [%1 + context.runtime_registers + 128+80  ], xmm9
-        ;movdqu [%1 + context.runtime_registers + 128+88  ], xmm10
-        ;movdqu [%1 + context.runtime_registers + 128+96  ], xmm11
-        ;movdqu [%1 + context.runtime_registers + 128+104 ], xmm12
-        ;movdqu [%1 + context.runtime_registers + 128+112 ], xmm13
-        ;movdqu [%1 + context.runtime_registers + 128+120 ], xmm14
-        ;movdqu [%1 + context.runtime_registers + 128+128 ], xmm15
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm0  ], xmm0
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm1  ], xmm1
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm2  ], xmm2
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm3  ], xmm3
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm4  ], xmm4
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm5  ], xmm5
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm6  ], xmm6
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm7  ], xmm7
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm8  ], xmm8
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm9  ], xmm9
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm10 ], xmm10
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm11 ], xmm11
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm12 ], xmm12
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm13 ], xmm13
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm14 ], xmm14
+        ;movdqu [%1 + context.runtime_registers + rbnative.xmm15 ], xmm15
     %endmacro
 
     %macro load_runtimecontext 1
-        mov r12, [%1 + context.runtime_registers + 56]
-        mov r13, [%1 + context.runtime_registers + 64]
+        mov r12, [%1 + context.runtime_registers + rbnative.fs]
+        mov r13, [%1 + context.runtime_registers + rbnative.gs]
         wrfsbase r12
         wrgsbase r13
-        mov rbx, [%1 + context.runtime_registers + 0]
-        mov rbp, [%1 + context.runtime_registers + 8]
-        mov rsp, [%1 + context.runtime_registers + 16]
-        mov r12, [%1 + context.runtime_registers + 24]
-        mov r13, [%1 + context.runtime_registers + 32]
+        mov rbx, [%1 + context.runtime_registers + rbnative.rbx]
+        mov rbp, [%1 + context.runtime_registers + rbnative.rbp]
+        mov rsp, [%1 + context.runtime_registers + rbnative.rsp]
+        mov r12, [%1 + context.runtime_registers + rbnative.r12]
+        mov r13, [%1 + context.runtime_registers + rbnative.r13]
+        ldmxcsr [%1 + context.runtime_registers + rbnative.mxcsr]
 
         ; supposedly not needed:
-        ;movdqu xmm0,  [%1 + context.runtime_registers + 128+0   ]
-        ;movdqu xmm1,  [%1 + context.runtime_registers + 128+8   ]
-        ;movdqu xmm2,  [%1 + context.runtime_registers + 128+16  ]
-        ;movdqu xmm3,  [%1 + context.runtime_registers + 128+32  ]
-        ;movdqu xmm4,  [%1 + context.runtime_registers + 128+40  ]
-        ;movdqu xmm5,  [%1 + context.runtime_registers + 128+48  ]
-        ;movdqu xmm6,  [%1 + context.runtime_registers + 128+56  ]
-        ;movdqu xmm7,  [%1 + context.runtime_registers + 128+64  ]
-        ;movdqu xmm8,  [%1 + context.runtime_registers + 128+72  ]
-        ;movdqu xmm9,  [%1 + context.runtime_registers + 128+80  ]
-        ;movdqu xmm10, [%1 + context.runtime_registers + 128+88  ]
-        ;movdqu xmm11, [%1 + context.runtime_registers + 128+96  ]
-        ;movdqu xmm12, [%1 + context.runtime_registers + 128+104 ]
-        ;movdqu xmm13, [%1 + context.runtime_registers + 128+112 ]
-        ;movdqu xmm14, [%1 + context.runtime_registers + 128+120 ]
-        ;movdqu xmm15, [%1 + context.runtime_registers + 128+128 ]
+        ;movdqu xmm0,  [%1 + context.runtime_registers + rbnative.xmm0  ]
+        ;movdqu xmm1,  [%1 + context.runtime_registers + rbnative.xmm1  ]
+        ;movdqu xmm2,  [%1 + context.runtime_registers + rbnative.xmm2  ]
+        ;movdqu xmm3,  [%1 + context.runtime_registers + rbnative.xmm3  ]
+        ;movdqu xmm4,  [%1 + context.runtime_registers + rbnative.xmm4  ]
+        ;movdqu xmm5,  [%1 + context.runtime_registers + rbnative.xmm5  ]
+        ;movdqu xmm6,  [%1 + context.runtime_registers + rbnative.xmm6  ]
+        ;movdqu xmm7,  [%1 + context.runtime_registers + rbnative.xmm7  ]
+        ;movdqu xmm8,  [%1 + context.runtime_registers + rbnative.xmm8  ]
+        ;movdqu xmm9,  [%1 + context.runtime_registers + rbnative.xmm9  ]
+        ;movdqu xmm10, [%1 + context.runtime_registers + rbnative.xmm10 ]
+        ;movdqu xmm11, [%1 + context.runtime_registers + rbnative.xmm11 ]
+        ;movdqu xmm12, [%1 + context.runtime_registers + rbnative.xmm12 ]
+        ;movdqu xmm13, [%1 + context.runtime_registers + rbnative.xmm13 ]
+        ;movdqu xmm14, [%1 + context.runtime_registers + rbnative.xmm14 ]
+        ;movdqu xmm15, [%1 + context.runtime_registers + rbnative.xmm15 ]
     %endmacro
 
     %macro load_context 1
         wrfsbase %1
-        mov rLWCSI, fs:[context.registers + regbank.lwcsi + random_const_FS]
-        mov rMCSI, fs:[context.registers + regbank.mcsi + random_const_FS]
-        mov rADDR1, fs:[context.registers + regbank.addr1 + random_const_FS]
-        mov rADDR2, fs:[context.registers + regbank.addr2 + random_const_FS]
-        mov rADDR3, fs:[context.registers + regbank.addr3 + random_const_FS]
-        mov rADDR4, fs:[context.registers + regbank.addr4 + random_const_FS]
-        mov rA, fs:[context.registers + regbank.a + random_const_FS]
-        mov rB, fs:[context.registers + regbank.b + random_const_FS]
-        mov rC, fs:[context.registers + regbank.c + random_const_FS]
-        mov rD, fs:[context.registers + regbank.d + random_const_FS]
-        mov rE, fs:[context.registers + regbank.e + random_const_FS]
-        mov rF, fs:[context.registers + regbank.f + random_const_FS]
+        mov rLWCSI, fs:[context.registers + rbtactyk.lwcsi + random_const_FS]
+        mov rMCSI, fs:[context.registers + rbtactyk.mcsi + random_const_FS]
+        mov rADDR1, fs:[context.registers + rbtactyk.addr1 + random_const_FS]
+        mov rADDR2, fs:[context.registers + rbtactyk.addr2 + random_const_FS]
+        mov rADDR3, fs:[context.registers + rbtactyk.addr3 + random_const_FS]
+        mov rADDR4, fs:[context.registers + rbtactyk.addr4 + random_const_FS]
+        mov rA, fs:[context.registers + rbtactyk.a + random_const_FS]
+        mov rB, fs:[context.registers + rbtactyk.b + random_const_FS]
+        mov rC, fs:[context.registers + rbtactyk.c + random_const_FS]
+        mov rD, fs:[context.registers + rbtactyk.d + random_const_FS]
+        mov rE, fs:[context.registers + rbtactyk.e + random_const_FS]
+        mov rF, fs:[context.registers + rbtactyk.f + random_const_FS]
         mov rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
         add rTEMPA, fs:[context.microcontext_stack_offset + random_const_FS]
         sub rTEMPA, random_const_GS
         wrgsbase rTEMPA
 
-        movdqu xmm0, fs:[context.registers + regbank.xa  + random_const_FS]
-        movdqu xmm1, fs:[context.registers + regbank.xb  + random_const_FS]
-        movdqu xmm2, fs:[context.registers + regbank.xc  + random_const_FS]
-        movdqu xmm3, fs:[context.registers + regbank.xd  + random_const_FS]
-        movdqu xmm4, fs:[context.registers + regbank.xe  + random_const_FS]
-        movdqu xmm5, fs:[context.registers + regbank.xf  + random_const_FS]
-        movdqu xmm6, fs:[context.registers + regbank.xg  + random_const_FS]
-        movdqu xmm7, fs:[context.registers + regbank.xh  + random_const_FS]
-        movdqu xmm8, fs:[context.registers + regbank.xi  + random_const_FS]
-        movdqu xmm9, fs:[context.registers + regbank.xj  + random_const_FS]
-        movdqu xmm10, fs:[context.registers + regbank.xk  + random_const_FS]
-        movdqu xmm11, fs:[context.registers + regbank.xl  + random_const_FS]
-        movdqu xmm12, fs:[context.registers + regbank.xm  + random_const_FS]
-        movdqu xmm13, fs:[context.registers + regbank.xn  + random_const_FS]
-        movdqu xmm14, fs:[context.registers + regbank.xo  + random_const_FS]
-        movdqu xmm15, fs:[context.registers + regbank.xp  + random_const_FS]
+        movdqu xmm0, fs:[context.registers + rbtactyk.xa  + random_const_FS]
+        movdqu xmm1, fs:[context.registers + rbtactyk.xb  + random_const_FS]
+        movdqu xmm2, fs:[context.registers + rbtactyk.xc  + random_const_FS]
+        movdqu xmm3, fs:[context.registers + rbtactyk.xd  + random_const_FS]
+        movdqu xmm4, fs:[context.registers + rbtactyk.xe  + random_const_FS]
+        movdqu xmm5, fs:[context.registers + rbtactyk.xf  + random_const_FS]
+        movdqu xmm6, fs:[context.registers + rbtactyk.xg  + random_const_FS]
+        movdqu xmm7, fs:[context.registers + rbtactyk.xh  + random_const_FS]
+        movdqu xmm8, fs:[context.registers + rbtactyk.xi  + random_const_FS]
+        movdqu xmm9, fs:[context.registers + rbtactyk.xj  + random_const_FS]
+        movdqu xmm10, fs:[context.registers + rbtactyk.xk  + random_const_FS]
+        movdqu xmm11, fs:[context.registers + rbtactyk.xl  + random_const_FS]
+        movdqu xmm12, fs:[context.registers + rbtactyk.xm  + random_const_FS]
+        movdqu xmm13, fs:[context.registers + rbtactyk.xn  + random_const_FS]
+        movdqu xmm14, fs:[context.registers + rbtactyk.xo  + random_const_FS]
+        movdqu xmm15, fs:[context.registers + rbtactyk.xp  + random_const_FS]
+        mov rTEMPA_32, fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
+        cmp rTEMPA, 0
+        jne .ldctx_restoremxcsr
+        stmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
+        mov rTEMPA_32, fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
+        and rTEMPA_32, 0xffff9fff
+        ; or rTEMPA_32,  0x00006000
+        mov fs:[context.registers + rbtactyk.mxcsr + random_const_FS ], rTEMPA_32
+        ldmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS]
+        jmp .ldctx_end
+        .ldctx_restoremxcsr:
+        ldmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
+        .ldctx_end:
     %endmacro
 
     %macro store_context 0
-        mov fs:[context.registers + regbank.lwcsi + random_const_FS], rLWCSI
-        mov fs:[context.registers + regbank.mcsi + random_const_FS], rMCSI
-        mov fs:[context.registers + regbank.addr1 + random_const_FS], rADDR1
-        mov fs:[context.registers + regbank.addr2 + random_const_FS], rADDR2
-        mov fs:[context.registers + regbank.addr3 + random_const_FS], rADDR3
-        mov fs:[context.registers + regbank.addr4 + random_const_FS], rADDR4
-        mov fs:[context.registers + regbank.a + random_const_FS], rA
-        mov fs:[context.registers + regbank.b + random_const_FS], rB
-        mov fs:[context.registers + regbank.c + random_const_FS], rC
-        mov fs:[context.registers + regbank.d + random_const_FS], rD
-        mov fs:[context.registers + regbank.e + random_const_FS], rE
-        mov fs:[context.registers + regbank.f + random_const_FS], rF
+        mov fs:[context.registers + rbtactyk.lwcsi + random_const_FS], rLWCSI
+        mov fs:[context.registers + rbtactyk.mcsi + random_const_FS], rMCSI
+        mov fs:[context.registers + rbtactyk.addr1 + random_const_FS], rADDR1
+        mov fs:[context.registers + rbtactyk.addr2 + random_const_FS], rADDR2
+        mov fs:[context.registers + rbtactyk.addr3 + random_const_FS], rADDR3
+        mov fs:[context.registers + rbtactyk.addr4 + random_const_FS], rADDR4
+        mov fs:[context.registers + rbtactyk.a + random_const_FS], rA
+        mov fs:[context.registers + rbtactyk.b + random_const_FS], rB
+        mov fs:[context.registers + rbtactyk.c + random_const_FS], rC
+        mov fs:[context.registers + rbtactyk.d + random_const_FS], rD
+        mov fs:[context.registers + rbtactyk.e + random_const_FS], rE
+        mov fs:[context.registers + rbtactyk.f + random_const_FS], rF
         ; rdgsbase rTEMPA
         ; mov fs:[context.microcontext_stack_address + random_const_FS], rTEMPA
         
-        movdqu fs:[context.registers + regbank.xa + random_const_FS ], xmm0
-        movdqu fs:[context.registers + regbank.xb + random_const_FS ], xmm1
-        movdqu fs:[context.registers + regbank.xc + random_const_FS ], xmm2
-        movdqu fs:[context.registers + regbank.xd + random_const_FS ], xmm3
-        movdqu fs:[context.registers + regbank.xe + random_const_FS ], xmm4
-        movdqu fs:[context.registers + regbank.xf + random_const_FS ], xmm5
-        movdqu fs:[context.registers + regbank.xg + random_const_FS ], xmm6
-        movdqu fs:[context.registers + regbank.xh + random_const_FS ], xmm7
-        movdqu fs:[context.registers + regbank.xi + random_const_FS ], xmm8
-        movdqu fs:[context.registers + regbank.xj + random_const_FS ], xmm9
-        movdqu fs:[context.registers + regbank.xk + random_const_FS ], xmm10
-        movdqu fs:[context.registers + regbank.xl + random_const_FS ], xmm11
-        movdqu fs:[context.registers + regbank.xm + random_const_FS ], xmm12
-        movdqu fs:[context.registers + regbank.xn + random_const_FS ], xmm13
-        movdqu fs:[context.registers + regbank.xo + random_const_FS ], xmm14
-        movdqu fs:[context.registers + regbank.xp + random_const_FS ], xmm15
+        movdqu fs:[context.registers + rbtactyk.xa + random_const_FS ], xmm0
+        movdqu fs:[context.registers + rbtactyk.xb + random_const_FS ], xmm1
+        movdqu fs:[context.registers + rbtactyk.xc + random_const_FS ], xmm2
+        movdqu fs:[context.registers + rbtactyk.xd + random_const_FS ], xmm3
+        movdqu fs:[context.registers + rbtactyk.xe + random_const_FS ], xmm4
+        movdqu fs:[context.registers + rbtactyk.xf + random_const_FS ], xmm5
+        movdqu fs:[context.registers + rbtactyk.xg + random_const_FS ], xmm6
+        movdqu fs:[context.registers + rbtactyk.xh + random_const_FS ], xmm7
+        movdqu fs:[context.registers + rbtactyk.xi + random_const_FS ], xmm8
+        movdqu fs:[context.registers + rbtactyk.xj + random_const_FS ], xmm9
+        movdqu fs:[context.registers + rbtactyk.xk + random_const_FS ], xmm10
+        movdqu fs:[context.registers + rbtactyk.xl + random_const_FS ], xmm11
+        movdqu fs:[context.registers + rbtactyk.xm + random_const_FS ], xmm12
+        movdqu fs:[context.registers + rbtactyk.xn + random_const_FS ], xmm13
+        movdqu fs:[context.registers + rbtactyk.xo + random_const_FS ], xmm14
+        movdqu fs:[context.registers + rbtactyk.xp + random_const_FS ], xmm15
+        stmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
     %endmacro
 
     ; zero data/address registers and memory locations which augment context state.
@@ -522,18 +814,18 @@
     ;   The undefined behavior mainly just affects data stashes (other buffers are reset by clearing index values)
     %macro reset_context 1
 
-        mov qword [%1+context.registers+regbank.temp], 0
-        mov qword [%1+context.registers+regbank.mcsi], 0
-        mov qword [%1+context.registers+regbank.addr1], 0
-        mov qword [%1+context.registers+regbank.addr2], 0
-        mov qword [%1+context.registers+regbank.addr3], 0
-        mov qword [%1+context.registers+regbank.addr4], 0
-        mov qword [%1+context.registers+regbank.a], 0
-        mov qword [%1+context.registers+regbank.b], 0
-        mov qword [%1+context.registers+regbank.c], 0
-        mov qword [%1+context.registers+regbank.d], 0
-        mov qword [%1+context.registers+regbank.e], 0
-        mov qword [%1+context.registers+regbank.f], 0
+        mov qword [%1+context.registers+rbtactyk.temp], 0
+        mov qword [%1+context.registers+rbtactyk.mcsi], 0
+        mov qword [%1+context.registers+rbtactyk.addr1], 0
+        mov qword [%1+context.registers+rbtactyk.addr2], 0
+        mov qword [%1+context.registers+rbtactyk.addr3], 0
+        mov qword [%1+context.registers+rbtactyk.addr4], 0
+        mov qword [%1+context.registers+rbtactyk.a], 0
+        mov qword [%1+context.registers+rbtactyk.b], 0
+        mov qword [%1+context.registers+rbtactyk.c], 0
+        mov qword [%1+context.registers+rbtactyk.d], 0
+        mov qword [%1+context.registers+rbtactyk.e], 0
+        mov qword [%1+context.registers+rbtactyk.f], 0
 
         mov qword [%1+context.addr1], 0
         mov qword [%1+context.addr1_element_bound], 0
@@ -568,8 +860,8 @@
         rdfsbase rax
         add rax, random_const_FS
         load_runtimecontext rax
-        mov r14, [rax + context.runtime_registers + 40]
-        mov r15, [rax + context.runtime_registers + 48]
+        mov r14, [rax + context.runtime_registers + rbnative.r14 ]
+        mov r15, [rax + context.runtime_registers + rbnative.r15 ]
         mov rax, STATUS_HALT
         ret
     %endmacro
@@ -580,8 +872,8 @@
         rdfsbase rax
         add rax, random_const_FS
         load_runtimecontext rax
-        mov r14, [rax + context.runtime_registers + 40]
-        mov r15, [rax + context.runtime_registers + 48]
+        mov r14, [rax + context.runtime_registers + rbnative.r14 ]
+        mov r15, [rax + context.runtime_registers + rbnative.r15 ]
         mov rax, %1
         ret
     %endmacro

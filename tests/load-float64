@@ -3,12 +3,12 @@
 # Virtual-ISA: tactyk_core
 # 
 # Coverage:
-#   load float-xmmx-addr-data (XXAI)
-#   load float-xmmx-addr-data (XXAC)
-#   load float-xmmx-addr-data (XXAD)
-#   load float-data-addr-data (XXAI)
-#   load float-data-addr-data (XXAC)
-#   load float-data-addr-data (XXAD)
+#   load float64-xmmx-addr-data (F64XAI)
+#   load float64-xmmx-addr-data (F64XAC)
+#   load float64-xmmx-addr-data (F64XAD)
+#   load float64-data-addr-data (F64XAI)
+#   load float64-data-addr-data (F64XAC)
+#   load float64-data-addr-data (F64XAD)
 
 PROGRAM
   struct s1
@@ -39,28 +39,28 @@ PROGRAM
     assign b 8
     assign c 16
     assign d 24
-    load float xA addr1 s1.va
-    load float xB addr1 s1.vb
-    load float xC addr1 s1.vc
-    load float xD addr1 s1.vd
-    load float xE addr1 32
-    load float xF addr1 40
-    load float xG addr1 48
-    load float xH addr1 56
-    load float xI addr1 a
-    load float xJ addr1 b
-    load float xK addr1 c
-    load float xL addr1 d
-    load float xM addr1 s1.va
-    load float xN addr1 s1.vb
+    load float64 xA addr1 s1.va
+    load float64 xB addr1 s1.vb
+    load float64 xC addr1 s1.vc
+    load float64 xD addr1 s1.vd
+    load float64 xE addr1 32
+    load float64 xF addr1 40
+    load float64 xG addr1 48
+    load float64 xH addr1 56
+    load float64 xI addr1 a
+    load float64 xJ addr1 b
+    load float64 xK addr1 c
+    load float64 xL addr1 d
+    load float64 xM addr1 s1.va
+    load float64 xN addr1 s1.vb
     exit
   LOAD_N_TrUNCATE:
-    load float rA addr1 a
-    load float rF addr1 c
-    load float rC addr1 b
-    load float rB addr1 s1.vh
-    load float rD addr1 s1.ve
-    load float rE addr1 48
+    load float64 rA addr1 a
+    load float64 rF addr1 c
+    load float64 rC addr1 b
+    load float64 rB addr1 s1.vh
+    load float64 rD addr1 s1.ve
+    load float64 rE addr1 48
     
     exit
 

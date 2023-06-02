@@ -1,0 +1,37 @@
+# TEST:  shuffle
+# 
+# This test consists of a series of simple data transfers, followed by a nonsensical computation which yuses all the arithmetic operators.
+# Due to imprecise sse2 floating point arithmetic, it also accumulates a large floating point error.
+#   (Probably should consider either rewriting it to use the x87 fpu or writing a variant which uses the x87 fpu)
+#
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   shuffle xmmx-xmmx-slot-slot-slot-slot
+#   
+
+PROGRAM
+  
+  testit:
+    xassign xA 1.1 2.2 3.3 4.4
+    shuffle f32 xB xA 0 1 2 3
+    shuffle f32 xC xA 1 2 3 0
+    shuffle f32 xD xA 2 3 0 1
+    shuffle f32 xE xA 3 0 1 2
+    shuffle f32 xF xA 3 2 1 0
+    shuffle f32 xG xA 2 1 0 3
+    shuffle f32 xH xA 1 1 3 3
+    shuffle f32 xA xA 0 0 0 0
+    exit
+
+
+XMM-DISPLAYMODE float32
+EXEC testit
+TEST
+  xB float32 1.1 2.2 3.3 4.4
+  xC float32 2.2 3.3 4.4 1.1
+  xD float32 3.3 4.4 1.1 2.2
+  xE float32 4.4 1.1 2.2 3.3
+  xF float32 4.4 3.3 2.2 1.1
+  xG float32 3.3 2.2 1.1 4.4
+  xH float32 2.2 2.2 4.4 4.4
+  xA float32 1.1 1.1 1.1 1.1

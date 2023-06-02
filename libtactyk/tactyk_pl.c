@@ -34,6 +34,7 @@ void tactyk_pl__init() {
     tactyk_dblock__put(tkpl_funcs, "get", tactyk_pl__get);
     tactyk_dblock__put(tkpl_funcs, "set", tactyk_pl__set);
     tactyk_dblock__put(tkpl_funcs, "use_vconstants", tactyk_pl__ld_visa_constants);
+    tactyk_dblock__put(tkpl_funcs, "use", tactyk_pl__ld_constants);
 
     tactyk_dblock__set_persistence_code(tkpl_funcs, 100);
 
@@ -64,8 +65,14 @@ struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx) 
     ctx->program = emitctx->program;
     ctx->memspec_highlevel_table = ctx->program->memory_layout_hl;
     ctx->memspec_lowlevel_buffer = ctx->program->memory_layout_ll;
-
+    
+    ctx->constant_sets = tactyk_dblock__new_table(64);
+    tactyk_dblock__set_persistence_code(ctx->constant_sets, 10);
+    
     return ctx;
+}
+void tactyk_pl__define_constants(struct tactyk_pl__Context *ctx, char *name, struct tactyk_dblock__DBlock *constants) {
+    tactyk_dblock__put(ctx->constant_sets, name, constants);
 }
 
 void tactyk_pl__load(struct tactyk_pl__Context *plctx, char *code) {
@@ -481,12 +488,11 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
                 while (token != NULL) {
                     double f64val = 0;
                     if (tactyk_dblock__try_parsedouble(&f64val, token)) {
-                        memcpy(&data[pos], &f64val, 4);
+                        memcpy(&data[pos], &f64val, 8);
                     }
                     else {
                         warn("PL -- Not an floating point number", token);
                     }
-
                     pos += nbytes;
                     token = token->next;
                 }
@@ -649,6 +655,7 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
     st->properties = calloc(st->num_properties, sizeof(struct tactyk_asmvm__property));
 
     uint64_t offset = 0;
+    uint64_t prev_offset = 0;
     uint64_t stride = 0;
 
     dblock = dblock->child;
@@ -695,28 +702,31 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
         //prop->name = prop_name;
         prop->byte_width = p_width;
         prop->byte_offset = offset;
-
+        
         char prop_qname[1024];
         sprintf(prop_qname, "%s.%s", st->name, prop->name);
-
-        struct tactyk_dblock__DBlock *propid = tactyk_dblock__from_int(offset);
-        tactyk_dblock__put(ectx->const_table, prop_qname, propid);
-
+        
         switch(directive) {
             case '.': {
+                offset = prev_offset;
+                prop->byte_offset = prev_offset;
                 if ( (offset + p_width) > stride) {
                     stride = (offset + p_width);
                 }
+                offset += p_width;
                 break;
             }
             case '>': {
+                prev_offset = 0;
+                prop->byte_offset = 0;
                 if ( (offset + p_width) > stride) {
                     stride = (offset + p_width);
                 }
-                offset = 0;
+                offset = p_width;
                 break;
             }
             default: {
+                prev_offset = offset;
                 offset += p_width;
                 if ( offset > stride) {
                     stride = offset;
@@ -724,6 +734,9 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
                 break;
             }
         }
+
+        struct tactyk_dblock__DBlock *propid = tactyk_dblock__from_int(prop->byte_offset);
+        tactyk_dblock__put(ectx->const_table, prop_qname, propid);
 
         dblock = dblock->next;
     }
@@ -761,20 +774,30 @@ bool tactyk_pl__const(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlo
     }
     return true;
 }
-bool tactyk_pl__ld_visa_constants(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
+void tactyk_pl__ld_constants__impl(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *name) {
     struct tactyk_emit__Context *ectx = ctx->emitctx;
-    if (ectx->has_visa_constants == false) {
-        ectx->has_visa_constants = true;
-        struct tactyk_dblock__DBlock *ctable = ectx->visa_token_constants;
-        struct tactyk_dblock__DBlock **fields = (struct tactyk_dblock__DBlock**) ctable->data;
-        for (uint64_t i = 0; i < ctable->element_capacity; i += 1) {
-            uint64_t ofs = i*2;
-            struct tactyk_dblock__DBlock *key = fields[ofs];
-            struct tactyk_dblock__DBlock *value = fields[ofs+1];
-            if ( (key != NULL) && (value != NULL) && (value != TACTYK_PSEUDONULL) ) {
-                tactyk_dblock__put(ectx->const_table, key, value);
-            }
+    struct tactyk_dblock__DBlock *ctable = tactyk_dblock__get(ctx->constant_sets, name);
+    if (ctable == NULL) {
+        error("PL -- Invalid constant table name", name);
+    }
+    struct tactyk_dblock__DBlock **fields = (struct tactyk_dblock__DBlock**) ctable->data;
+    for (uint64_t i = 0; i < ctable->element_capacity; i += 1) {
+        uint64_t ofs = i*2;
+        struct tactyk_dblock__DBlock *key = fields[ofs];
+        struct tactyk_dblock__DBlock *value = fields[ofs+1];
+        if ( (key != NULL) && (value != NULL) && (value != TACTYK_PSEUDONULL) ) {
+            tactyk_dblock__put(ectx->const_table, key, value);
         }
     }
+}
+
+bool tactyk_pl__ld_constants(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
+    struct tactyk_dblock__DBlock *name = dblock->token->next;
+    tactyk_pl__ld_constants__impl(ctx, name);
+    return true;
+}
+bool tactyk_pl__ld_visa_constants(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
+    struct tactyk_dblock__DBlock *name = tactyk_dblock__from_safe_c_string(".VISA");
+    tactyk_pl__ld_constants__impl(ctx, name);
     return true;
 }

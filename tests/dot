@@ -1,0 +1,50 @@
+# TEST:  dot
+#
+# Vector dot product computation
+#
+# Virtual-ISA: tactyk_core
+# Templates:
+#   dot [f32]-xmmx-xmmx         (F32.4XXX)
+#   dot [f32]-xmmx-index-xmmx   (F32.4XIXX)
+
+PROGRAM
+  INIT:
+    xassign xA 1.0 0.0 0.0 0.0
+    xassign xB 0.0 1.0 0.0 0.0
+    xassign xC 0.0 0.0 1.0 0.0
+    xassign xD 1.0 1.0 0.0 0.0
+    xassign xE 1.0 0.0 1.0 0.0
+    xassign xF 0.0 1.0 1.0 0.0
+    xassign xG 1.0 2.0 3.0 0.1
+    xassign xH  2.0  3.0       4.0  0.0
+    xassign xI -0.5  2.25      1.1  12.0
+    xassign xJ  6.1  3.33   -2.125  0.0
+    exit
+    
+  *F32.4XXX:
+    dot xK xD xF
+    dot xL xJ xI
+    dot xM xG xI
+    dot xN xH xH
+    exit
+  
+  *F32.4XIXX:
+    dot xK 0 xD xF
+    dot xK 1 xJ xI
+    dot xK 2 xG xI
+    dot xK 3 xH xH
+    exit
+
+XMM-DISPLAYMODE float32
+EXEC INIT
+EXEC *F32.4XXX
+TEST
+  xK float32+ 1.0
+  xL float32+ 2.105
+  xM float32+ 8.5
+  xN float32+ 29.0
+
+EXEC *F32.4XIXX
+TEST
+  xK float32 1.0 2.105 8.5 29.0
+

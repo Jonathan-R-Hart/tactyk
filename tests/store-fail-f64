@@ -1,13 +1,13 @@
-# TEST:  Bounds checking for store instructions (float)
+# TEST:  Bounds checking for store instructions (float64)
 #
 # This verifies that tactyk halts when out-of-bounds offsets are used in store instructions
 # 
 # Virtual-ISA: tactyk_core
 # 
 # Coverage:
-#   store float-addr-data-data    (XADX)
-#   store float-addr-integer-data (XAIX)
-#   store float-addr-const-data   (XACX)
+#   store float64-addr-data-data    (XADX)
+#   store float64-addr-integer-data (XAIX)
+#   store float64-addr-const-data   (XACX)
 
 PROGRAM
   struct st
@@ -42,85 +42,85 @@ PROGRAM
     assign xA 1000
     exit
   
-  st_XADX_neg:
+  st_F64ADX_neg:
     add xA 1
     assign b -1
-    store float addr1 rB xA
+    store float64 addr1 rB xA
     exit
-  st_XADX_zero:
+  st_F64ADX_zero:
     add xA 1
     assign b 0
-    store float addr1 rB xA
+    store float64 addr1 rB xA
     exit
-  st_XADX_edge:
+  st_F64ADX_edge:
     add xA 1
     assign b 2
-    store float addr1 rB xA
+    store float64 addr1 rB xA
     exit
-  st_XADX_cross:
+  st_F64ADX_cross:
     add xA 1
     assign b 3
-    store float addr1 rB xA
+    store float64 addr1 rB xA
     exit
-  st_XADX_far:
+  st_F64ADX_far:
     add xA 1
     assign b 9
-    store float addr1 rB xA
+    store float64 addr1 rB xA
     exit
-  st_XADX_beyond:
+  st_F64ADX_beyond:
     add xA 1
     assign b 10
-    store float addr1 rB xA
+    store float64 addr1 rB xA
     exit
   
-  st_XAIX_neg:
+  st_F64AIX_neg:
     add xA 1
-    store float addr1 -1 xA
+    store float64 addr1 -1 xA
     exit
-  st_XAIX_zero:
+  st_F64AIX_zero:
     add xA 1
-    store float addr1 0 xA
+    store float64 addr1 0 xA
     exit
-  st_XAIX_edge:
+  st_F64AIX_edge:
     add xA 1
-    store float addr1 2 xA
+    store float64 addr1 2 xA
     exit
-  st_XAIX_cross:
+  st_F64AIX_cross:
     add xA 1
-    store float addr1 3 xA
+    store float64 addr1 3 xA
     exit
-  st_XAIX_far:
+  st_F64AIX_far:
     add xA 1
-    store float addr1 9 xA
+    store float64 addr1 9 xA
     exit
-  st_XAIX_beyond:
+  st_F64AIX_beyond:
     add xA 1
-    store float addr1 10 xA
+    store float64 addr1 10 xA
     exit
   
-  st_XACX_neg:
+  st_F64ACX_neg:
     add xA 1
-    store float addr1 CN1 xA
+    store float64 addr1 CN1 xA
     exit
-  st_XACX_zero:
+  st_F64ACX_zero:
     add xA 1
-    store float addr1 C0 xA
+    store float64 addr1 C0 xA
     exit
-  st_XACX_edge:
+  st_F64ACX_edge:
     add xA 1
-    store float addr1 C2 xA
+    store float64 addr1 C2 xA
     exit
-  st_XACX_cross:
+  st_F64ACX_cross:
     add xA 1
-    store float addr1 C3 xA
+    store float64 addr1 C3 xA
     exit
-  st_XACX_far:
+  st_F64ACX_far:
     add xA 1
-    store float addr1 C9 xA
+    store float64 addr1 C9 xA
     exit
-  st_XACX_beyond:
+  st_F64ACX_beyond:
     add xA 1
-    store float addr1 C10 xA
+    store float64 addr1 C10 xA
     exit
 
 EXEC INIT
@@ -128,90 +128,90 @@ TEST
   addr1 mm 0
   xA 1000
 
-EXEC st_XADX_neg
+EXEC st_F64ADX_neg
 TEST
   status 101
   xA 1001
   rB -1
-EXEC st_XADX_zero
+EXEC st_F64ADX_zero
 TEST
   status 4
   xA 1002
   rB 0
-  mem mm 0 float 1002
-EXEC st_XADX_edge
+  mem mm 0 float64 1002
+EXEC st_F64ADX_edge
 TEST
   status 4
   xA 1003
   rB 2
-  mem mm 2 float 1003
-EXEC st_XADX_cross
+  mem mm 2 float64 1003
+EXEC st_F64ADX_cross
 TEST
   status 101
   xA 1004
   rB 3
-EXEC st_XADX_far
+EXEC st_F64ADX_far
 TEST
   status 101
   xA 1005
   rB 9
-EXEC st_XADX_beyond
+EXEC st_F64ADX_beyond
 TEST
   status 101
   xA 1006
   rB 10
 
 
-EXEC st_XAIX_neg
+EXEC st_F64AIX_neg
 TEST
   status 101
   xA 1007
-EXEC st_XAIX_zero
+EXEC st_F64AIX_zero
 TEST
   status 4
   xA 1008
-  mem mm 0 float 1008
-EXEC st_XAIX_edge
+  mem mm 0 float64 1008
+EXEC st_F64AIX_edge
 TEST
   status 4
   xA 1009
-  mem mm 2 float 1009
-EXEC st_XAIX_cross
+  mem mm 2 float64 1009
+EXEC st_F64AIX_cross
 TEST
   status 101
   xA 1010
-EXEC st_XAIX_far
+EXEC st_F64AIX_far
 TEST
   status 101
   xA 1011
-EXEC st_XAIX_beyond
+EXEC st_F64AIX_beyond
 TEST
   status 101
   xA 1012
 
-EXEC st_XACX_neg
+EXEC st_F64ACX_neg
 TEST
   status 101
   xA 1013
-EXEC st_XACX_zero
+EXEC st_F64ACX_zero
 TEST
   status 4
   xA 1014
-  mem mm 0 float 1014
-EXEC st_XACX_edge
+  mem mm 0 float64 1014
+EXEC st_F64ACX_edge
 TEST
   status 4
   xA 1015
-  mem mm 2 float 1015
-EXEC st_XACX_cross
+  mem mm 2 float64 1015
+EXEC st_F64ACX_cross
 TEST
   status 101
   xA 1016
-EXEC st_XACX_far
+EXEC st_F64ACX_far
 TEST
   status 101
   xA 1017
-EXEC st_XACX_beyond
+EXEC st_F64ACX_beyond
 TEST
   status 101
   xA 1018

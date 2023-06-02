@@ -105,7 +105,7 @@ void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx) {
     mem_ll_ctx->base_address = fb;
     mem_ll_ctx->array_bound = 1;
     mem_ll_ctx->element_bound = sdlctx->bufsize;
-    tactyk_asmvm__update_dynamic_memblock(asmvm_ctx, mem_ll_ctx, mbpos);
+    tactyk_asmvm__update_declared_memblock(asmvm_ctx, mem_ll_ctx, mbpos);
     //mem_hl->data = fb;
     sdlctx->framebuffer = fb;
 

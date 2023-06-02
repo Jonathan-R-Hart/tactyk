@@ -129,6 +129,7 @@ bool tactyk_dblock__try_parseint(int64_t *out, struct tactyk_dblock__DBlock *dbl
 bool tactyk_dblock__try_parseuint(uint64_t *out, struct tactyk_dblock__DBlock *dblock_a);
 // attempt to parse the dblock's content as floating point number.  if it succeeds, export the result via pointer and return true, otherwise return false
 bool tactyk_dblock__try_parsedouble(double *out, struct tactyk_dblock__DBlock *dblock);
+bool tactyk_dblock__try_parselongdouble(long double *out, struct tactyk_dblock__DBlock *dblock);
 
 // Structured text parsing
 // These functions are used to create data structures from formatted text using only plain delimiter chars and the "off-side" rule.

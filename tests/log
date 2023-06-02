@@ -1,0 +1,103 @@
+# TEST:  log
+#
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   log xmmx-xmmx (XX)
+#   log xmmx-xmmx-xmmx (XXX)
+
+PROGRAM
+  LOG_XX_1_reg:
+    assign xE 18.973272176628985
+    assign xF 48.08845864645312
+    assign xG 88.35868492919423
+    assign xH 29.709687057637492
+    assign xI 47.55122511840194
+    assign xJ 99.23317899133991
+    assign xK 46.15755658719459
+    assign xL 58.219002452765665
+    assign xM 50.94189913266727
+    assign xN 14.862178830103122
+    assign xA 0.9554846661164725
+    log xE xA
+    assign xA 1.7399550050239705
+    log xF xA
+    assign xA 8.996989566580766
+    log xG xA
+    assign xA 2.4068245994949393
+    log xH xA
+    assign xA 9.199011930605048
+    log xI xA
+    assign xA 9.383021655556261
+    log xJ xA
+    assign xA 8.473760374803812
+    log xK xA
+    assign xA 7.516925651686714
+    log xL xA
+    assign xA 0.32897715819184403
+    log xM xA
+    assign xA 6.362041524795613
+    log xN xA
+    exit
+  LOG_XXX_2_reg:
+    assign xA 37.14996783931233
+    assign xB 0.7834183219293531
+    log xE xA xB
+    assign xA 51.106129246723974
+    assign xB 3.7087256182345256
+    log xF xA xB
+    assign xA 33.98411221146081
+    assign xB 7.265907998419971
+    log xG xA xB
+    assign xA 38.331317590683945
+    assign xB 4.3015537644272595
+    log xH xA xB
+    assign xA 85.42512523994023
+    assign xB 6.708514016145952
+    log xI xA xB
+    assign xA 83.41106064193835
+    assign xB 3.5557001612501193
+    log xJ xA xB
+    assign xA 67.99158274151804
+    assign xB 7.162630537863453
+    log xK xA xB
+    assign xA 81.83109665927353
+    assign xB 0.08268651291981942
+    log xL xA xB
+    assign xA 20.348913933946342
+    assign xB 1.317377959510099
+    log xM xA xB
+    assign xA 99.40562200514965
+    assign xB 8.27093025589583
+    log xN xA xB
+    exit
+
+EXEC LOG_XX_1_reg
+TEST
+  xA 6.362041524795613
+  xE -64.63006951361793
+  xF 6.992827469061034
+  xG 2.0398856732173076
+  xH 3.8613698783861254
+  xI 1.7402615367962893
+  xJ 2.0534497416776176
+  xK 1.7932178942690735
+  xL 2.0148215224335795
+  xM -3.535530283710071
+  xN 1.4585460284439211
+EXEC LOG_XXX_2_reg
+TEST
+  xA 99.40562200514965
+  xB 8.27093025589583
+  xE -14.810051866710918
+  xF 3.0014034463152446
+  xG 1.7778867938190148
+  xH 2.499195674891715
+  xI 2.3367095271536376
+  xJ 3.4872681132938137
+  xK 2.143040553710065
+  xL -1.7670235051706897
+  xM 10.930890796367375
+  xN 2.1768856833894623
+
+
+

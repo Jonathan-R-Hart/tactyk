@@ -1,0 +1,325 @@
+# TEST:  Batched data load from memory
+#
+# Read sequential data from a memblock and load it onto sequential registers (according to tactyk register alias lexical order)
+#
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   block-load block-quanitity-data-addr-data (BqsDAD)
+#   block-load block-quanitity-data-addr-data (BqsDAI)
+#   block-load block-quanitity-data-addr-data (BqsDAC)
+PROGRAM
+  
+  flat stuff qword
+    0
+    1111
+    22222222
+    333333333333
+    4444444444444444
+    555555555555
+    666666666
+    777777
+    888
+    9999999999999999999
+    10
+    11
+    121212121212
+    131313131313131313
+    14141414141414
+    151515
+  
+  const CN1 -1
+  const C0 0
+  const C8 8
+  const C16 16
+  const C24 24
+  const C32 32
+  const C40 40
+  const C48 48
+  const C56 56
+  const C64 64
+  const C72 72
+  const C80 80
+  const C88 88
+  const C89 89
+  const C128 128  
+
+  INIT:
+    bind addr1 stuff
+    exit
+
+  BLKLOAD_int_1:
+    block-load 1 a addr1 8
+    exit
+
+  BLKLOAD_int_2:
+    block-load 2 b addr1 16
+    exit
+
+  BLKLOAD_int_3:
+    block-load 3 d addr1 32
+    exit
+
+  BLKLOAD_int_4:
+    block-load 4 a addr1 56
+    exit
+    exit
+
+  BLKLOAD_int_5:
+    block-load 5 e addr1 88
+    exit
+
+  BLKLOAD_int_6:
+    block-load 6 d addr1 0
+    exit
+
+  BLKLOAD_const_1:
+    block-load 1 a addr1 C8
+    exit
+
+  BLKLOAD_const_2:
+    block-load 2 b addr1 C16
+    exit
+
+  BLKLOAD_const_3:
+    block-load 3 d addr1 C32
+    exit
+
+  BLKLOAD_const_4:
+    block-load 4 a addr1 C56
+    exit
+    exit
+
+  BLKLOAD_const_5:
+    block-load 5 e addr1 C88
+    exit
+
+  BLKLOAD_const_6:
+    block-load 6 d addr1 C0
+    exit
+  
+  
+  BLKLOAD_reg_1:
+    assign a 8
+    block-load 1 a addr1 a
+    exit
+
+  BLKLOAD_reg_2:
+    assign b 16
+    block-load 2 b addr1 b
+    exit
+
+  BLKLOAD_reg_3:
+    assign d 32
+    block-load 3 d addr1 d
+    exit
+
+  BLKLOAD_reg_4:
+    assign a 56
+    block-load 4 a addr1 a
+    exit
+    exit
+
+  BLKLOAD_reg_5:
+    assign e 88
+    block-load 5 e addr1 e
+    exit
+
+  BLKLOAD_reg_6:
+    assign d 0
+    block-load 6 d addr1 d
+    exit
+  
+  # as usual, negative index -> out of bounds
+  BLKLOAD_int_fail_neg:
+    block-load 5 e addr1 -1
+    exit
+  # one byte over the edge (offset 89 +40 bytes)
+  BLKLOAD_int_fail_edge:
+    block-load 5 e addr1 89
+    exit
+  # completely over the edge
+  BLKLOAD_int_fail_over:
+    block-load 5 e addr1 128
+    exit
+ 
+  # as usual, negative index -> out of bounds
+  BLKLOAD_const_fail_neg:
+    block-load 5 e addr1 CN1
+    exit
+  # one byte over the edge (offset 89 +40 bytes)
+  BLKLOAD_const_fail_edge:
+    block-load 5 e addr1 C89
+    exit
+  # completely over the edge
+  BLKLOAD_const_fail_over:
+    block-load 5 e addr1 C128
+    exit
+
+  # as usual, negative index -> out of bounds
+  BLKLOAD_reg_fail_neg:
+    assign e -1
+    block-load 5 e addr1 e
+    exit
+  # one byte over the edge (offset 89 +40 bytes)
+  BLKLOAD_reg_fail_edge:
+    assign e 89
+    block-load 5 e addr1 e
+    exit
+  # completely over the edge
+  BLKLOAD_reg_fail_over:
+    assign e 128
+    block-load 5 e addr1 e
+    exit
+
+EXEC INIT
+TEST
+  addr1 stuff 0
+
+EXEC BLKLOAD_int_1
+TEST
+  rA 1111
+EXEC BLKLOAD_int_2
+TEST
+  rB 22222222
+  rC 333333333333
+EXEC BLKLOAD_int_3
+TEST
+  rD 4444444444444444
+  rE 555555555555
+  rF 666666666
+
+EXEC BLKLOAD_int_4
+TEST
+  rA 777777
+  rB 888
+  rC 9999999999999999999
+  rD 10
+
+EXEC BLKLOAD_int_5
+TEST
+  rE 11
+  rF 121212121212
+  rA 131313131313131313
+  rB 14141414141414
+  rC 151515
+
+EXEC BLKLOAD_int_6
+TEST
+  rD 0
+  rE 1111
+  rF 22222222
+  rA 333333333333
+  rB 4444444444444444
+  rC 555555555555
+
+
+EXEC BLKLOAD_const_1
+TEST
+  rA 1111
+EXEC BLKLOAD_const_2
+TEST
+  rB 22222222
+  rC 333333333333
+EXEC BLKLOAD_const_3
+TEST
+  rD 4444444444444444
+  rE 555555555555
+  rF 666666666
+
+EXEC BLKLOAD_const_4
+TEST
+  rA 777777
+  rB 888
+  rC 9999999999999999999
+  rD 10
+
+EXEC BLKLOAD_const_5
+TEST
+  rE 11
+  rF 121212121212
+  rA 131313131313131313
+  rB 14141414141414
+  rC 151515
+
+EXEC BLKLOAD_const_6
+TEST
+  rD 0
+  rE 1111
+  rF 22222222
+  rA 333333333333
+  rB 4444444444444444
+  rC 555555555555
+
+
+EXEC BLKLOAD_reg_1
+TEST
+  rA 1111
+EXEC BLKLOAD_reg_2
+TEST
+  rB 22222222
+  rC 333333333333
+EXEC BLKLOAD_reg_3
+TEST
+  rD 4444444444444444
+  rE 555555555555
+  rF 666666666
+
+EXEC BLKLOAD_reg_4
+TEST
+  rA 777777
+  rB 888
+  rC 9999999999999999999
+  rD 10
+
+EXEC BLKLOAD_reg_5
+TEST
+  rE 11
+  rF 121212121212
+  rA 131313131313131313
+  rB 14141414141414
+  rC 151515
+
+EXEC BLKLOAD_reg_6
+TEST
+  rD 0
+  rE 1111
+  rF 22222222
+  rA 333333333333
+  rB 4444444444444444
+  rC 555555555555
+
+EXEC BLKLOAD_int_fail_neg
+TEST
+  status 101
+EXEC BLKLOAD_int_fail_edge
+TEST
+  status 101
+
+EXEC BLKLOAD_int_fail_over
+TEST
+  status 101
+
+EXEC BLKLOAD_const_fail_neg
+TEST
+  status 101
+EXEC BLKLOAD_const_fail_edge
+TEST
+  status 101
+
+EXEC BLKLOAD_const_fail_over
+TEST
+  status 101
+
+EXEC BLKLOAD_reg_fail_neg
+TEST
+  status 101
+  rE -1
+EXEC BLKLOAD_reg_fail_edge
+TEST
+  status 101
+  rE 89
+EXEC BLKLOAD_reg_fail_over
+TEST
+  status 101
+  rE 128

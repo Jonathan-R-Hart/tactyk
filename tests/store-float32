@@ -1,0 +1,229 @@
+# TEST:  Write [floating-point] contents of xmmx registers
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   store float32-addr-data-xmmx    (F64ADX)
+#   store float32-addr-data-xmmx    (F64AIX)
+#   store float32-addr-data-xmmx    (F64ACX)
+
+PROGRAM
+  struct s1
+    1024 data
+  mem m1 s1 1
+  
+  const C0 0
+  const C4 4
+  const C8 8
+  const C12 12
+  const C16 16
+  const C20 20
+  const C24 24
+  const C28 28
+  const C32 32
+  const C36 36
+  const C40 40
+  const C44 44
+  const C48 48
+  
+  INIT:
+    bind addr1 m1
+    exit
+  
+  TEST_REG:
+    assign xA 1.23
+    assign xB 2.34
+    assign xC 3.45
+    assign xD 4.56
+    assign xE 5.67
+    assign xF 6.78
+    assign xG 7.89
+    assign xH 8.90
+    assign xI 9.01
+    assign xJ 10.98
+    assign xK 11.99
+    assign xL 12.00
+    assign xM 13.01
+    assign a 0
+    store float32 addr1 rA xA
+    add rA 4
+    store float32 addr1 rA xB
+    add rA 4
+    store float32 addr1 rA xC
+    add rA 4
+    store float32 addr1 rA xD
+    add rA 4
+    store float32 addr1 rA xE
+    add rA 4
+    store float32 addr1 rA xF
+    add rA 4
+    store float32 addr1 rA xG
+    add rA 4
+    store float32 addr1 rA xH
+    add rA 4
+    store float32 addr1 rA xI
+    add rA 4
+    store float32 addr1 rA xJ
+    add rA 4
+    store float32 addr1 rA xK
+    add rA 4
+    store float32 addr1 rA xL
+    add rA 4
+    store float32 addr1 rA xM
+    exit
+  
+  TEST_INT:
+    mul xA 3.33
+    mul xB 3.33
+    mul xC 3.33
+    mul xD 3.33
+    mul xE 3.33
+    mul xF 3.33
+    mul xG 3.33
+    mul xH 3.33
+    mul xI 3.33
+    mul xJ 3.33
+    mul xK 3.33
+    mul xL 3.33
+    mul xM 3.33
+    store float32 addr1 0 xA
+    store float32 addr1 4 xB
+    store float32 addr1 8 xC
+    store float32 addr1 12 xD
+    store float32 addr1 16 xE
+    store float32 addr1 20 xF
+    store float32 addr1 24 xG
+    store float32 addr1 28 xH
+    store float32 addr1 32 xI
+    store float32 addr1 36 xJ
+    store float32 addr1 40 xK
+    store float32 addr1 44 xL
+    store float32 addr1 48 xM
+    exit
+  
+  TEST_CONST:
+    mul xA 100
+    mul xB 100
+    mul xC 100
+    mul xD 100
+    mul xE 100
+    mul xF 100
+    mul xG 100
+    mul xH 100
+    mul xI 100
+    mul xJ 100
+    mul xK 100
+    mul xL 100
+    mul xM 100
+    store float32 addr1 C0 xA
+    store float32 addr1 C4 xB
+    store float32 addr1 C8 xC
+    store float32 addr1 C12 xD
+    store float32 addr1 C16 xE
+    store float32 addr1 C20  xF
+    store float32 addr1 C24 xG
+    store float32 addr1 C28 xH
+    store float32 addr1 C32 xI
+    store float32 addr1 C36 xJ
+    store float32 addr1 C40 xK
+    store float32 addr1 C44 xL
+    store float32 addr1 C48 xM
+    exit
+
+EXEC INIT
+TEST
+  addr1 m1 0
+
+EXEC TEST_REG
+TEST
+  rA 48
+  xA 1.23
+  xB 2.34
+  xC 3.45
+  xD 4.56
+  xE 5.67
+  xF 6.78
+  xG 7.89
+  xH 8.90
+  xI 9.01
+  xJ 10.98
+  xK 11.99
+  xL 12.00
+  xM 13.01
+  mem m1 0 float32 1.23
+  mem m1 4 float32 2.34
+  mem m1 8 float32 3.45
+  mem m1 12 float32 4.56
+  mem m1 16 float32 5.67
+  mem m1 20 float32 6.78
+  mem m1 24 float32 7.89
+  mem m1 28 float32 8.90
+  mem m1 32 float32 9.01
+  mem m1 36 float32 10.98
+  mem m1 40 float32 11.99
+  mem m1 44 float32 12.00
+  mem m1 48 float32 13.01
+
+EXEC TEST_INT
+TEST
+  xA 4.0959
+  xB 7.7922
+  xC 11.4885
+  xD 15.1848
+  xE 18.8811
+  xF 22.5774
+  xG 26.2737
+  xH 29.637
+  xI 30.0033
+  xJ 36.5634
+  xK 39.9267
+  xL 39.96
+  xM 43.3233
+  mem m1 0 float32 4.0959
+  mem m1 4 float32 7.7922
+  mem m1 8 float32 11.4885
+  mem m1 12 float32 15.1848
+  mem m1 16 float32 18.8811
+  mem m1 20 float32 22.5774
+  mem m1 24 float32 26.2737
+  mem m1 28 float32 29.637
+  mem m1 32 float32 30.0033
+  mem m1 36 float32 36.5634
+  mem m1 40 float32 39.9267
+  mem m1 44 float32 39.96
+  mem m1 48 float32 43.3233
+
+EXEC TEST_CONST
+TEST
+  xA 409.59
+  xB 779.22
+  xC 1148.85
+  xD 1518.48
+  xE 1888.11
+  xF 2257.74
+  xG 2627.37
+  xH 2963.7
+  xI 3000.33
+  xJ 3656.34
+  xK 3992.67
+  xL 3996
+  xM 4332.33
+  mem m1 0 float32 409.59
+  mem m1 4 float32 779.22
+  mem m1 8 float32 1148.85
+  mem m1 12 float32 1518.48
+  mem m1 16 float32 1888.11
+  mem m1 20 float32 2257.74
+  mem m1 24 float32 2627.37
+  mem m1 28 float32 2963.7
+  mem m1 32 float32 3000.33
+  mem m1 36 float32 3656.34
+  mem m1 40 float32 3992.67
+  mem m1 44 float32 3996
+  mem m1 48 float32 4332.33
+
+
+
+
+
+  

@@ -700,6 +700,17 @@ bool tactyk_dblock__try_parsedouble(double *out, struct tactyk_dblock__DBlock *d
     return result;
 }
 
+bool tactyk_dblock__try_parselongdouble(long double *out, struct tactyk_dblock__DBlock *dblock) {
+    if (dblock->length == 0) {
+        return false;
+    }
+    char *buf = tactyk_alloc__allocate(dblock->length+1, 1);
+    memcpy(buf, dblock->data, dblock->length);
+    bool result = tactyk_util__try_parselongdouble(out, buf, dblock->length);
+    tactyk_alloc__free(buf);
+    return result;
+}
+
 // resize the dblock.  If the dblock uses a backing buffer, this also copies the buffer and decouples from it.
 void tactyk_dblock__expand(struct tactyk_dblock__DBlock *dblock, uint64_t min_length) {
     assert(dblock->fixed == false);

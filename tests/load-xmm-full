@@ -1,0 +1,89 @@
+# TEST:  Load 128-bit fields from memory [to xmm registers]
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   load oword-xmmx-addr-integer (B128XAI)
+#   load oword-xmmx-addr-const (B128XAC)
+#   load oword-xmmx-addr-data (B128XAD)
+
+PROGRAM
+  struct s1
+    8 va.0
+    8 va.1
+    8 vb.0
+    8 vb.1
+    8 vc.0
+    8 vc.1
+    8 vd.0
+    8 vd.1
+    8 ve.0
+    8 ve.1
+    8 vf.0
+    8 vf.1
+    8 vg.0
+    8 vg.1
+    8 vh.0
+    8 vh.1
+  const C48 48
+  const C0 0
+  const C32 32
+  
+  data m1 s1 23123
+    123.456 1.0
+    -345.78901 2.0
+    6134324.213 3.0
+    1.523 4.0
+    234.345543 5.0
+    5432.12 6.0
+    678.9 7.0
+    10000.1234 8.0
+  
+  LOAD_SOME_FLOATS:
+    bind addr1 m1
+    assign a 0
+    assign b 16
+    assign c 32
+    assign d 48
+    load oword xA addr1 s1.va.0
+    load oword xB addr1 s1.vb.0
+    load oword xC addr1 s1.vc.0
+    load oword xD addr1 s1.vd.0
+    load oword xE addr1 64
+    load oword xF addr1 80
+    load oword xG addr1 96
+    load oword xH addr1 112
+    load oword xI addr1 a
+    load oword xJ addr1 b
+    load oword xK addr1 c
+    load oword xL addr1 d
+    load oword xM addr1 s1.va.0
+    load oword xN addr1 s1.vb.0
+    exit
+
+EXEC LOAD_SOME_FLOATS
+TEST
+  addr1 m1 0
+  rA 0
+  rB 16
+  rC 32
+  rD 48
+  xA 123.456 1.0
+  xB -345.78901 2.0
+  xC 6134324.213 3.0
+  xD 1.523 4.0
+  xE 234.345543 5.0
+  xF 5432.12 6.0
+  xG 678.9 7.0
+  xH 10000.1234 8.0
+  xI 123.456 1.0
+  xJ -345.78901 2.0
+  xK 6134324.213 3.0
+  xL 1.523 4.0
+  xM 123.456 1.0
+  xN -345.78901 2.0
+
+
+
+
+

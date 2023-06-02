@@ -3,20 +3,20 @@
 #include "ttest.h"
 
 
-bool tactyk_test__approximately_eq(double a, double b) {
+bool tactyk_test__approximately_eq(double a, double b, double precision) {
     if ( a == b ) {
         return true;
-    }
-    else if (!isfinite(a)) {
-        return false;
-    }
-    else if (!isfinite(b)) {
-        return false;
     }
     else if (isnan(a)) {
         return isnan(b);    // For state transition tracking purposes (NAN == NAN) is TRUE
     }
     else if (isnan(b)) {
+        return false;
+    }
+    else if (!isfinite(a)) {
+        return false;
+    }
+    else if (!isfinite(b)) {
         return false;
     }
     else if (a == 0) {
@@ -25,7 +25,34 @@ bool tactyk_test__approximately_eq(double a, double b) {
     else if (b == 0) {
         return fabs(a) < precision;
     }
-    return ( fabs(1.0-(a/b)) < precision);
+    //printf("pchk ... prec=%0.15f a=%f b=%f a/b=%0.15f 1-a/b=%0.15f\n", precision, a,b, a/b, 1.0-(a/b));
+    return ( fabs(1.0-(a/b)) <= precision);
+}
+
+bool tactyk_test__approximately_eq__longdbl(long double a, long double b, long double precision) {
+    if ( a == b ) {
+        return true;
+    }
+    else if (isnan(a)) {
+        return isnan(b);    // For state transition tracking purposes (NAN == NAN) is TRUE
+    }
+    else if (isnan(b)) {
+        return false;
+    }
+    else if (!isfinite(a)) {
+        return false;
+    }
+    else if (!isfinite(b)) {
+        return false;
+    }
+    else if (a == 0) {
+        return fabs(b) < precision;
+    }
+    else if (b == 0) {
+        return fabs(a) < precision;
+    }
+    //printf("pchk ... prec=%0.15f a=%f b=%f a/b=%0.15f 1-a/b=%0.15f\n", precision, a,b, a/b, 1.0-(a/b));
+    return ( fabs(1.0-(a/b)) <= precision);
 }
 
 

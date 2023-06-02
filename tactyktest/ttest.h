@@ -37,7 +37,9 @@ extern struct tactyk_asmvm__memblock_lowlevel *shadow_memblocks;
 extern struct tactyk_asmvm__MicrocontextStash *shadow_mctxstack;
 extern struct tactyk_asmvm__Stack *shadow_ctx_stack;
 extern uint32_t *shadow_lwcall_stack;
-extern double precision;
+extern double precision_f32;
+extern double precision_f64;
+extern long double precision_f80;
 extern uint64_t callback_id;
 extern uint64_t ccall_args[6];
 extern int64_t ccall_retval;
@@ -115,6 +117,7 @@ uint64_t tactyk_test__ERROR(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__CONTINUE(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__RETURN(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__RESUME(struct tactyk_dblock__DBlock *spec);
+uint64_t tactyk_test__EXIT(struct tactyk_dblock__DBlock *spec);
 uint64_t tactyk_test__XMM_DISPLAYMODE(struct tactyk_dblock__DBlock *spec);
 
 bool tactyk_test__SET_CONTEXT_STATUS(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec);
@@ -148,7 +151,8 @@ void tactyk_test__run(struct tactyk_test__Status *tstate);
 void tactyk_test__reset_state(struct tactyk_test__Status *tstate);
 void tactyk_test__await_start(struct tactyk_test__Status *tstate);
 
-bool tactyk_test__approximately_eq(double a, double b);
+bool tactyk_test__approximately_eq(double a, double b, double precision);
+bool tactyk_test__approximately_eq__longdbl(long double a, long double b, long double precision);
 
 uint64_t read_spec__binary_data(struct tactyk_dblock__DBlock **out, struct tactyk_dblock__DBlock *spec);
 

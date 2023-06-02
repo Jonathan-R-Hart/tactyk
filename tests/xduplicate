@@ -1,0 +1,41 @@
+# TEST:  xduplicate
+#
+# register content duplicator
+#
+# Virtual-ISA: tactyk_core
+# Templates:
+#   xduplicate [qty]-xmmx-xmmx (XX)
+
+PROGRAM
+  INIT:
+    xassign xA 1234.567 5432.198
+    xassign xB 1234.56 5432.19
+    xassign xC 1234.5 5432.1
+    xassign xD 234.5 432.1
+    xassign xE 34.5 32.1
+    xassign xF 4.5 2.1
+    xassign xG 5.0 0.1
+    exit
+  dup_7:
+    xduplicate 7 xH xA
+    exit
+  dup_4:
+    xduplicate 4 xM xC
+    exit
+
+EXEC INIT
+EXEC dup_7
+TEST
+  xH float64 1234.567 5432.198
+  xI float64 1234.56 5432.19
+  xJ float64 1234.5 5432.1
+  xK float64 234.5 432.1
+  xL float64 34.5 32.1
+  xM float64 4.5 2.1
+  xN float64 5.0 0.1
+EXEC dup_4
+TEST
+  xM float64 1234.5 5432.1
+  xN float64 234.5 432.1
+  xA float64 34.5 32.1
+  xB float64 4.5 2.1

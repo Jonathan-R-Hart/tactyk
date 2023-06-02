@@ -1,0 +1,78 @@
+# TEST:  log2
+#
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   log2 xmmx (X)
+#   log2 xmmx-xmmx (XX)
+
+PROGRAM
+  LOG2_X_1_reg:
+    assign xE 38.02165394525361
+    assign xF 1.4877174622300795
+    assign xG 85.21513925618471
+    assign xH 86.58420884341173
+    assign xI 90.28761295528211
+    assign xJ 7.048081377833136
+    assign xK 22.876491515009796
+    assign xL 49.48243580288577
+    assign xM 79.42969468856185
+    assign xN 74.43003445803187
+    log2 xE
+    log2 xF
+    log2 xG
+    log2 xH
+    log2 xI
+    log2 xJ
+    log2 xK
+    log2 xL
+    log2 xM
+    log2 xN
+    exit
+  LOG2_XX_2_reg:
+    assign xA 55.463693403357844
+    log2 xE xA
+    assign xA 10.16011279883924
+    log2 xF xA
+    assign xA 92.3259225901459
+    log2 xG xA
+    assign xA 78.59336512967285
+    log2 xH xA
+    assign xA 25.52357696817748
+    log2 xI xA
+    assign xA 47.63771120925239
+    log2 xJ xA
+    assign xA 27.34325692786587
+    log2 xK xA
+    assign xA 17.261579821947198
+    log2 xL xA
+    assign xA 65.93768640352602
+    log2 xM xA
+    assign xA 78.59592101827651
+    log2 xN xA
+    exit
+
+EXEC LOG2_X_1_reg
+TEST
+  xE 5.248749385598602
+  xF 0.573100565059538
+  xG 6.413037856201722
+  xH 6.436032026298502
+  xI 6.496456165053956
+  xJ 2.8172305818517613
+  xK 4.515793903034177
+  xL 5.628844614487217
+  xM 6.3116065527722265
+  xN 6.2178129987472355
+EXEC LOG2_XX_2_reg
+TEST
+  xA 78.59592101827651
+  xE 5.793471785503663
+  xF 3.3448445140665988
+  xG 6.528663868885573
+  xH 6.296335619857939
+  xI 4.673758622760921
+  xJ 5.574032194353366
+  xK 4.773113191299844
+  xL 4.109492604420829
+  xM 6.043031362048575
+  xN 6.296382536131997

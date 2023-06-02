@@ -210,19 +210,19 @@ TEST
 XMM-DISPLAYMODE string
 EXEC XS
 TEST
-  xA 'Hello,_World!
-  xB '=-=-=-=--=-=-=-=
-  xC '`1234567890-=
-  xD 'qwertyuiop[]
-  xE 'asdfghjkl;'
-  xF 'zxcvbnm,./
-  xG '~!@#$%^&*()_+
-  xH 'QWERTYUIOP{}
-  xI 'ASDFGHJKL:
-  xJ 'ZXCVBNM<>?
-  xK 'This is text...
-  xL 'useful useful
-  xM 'text.
-  xN 'You agree yes?
+  xA i64 'Hello,_World!
+  xB i64 '=-=-=-=--=-=-=-=
+  xC i64 '`1234567890-=
+  xD i64 'qwertyuiop[]
+  xE i64 'asdfghjkl;'
+  xF i64 'zxcvbnm,./
+  xG i64 '~!@#$%^&*()_+
+  xH i64 'QWERTYUIOP{}
+  xI i64 'ASDFGHJKL:
+  xJ i64 'ZXCVBNM<>?
+  xK i64 'This is text...
+  xL i64 'useful useful
+  xM i64 'text.
+  xN i64 'You agree yes?
 
 

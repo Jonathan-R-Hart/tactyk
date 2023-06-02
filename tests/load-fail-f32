@@ -1,0 +1,201 @@
+# TEST:  Bounds checking for load instructions (float32)
+#
+# This verifies that tactyk halts when out-of-bounds offsets are used in load instructions
+#
+#   NOTE:  The specific values tested for have not been verified as of the writing of this test, but have simply been copied from test log.
+#          These are assumed to be the correct float32ing point values interpreting the sequence of bytes specified in data array "mm" as an
+#          IEEE-754 float32ing point number.
+#          This test is more focused on the bounds checking than the literal values.
+#          Floating point handling elsewhere has conistantly given expected results.
+#
+#          It at least matches the results from this test:
+#              uint8_t data[10] = { 100, 101, 102, 103, 104, 105, 106, 107, 108, 109 };
+#              printf("F[0] = %.14g\n", *((float*)data) );
+#              printf("F[6] = %.14g\n", *((float*)&data[6]) );
+#              printf("D[0] = %.14g\n", *((double*)data) );
+#              printf("D[2] = %.14g\n", *((double*)&data[2]) );
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   load float32-data-addr-data (F32XAD)
+#   load float32-data-addr-integer (F32XAI)
+#   load float32-data-addr-const (F32XAC)
+
+PROGRAM
+  struct st
+    1 i0
+    1 i1
+    1 i2
+    1 i3
+    1 i4
+    1 i5
+    1 i6
+    1 i7
+    1 i8
+    1 i9
+
+  const CN1 -1
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C5 5
+  const C6 6
+  const C7 7
+  const C8 8
+  const C9 9
+  const C10 10
+  
+  data mm st 1
+    100 101 102 103 104 105 106 107 108 109
+
+  INIT:
+    bind addr1 mm
+    exit
+  
+  ld_F32XAD_neg:
+    assign b -1
+    load float32 xA addr1 b
+    exit
+  ld_F32XAD_zero:
+    assign b 0
+    load float32 xA addr1 b
+    exit
+  ld_F32XAD_edge:
+    assign b 6
+    load float32 xA addr1 b
+    exit
+  ld_F32XAD_cross:
+    assign b 7
+    load float32 xA addr1 b
+    exit
+  ld_F32XAD_far:
+    assign b 9
+    load float32 xA addr1 b
+    exit
+  ld_F32XAD_beyond:
+    assign b 10
+    load float32 xA addr1 b
+    exit
+  
+  ld_F32XAI_neg:
+    load float32 xA addr1 -1
+    exit
+  ld_F32XAI_zero:
+    load float32 xA addr1 0
+    exit
+  ld_F32XAI_edge:
+    load float32 xA addr1 6
+    exit
+  ld_F32XAI_cross:
+    load float32 xA addr1 7
+    exit
+  ld_F32XAI_far:
+    load float32 xA addr1 9
+    exit
+  ld_F32XAI_beyond:
+    load float32 xA addr1 10
+    exit
+  
+  ld_F32XAC_neg:
+    load float32 xA addr1 CN1
+    exit
+  ld_F32XAC_zero:
+    load float32 xA addr1 C0
+    exit
+  ld_F32XAC_edge:
+    load float32 xA addr1 C6
+    exit
+  ld_F32XAC_cross:
+    load float32 xA addr1 C7
+    exit
+  ld_F32XAC_far:
+    load float32 xA addr1 C9
+    exit
+  ld_F32XAC_beyond:
+    load float32 xA addr1 C10
+    exit
+
+EXEC INIT
+TEST
+  addr1 mm 0
+
+EXEC ld_F32XAD_neg
+TEST
+  status 101
+  rB -1
+EXEC ld_F32XAD_zero
+TEST
+  status 4
+  rB 0
+  xA 1.0880146179709e+24
+EXEC ld_F32XAD_edge
+TEST
+  status 4
+  rB 6
+  xA 4.5730198719615e+27
+EXEC ld_F32XAD_cross
+TEST
+  status 101
+  rB 7
+EXEC ld_F32XAD_far
+TEST
+  status 101
+  rB 9
+EXEC ld_F32XAD_beyond
+TEST
+  status 101
+  rB 10
+
+EXEC ld_F32XAI_neg
+TEST
+  status 101
+EXEC ld_F32XAI_zero
+TEST
+  status 4
+  xA 1.0880146179709e+24
+EXEC ld_F32XAI_edge
+TEST
+  status 4
+  xA 4.5730198719615e+27
+EXEC ld_F32XAI_cross
+TEST
+  status 101
+EXEC ld_F32XAI_far
+TEST
+  status 101
+EXEC ld_F32XAI_beyond
+TEST
+  status 101
+
+EXEC ld_F32XAC_neg
+TEST
+  status 101
+EXEC ld_F32XAC_zero
+TEST
+  status 4
+  xA 1.0880146179709e+24
+EXEC ld_F32XAC_edge
+TEST
+  status 4
+  xA 4.5730198719615e+27
+EXEC ld_F32XAC_cross
+TEST
+  status 101
+EXEC ld_F32XAC_far
+TEST
+  status 101
+EXEC ld_F32XAC_beyond
+TEST
+  status 101
+
+    
+  
+  
+
+
+
+
+

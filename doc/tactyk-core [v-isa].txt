@@ -57,6 +57,29 @@ Assigned variables:
   $VALUE                xmm register name
 template-selector:  'X'
 
+xmmx-full
+  A variant of the xmmx register selector which also provides a hint that the full 128 bits of the register should be used
+  (most instructions affecting xmmx registers only affect the lower 64 bits)
+  This is used for overloading certain instructions to allow them to optionally use wider data types
+Accpeted values:
+  xx0 xxmm0 xxa xxA
+  xx1 xxmm1 xxb xxB
+  xx2 xxmm2 xxc xxC
+  xx3 xxmm3 xxd xxD
+  xx4 xxmm4 xxe xxE
+  xx5 xxmm5 xxf xxF
+  xx6 xxmm6 xxg xxG
+  xx7 xxmm7 xxh xxH
+  xx8 xxmm8 xxi xxI
+  xx9 xxmm9 xxj xxJ
+  xx10 xxmm10 xxk xxK
+  xx11 xxmm11 xxl xxL
+  xx12 xxmm12 xxm xxM
+  xx13 xxmm13 xxn xxN
+Assigned variables:
+  $VALUE                xmm register name
+template-selector:  'Xx'
+
 word
   select a word size
 Accepted values:
@@ -274,6 +297,19 @@ Assigned variables:
   $VECFMT               vector format (the suffix to attach to said vectorized isntructions)
 template-selector: N/A  (no need for one)
 
+block-quantity
+  integer 1-14 with parameters needed to support operations on register groups
+accepted values:
+  1 2 3 4 5 6 7 8 9 10 11 12 13 14
+Assigned variales:
+  $QTY                          integer quantity (accepted interger literal)
+  $ELEMENT_BOUND_MODIFIER_64    Bounds check modifier for 8-byte words  ($QTY*8 - 1)
+  $ELEMENT_BOUND_MODIFIER_128   Bounds check modifier for 16-byte words ($QTY*16 - 1)
+template-selector:
+  'Bqs' if quanity equal to or less than 6
+  'Bql'  if quanitty equal to or greater than 7
+  The use of two template-selectors helps to bake in an assertion that quantity should not exceed 6 for data-register groups consisting
+
 
 INSTRUCTIONS
 
@@ -309,12 +345,24 @@ Bind a memory block to an address register
 This also copies the memblock specification into context local storage.
 Typespecs:
   address-register:       address
-  memblock-ref:           data integer memblock
+  memblock-ref:           address data integer memblock
     This is an integer index into the program's memblock array.
 Variants:
   bind address data
   bind address integer
   bind address memblock
+  bind address address
+Unusual variants:
+  bind address address
+    This copies one memory binding onto another.
+
+unbind address-register
+Clear/reset a memory binding
+Typespecs:
+  address-register:       address
+Variants:
+  unbind address
+
 
 load word-size destination-register address-register element-offset
 Fetch data from a memblock and load it onto a register
@@ -342,7 +390,7 @@ Variants:
   load float data addr const
 
 store word-size address-register element-offset source-register
-Take a value form a register and store it into a memblock.
+Take a value from a register and store it into a memblock.
 Typespecs:
   word-size:              word
   address-register:       addr
@@ -365,6 +413,45 @@ Variants:
   store float addr data
   store float addr integer
   store float addr const
+
+block-load block-size destination-register address-register element-offset
+  Fetch data from a memblock and load it onto a register-group
+  Word size is implicit and (determined by how a register is referenced)
+Typespecs:
+  block-size:             block-quanity
+  destination-register:   data xmmx xmmx-full
+  address-register:       addr
+  element-offset:         data integer const
+Variants:
+  block-load block-quantity data addr data
+  block-load block-quantity data addr integer
+  block-load block-quantity data addr const
+  block-load block-quantity xmmx addr data
+  block-load block-quantity xmmx addr integer
+  block-load block-quantity xmmx addr const
+  block-load block-quantity xmmx-full addr data
+  block-load block-quantity xmmx-full addr integer
+  block-load block-quantity xmmx-full addr const
+
+
+block-store block-size address-register element-offset source-register
+  Take values from a register group and store them into a memblock.
+  Word size is implicit and (determined by how a register is referenced)
+Typespecs:
+  block-size:             block-quanity
+  address-register:       addr
+  element-offset:         data integer const
+  source-register:        data xmmx xmmx-full
+Variants:
+  block-store block-quantity addr data data
+  block-store block-quantity addr integer data
+  block-store block-quantity addr const data
+  block-store block-quantity addr data xmmx
+  block-store block-quantity addr integer xmmx
+  block-store block-quantity addr const xmmx
+  block-store block-quantity addr data xmmx-full
+  block-store block-quantity addr integer xmmx-full
+  block-store block-quantity addr const xmmx-full
 
 pop destination-register address-register
 Treating a memblock as a stack, pop a value off a stack and load it onto a data register.
@@ -390,18 +477,20 @@ swap a b
 Swap the contents of two registers.
 If swapping between data and xmmx registers, this assumes the data register contains an integer and the xmmx register
 contains a floating point number, and will cast both values.
+If address registers are swapped, it also swaps the internal memory binding variables.
 Typespecs:
-  a:                      data xmmx
-  b:                      data xmmx
+  a:                      address data xmmx
+  b:                      address data xmmx
 Variants:
   swap data data
   swap xmmx xmmx
   swap data xmmx
   swap xmmx data
+  swap address address
 
 add a b
 Add the value b or value of register b onto the value of register a
-If either operand is a floating point nubmer, the operation will be performed using xmm registers
+If either operand is a floating point number, the operation will be performed using xmm registers
 Typespecs:
   a:                      data xmmx
   b:                      data xmmx const fconst integer float
@@ -421,7 +510,7 @@ Variants:
 
 sub a b
 Subtract the value b or value of register b from value of register a
-If either operand is a floating point nubmer, the operation will be performed using xmm registers
+If either operand is a floating point number, the operation will be performed using xmm registers
 Typespecs:
   a:                      data xmmx
   b:                      data xmmx const fconst integer float
@@ -441,7 +530,7 @@ Variants:
 
 mul a b
 Multiply the value of register a by value b or value of register b
-If either operand is a floating point nubmer, the operation will be performed using xmm registers
+If either operand is a floating point number, the operation will be performed using xmm registers
 Typespecs:
   a:                      data xmmx
   b:                      data xmmx const fconst integer float
@@ -461,7 +550,7 @@ Variants:
 
 div a b div-zero-branch
 Divide the value of register a by value b or value of register b
-If either operand is a floating point nubmer, the operation will be performed using xmm registers
+If either operand is a floating point number, the operation will be performed using xmm registers
 If dividing a data register and a "div-zero-branch" operand is provided, it will jump to the specified branch target if the value of b is zero.
 If dividing a data register and a "div-zero-branch" is not provided, then it will set status to "DIVISION_BY_ZERO" and terminate execution if the value of b is zero.
 Floating point division by zero is unchecked (supposedly it doesn't cause floating point exceptions)
@@ -554,6 +643,35 @@ Unusual variants:
     offset an address register by a integer constant
   assign address-offset integer
     offset an address register by an integer immediate
+
+spread destination [literals ...]
+  assign 1-6 integer literals to a data register group
+  OR assign 1-14 floating point literals to an xmmx register group
+  This is intended to make various forms of initialization easier to code.
+typespecs:
+  destination:            data xmmx
+  literals:               integer float
+Variants:
+  spread DI
+  spread DII
+  spread DIII
+  spread DIIII
+  spread DIIIII
+  spread DIIIIII
+  spread XF
+  spread XFF
+  spread XFFF
+  spread XFFFF
+  spread XFFFFF
+  spread XFFFFFF
+  spread XFFFFFFF
+  spread XFFFFFFFF
+  spread XFFFFFFFFF
+  spread XFFFFFFFFFF
+  spread XFFFFFFFFFFF
+  spread XFFFFFFFFFFFF
+  spread XFFFFFFFFFFFFF
+  spread XFFFFFFFFFFFFFF
 
 shift-left destination source
 Apply a bitwise left shift to a data register
@@ -766,13 +884,6 @@ typespecs:
   Nothing!
 Variants:
   tvmreturn
-
-cpuclocks
-This is a diagnostic function which reads CPU cycle count and writes it to a diagnostic proprety.
-Its results are not accessible to scripts.
-Its purpose is to aid in performance testing.
-This will probably be removed in favor of simply expecting that performance testing be conducted exclusively in native code with a conventional
-high-resolution timer.
 
 stash   OPT-swap dest-0 source-0 ? OPT-swap dest-1 source-1 ? ... ? OPT-swap dest-15 source-15
 Transfer data between registers and the stash or transfer data within the stash

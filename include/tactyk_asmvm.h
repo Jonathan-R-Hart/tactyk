@@ -66,6 +66,7 @@ union tactyk_asmvm__reg128 {
     int16_t i16[8];
     double f64[2];
     float f32[4];
+    long double f80;
 };
 
 struct tactyk_asmvm__register_bank {
@@ -105,6 +106,10 @@ struct tactyk_asmvm__register_bank {
     union tactyk_asmvm__reg128 xN;
     union tactyk_asmvm__reg128 xTEMPA;
     union tactyk_asmvm__reg128 xTEMPB;
+    uint64_t fs;
+    uint64_t gs;
+    uint32_t rMXCSR;
+    uint32_t unused[27];
 
     // maybe should consider also includ a set of "long double" entries to represent the x87 fpu
     //      But for now, there is no aspect of tactyk which itneracts with it, and sse2 was selected for floating point math
@@ -184,8 +189,7 @@ struct tactyk_asmvm__VM {
 struct tactyk_asmvm__Program;
 
 struct tactyk_asmvm__MicrocontextStash {
-    struct tactyk_asmvm__memblock_lowlevel memblocks[4];
-    union tactyk_asmvm__reg128 a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z;
+    union tactyk_asmvm__reg128 a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, s26, s27, s28, s29, s30, s31;
 };
 
 // would prefer an explicit struct memory layout here, since this represents a low-level data structure
@@ -216,18 +220,25 @@ struct tactyk_asmvm__Context {
     struct tactyk_asmvm__Program *hl_program_ref;      // a pointer to help high-level code access representative data structures.
 
     uint64_t instruction_index;     //tactyk function to call into.
-
+    
     // execution state or error code
     uint64_t STATUS;
 
     uint64_t signature;
     uint64_t extra;         // register spills
-
+    
+    union tactyk_asmvm__reg128 fpu_A;
+    union tactyk_asmvm__reg128 fpu_B;
+    union tactyk_asmvm__reg128 fpu_C;
+    union tactyk_asmvm__reg128 fpu_D;
+    union tactyk_asmvm__reg128 fpu_E;
+    union tactyk_asmvm__reg128 fpu_F;
+    union tactyk_asmvm__reg128 fpu_G;
+    union tactyk_asmvm__reg128 fpu_H;
+    
     // dword #28
     struct tactyk_asmvm__register_bank reg;                     // tactyk context register content
     struct tactyk_asmvm__register_bank runtime_registers;       // native context register content
-
-    uint64_t diagnostic_data[1024];
 };
 void tactyk_asmvm__print_context(struct tactyk_asmvm__Context *context);
 void tactyk_asmvm__print_diagnostic_data(struct tactyk_asmvm__Context *context, int64_t amount);
@@ -290,7 +301,9 @@ typedef void (*tactyk_asmvm__debug_callback)(struct tactyk_asmvm__Context *ctx);
 void tactyk_asmvm__invoke_debug(struct tactyk_asmvm__Context *context, struct tactyk_asmvm__Program *tactyk_pl__prog, char* funcname, tactyk_asmvm__debug_callback dbg_callback);
 
 void tactyk_asmvm__get_mblock(struct tactyk_asmvm__Context *asmvm_context, void* name, struct tactyk_asmvm__memblock_highlevel **m_hl, struct tactyk_asmvm__memblock_lowlevel **m_ll);
-void tactyk_asmvm__update_dynamic_memblock(struct tactyk_asmvm__Context *asmvm_context, struct tactyk_asmvm__memblock_lowlevel *m_ll, int64_t active_index);
+void tactyk_asmvm__update_declared_memblock(struct tactyk_asmvm__Context *asmvm_context, struct tactyk_asmvm__memblock_lowlevel *m_ll, int64_t active_index);
+void tactyk_asmvm__bind(struct tactyk_asmvm__Context *asmvm_context, uint64_t index, void* object, uint64_t object_size, uint64_t object_count);
+void tactyk_asmvm__unbind(struct tactyk_asmvm__Context *asmvm_context, void* object);
 //extern void tactyk_asmvm__run(struct tactyk_asmvm__Context *context);
 
 #endif /* TACTYK_ASMVM__INCLUDE_GUARD */

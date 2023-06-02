@@ -1,0 +1,150 @@
+# TEST:  xassign-fill
+#
+# load packed values onto an xmm register with xassign
+#
+# Virtual-ISA: tactyk_core
+# Templates:
+#   xassign xmmx-float-float (XFF XFCf XCfF XCfCf)
+#   xassign xmmx-int-int (XII XIC XCI XCC)
+#   xassign xmmx-xmmx-xmmx (XXX)
+#   xassign xmmx-data-data (XDD)
+#   xassign xmmx-float-float-float-float (XFFFF XFFFCf XFFCfF XFFCfCf  XFCfFF XFCfFCf XFCfCfF XFCfCfCf  XCfFFF XCfFFCf XCfFCfF XCfFCfCf  XCfCfFF XCfCfFCf XCfCfCfF XCfCfCfCf)
+#   xassign xmmx-int-int-int-int (XIIII XIIIC XIICI XIICC  XICII XICIC XICCI XICCC  XCIII XCIIC XCICI XCICC  XCCII XCCIC XCCCI XCCCC)
+#   xassign xmmx-xmmx-xmmx-xmmx-xmmx (XXXXX)
+#   xassign xmmx-data-data-data-data (XDDDD)
+
+PROGRAM
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const Cf1.01 1.01
+  const Cf2.02 2.02
+  const Cf3.03 3.03
+  const Cf4.04 4.04
+  
+  XFFFF:
+    xassign xA 5.6 6.7 7.8 8.9
+    xassign xB Cf1.01 Cf2.02 Cf3.03 Cf4.04
+    xassign xC Cf1.01 123.0 456.0 Cf4.04
+    xassign xD 12.0 Cf2.02 Cf3.03 21.0
+    exit
+
+  XFF:
+    xassign xE 999.3 888.4
+    xassign xF Cf1.01 Cf2.02
+    xassign xG Cf1.01 15.0
+    xassign xH 14.0 Cf2.02
+    exit
+  
+  XXX:
+    xassign xA 1234.0
+    xassign xB 2345.0
+    xassign xC 3456.0
+    xassign xD 4567.0
+    xassign xE xA xB
+    xassign xF xC xD
+    xassign xG xB xC
+    exit
+  
+  XXXXX:
+    xassign xH xA xB xD xC
+    xassign xI xD xC xA xB
+    exit
+
+  XIIII:
+    xassign xA 15 16 17 18
+    xassign xB C1 C2 C3 C4
+    xassign xC C2 8921638 1231 4
+    xassign xD C4 C2 101 10202
+    exit
+
+  XII:
+    xassign xE -999 888
+    xassign xF C4 C3
+    xassign xG C2 -15
+    xassign xH -14 C2
+    exit
+  
+  XDD:
+    assign rA 1133
+    assign rB 2244
+    assign rC 3355
+    assign rD -1
+    xassign xE rA rB
+    xassign xF rC rD
+    xassign xG rB rC
+    exit
+  
+  XDDDD:
+    xassign xH rA rA rA rB
+    xassign xI rD rC rB rA
+    xassign xJ rC rC rA rB
+    exit
+XMM-DISPLAYMODE float64
+EXEC XFF
+TEST
+  xE float64 999.3 888.4
+  xF float64 1.01 2.02
+  xG float64 1.01 15.0
+  xH float64 14.0 2.02
+
+XMM-DISPLAYMODE float32
+EXEC XFFFF
+TEST
+  xA float32 5.6 6.7 7.8 8.9
+  xB float32 1.01 2.02 3.03 4.04
+  xC float32 1.01 123 456 4.04
+  xD float32 12 2.02 3.03 21
+
+XMM-DISPLAYMODE float64
+EXEC XXX
+TEST
+  xA 1234
+  xB 2345
+  xC 3456
+  xD 4567
+  xE float64 1234 2345
+  xF float64 3456 4567
+  xG float64 2345 3456
+
+XMM-DISPLAYMODE float32
+EXEC XXXXX
+TEST
+  xH float32 1234 2345 4567 3456
+  xI float32 4567 3456 1234 2345
+
+XMM-DISPLAYMODE int32
+EXEC XIIII
+TEST
+  xA int32 15 16 17 18
+  xB int32 1 2 3 4
+  xC int32 2 8921638 1231 4
+  xD int32 4 2 101 10202
+
+XMM-DISPLAYMODE int64
+EXEC XII
+TEST
+  xE int64 -999 888
+  xF int64 4 3
+  xG int64 2 -15
+  xH int64 -14 2
+
+EXEC XDD
+TEST
+   rA 1133
+   rB 2244
+   rC 3355
+   rD -1
+   xE int64 1133 2244
+   xF int64 3355 -1
+   xG int64 2244 3355
+
+XMM-DISPLAYMODE int32
+EXEC XDDDD
+TEST
+  xH int32 1133 1133 1133 2244
+  xI int32 -1 3355 2244 1133
+  xJ int32 3355 3355 1133 2244
+
+

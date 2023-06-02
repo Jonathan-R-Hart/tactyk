@@ -1,0 +1,79 @@
+# TEST:  cosine computation
+#
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   cosine xmmx (X)
+#   cosine xmmx-xmmx (XX)
+
+
+PROGRAM
+  COSINE_X_1_reg:
+    assign xE -12.0772729125392
+    assign xF 7.09163118400399
+    assign xG 7.1497085886572584
+    assign xH 11.78635932116337
+    assign xI 10.295384953240134
+    assign xJ -2.0447133874600762
+    assign xK 1.4863924637592412
+    assign xL -7.339185756090404
+    assign xM -3.3501414325709664
+    assign xN -10.376478177745165
+    cosine xE
+    cosine xF
+    cosine xG
+    cosine xH
+    cosine xI
+    cosine xJ
+    cosine xK
+    cosine xL
+    cosine xM
+    cosine xN
+    exit
+  COSINE_XX_1_reg:
+    assign xA 4.970436364853324
+    cosine xE xA
+    assign xA 5.617126485429669
+    cosine xF xA
+    assign xA 3.2967350440572982
+    cosine xG xA
+    assign xA 0.9134118884997218
+    cosine xH xA
+    assign xA -8.409554180036759
+    cosine xI xA
+    assign xA -8.569268756333043
+    cosine xJ xA
+    assign xA 0.8700512751991774
+    cosine xK xA
+    assign xA 2.1625254847432007
+    cosine xL xA
+    assign xA 6.973031294923942
+    cosine xM xA
+    assign xA -2.6814484346133067
+    cosine xN xA
+    exit
+
+EXEC COSINE_X_1_reg
+TEST
+  xE 0.8827571442627747
+  xF 0.6906232313098833
+  xG 0.6474800012693833
+  xH 0.7109055956947591
+  xI -0.6443624865686384
+  xJ -0.45637512912523337
+  xK 0.08430368303629736
+  xL 0.4923571927844575
+  xM -0.9783324061190714
+  xN -0.580299266534146
+EXEC COSINE_XX_1_reg
+TEST
+  xA -2.6814484346133067
+  xE 0.25519307492427457
+  xF 0.7862629885122516
+  xG -0.9879895385038133
+  xH 0.611048483686596
+  xI -0.5274298209587445
+  xJ -0.6558341938222075
+  xK 0.6447873552738638
+  xL -0.557797018120639
+  xM 0.7713440403770637
+  xN -0.8959884624655988

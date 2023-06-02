@@ -1,0 +1,1872 @@
+
+instruction float-to-int--cast-mode
+  operand
+    select-operand
+      case trunc truncate
+        $CONV_FLAGS 0x00006000
+      case round round-near
+        $CONV_FLAGS 0x00000000
+      case up round-up
+        $CONV_FLAGS 0x00004000
+      case down round-down
+        $CONV_FLAGS 0x00002000
+  code
+    stmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
+    mov rTEMPA_32, fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
+    and rTEMPA_32, 0xffff9fff
+    or rTEMPA_32, $CONV_FLAGS
+    mov fs:[context.registers + rbtactyk.mxcsr + random_const_FS ], rTEMPA_32
+    ldmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS]
+    jmp $NEXT_INSTRUCTION
+
+instruction xassign
+  $SSE_WORD X
+  $DSW X
+  $SSW X
+  $DAUG 0
+  $DIDX 0
+  $SAUG 0
+  $SIDX 0
+  operand
+    type xmmx data
+    $DEST $VALUE
+  opt-operand
+    type simd-format-discriminator
+    sub simd-format-pick
+  opt-operand
+    type sse-map
+    $DAUG $SSE_REG
+    $DIDX $SSE_INDEX
+    $DSW $SSE_WORD
+    $DRXT $SSE_REG_EXT
+    $SSE_WORD X
+  operand
+    type xmmx data const fconst integer float
+    $SRC $VALUE
+    scramble rTEMPA $LD_A_IMMEDIATE
+  opt-operand
+    type simd-format-discriminator
+    sub simd-format-pick
+  opt-operand
+    type sse-map
+    $SAUG $SSE_REG
+    $SIDX $SSE_INDEX
+    $SSW $SSE_WORD
+    $SRXT $SSE_REG_EXT
+  opt-operand
+    type xmmx data const fconst integer float
+    $SRC_2 $VALUE
+    scramble rTEMPA $LD_B_IMMEDIATE
+  opt-operand
+    type xmmx data const fconst integer float
+    $SRC_3 $VALUE
+    scramble rTEMPA $LD_C_IMMEDIATE
+  opt-operand
+    type xmmx data const fconst integer float
+    $SRC_4 $VALUE
+    scramble rTEMPA $LD_D_IMMEDIATE
+  select-template
+    case XF32X
+      sub sse-insps-arg--Szero
+      code
+        cvtsd2ss xTEMPA, $SRC
+        insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32XF32
+      sub sse-insps-arg--direct
+      code
+        insertps $DEST~$DAUG, $SRC~$SAUG, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32XF64
+      sub sse-insps-arg--Szero
+      code
+        pextrq rTEMPA, $SRC~$SAUG, $SIDX
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPA, xTEMPA
+        insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32XI64 XF32XI32 XF32XI16 XF32XI8
+      sub sse-insps-arg--Szero
+      code
+        pextr$SSW rTEMPA$SRXT,  $SRC~$SAUG, $SIDX
+        cvtsi2ss xTEMPA, rTEMPA$SRXT
+        insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32D
+      sub sse-insps-arg--Szero
+      code
+        cvtsi2ss xTEMPA, $SRC
+        insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32I XF32C
+      sub sse-insps-arg--Szero
+      code
+        $LD_A_IMMEDIATE
+        cvtsi2ss xTEMPA, rTEMPA_32
+        insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32F XF32Cf
+      sub sse-insps-arg--Szero
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPA, xTEMPA
+        insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64X
+      code
+        movq rTEMPA, $SRC
+        pinsrq $DEST~$DAUG, rTEMPA, $DIDX
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64XF32
+      sub sse-insps-arg--Dzero
+      sub sse-qword-put
+      code
+        insertps xTEMPA, $SRC~$SAUG, $INSPS_arg
+        cvtss2sd xTEMPA, xTEMPA
+        $QPUTOP $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64XF64
+      select $DIDX~$SIDX
+        case 0~0
+          code
+            movsd $DEST~$DAUG, $SRC~$SAUG
+            jmp $NEXT_INSTRUCTION
+        case 1~0
+          code
+            movlhps $DEST~$DAUG, $SRC~$SAUG
+            jmp $NEXT_INSTRUCTION
+        case 0~1
+          code
+            movhlps $DEST~$DAUG, $SRC~$SAUG
+            jmp $NEXT_INSTRUCTION
+        case 1~1
+          code
+            movhlps xTEMPA, $SRC~$SAUG
+            movlhps $DEST~$DAUG, xTEMPA
+            pxor xTEMPA, xTEMPA
+            jmp $NEXT_INSTRUCTION
+    case XF64D
+      sub sse-qword-put
+      code
+        cvtsi2sd xTEMPA, $SRC
+        $QPUTOP $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64I XF64C
+      sub sse-qword-put
+      code
+        $LD_A_IMMEDIATE
+        cvtsi2sd xTEMPA, rTEMPA
+        $QPUTOP $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64XI64 XF64XI32 XF64XI16 XF64XI8
+      sub sse-qword-put
+      code
+        pextr$SSW rTEMPA$SRXT, $SRC~$SAUG, $SIDX
+        cvtsi2sd xTEMPA, rTEMPA
+        $QPUTOP $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64F XF64Cf
+      sub sse-qword-put
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        $QPUTOP $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case XXF32
+      sub sse-insps-arg--Dzero
+      code
+        insertps xTEMPA, $SRC~$SAUG, $INSPS_arg
+        pxor $DEST~$DAUG, $DEST~$DAUG
+        cvtss2sd $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XXF64
+      sub sse-qword-get
+      code
+        $QGETOP xTEMPA, $SRC~$SAUG
+        movq $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XXI64 XXI32 XXI16 XXI8
+      sub sse-qword-put
+      code
+        pextr$SSW rTEMPA$SRXT, $SRC~$SAUG, $SIDX
+        pxor $DEST, $DEST
+        cvtsi2sd $DEST, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XX
+      code
+        movdqa $DEST, $SRC
+        jmp $NEXT_INSTRUCTION
+    case XD
+      code
+        pxor $DEST, $DEST
+        cvtsi2sd $DEST, $SRC
+        jmp $NEXT_INSTRUCTION
+    case XI XC
+      code
+        $LD_A_IMMEDIATE
+        pxor $DEST, $DEST
+        cvtsi2sd $DEST, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF XCf
+      sub sse-qword-put
+      code
+        $LD_A_IMMEDIATE
+        movq $DEST~$DAUG, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case XI8X XI16X XI32X XI64X
+      code
+        cvttsd2si rTEMPA, $SRC~$SAUG
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI8XI8 XI16XI8 XI32XI8 XI64XI8  XI8XI16 XI16XI16 XI32XI16 XI64XI16  XI8XI32 XI16XI32 XI32XI32 XI64XI32  XI8XI64 XI16XI64 XI32XI64 XI64XI64
+      code
+        pextr$SSW %[rTEMPA]$SRXT, $SRC~$SAUG, $SIDX
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI8XF32 XI16XF32 XI32XF32 XI64XF32
+      sub sse-insps-arg--Dzero
+      code
+        insertps xTEMPA, $SRC~$SAUG, $INSPS_arg
+        cvttss2si rTEMPA, xTEMPA
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI8XF64 XI16XF64 XI32XF64 XI64XF64
+      sub sse-qword-get
+      code
+        $QGETOP xTEMPA, $SRC~$SAUG
+        cvttsd2si rTEMPA, xTEMPA
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI8X XI16X XI32X XI64X
+      code
+        cvttsd2si rTEMPA, $SRC~$SAUG
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI8D XI16D XI32D XI64D
+      code
+        pinsr$DSW $DEST~$DAUG, %[$SRC]$DRXT, $DIDX
+        jmp $NEXT_INSTRUCTION
+    case XI8C XI16C XI32C XI64C  XI8I XI16I XI32I XI64I
+      code
+        $LD_A_IMMEDIATE
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI8F XI16F XI32F XI64F XI8Cf XI16Cf XI32Cf XI64Cf
+      sub sse-qword-put
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvttsd2si rTEMPA, xTEMPA
+        pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case DXF32
+      sub sse-insps-arg--Dzero
+      code
+        insertps xTEMPA, $SRC~$SAUG, $INSPS_arg
+        cvttss2si $DEST, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DXF64
+      sub sse-qword-get
+      code
+        $QGETOP xTEMPA, $SRC~$SAUG
+        cvttsd2si $DEST, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DXI8 DXI16 DXI32 DXI64
+      code
+        pextr$SSW %[$DEST]$SRXT, $SRC~$SAUG, $SIDX
+        jmp $NEXT_INSTRUCTION
+    case DD
+      code 
+        mov $DEST, $SRC
+        jmp $NEXT_INSTRUCTION
+    case DI DC DS
+      code 
+        $LD_A_IMMEDIATE
+        mov $DEST, rTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DX
+      code
+        cvttsd2si $DEST, $SRC
+        jmp $NEXT_INSTRUCTION
+    case DF DCf
+      sub sse-qword-put
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvttsd2si $DEST, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XFF XFCf XCfF XCfCf  XII XIC XCI XCC
+      code
+        $LD_A_IMMEDIATE
+        movq $DEST, rTEMPA
+        $LD_B_IMMEDIATE
+        pinsrq $DEST, rTEMPA, 1
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XFFFF XFFFCf XFFCfF XFFCfCf  XFCfFF XFCfFCf XFCfCfF XFCfCfCf  XCfFFF XCfFFCf XCfFCfF XCfFCfCf  XCfCfFF XCfCfFCf XCfCfCfF XCfCfCfCf
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPB, xTEMPA
+        $LD_B_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPA, xTEMPA
+        insertps xTEMPB, xTEMPA, 0b00010000
+        $LD_C_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPA, xTEMPA
+        insertps xTEMPB, xTEMPA, 0b00100000
+        $LD_D_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPA, xTEMPA
+        insertps xTEMPB, xTEMPA, 0b00110000
+        movdqa $DEST, xTEMPB
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    case XIIII XIIIC XIICI XIICC  XICII XICIC XICCI XICCC  XCIII XCIIC XCICI XCICC  XCCII XCCIC XCCCI XCCCC
+      code
+        $LD_A_IMMEDIATE
+        movq $DEST, rTEMPA
+        $LD_B_IMMEDIATE
+        pinsrd $DEST, rTEMPA_32, 1
+        $LD_C_IMMEDIATE
+        pinsrd $DEST, rTEMPA_32, 2
+        $LD_D_IMMEDIATE
+        pinsrd $DEST, rTEMPA_32, 3
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XDD
+      code
+        movq $DEST, $SRC
+        pinsrq $DEST, $SRC_2, 1
+        jmp $NEXT_INSTRUCTION
+    case XDDDD
+      code
+        movq $DEST, $SRC
+        pinsrd $DEST, %[$SRC_2]_32, 1
+        pinsrd $DEST, %[$SRC_3]_32, 2
+        pinsrd $DEST, %[$SRC_4]_32, 3
+        jmp $NEXT_INSTRUCTION
+    case XXX
+      code
+        movq $DEST, $SRC
+        movlhps $DEST, $SRC_2
+        jmp $NEXT_INSTRUCTION
+    case XXXXX
+      code
+        cvtsd2ss $DEST, $SRC
+        cvtsd2ss xTEMPA, $SRC_2
+        insertps $DEST, xTEMPA, 0b00010000
+        cvtsd2ss xTEMPA, $SRC_3
+        insertps $DEST, xTEMPA, 0b00100000
+        cvtsd2ss xTEMPA, $SRC_4
+        insertps $DEST, xTEMPA, 0b00110000
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+      
+instruction pack
+  operand
+    type simd-format-discriminator
+    sub simd-format-sse-params
+    sub simd-format-pick
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type xmmx
+    $SRC $VALUE
+  select-template
+    case F32XX
+      code
+        pxor $DEST, $DEST
+      vcode $SIMD_ARG
+        1 cvtsd2ss $DEST, $SRC~0
+        2 cvtsd2ss xTEMPA, $SRC~1
+        2 insertps $DEST, xTEMPA, 16
+        3 cvtsd2ss xTEMPA, $SRC~2
+        3 insertps $DEST, xTEMPA, 32
+        4 cvtsd2ss xTEMPA, $SRC~3
+        4 insertps $DEST, xTEMPA, 48
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case I32XX
+      vcode $SIMD_ARG
+        1 insertps xTEMPB, $SRC~0, 0
+        2 insertps xTEMPB, $SRC~1, 16
+        3 insertps xTEMPB, $SRC~2, 32
+        4 insertps xTEMPB, $SRC~3, 48
+      code
+        movdqa $DEST, xTEMPB
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+
+instruction unpack
+  operand
+    type simd-format-discriminator
+    sub simd-format-sse-params
+    sub simd-format-pick
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type xmmx
+    $SRC $VALUE
+  select-template
+    case F32XX
+      vcode $SIMD_ARG
+        1 insertps xTEMPA, $SRC, 14
+        1 pxor $DEST~0, $DEST~0
+        1 cvtss2sd $DEST~0, xTEMPA
+        2 insertps xTEMPA, $SRC, 78
+        2 pxor $DEST~1, $DEST~1
+        2 cvtss2sd $DEST~1, xTEMPA
+        3 insertps xTEMPA, $SRC, 142
+        3 pxor $DEST~2, $DEST~2
+        3 cvtss2sd $DEST~2, xTEMPA
+        4 insertps xTEMPA, $SRC, 206
+        4 pxor $DEST~3, $DEST~3
+        4 cvtss2sd $DEST~3, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    case I32XX
+      vcode $SIMD_ARG
+        1 insertps $DEST~0, $SRC, 14
+        2 insertps $DEST~1, $SRC, 78
+        3 insertps $DEST~2, $SRC, 142
+        4 insertps $DEST~3, $SRC, 206
+      code
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+
+# SUPER-simd vectorized operations!
+# These arithemtical instructions operate on sequences of 1-14 xmm registers
+# These accept a vector size, a destination, a source, a destination format, and a source format
+# The main operation is indicated by the instruction name
+# The sub-operation selected is determined by the specified formats (64-bit float or packed 64 bit floats or packed 32 bit floats)
+# If the source or destination register uses the "vector" declaration (xvX), then a sequence of registers is used and the operation is applied to all of them
+#   Either the source or the destination or both may be specified as vectors in this manner.
+#   If neither operands are vectors:      op(xvR, xvR)
+#   If only the source is a vector:       op(xvR+0, xvFIXED), op(xvR+1, xvFIXED), ... op(xvR+N, xxvFIXED)
+#   If only the destination is a vector:  xvACCUMULATOR := op( ... op(op(xvACCUMULATOR, xvR+0), xvR+1), ... xvR+N)
+#   If both operands are vectors:         op(xvR+0, xvR+0), op(xvR+1, xvR+1), ... op(xvR+N, xvR+N)
+subroutine x-binary-op
+  $QTY 1
+  $SSE_CLASS_A sd
+  $SSE_CLASS_B sd
+  opt-operand
+    type ssimd-int-1-14
+    $QTY $VALUE
+  operand
+    type ssimd-xvector xmmx
+    $A $VALUE
+  opt-operand
+    type simd-format-discriminator
+    sub simd-format-sse-params
+    sub simd-format-pick
+    $SSE_CLASS_A $SSE_CLASS
+  #opt-operand
+  #  type sse-map
+  #  $DAUG $SSE_REG
+  #  $DIDX $SSE_INDEX
+  #  $DSW $SSE_WORD
+  #  $DRXT $SSE_REG_EXT
+  operand
+    type ssimd-xvector xmmx data integer float const fconst
+    $B $VALUE
+    scramble rTEMPA $LD_A_IMMEDIATE
+  opt-operand
+    type simd-format-discriminator
+    sub simd-format-sse-params
+    sub simd-format-pick
+    $SSE_CLASS_B $SSE_CLASS
+    $EXTPS_arg_B $EXTPS_arg
+  #opt-operand
+  #  type sse-map
+  #  $SAUG $SSE_REG
+  #  $SIDX $SSE_INDEX
+  #  $SSW $SSE_WORD
+  #  $SRXT $SSE_REG_EXT
+  select-template
+    case XF XCf
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        %[$XOP]sd $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XI XC
+      code
+        $LD_A_IMMEDIATE
+        cvtsi2sd xTEMPA, rTEMPA
+        %[$XOP]sd $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XD
+      code
+        cvtsi2sd xTEMPA, $B
+        %[$XOP]sd $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XXF32
+      code
+        cvtss2sd xTEMPA, $B
+        %[$XOP]sd $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XX XXF64
+      code
+        %[$XOP]sd $A, $B
+        jmp $NEXT_INSTRUCTION
+    case VXvF VXvCf
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+      vcode $QTY
+        1 %[$XOP]sd $A~0, xTEMPA
+        2 %[$XOP]sd $A~1, xTEMPA
+        3 %[$XOP]sd $A~2, xTEMPA
+        4 %[$XOP]sd $A~3, xTEMPA
+        5 %[$XOP]sd $A~4, xTEMPA
+        6 %[$XOP]sd $A~5, xTEMPA
+        7 %[$XOP]sd $A~6, xTEMPA
+        8 %[$XOP]sd $A~7, xTEMPA
+        9 %[$XOP]sd $A~8, xTEMPA
+        10 %[$XOP]sd $A~9, xTEMPA
+        11 %[$XOP]sd $A~10, xTEMPA
+        12 %[$XOP]sd $A~11, xTEMPA
+        13 %[$XOP]sd $A~12, xTEMPA
+        14 %[$XOP]sd $A~13, xTEMPA
+      code
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXXv VXXvF64
+      vcode $QTY
+        1 %[$XOP]sd $A, $B~0
+        2 %[$XOP]sd $A, $B~1
+        3 %[$XOP]sd $A, $B~2
+        4 %[$XOP]sd $A, $B~3
+        5 %[$XOP]sd $A, $B~4
+        6 %[$XOP]sd $A, $B~5
+        7 %[$XOP]sd $A, $B~6
+        8 %[$XOP]sd $A, $B~7
+        9 %[$XOP]sd $A, $B~8
+        10 %[$XOP]sd $A, $B~9
+        11 %[$XOP]sd $A, $B~10
+        12 %[$XOP]sd $A, $B~11
+        13 %[$XOP]sd $A, $B~12
+        14 %[$XOP]sd $A, $B~13
+      code
+        jmp $NEXT_INSTRUCTION
+    case VXXvF32
+      vcode $QTY
+        1 insertps xTEMPA, $B~0, 0
+        1 cvtss2sd xTEMPA, xTEMPA
+        1 %[$XOP]sd $A, xTEMPA
+        2 insertps xTEMPA, $B~1, 0
+        2 cvtss2sd xTEMPA, xTEMPA
+        2 %[$XOP]sd $A, xTEMPA
+        3 insertps xTEMPA, $B~2, 0
+        3 cvtss2sd xTEMPA, xTEMPA
+        3 %[$XOP]sd $A, xTEMPA
+        4 insertps xTEMPA, $B~3, 0
+        4 cvtss2sd xTEMPA, xTEMPA
+        4 %[$XOP]sd $A, xTEMPA
+        5 insertps xTEMPA, $B~4, 0
+        5 cvtss2sd xTEMPA, xTEMPA
+        5 %[$XOP]sd $A, xTEMPA
+        6 insertps xTEMPA, $B~5, 0
+        6 cvtss2sd xTEMPA, xTEMPA
+        6 %[$XOP]sd $A, xTEMPA
+        7 insertps xTEMPA, $B~6, 0
+        7 cvtss2sd xTEMPA, xTEMPA
+        7 %[$XOP]sd $A, xTEMPA
+        8 insertps xTEMPA, $B~7, 0
+        8 cvtss2sd xTEMPA, xTEMPA
+        8 %[$XOP]sd $A, xTEMPA
+        9 insertps xTEMPA, $B~8, 0
+        9 cvtss2sd xTEMPA, xTEMPA
+        9 %[$XOP]sd $A, xTEMPA
+        10 insertps xTEMPA, $B~9, 0
+        10 cvtss2sd xTEMPA, xTEMPA
+        10 %[$XOP]sd $A, xTEMPA
+        11 insertps xTEMPA, $B~10, 0
+        11 cvtss2sd xTEMPA, xTEMPA
+        11 %[$XOP]sd $A, xTEMPA
+        12 insertps xTEMPA, $B~11, 0
+        12 cvtss2sd xTEMPA, xTEMPA
+        12 %[$XOP]sd $A, xTEMPA
+        13 insertps xTEMPA, $B~12, 0
+        13 cvtss2sd xTEMPA, xTEMPA
+        13 %[$XOP]sd $A, xTEMPA
+        14 insertps xTEMPA, $B~13, 0
+        14 cvtss2sd xTEMPA, xTEMPA
+        14 %[$XOP]sd $A, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case XF32F XF32Cf
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPA, xTEMPA
+        movddup xTEMPA, xTEMPA
+        movsldup xTEMPA, xTEMPA
+        %[$XOP]ps $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32I XF32C
+      code
+        $LD_A_IMMEDIATE
+        cvtsi2ss xTEMPA, rTEMPA
+        movddup xTEMPA, xTEMPA
+        movsldup xTEMPA, xTEMPA
+        %[$XOP]ps $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32D
+      code
+        cvtsi2ss xTEMPA, $B
+        movddup xTEMPA, xTEMPA
+        movsldup xTEMPA, xTEMPA
+        %[$XOP]ps $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32X
+      code
+        cvtsd2ss xTEMPA, $B
+        movddup xTEMPA, xTEMPA
+        movsldup xTEMPA, xTEMPA
+        %[$XOP]ps $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF32XF32
+      code
+        %[$XOP]ps $A, $B
+        jmp $NEXT_INSTRUCTION
+    case XF32XF64
+      code
+        cvtpd2ps xTEMPA, $B
+        movddup xTEMPA, xTEMPA
+        %[$XOP]ps $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXF32Xv
+      vcode $QTY
+        1 cvtsd2ss xTEMPA, $B~0
+        1 movddup xTEMPA, xTEMPA
+        1 movsldup xTEMPA, xTEMPA
+        1 %[$XOP]ps $A, xTEMPA
+        2 cvtsd2ss xTEMPA, $B~1
+        2 movddup xTEMPA, xTEMPA
+        2 movsldup xTEMPA, xTEMPA
+        2 %[$XOP]ps $A, xTEMPA
+        3 cvtsd2ss xTEMPA, $B~2
+        3 movddup xTEMPA, xTEMPA
+        3 movsldup xTEMPA, xTEMPA
+        3 %[$XOP]ps $A, xTEMPA
+        4 cvtsd2ss xTEMPA, $B~3
+        4 movddup xTEMPA, xTEMPA
+        4 movsldup xTEMPA, xTEMPA
+        4 %[$XOP]ps $A, xTEMPA
+        5 cvtsd2ss xTEMPA, $B~4
+        5 movddup xTEMPA, xTEMPA
+        5 movsldup xTEMPA, xTEMPA
+        5 %[$XOP]ps $A, xTEMPA
+        6 cvtsd2ss xTEMPA, $B~5
+        6 movddup xTEMPA, xTEMPA
+        6 movsldup xTEMPA, xTEMPA
+        6 %[$XOP]ps $A, xTEMPA
+        7 cvtsd2ss xTEMPA, $B~6
+        7 movddup xTEMPA, xTEMPA
+        7 movsldup xTEMPA, xTEMPA
+        7 %[$XOP]ps $A, xTEMPA
+        8 cvtsd2ss xTEMPA, $B~7
+        8 movddup xTEMPA, xTEMPA
+        8 movsldup xTEMPA, xTEMPA
+        8 %[$XOP]ps $A, xTEMPA
+        9 cvtsd2ss xTEMPA, $B~8
+        9 movddup xTEMPA, xTEMPA
+        9 movsldup xTEMPA, xTEMPA
+        9 %[$XOP]ps $A, xTEMPA
+        10 cvtsd2ss xTEMPA, $B~9
+        10 movddup xTEMPA, xTEMPA
+        10 movsldup xTEMPA, xTEMPA
+        10 %[$XOP]ps $A, xTEMPA
+        11 cvtsd2ss xTEMPA, $B~10
+        11 movddup xTEMPA, xTEMPA
+        11 movsldup xTEMPA, xTEMPA
+        11 %[$XOP]ps $A, xTEMPA
+        12 cvtsd2ss xTEMPA, $B~11
+        12 movddup xTEMPA, xTEMPA
+        12 movsldup xTEMPA, xTEMPA
+        12 %[$XOP]ps $A, xTEMPA
+        13 cvtsd2ss xTEMPA, $B~12
+        13 movddup xTEMPA, xTEMPA
+        13 movsldup xTEMPA, xTEMPA
+        13 %[$XOP]ps $A, xTEMPA
+        14 cvtsd2ss xTEMPA, $B~13
+        14 movddup xTEMPA, xTEMPA
+        14 movsldup xTEMPA, xTEMPA
+        14 %[$XOP]ps $A, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXF32XvF32
+      vcode $QTY
+        1 %[$XOP]ps $A, $B~0
+        2 %[$XOP]ps $A, $B~1
+        3 %[$XOP]ps $A, $B~2
+        4 %[$XOP]ps $A, $B~3
+        5 %[$XOP]ps $A, $B~4
+        6 %[$XOP]ps $A, $B~5
+        7 %[$XOP]ps $A, $B~6
+        8 %[$XOP]ps $A, $B~7
+        9 %[$XOP]ps $A, $B~8
+        10 %[$XOP]ps $A, $B~9
+        11 %[$XOP]ps $A, $B~10
+        12 %[$XOP]ps $A, $B~11
+        13 %[$XOP]ps $A, $B~12
+        14 %[$XOP]ps $A, $B~13
+      code
+        jmp $NEXT_INSTRUCTION
+    case VXF32XvF64
+      vcode $QTY
+        1 cvtpd2ps xTEMPA, $B~0
+        1 movddup xTEMPA, xTEMPA
+        1 %[$XOP]ps $A, xTEMPA
+        2 cvtpd2ps xTEMPA, $B~1
+        2 movddup xTEMPA, xTEMPA
+        2 %[$XOP]ps $A, xTEMPA
+        3 cvtpd2ps xTEMPA, $B~2
+        3 movddup xTEMPA, xTEMPA
+        3 %[$XOP]ps $A, xTEMPA
+        4 cvtpd2ps xTEMPA, $B~3
+        4 movddup xTEMPA, xTEMPA
+        4 %[$XOP]ps $A, xTEMPA
+        5 cvtpd2ps xTEMPA, $B~4
+        5 movddup xTEMPA, xTEMPA
+        5 %[$XOP]ps $A, xTEMPA
+        6 cvtpd2ps xTEMPA, $B~5
+        6 movddup xTEMPA, xTEMPA
+        6 %[$XOP]ps $A, xTEMPA
+        7 cvtpd2ps xTEMPA, $B~6
+        7 movddup xTEMPA, xTEMPA
+        7 %[$XOP]ps $A, xTEMPA
+        8 cvtpd2ps xTEMPA, $B~7
+        8 movddup xTEMPA, xTEMPA
+        8 %[$XOP]ps $A, xTEMPA
+        9 cvtpd2ps xTEMPA, $B~8
+        9 movddup xTEMPA, xTEMPA
+        9 %[$XOP]ps $A, xTEMPA
+        10 cvtpd2ps xTEMPA, $B~9
+        10 movddup xTEMPA, xTEMPA
+        10 %[$XOP]ps $A, xTEMPA
+        11 cvtpd2ps xTEMPA, $B~10
+        11 movddup xTEMPA, xTEMPA
+        11 %[$XOP]ps $A, xTEMPA
+        12 cvtpd2ps xTEMPA, $B~11
+        12 movddup xTEMPA, xTEMPA
+        12 %[$XOP]ps $A, xTEMPA
+        13 cvtpd2ps xTEMPA, $B~12
+        13 movddup xTEMPA, xTEMPA
+        13 %[$XOP]ps $A, xTEMPA
+        14 cvtpd2ps xTEMPA, $B~13
+        14 movddup xTEMPA, xTEMPA
+        14 %[$XOP]ps $A, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case XF64F XF64Cf
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        movddup xTEMPA, xTEMPA
+        %[$XOP]pd $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64I XF64C
+      code
+        $LD_A_IMMEDIATE
+        cvtsi2sd xTEMPA, rTEMPA
+        movddup xTEMPA, xTEMPA
+        %[$XOP]pd $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64D
+      code
+        cvtsi2sd xTEMPA, $B
+        movddup xTEMPA, xTEMPA
+        %[$XOP]pd $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64X
+      code
+        movddup xTEMPA, $B
+        %[$XOP]pd $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64XF32
+      code
+        cvtps2pd xTEMPA, $B
+        %[$XOP]pd $A, xTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case XF64XF64
+      code
+        %[$XOP]pd $A, $B
+        jmp $NEXT_INSTRUCTION
+    case VXF64Xv
+      vcode $QTY
+        1 movddup xTEMPA, $B~0
+        1 %[$XOP]pd $A, xTEMPA
+        2 movddup xTEMPA, $B~1
+        2 %[$XOP]pd $A, xTEMPA
+        3 movddup xTEMPA, $B~2
+        3 %[$XOP]pd $A, xTEMPA
+        4 movddup xTEMPA, $B~3
+        4 %[$XOP]pd $A, xTEMPA
+        5 movddup xTEMPA, $B~4
+        5 %[$XOP]pd $A, xTEMPA
+        6 movddup xTEMPA, $B~5
+        6 %[$XOP]pd $A, xTEMPA
+        7 movddup xTEMPA, $B~6
+        7 %[$XOP]pd $A, xTEMPA
+        8 movddup xTEMPA, $B~7
+        8 %[$XOP]pd $A, xTEMPA
+        9 movddup xTEMPA, $B~8
+        9 %[$XOP]pd $A, xTEMPA
+        10 movddup xTEMPA, $B~9
+        10 %[$XOP]pd $A, xTEMPA
+        11 movddup xTEMPA, $B~10
+        11 %[$XOP]pd $A, xTEMPA
+        12 movddup xTEMPA, $B~11
+        12 %[$XOP]pd $A, xTEMPA
+        13 movddup xTEMPA, $B~12
+        13 %[$XOP]pd $A, xTEMPA
+        14 movddup xTEMPA, $B~13
+        14 %[$XOP]pd $A, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXF64XvF32
+      vcode $QTY
+        1 cvtps2pd xTEMPA, $B~0
+        1 %[$XOP]pd $A, xTEMPA
+        2 cvtps2pd xTEMPA, $B~1
+        2 %[$XOP]pd $A, xTEMPA
+        3 cvtps2pd xTEMPA, $B~2
+        3 %[$XOP]pd $A, xTEMPA
+        4 cvtps2pd xTEMPA, $B~3
+        4 %[$XOP]pd $A, xTEMPA
+        5 cvtps2pd xTEMPA, $B~4
+        5 %[$XOP]pd $A, xTEMPA
+        6 cvtps2pd xTEMPA, $B~5
+        6 %[$XOP]pd $A, xTEMPA
+        7 cvtps2pd xTEMPA, $B~6
+        7 %[$XOP]pd $A, xTEMPA
+        8 cvtps2pd xTEMPA, $B~7
+        8 %[$XOP]pd $A, xTEMPA
+        9 cvtps2pd xTEMPA, $B~8
+        9 %[$XOP]pd $A, xTEMPA
+        10 cvtps2pd xTEMPA, $B~9
+        10 %[$XOP]pd $A, xTEMPA
+        11 cvtps2pd xTEMPA, $B~10
+        11 %[$XOP]pd $A, xTEMPA
+        12 cvtps2pd xTEMPA, $B~11
+        12 %[$XOP]pd $A, xTEMPA
+        13 cvtps2pd xTEMPA, $B~12
+        13 %[$XOP]pd $A, xTEMPA
+        14 cvtps2pd xTEMPA, $B~13
+        14 %[$XOP]pd $A, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXF64XvF64
+      vcode $QTY
+        1 %[$XOP]pd $A, $B~0
+        2 %[$XOP]pd $A, $B~1
+        3 %[$XOP]pd $A, $B~2
+        4 %[$XOP]pd $A, $B~3
+        5 %[$XOP]pd $A, $B~4
+        6 %[$XOP]pd $A, $B~5
+        7 %[$XOP]pd $A, $B~6
+        8 %[$XOP]pd $A, $B~7
+        9 %[$XOP]pd $A, $B~8
+        10 %[$XOP]pd $A, $B~9
+        11 %[$XOP]pd $A, $B~10
+        12 %[$XOP]pd $A, $B~11
+        13 %[$XOP]pd $A, $B~12
+        14 %[$XOP]pd $A, $B~13
+      code
+        jmp $NEXT_INSTRUCTION
+    
+    case VXvF VXvCf
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+      vcode $QTY
+        1 %[$XOP]sd $A~0, xTEMPA
+        2 %[$XOP]sd $A~1, xTEMPA
+        3 %[$XOP]sd $A~2, xTEMPA
+        4 %[$XOP]sd $A~3, xTEMPA
+        5 %[$XOP]sd $A~4, xTEMPA
+        6 %[$XOP]sd $A~5, xTEMPA
+        7 %[$XOP]sd $A~6, xTEMPA
+        8 %[$XOP]sd $A~7, xTEMPA
+        9 %[$XOP]sd $A~8, xTEMPA
+        10 %[$XOP]sd $A~9, xTEMPA
+        11 %[$XOP]sd $A~10, xTEMPA
+        12 %[$XOP]sd $A~11, xTEMPA
+        13 %[$XOP]sd $A~12, xTEMPA
+        14 %[$XOP]sd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvI VXvC
+      code
+        $LD_A_IMMEDIATE
+        cvtsi2sd xTEMPA, rTEMPA
+      vcode $QTY
+        1 %[$XOP]sd $A~0, xTEMPA
+        2 %[$XOP]sd $A~1, xTEMPA
+        3 %[$XOP]sd $A~2, xTEMPA
+        4 %[$XOP]sd $A~3, xTEMPA
+        5 %[$XOP]sd $A~4, xTEMPA
+        6 %[$XOP]sd $A~5, xTEMPA
+        7 %[$XOP]sd $A~6, xTEMPA
+        8 %[$XOP]sd $A~7, xTEMPA
+        9 %[$XOP]sd $A~8, xTEMPA
+        10 %[$XOP]sd $A~9, xTEMPA
+        11 %[$XOP]sd $A~10, xTEMPA
+        12 %[$XOP]sd $A~11, xTEMPA
+        13 %[$XOP]sd $A~12, xTEMPA
+        14 %[$XOP]sd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvD
+      code
+        cvtsi2sd xTEMPA, $B
+      vcode $QTY
+        1 %[$XOP]sd $A~0, xTEMPA
+        2 %[$XOP]sd $A~1, xTEMPA
+        3 %[$XOP]sd $A~2, xTEMPA
+        4 %[$XOP]sd $A~3, xTEMPA
+        5 %[$XOP]sd $A~4, xTEMPA
+        6 %[$XOP]sd $A~5, xTEMPA
+        7 %[$XOP]sd $A~6, xTEMPA
+        8 %[$XOP]sd $A~7, xTEMPA
+        9 %[$XOP]sd $A~8, xTEMPA
+        10 %[$XOP]sd $A~9, xTEMPA
+        11 %[$XOP]sd $A~10, xTEMPA
+        12 %[$XOP]sd $A~11, xTEMPA
+        13 %[$XOP]sd $A~12, xTEMPA
+        14 %[$XOP]sd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvX VXvXF64
+      vcode $QTY
+        1 %[$XOP]sd $A~0, $B
+        2 %[$XOP]sd $A~1, $B
+        3 %[$XOP]sd $A~2, $B
+        4 %[$XOP]sd $A~3, $B
+        5 %[$XOP]sd $A~4, $B
+        6 %[$XOP]sd $A~5, $B
+        7 %[$XOP]sd $A~6, $B
+        8 %[$XOP]sd $A~7, $B
+        9 %[$XOP]sd $A~8, $B
+        10 %[$XOP]sd $A~9, $B
+        11 %[$XOP]sd $A~10, $B
+        12 %[$XOP]sd $A~11, $B
+        13 %[$XOP]sd $A~12, $B
+        14 %[$XOP]sd $A~13, $B
+      code
+        jmp $NEXT_INSTRUCTION
+    case VXvXF32
+      code
+        cvtss2sd xTEMPA, $B
+      vcode $QTY
+        1 %[$XOP]sd $A~0, xTEMPA
+        2 %[$XOP]sd $A~1, xTEMPA
+        3 %[$XOP]sd $A~2, xTEMPA
+        4 %[$XOP]sd $A~3, xTEMPA
+        5 %[$XOP]sd $A~4, xTEMPA
+        6 %[$XOP]sd $A~5, xTEMPA
+        7 %[$XOP]sd $A~6, xTEMPA
+        8 %[$XOP]sd $A~7, xTEMPA
+        9 %[$XOP]sd $A~8, xTEMPA
+        10 %[$XOP]sd $A~9, xTEMPA
+        11 %[$XOP]sd $A~10, xTEMPA
+        12 %[$XOP]sd $A~11, xTEMPA
+        13 %[$XOP]sd $A~12, xTEMPA
+        14 %[$XOP]sd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvXv VXvXvF64
+      vcode $QTY
+        1 %[$XOP]sd $A~0, $B~0
+        2 %[$XOP]sd $A~1, $B~1
+        3 %[$XOP]sd $A~2, $B~2
+        4 %[$XOP]sd $A~3, $B~3
+        5 %[$XOP]sd $A~4, $B~4
+        6 %[$XOP]sd $A~5, $B~5
+        7 %[$XOP]sd $A~6, $B~6
+        8 %[$XOP]sd $A~7, $B~7
+        9 %[$XOP]sd $A~8, $B~8
+        10 %[$XOP]sd $A~9, $B~9
+        11 %[$XOP]sd $A~10, $B~10
+        12 %[$XOP]sd $A~11, $B~11
+        13 %[$XOP]sd $A~12, $B~12
+        14 %[$XOP]sd $A~13, $B~13
+      code
+        jmp $NEXT_INSTRUCTION
+    case VXvXvF32
+      vcode $QTY
+        1 cvtss2sd xTEMPA, $B~0
+        1 %[$XOP]sd $A~0, xTEMPA
+        2 cvtss2sd xTEMPA, $B~1
+        2 %[$XOP]sd $A~1, xTEMPA
+        3 cvtss2sd xTEMPA, $B~2
+        3 %[$XOP]sd $A~2, xTEMPA
+        4 cvtss2sd xTEMPA, $B~3
+        4 %[$XOP]sd $A~3, xTEMPA
+        5 cvtss2sd xTEMPA, $B~4
+        5 %[$XOP]sd $A~4, xTEMPA
+        6 cvtss2sd xTEMPA, $B~5
+        6 %[$XOP]sd $A~5, xTEMPA
+        7 cvtss2sd xTEMPA, $B~6
+        7 %[$XOP]sd $A~6, xTEMPA
+        8 cvtss2sd xTEMPA, $B~7
+        8 %[$XOP]sd $A~7, xTEMPA
+        9 cvtss2sd xTEMPA, $B~8
+        9 %[$XOP]sd $A~8, xTEMPA
+        10 cvtss2sd xTEMPA, $B~9
+        10 %[$XOP]sd $A~9, xTEMPA
+        11 cvtss2sd xTEMPA, $B~10
+        11 %[$XOP]sd $A~10, xTEMPA
+        12 cvtss2sd xTEMPA, $B~11
+        12 %[$XOP]sd $A~11, xTEMPA
+        13 cvtss2sd xTEMPA, $B~12
+        13 %[$XOP]sd $A~12, xTEMPA
+        14 cvtss2sd xTEMPA, $B~13
+        14 %[$XOP]sd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case VXvF32F VXvF32Cf
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        cvtsd2ss xTEMPA, xTEMPA
+        movddup xTEMPA, xTEMPA
+        movsldup xTEMPA, xTEMPA
+      vcode $QTY
+        1 %[$XOP]ps $A~0, xTEMPA
+        2 %[$XOP]ps $A~1, xTEMPA
+        3 %[$XOP]ps $A~2, xTEMPA
+        4 %[$XOP]ps $A~3, xTEMPA
+        5 %[$XOP]ps $A~4, xTEMPA
+        6 %[$XOP]ps $A~5, xTEMPA
+        7 %[$XOP]ps $A~6, xTEMPA
+        8 %[$XOP]ps $A~7, xTEMPA
+        9 %[$XOP]ps $A~8, xTEMPA
+        10 %[$XOP]ps $A~9, xTEMPA
+        11 %[$XOP]ps $A~10, xTEMPA
+        12 %[$XOP]ps $A~11, xTEMPA
+        13 %[$XOP]ps $A~12, xTEMPA
+        14 %[$XOP]ps $A~13, xTEMPA
+      code
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF32I VXvF32C
+      code
+        $LD_A_IMMEDIATE
+        cvtsi2ss xTEMPA, rTEMPA
+        movddup xTEMPA, xTEMPA
+        movsldup xTEMPA, xTEMPA
+      vcode $QTY
+        1 %[$XOP]ps $A~0, xTEMPA
+        2 %[$XOP]ps $A~1, xTEMPA
+        3 %[$XOP]ps $A~2, xTEMPA
+        4 %[$XOP]ps $A~3, xTEMPA
+        5 %[$XOP]ps $A~4, xTEMPA
+        6 %[$XOP]ps $A~5, xTEMPA
+        7 %[$XOP]ps $A~6, xTEMPA
+        8 %[$XOP]ps $A~7, xTEMPA
+        9 %[$XOP]ps $A~8, xTEMPA
+        10 %[$XOP]ps $A~9, xTEMPA
+        11 %[$XOP]ps $A~10, xTEMPA
+        12 %[$XOP]ps $A~11, xTEMPA
+        13 %[$XOP]ps $A~12, xTEMPA
+        14 %[$XOP]ps $A~13, xTEMPA
+      code
+        xor rTEMPA, rTEMPA
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF32D
+      code
+        cvtsi2ss xTEMPA, $B
+        movddup xTEMPA, xTEMPA
+        movsldup xTEMPA, xTEMPA
+      vcode $QTY
+        1 %[$XOP]ps $A~0, xTEMPA
+        2 %[$XOP]ps $A~1, xTEMPA
+        3 %[$XOP]ps $A~2, xTEMPA
+        4 %[$XOP]ps $A~3, xTEMPA
+        5 %[$XOP]ps $A~4, xTEMPA
+        6 %[$XOP]ps $A~5, xTEMPA
+        7 %[$XOP]ps $A~6, xTEMPA
+        8 %[$XOP]ps $A~7, xTEMPA
+        9 %[$XOP]ps $A~8, xTEMPA
+        10 %[$XOP]ps $A~9, xTEMPA
+        11 %[$XOP]ps $A~10, xTEMPA
+        12 %[$XOP]ps $A~11, xTEMPA
+        13 %[$XOP]ps $A~12, xTEMPA
+        14 %[$XOP]ps $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF32XF32
+      vcode $QTY
+        1 %[$XOP]ps $A~0, $B
+        2 %[$XOP]ps $A~1, $B
+        3 %[$XOP]ps $A~2, $B
+        4 %[$XOP]ps $A~3, $B
+        5 %[$XOP]ps $A~4, $B
+        6 %[$XOP]ps $A~5, $B
+        7 %[$XOP]ps $A~6, $B
+        8 %[$XOP]ps $A~7, $B
+        9 %[$XOP]ps $A~8, $B
+        10 %[$XOP]ps $A~9, $B
+        11 %[$XOP]ps $A~10, $B
+        12 %[$XOP]ps $A~11, $B
+        13 %[$XOP]ps $A~12, $B
+        14 %[$XOP]ps $A~13, $B
+      code
+        jmp $NEXT_INSTRUCTION
+    case VXvF32XF64
+      code
+        cvtpd2ps xTEMPA, $B
+        movddup xTEMPA, xTEMPA
+      vcode $QTY
+        1 %[$XOP]ps $A~0, xTEMPA
+        2 %[$XOP]ps $A~1, xTEMPA
+        3 %[$XOP]ps $A~2, xTEMPA
+        4 %[$XOP]ps $A~3, xTEMPA
+        5 %[$XOP]ps $A~4, xTEMPA
+        6 %[$XOP]ps $A~5, xTEMPA
+        7 %[$XOP]ps $A~6, xTEMPA
+        8 %[$XOP]ps $A~7, xTEMPA
+        9 %[$XOP]ps $A~8, xTEMPA
+        10 %[$XOP]ps $A~9, xTEMPA
+        11 %[$XOP]ps $A~10, xTEMPA
+        12 %[$XOP]ps $A~11, xTEMPA
+        13 %[$XOP]ps $A~12, xTEMPA
+        14 %[$XOP]ps $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF32X
+      code
+        cvtsd2ss xTEMPA, $B
+        movddup xTEMPA, xTEMPA
+        movsldup xTEMPA, xTEMPA
+      vcode $QTY
+        1 %[$XOP]ps $A~0, xTEMPA
+        2 %[$XOP]ps $A~1, xTEMPA
+        3 %[$XOP]ps $A~2, xTEMPA
+        4 %[$XOP]ps $A~3, xTEMPA
+        5 %[$XOP]ps $A~4, xTEMPA
+        6 %[$XOP]ps $A~5, xTEMPA
+        7 %[$XOP]ps $A~6, xTEMPA
+        8 %[$XOP]ps $A~7, xTEMPA
+        9 %[$XOP]ps $A~8, xTEMPA
+        10 %[$XOP]ps $A~9, xTEMPA
+        11 %[$XOP]ps $A~10, xTEMPA
+        12 %[$XOP]ps $A~11, xTEMPA
+        13 %[$XOP]ps $A~12, xTEMPA
+        14 %[$XOP]ps $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF32Xv
+      vcode $QTY
+        1 cvtsd2ss xTEMPA, $B~0
+        1 movddup xTEMPA, xTEMPA
+        1 movsldup xTEMPA, xTEMPA
+        1 %[$XOP]ps $A~0, xTEMPA
+        2 cvtsd2ss xTEMPA, $B~1
+        2 movddup xTEMPA, xTEMPA
+        2 movsldup xTEMPA, xTEMPA
+        2 %[$XOP]ps $A~1, xTEMPA
+        3 cvtsd2ss xTEMPA, $B~2
+        3 movddup xTEMPA, xTEMPA
+        3 movsldup xTEMPA, xTEMPA
+        3 %[$XOP]ps $A~2, xTEMPA
+        4 cvtsd2ss xTEMPA, $B~3
+        4 movddup xTEMPA, xTEMPA
+        4 movsldup xTEMPA, xTEMPA
+        4 %[$XOP]ps $A~3, xTEMPA
+        5 cvtsd2ss xTEMPA, $B~4
+        5 movddup xTEMPA, xTEMPA
+        5 movsldup xTEMPA, xTEMPA
+        5 %[$XOP]ps $A~4, xTEMPA
+        6 cvtsd2ss xTEMPA, $B~5
+        6 movddup xTEMPA, xTEMPA
+        6 movsldup xTEMPA, xTEMPA
+        6 %[$XOP]ps $A~5, xTEMPA
+        7 cvtsd2ss xTEMPA, $B~6
+        7 movddup xTEMPA, xTEMPA
+        7 movsldup xTEMPA, xTEMPA
+        7 %[$XOP]ps $A~6, xTEMPA
+        8 cvtsd2ss xTEMPA, $B~7
+        8 movddup xTEMPA, xTEMPA
+        8 movsldup xTEMPA, xTEMPA
+        8 %[$XOP]ps $A~7, xTEMPA
+        9 cvtsd2ss xTEMPA, $B~8
+        9 movddup xTEMPA, xTEMPA
+        9 movsldup xTEMPA, xTEMPA
+        9 %[$XOP]ps $A~8, xTEMPA
+        10 cvtsd2ss xTEMPA, $B~9
+        10 movddup xTEMPA, xTEMPA
+        10 movsldup xTEMPA, xTEMPA
+        10 %[$XOP]ps $A~9, xTEMPA
+        11 cvtsd2ss xTEMPA, $B~10
+        11 movddup xTEMPA, xTEMPA
+        11 movsldup xTEMPA, xTEMPA
+        11 %[$XOP]ps $A~10, xTEMPA
+        12 cvtsd2ss xTEMPA, $B~11
+        12 movddup xTEMPA, xTEMPA
+        12 movsldup xTEMPA, xTEMPA
+        12 %[$XOP]ps $A~11, xTEMPA
+        13 cvtsd2ss xTEMPA, $B~12
+        13 movddup xTEMPA, xTEMPA
+        13 movsldup xTEMPA, xTEMPA
+        13 %[$XOP]ps $A~12, xTEMPA
+        14 cvtsd2ss xTEMPA, $B~13
+        14 movddup xTEMPA, xTEMPA
+        14 movsldup xTEMPA, xTEMPA
+        14 %[$XOP]ps $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF32XvF32
+      vcode $QTY
+        1 %[$XOP]ps $A~0, $B~0
+        2 %[$XOP]ps $A~1, $B~1
+        3 %[$XOP]ps $A~2, $B~2
+        4 %[$XOP]ps $A~3, $B~3
+        5 %[$XOP]ps $A~4, $B~4
+        6 %[$XOP]ps $A~5, $B~5
+        7 %[$XOP]ps $A~6, $B~6
+        8 %[$XOP]ps $A~7, $B~7
+        9 %[$XOP]ps $A~8, $B~8
+        10 %[$XOP]ps $A~9, $B~9
+        11 %[$XOP]ps $A~10, $B~10
+        12 %[$XOP]ps $A~11, $B~11
+        13 %[$XOP]ps $A~12, $B~12
+        14 %[$XOP]ps $A~13, $B~13
+      code
+        jmp $NEXT_INSTRUCTION
+    case VXvF32XvF64
+      vcode $QTY
+        1 cvtpd2ps xTEMPA, $B~0
+        1 movddup xTEMPA, xTEMPA
+        1 %[$XOP]ps $A~0, xTEMPA
+        2 cvtpd2ps xTEMPA, $B~1
+        2 movddup xTEMPA, xTEMPA
+        2 %[$XOP]ps $A~1, xTEMPA
+        3 cvtpd2ps xTEMPA, $B~2
+        3 movddup xTEMPA, xTEMPA
+        3 %[$XOP]ps $A~2, xTEMPA
+        4 cvtpd2ps xTEMPA, $B~3
+        4 movddup xTEMPA, xTEMPA
+        4 %[$XOP]ps $A~3, xTEMPA
+        5 cvtpd2ps xTEMPA, $B~4
+        5 movddup xTEMPA, xTEMPA
+        5 %[$XOP]ps $A~4, xTEMPA
+        6 cvtpd2ps xTEMPA, $B~5
+        6 movddup xTEMPA, xTEMPA
+        6 %[$XOP]ps $A~5, xTEMPA
+        7 cvtpd2ps xTEMPA, $B~6
+        7 movddup xTEMPA, xTEMPA
+        7 %[$XOP]ps $A~6, xTEMPA
+        8 cvtpd2ps xTEMPA, $B~7
+        8 movddup xTEMPA, xTEMPA
+        8 %[$XOP]ps $A~7, xTEMPA
+        9 cvtpd2ps xTEMPA, $B~8
+        9 movddup xTEMPA, xTEMPA
+        9 %[$XOP]ps $A~8, xTEMPA
+        10 cvtpd2ps xTEMPA, $B~9
+        10 movddup xTEMPA, xTEMPA
+        10 %[$XOP]ps $A~9, xTEMPA
+        11 cvtpd2ps xTEMPA, $B~10
+        11 movddup xTEMPA, xTEMPA
+        11 %[$XOP]ps $A~10, xTEMPA
+        12 cvtpd2ps xTEMPA, $B~11
+        12 movddup xTEMPA, xTEMPA
+        12 %[$XOP]ps $A~11, xTEMPA
+        13 cvtpd2ps xTEMPA, $B~12
+        13 movddup xTEMPA, xTEMPA
+        13 %[$XOP]ps $A~12, xTEMPA
+        14 cvtpd2ps xTEMPA, $B~13
+        14 movddup xTEMPA, xTEMPA
+        14 %[$XOP]ps $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    
+    case VXvF64F VXvF64Cf
+      code
+        $LD_A_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        movddup xTEMPA, xTEMPA
+      vcode $QTY
+        1 %[$XOP]pd $A~0, xTEMPA
+        2 %[$XOP]pd $A~1, xTEMPA
+        3 %[$XOP]pd $A~2, xTEMPA
+        4 %[$XOP]pd $A~3, xTEMPA
+        5 %[$XOP]pd $A~4, xTEMPA
+        6 %[$XOP]pd $A~5, xTEMPA
+        7 %[$XOP]pd $A~6, xTEMPA
+        8 %[$XOP]pd $A~7, xTEMPA
+        9 %[$XOP]pd $A~8, xTEMPA
+        10 %[$XOP]pd $A~9, xTEMPA
+        11 %[$XOP]pd $A~10, xTEMPA
+        12 %[$XOP]pd $A~11, xTEMPA
+        13 %[$XOP]pd $A~12, xTEMPA
+        14 %[$XOP]pd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF64I VXvF64C
+      code
+        $LD_A_IMMEDIATE
+        cvtsi2sd xTEMPA, rTEMPA
+        movddup xTEMPA, xTEMPA
+      vcode $QTY
+        1 %[$XOP]pd $A~0, xTEMPA
+        2 %[$XOP]pd $A~1, xTEMPA
+        3 %[$XOP]pd $A~2, xTEMPA
+        4 %[$XOP]pd $A~3, xTEMPA
+        5 %[$XOP]pd $A~4, xTEMPA
+        6 %[$XOP]pd $A~5, xTEMPA
+        7 %[$XOP]pd $A~6, xTEMPA
+        8 %[$XOP]pd $A~7, xTEMPA
+        9 %[$XOP]pd $A~8, xTEMPA
+        10 %[$XOP]pd $A~9, xTEMPA
+        11 %[$XOP]pd $A~10, xTEMPA
+        12 %[$XOP]pd $A~11, xTEMPA
+        13 %[$XOP]pd $A~12, xTEMPA
+        14 %[$XOP]pd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF64D
+      code
+        cvtsi2sd xTEMPA, $B
+        movddup xTEMPA, xTEMPA
+      vcode $QTY
+        1 %[$XOP]pd $A~0, xTEMPA
+        2 %[$XOP]pd $A~1, xTEMPA
+        3 %[$XOP]pd $A~2, xTEMPA
+        4 %[$XOP]pd $A~3, xTEMPA
+        5 %[$XOP]pd $A~4, xTEMPA
+        6 %[$XOP]pd $A~5, xTEMPA
+        7 %[$XOP]pd $A~6, xTEMPA
+        8 %[$XOP]pd $A~7, xTEMPA
+        9 %[$XOP]pd $A~8, xTEMPA
+        10 %[$XOP]pd $A~9, xTEMPA
+        11 %[$XOP]pd $A~10, xTEMPA
+        12 %[$XOP]pd $A~11, xTEMPA
+        13 %[$XOP]pd $A~12, xTEMPA
+        14 %[$XOP]pd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF64X
+      code
+        movddup xTEMPA, $B
+      vcode $QTY
+        1 %[$XOP]pd $A~0, xTEMPA
+        2 %[$XOP]pd $A~1, xTEMPA
+        3 %[$XOP]pd $A~2, xTEMPA
+        4 %[$XOP]pd $A~3, xTEMPA
+        5 %[$XOP]pd $A~4, xTEMPA
+        6 %[$XOP]pd $A~5, xTEMPA
+        7 %[$XOP]pd $A~6, xTEMPA
+        8 %[$XOP]pd $A~7, xTEMPA
+        9 %[$XOP]pd $A~8, xTEMPA
+        10 %[$XOP]pd $A~9, xTEMPA
+        11 %[$XOP]pd $A~10, xTEMPA
+        12 %[$XOP]pd $A~11, xTEMPA
+        13 %[$XOP]pd $A~12, xTEMPA
+        14 %[$XOP]pd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF64XF32
+      code
+        cvtps2pd xTEMPA, $B
+      vcode $QTY
+        1 %[$XOP]pd $A~0, xTEMPA
+        2 %[$XOP]pd $A~1, xTEMPA
+        3 %[$XOP]pd $A~2, xTEMPA
+        4 %[$XOP]pd $A~3, xTEMPA
+        5 %[$XOP]pd $A~4, xTEMPA
+        6 %[$XOP]pd $A~5, xTEMPA
+        7 %[$XOP]pd $A~6, xTEMPA
+        8 %[$XOP]pd $A~7, xTEMPA
+        9 %[$XOP]pd $A~8, xTEMPA
+        10 %[$XOP]pd $A~9, xTEMPA
+        11 %[$XOP]pd $A~10, xTEMPA
+        12 %[$XOP]pd $A~11, xTEMPA
+        13 %[$XOP]pd $A~12, xTEMPA
+        14 %[$XOP]pd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF64XF64
+      vcode $QTY
+        1 %[$XOP]pd $A~0, $B
+        2 %[$XOP]pd $A~1, $B
+        3 %[$XOP]pd $A~2, $B
+        4 %[$XOP]pd $A~3, $B
+        5 %[$XOP]pd $A~4, $B
+        6 %[$XOP]pd $A~5, $B
+        7 %[$XOP]pd $A~6, $B
+        8 %[$XOP]pd $A~7, $B
+        9 %[$XOP]pd $A~8, $B
+        10 %[$XOP]pd $A~9, $B
+        11 %[$XOP]pd $A~10, $B
+        12 %[$XOP]pd $A~11, $B
+        13 %[$XOP]pd $A~12, $B
+        14 %[$XOP]pd $A~13, $B
+      code
+        jmp $NEXT_INSTRUCTION
+    case VXvF64Xv
+      vcode $QTY
+        1 movddup xTEMPA, $B~0
+        1 %[$XOP]pd $A~0, xTEMPA
+        2 movddup xTEMPA, $B~1
+        2 %[$XOP]pd $A~1, xTEMPA
+        3 movddup xTEMPA, $B~2
+        3 %[$XOP]pd $A~2, xTEMPA
+        4 movddup xTEMPA, $B~3
+        4 %[$XOP]pd $A~3, xTEMPA
+        5 movddup xTEMPA, $B~4
+        5 %[$XOP]pd $A~4, xTEMPA
+        6 movddup xTEMPA, $B~5
+        6 %[$XOP]pd $A~5, xTEMPA
+        7 movddup xTEMPA, $B~6
+        7 %[$XOP]pd $A~6, xTEMPA
+        8 movddup xTEMPA, $B~7
+        8 %[$XOP]pd $A~7, xTEMPA
+        9 movddup xTEMPA, $B~8
+        9 %[$XOP]pd $A~8, xTEMPA
+        10 movddup xTEMPA, $B~9
+        10 %[$XOP]pd $A~9, xTEMPA
+        11 movddup xTEMPA, $B~10
+        11 %[$XOP]pd $A~10, xTEMPA
+        12 movddup xTEMPA, $B~11
+        12 %[$XOP]pd $A~11, xTEMPA
+        13 movddup xTEMPA, $B~12
+        13 %[$XOP]pd $A~12, xTEMPA
+        14 movddup xTEMPA, $B~13
+        14 %[$XOP]pd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF64XvF32
+      vcode $QTY
+        1 cvtps2pd xTEMPA, $B~0
+        1 %[$XOP]pd $A~0, xTEMPA
+        2 cvtps2pd xTEMPA, $B~1
+        2 %[$XOP]pd $A~1, xTEMPA
+        3 cvtps2pd xTEMPA, $B~2
+        3 %[$XOP]pd $A~2, xTEMPA
+        4 cvtps2pd xTEMPA, $B~3
+        4 %[$XOP]pd $A~3, xTEMPA
+        5 cvtps2pd xTEMPA, $B~4
+        5 %[$XOP]pd $A~4, xTEMPA
+        6 cvtps2pd xTEMPA, $B~5
+        6 %[$XOP]pd $A~5, xTEMPA
+        7 cvtps2pd xTEMPA, $B~6
+        7 %[$XOP]pd $A~6, xTEMPA
+        8 cvtps2pd xTEMPA, $B~7
+        8 %[$XOP]pd $A~7, xTEMPA
+        9 cvtps2pd xTEMPA, $B~8
+        9 %[$XOP]pd $A~8, xTEMPA
+        10 cvtps2pd xTEMPA, $B~9
+        10 %[$XOP]pd $A~9, xTEMPA
+        11 cvtps2pd xTEMPA, $B~10
+        11 %[$XOP]pd $A~10, xTEMPA
+        12 cvtps2pd xTEMPA, $B~11
+        12 %[$XOP]pd $A~11, xTEMPA
+        13 cvtps2pd xTEMPA, $B~12
+        13 %[$XOP]pd $A~12, xTEMPA
+        14 cvtps2pd xTEMPA, $B~13
+        14 %[$XOP]pd $A~13, xTEMPA
+      code
+        pxor xTEMPA, xTEMPA
+        jmp $NEXT_INSTRUCTION
+    case VXvF64XvF64
+      vcode $QTY
+        1 %[$XOP]pd $A~0, $B~0
+        2 %[$XOP]pd $A~1, $B~1
+        3 %[$XOP]pd $A~2, $B~2
+        4 %[$XOP]pd $A~3, $B~3
+        5 %[$XOP]pd $A~4, $B~4
+        6 %[$XOP]pd $A~5, $B~5
+        7 %[$XOP]pd $A~6, $B~6
+        8 %[$XOP]pd $A~7, $B~7
+        9 %[$XOP]pd $A~8, $B~8
+        10 %[$XOP]pd $A~9, $B~9
+        11 %[$XOP]pd $A~10, $B~10
+        12 %[$XOP]pd $A~11, $B~11
+        13 %[$XOP]pd $A~12, $B~12
+        14 %[$XOP]pd $A~13, $B~13
+      code
+        jmp $NEXT_INSTRUCTION
+      
+    # case VXv*F VXv*Cf
+    # case VXv*I VXv*C
+    # case VXv*D
+    # case VXv*X
+    # case VXv*XF32
+    # case VXv*XF64
+    # case VXv*Xv
+    # case VXv*XvF32
+    # case VXv*XvF64
+    ## case VXv*I8
+    ## case VXv*I16
+    ## case VXv*I32
+    ## case VXv*I64
+
+instruction xadd
+  $XOP add
+  sub x-binary-op
+
+instruction xsub
+  $XOP sub
+  sub x-binary-op
+
+instruction xmul
+  $XOP mul
+  sub x-binary-op
+
+instruction xdiv
+  $XOP div
+  sub x-binary-op
+
+instruction xmin
+  $XOP min
+  sub x-binary-op
+
+instruction xmax
+  $XOP max
+  sub x-binary-op
+
+instruction xduplicate
+  $QTY 1
+  opt-operand
+    type ssimd-int-1-7
+    $QTY $VALUE
+  operand
+    type ssimd-xvector xmmx
+    $DEST $VALUE
+  operand
+    type ssimd-xvector xmmx
+    $SRC $VALUE
+  vcode $QTY
+    1 movdqa $DEST~0, $SRC~0
+    2 movdqa $DEST~1, $SRC~1
+    3 movdqa $DEST~2, $SRC~2
+    4 movdqa $DEST~3, $SRC~3
+    5 movdqa $DEST~4, $SRC~4
+    6 movdqa $DEST~5, $SRC~5
+    7 movdqa $DEST~6, $SRC~6
+  code
+    jmp $NEXT_INSTRUCTION
+
+subroutine x-packed-op-32--step
+  opt-operand
+    select-operand
+      case 0
+        code
+          insertps, xTEMPB, $SRC, 0
+          cvtss2sd xTEMPB, xTEMPB
+          %[$XOP]sd xTEMPA, xTEMPB
+      case 1
+        code
+          insertps, xTEMPB, $SRC, 16
+          cvtss2sd xTEMPB, xTEMPB
+          %[$XOP]sd xTEMPA, xTEMPB
+      case 2
+        code
+          insertps, xTEMPB, $SRC, 32
+          cvtss2sd xTEMPB, xTEMPB
+          %[$XOP]sd xTEMPA, xTEMPB
+      case 3
+        code
+          insertps, xTEMPB, $SRC, 48
+          cvtss2sd xTEMPB, xTEMPB
+          %[$XOP]sd xTEMPA, xTEMPB
+
+typespec xcompute-op
+  select-operand
+    case add
+      $XCOP add
+      $XCMODE norm
+    case sub
+      $XCOP sub
+      $XCMODE norm
+    case mul
+      $XCOP mul
+      $XCMODE norm
+    case div
+      $XCOP div
+      $XCMODE norm
+    case ~div
+      $XCOP div
+      $XCMODE rev
+    case ~sub
+      $XCOP sub
+      $XCMODE rev
+  pick O
+
+instruction xcompute
+  $XCOP add
+  $XCMODE norm
+  $DO_INIT true
+  $DAUG 0
+  $DIDX 0
+  $SAUG 0
+  $SIDX 0
+  operand
+    type xmmx
+    $DEST $VALUE
+  opt-operand
+    type simd-format-discriminator
+    sub simd-format-pick
+  opt-operand
+    type sse-map
+    $DAUG $SSE_REG
+    $DIDX $SSE_INDEX
+    $DSW $SSE_WORD
+    $DRXT $SSE_REG_EXT
+  
+  select-template
+    case X
+      code $FOOTER
+        movdqa $DEST, xTEMPA
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    case XF32
+      sub sse-insps-arg--Szero
+      code $FOOTER
+        cvtsd2ss xTEMPA, xTEMPA
+        insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    case XF64
+      sub sse-qword-put
+      code $FOOTER
+        $QPUTOP $DEST~$DAUG, xTEMPA
+        pxor xTEMPA, xTEMPA
+        pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+  
+  composite 16
+    operand
+      type xcompute-op xmmf32 xmmf64 xmmx data float fconst integer const
+      $B $VALUE
+      scramble rTEMPC $LD_B_IMMEDIATE
+    select $XCMODE
+      case norm
+        select-template
+          case X
+            code
+              %[$XCOP]sd xTEMPA, $B
+          case O
+            #do nothing.
+          case D
+            code
+              cvtsi2sd xTEMPB, $B
+              %[$XCOP]sd xTEMPA, xTEMPB
+          case I C
+            code
+              $LD_B_IMMEDIATE
+              cvtsi2sd xTEMPB, rTEMPC
+              xor rTEMPC, rTEMPC
+              %[$XCOP]sd xTEMPA, xTEMPB
+          case F Cf
+            code
+              $LD_B_IMMEDIATE
+              movq xTEMPB, rTEMPC
+              xor rTEMPC, rTEMPC
+              %[$XCOP]sd xTEMPA, xTEMPB
+          case Xf32
+            code
+              insertps xTEMPB, $B, $EXTPS_arg
+              cvtss2sd xTEMPB, xTEMPB
+              %[$XCOP]sd xTEMPA, xTEMPB
+          case Xf64
+            code
+              $QGETOP xTEMPB, $B
+              %[$XCOP]sd xTEMPA, xTEMPB
+      case rev
+        select-template
+          case X
+            code
+              movq xTEMPB, $B
+              %[$XCOP]sd xTEMPB, xTEMPA
+              movq xTEMPA, xTEMPB
+          case O
+            #do nothing.
+          case D
+            code
+              cvtsi2sd xTEMPB, $B
+              %[$XCOP]sd xTEMPB, xTEMPA
+              movq xTEMPA, xTEMPB
+          case I C
+            code
+              $LD_B_IMMEDIATE
+              cvtsi2sd xTEMPB, rTEMPC
+              xor rTEMPC, rTEMPC
+              %[$XCOP]sd xTEMPB, xTEMPA
+              movq xTEMPA, xTEMPB
+          case F Cf
+            code
+              $LD_B_IMMEDIATE
+              movq xTEMPB, rTEMPC
+              xor rTEMPC, rTEMPC
+              %[$XCOP]sd xTEMPB, xTEMPA
+              movq xTEMPA, xTEMPB
+          case Xf32
+            code
+              insertps xTEMPB, $B, $EXTPS_arg
+              cvtss2sd xTEMPB, xTEMPB
+              %[$XCOP]sd xTEMPB, xTEMPA
+              movq xTEMPA, xTEMPB
+          case Xf64
+            code
+              $QGETOP xTEMPB, $B
+              %[$XCOP]sd xTEMPB, xTEMPA
+              movq xTEMPA, xTEMPB
+  code
+    $FOOTER
+
+typespec shuffle-slot32
+  select-operand
+    case 0
+      value 00
+    case 1
+      value 01
+    case 2
+      value 10
+    case 3
+      value 11
+instruction shuffle
+  operand
+    select-operand
+      case 32 f32 i32
+        pick Fmt32
+  operand
+    type xmmx
+    $DEST $VALUE
+  operand
+    type xmmx
+    $SRC $VALUE
+  operand
+    type shuffle-slot32
+    $A $VALUE
+  operand
+    type shuffle-slot32
+    $B $VALUE
+  operand
+    type shuffle-slot32
+    $C $VALUE
+  operand
+    type shuffle-slot32
+    $D $VALUE
+  select-template
+    case Fmt32XX
+      code
+        pshufd $DEST, $SRC, 0b$D$C$B$A
+        jmp $NEXT_INSTRUCTION
+
+
+
+
+
+
+
+

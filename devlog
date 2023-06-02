@@ -1,7 +1,321 @@
+2 Jun 2023
+compute instruction adjustments
+  revised code generation
+  proper names and common abbreviated names for all operators
+  swap internal argument order of swap and mod operations
+  Add ~atan and ~mod operators (these omit said argument swap)
+  add log-base-N operators (and the swapped operand form)
+  
+  tactyk-emit - add a "new" modifer to the code operator
+    The "new" modifier causes it to create a new code block instead of appending to an existing one.
+    (This eliminates need for certain V-ISA hacks)
+
+1 Jun 2023
+Add "compute" instruction
+  This is an instruction comparable to "xcompute" which uses high-precision floating point operations (x87 fpu)
+  It is loosely similar to xcompute, in that it allows an arbitrary sequence of operators which are evaluated from left to right and which passively applies a mathematical operator
+    for each value or referenced register.
+  It accepts xmm registers, data registers, constants, and stash entries
+  It does not include a mechanism for accessing xmm packed field slots (That's a "MAYBE" feature)
+  It is able to access up to 4 transient variables on the FPU stack (used for complex calculations, does not persist beyond the end of the instruction)
+
+Documentation for "Super-SIMD" instructions and "xmm-fpmath" instructions
+
+Update "tactyk-core" documentation to cover block-load and block-store instructions
+
+tactyk-test - Add checks for 64-bit and 80-bit floating point values in the stash test.
+
+31 May 2023
+Add matrix inversion function to the matrix-simd example
+
+Reinstate "round" conversion mode (and force it).
+Use truncating conversion instructions for converting floating point numbers to integers.
+
+30 May 2023
+Add "xcompute" instruction
+  4-function calculator
+  This accepts an arbitrary list of arithmetic functions, constants, data registers, xmm registers, and packed xmm register slots (32-bit and 64-bit floating point formats)
+  and generates an instruction which evaluates list items from left to right.
+  For each value in the list, it applies the active arithmetic function using the value as the 2nd operand (and the accumulated balue as the 1st)
+  If it encounters an arithmetic function, it uses it as the active function (starts with addition).
+  This is intended to be a straightforward mechanism for simple calculations.
+  sub-instruction list:
+    add - set the active function to add
+    sub - set the active function to subtract
+    mul - set the active function to multiply
+    div - set the active function to divide
+    ~sub - set the active function to subtract with reversed operand order
+    ~div - set the active function to divide with reversed operand order
+    <register> - load a register value and apply the active function
+    <int float int-const float-const> load a constant and apply the active function
+    <xmm-register>.<fmt>.<index> load a value from an xmm register containind packed fields and apply the active function
+  NOTE:  this instruciton partially violates one of the arguably paranoid security constraints - it produces a contiguous chunk of executable bytes with a 
+         higher level of script influence than most (or all) other instructions, and so may need to be omitted in maximally paranoid modes 
+         (or rewritten to insert extra junk).
+  NOTE 2: This might seem misclassified as a "simd" instruction, its placement has more to do with its ability to handle packed fields (and thus to augment actual SIMD code)
+         If at some point, the underlying instruction extender is improved to handle more complex situations, it may be reclassified, renamed to "compute", and have the
+         packed field handling moved to a separate module (variable-length parameter list with parameter handlers that affect subsequent parameter handlers)
+
+Add "shuffle" instruction
+This rearranges the packed 32-bit fields on a register
+  For now, only 32-bit fields are supported.  At some future time, this is to be extended to include variants for 8,16, and 64 bit packed fields.
+
+29 May 2023
+Add a matrix transformation example using the new SIMD instructions
+  It packs the entire matrix onto 4 xmm registers (using the 32-bit packed floating point format)
+  It does not rely on either the stash or a memblock
+  It does not modify registers used for inputs (thoguh it does use a bit of hackery to handle the perspective transform).
+
+26-27 May 2023
+test coverage for xadd (packed 64-bit target functions)
+  For the time being, I'm going to make a lot of presumptions and allow the "xadd" test to also stand in as a test of xsub, xmul, xdiv, xmin, and xmax
+  This should suffice as an assurance that TACTYK is generating correct code (but does not actually verify that the system is producing correct results)
+  
+tactyk-test - Reduce precision of 32-bit floating point tests a bit more
+
+Remove instruction xsqrt.  "square-root" (the x87 fpu one) should suffice for now.  
+  (Will probably reconsider this if/when there is a decision to add a collection of math functions using SSE instructions)
+
+tactyk-core-math - add dot product and cross product instructions, move transpose function to math module
+
+tactyk-code-simd - "xduplicate" instruction - this copies up to 7 xmm registers from a source xmm register to a destination xmm register
+  to a destination position (based on lexical ordering).
+
+25 May 2023
+Expand xassign
+  templates for assigning directly setting all fields fields
+  Typing is implicit:
+    xmm-dest + Two integers -> packed 64-bit integers
+    xmm-dest + Two data registers -> packed 64-bit integers
+    xmm-dest + Four integers -> packed 32-bit integers
+    xmm-dest + Four data registers -> packed 32-bit integers
+    xmm-dest + Two floating point numbers -> packed 64-bit floats
+    xmm-dest + Two xmm registers ->  packed 64-bit floats
+    xmm-dest + Four floating point numbers -> packed 32-bit floats
+    xmm-dest + Four xmm registers ->  packed 32-bit floats
+  Integers and integer-constants are integerchangable
+  Likewise, floating point numbers and floating point constants are interchangeable
+  floating point numbers can not be mixed with integers for this (xassign configuration is heavy enough already)
+  NOTE:  floating point numbers are differentiated from integers by the presence of a decimal point. 
+
+24 May 2023
+Complete xassign test coverage
+remove insert and extract instructions, revise tests to use xassign
+
+Add a matrix transposition instruction: "transpose"
+  This accepts a 4x4 matrix (encoded as packed 32-bit values arranged on xmm registers [in lexical order]) and applies an in-place tranposition to its input.
+    (flip between row-major and column-major order)
+  This is expected to be a fairly common operation needed by secondary optimizations (mainly handling of 3d matrix transformations)
+
+SUPER SIMD!
+  This is a large collection of "vectorized" SIMD-based operations
+  These instructions apply simd operations to sets of XMM registers (and may be thought of as SIMD on a larger scale than x86-sse extensions offer).
+    The larger scale is basically intended to help math-heavy programs overcome some of the performance penalties incurred by tactyk binary executable randomization
+  These instructions accept many formats (and internally apply conversions to match the output)
+  Instructions: are as follows:
+    xadd, xsub, xmul, xdiv, xmin, and xmax (basically the xmm floating point opreators)
+  TODO:  Integer operations.
+
+23 May 2023
+tactyk-test - add an explitic text exit function
+  This terminates a test script early (and is intended only as a to help repurposing test scripts)
+
+xassign - ensure implicitly typed (float-64) assignment to xmm register clears upper bytes
+
+xassign test coverge
+  xassign is a very complex operator.
+  Complete test coverage would require several hundred thousand usage, so some aspects of it may have to be deferred.
+    This is mostly on account of a combinatorial explosion from static-indirect transfers between slots, particularly when handling small words.
+    However, this is mostly combinations of parameters generated by a Python script and copied into the V-ISA configuration.
+
+Use a declared data structure for context state management (both native and tactyk)
+
+new instruction: "float-to-int--cast-mode"
+  This sets flags which control which operation float-to-int conversion functions perform
+  functions are:  "truncate" (default), "round", "round-down", and "round-up"
+
+22 May 2023
+tactyk-visa - add a generic selector
+  This uses string interpolation (against local variables) to generate the select token.
+
+More simd refactoring
+  simd handling is to expand on the concept of polymorphism and vectorized operations based on register lexical orderings.
+
+new instruction:  "xassign"
+  xassign is intended to partly to supersede/replace extract & insert, and partly to test static xmm packed element indirection
+    static xmm packed element indirection essentially allows the entire xmm register file to be treated as a semi-circular array of 8/16/32/64 bit items.
+    Individual items are referenced as a register, a data type, and an integer offset.
+    The offset is divided by the number of elements per register
+      The resulting integer part is used to select another register [based on the lexical ordering of xmm register aliases].
+      The resulting remainder is used to index the packed word within the selected register.
+    This is intended to help simplify tactyk scripts, especially when setting up vectorized/simd logic
+
+20 May 2023
+Add templates to load, store, block-load, block-store instructions for handling [full] 128-bit xmm fields.
+  Add test coverage for the new variants
+
+Refactor simd handling
+  Added a large "simd-format" typespec to encode various sse/mmx idiosyncrasies
+  pack-float32 and pack-int32 merged into a general "pack" instruction
+  unpack-float32 and unpack-int32 merged into a general "pack" instruction
+  Revise insert and extract instructions to use simd-format
+
+19 May 2023
+test coverage for insert and extract instructions
+
+tactyk-test - refactor and extend the xmm register test function.
+  It now works with 32-bit fields
+  It now checks the entire register for every test
+  It now requires type specification if the xmm register contains anything other than 64-bit floating point numbers
+  Make the xmm register deviation checker more consistant
+
+update tests for changes to the xmm register test function
+  the load-float32 test was found to be flawed - it erroneously assumes that loading 32-bit floating point numbers onto xmm registers results in the
+  register holding a number in 32-bit format (tactyk auto-promotes them).
+
+tactyk-debug - update format specifiers
+
+Add instructions pack-float32, pack-int32, unpack-float32, and unpack-int32 + test coverage
+  These instructions take 4 consecutive xmm registers, reduce them to 32-bit fields (of int or float types),
+  and pack them onto one xmm register.
+
+*** The pack, unpack, insert, and extract instructions are intended to become the basis for performing SIMD operations
+    within tactyk scripts.
+
+
+18 May 2023
+New Virtual-ISA operator:  "vcode"
+  The vcode operator subsets a variable-length block of code.
+  It fetches a variable, then selectively appends subordinate code.
+  Each line of [subordinate] code is prefixed with an integer header.
+  If the header has a value less than a defined maximum value (the fetched variable), then the code will be
+    appended to the main code block.
+  Any code with header value greater than the defined maximum will be omitted.
+
+Update the block-load and block-store operations to use the vcode operator to properly subset the variable-length portion
+  (instead of hard-coding everything and using a goto to jump to the correct starting point)
+
+tactyk-debug - Add a tcall function for changing the format used for printing xmm register content with dump-ctx.
+  TACTYK code to make it print xmm register contents with integer formatting instead of float-64:
+    assign rA 9
+    tcall dump-dispmode
+    tcall dump-ctx
+
+tactyk-debug - add int32 and float32 format handlign for the dump-ctx function.
+
+tactyk-emit - Handle undefined instruction error
+
+tactyk-simd
+  begin development of simd capabilities
+  add instructions for packing and unpacking data on xmm registers
+
+
+16 May 2023
+Test coverage for square-root, spread
+
+New instruction:  spread
+  This loads a list of values onto a series of registers (lexical order by tactyk aliases)
+  Up to 6 integers may be loaded onto data registers, starting at any named data register (rA-rF)
+  Up to 14 floating point values may be loaded onto xmm registers, starting at any named xmm register (xA-xN)
+  For the time being, this is restricted to hard-coded integer and floating point values
+    At some point later, this should be changed to allow integer constants and floating point constants
+    (this can technically be accomomplished with tactyk as-is, but would require a combinatorial explosion due to literals and constants being handled
+     with separate type specifiers)
+
+Add a new example:  "matrix.tkp"
+  This example sets up a 3D perspective transformation using the Matrix processing component of an in-dev 3D graphcis framework for TACTYK.
+  The introductory comment includes JavaScript code for using THREE.js to generate the same matrix using equivalent logic.
+    "TACTYK-in-3D matrix processing is adapted from the Matrix component from THREE.js
+      (modified to use in-place modifications of existing data structures instead of requiring multiple data structures with separate calls for concatenation)
+
+15 May 2023
+test coverage for: sine, cosine, tangent, arctangent, log2, log
+
+Add an "extra" Python script to help generate tactyk test scripts
+  Tests are generated by selecting random numbers and performing calculations with Python functions, then emitting a test script which performs the same test
+  in tactyk and compares the tactyk result with the result from Python.
+  If python implementation is correct and correctly used, this should suffice for common cases.
+
+Add square-root instruction
+
+13 May 2023
+Make tactyk-visa loading modular.
+Split tactyk-core into a set of modules.
+  A large portion of tactyk can now be factored out of complexity considerations if not needed.
+
+Remove memblock stash allocation.  Re-assign the space to general-purpose storage.
+
+Remove "diagnostic" output
+Remove "cpuclocks" instruction
+
+Added a mechanism for accessing the x87 FPU.
+  It uses a few new entries added to the context data structure to transfer data between tactyk and the x87 FPU.
+  The x87 FPU is not considered part of tactyk state
+    There is no plan or intent either to allow scripts.
+    Data is not to be stored on the x87 registers beyond the duration of a single instruction.
+    Neither the x87 FPU state, nor the memory used to transfer data in and out of it are considered part of the tactyk state
+      (no intent to check it on tests) - actual results should suffice for testing.
+
+New instructions: sine, cosine, tangent, arctangent, log2, log
+  (access to x87 transcendentals functions)
+
+12 May 2023
+tactyk-auxiliary library - Add "text" print statements for xmm register content (16 byte text chunks).
+
+11 May 2023
+tactyk-pl - Fix the '.' and '>' sub-directives (used for union type specifications)
+tactyk-auxiliary library - Add functions for printing floating point numbres (from xmm registers)
+tactyk_core.visa - Supplemental memory binding functions
+  Add an "unbind" instruction
+  Add the abiltiy to copy another memory binding to the "bind" instruction
+  Add an ability to swap a pair of memory bindings to the "swap" instruction
+tactyk-test - Add a null memory binding test
+
+10-11 May 2023
+tactyk_core.visa - Add a "block-store" instruction (with test coverage)
+  This stores values from consecutive sets of registers (according to tactyk register alias lexical order) in blocks of memory
+
+8 May 2023
+tactyk_core.visa - Add a "block-load" instruction (with test coverage)
+  This loads short blocks of memory and writes it to consecutive sets of registers (according to tactyk register alias lexical order)
+  It loads 1-6 words onto data registers or 1-14 words onto xmm registers.
+  It starts at any requested register and wraps around.
+  This only does operates on qwords (8-byte words)
+    (at some point an extra xmm variant should be added which does double-qword loads [to the whole register])
+  Internally, this is accomplished with a large set of register aliases (in the asm header)
+  This probably should be revised to use a specialized operator
+    (was initially going to use a simple repetition operator, but bounds checking undermined that approach)
+
+Fixed an error in tactyk-pl "flat" directive
+  (It was only copying 4 out of 8 bytes into the [compiler-initialized] memblock when using double-precisions floating point numbers)
+
+6 May 2023
+tactyk-pl - platform constant tables
+  Host applications can now provide arbitrary constant tables for use by tactyk-pl scripts.
+  This generalizes the "use_vconstants" directive.
+
+5 May 2023
+Support for loading and storing 32-bit floating point values in memory operations
+  Conversions are only done on load and store operations - internally the 64-bit format is used for both
+
+Test coverage for 32-bit floating point load/store operations
+
+Add a semi-justification for the floating point values used in the load-fail-f64 test (and load-fail-32).
+
 4 May 2023
 Fix a use-after-free error in the tactyk demo
   This was due to an oversight when releasing the buffer containing the raw script code. 
   - forgot that that buffer was treated as a persistant backing buffer for table keys.
+
+Rename the tactyk_asm memory binding updater.
+Add a dynamic object binding function to tactyk_asmvm
+  This sets up a temporary memory binding within the tactyk context.
+  The memory binding is assumed to be valid until a matching unbind function is called
+    the unbind function scans the context for the binding (scripts are allowed to move them) and resets it.
+
+Add an auxiliary library for helper functions for use by tactyk scripts.
+  These are optional, placed in a separate library by the build script.
+  To use them, a host application must be linked to the library, and it must call the configuration functions when setting up a tactyk-emit context.
 
 2 May 2023
 Disable memory-bind stashing

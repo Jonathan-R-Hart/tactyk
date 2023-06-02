@@ -377,13 +377,13 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
             if ( tactyk_dblock__equals_c_string(item_type, "float") || tactyk_dblock__equals_c_string(item_type, "float64")) {
                 if (!dbl_success) { goto ERR_FLOAT; }
                 double observed_val = *((double*)&mbll->base_address[idx]);
-                if (tactyk_test__approximately_eq(fval, observed_val)) {
+                if (tactyk_test__approximately_eq(fval, observed_val, precision_f64)) {
                     *((double*)&shadow_mbll->base_address[idx]) = observed_val;
                     return TACTYK_TESTSTATE__PASS;
                 }
                 else {
                     *((double*)&shadow_mbll->base_address[idx]) = fval;
-                    sprintf(test_state->report, "deviation: memblock #%ju at offset %ju, expected:%f observed:%f", mbhl->memblock_id, idx, fval, observed_val);
+                    sprintf(test_state->report, "deviation [f64]: memblock #%ju at offset %ju, expected:%f observed:%f", mbhl->memblock_id, idx, fval, observed_val);
                     return TACTYK_TESTSTATE__FAIL;
                 }
             }
@@ -391,13 +391,13 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
                 if (!dbl_success) { goto ERR_FLOAT; }
                 float observed_val = *((float*)&mbll->base_address[idx]);
                 double f64v = (double)observed_val;
-                if (tactyk_test__approximately_eq(fval, f64v)) {
+                if (tactyk_test__approximately_eq(fval, f64v, precision_f32)) {
                     *((float*)&shadow_mbll->base_address[idx]) = observed_val;
                     return TACTYK_TESTSTATE__PASS;
                 }
                 else {
                     *((float*)&shadow_mbll->base_address[idx]) = fval;
-                    sprintf(test_state->report, "deviation: memblock #%ju at offset %ju, expected:%f observed:%f", mbhl->memblock_id, idx, fval, f64v);
+                    sprintf(test_state->report, "deviation [f32]: memblock #%ju at offset %ju, expected:%f observed:%f", mbhl->memblock_id, idx, fval, f64v);
                     return TACTYK_TESTSTATE__FAIL;
                 }
             }
@@ -452,7 +452,34 @@ uint64_t tactyk_test__TEST_MEM(struct tactyk_test_entry *entry, struct tactyk_db
 
 uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *expected_value = spec->token->next;
-
+    if (tactyk_dblock__equals_c_string(expected_value, "NULL")) {
+        struct tactyk_asmvm__memblock_lowlevel *shadow_target = &shadow_vmctx->active_memblocks[entry->offset-1];
+        shadow_target->base_address = NULL;
+        shadow_target->element_bound = 0;
+        shadow_target->array_bound = 0;
+        shadow_target->memblock_index = 0;
+        shadow_target->offset = 0;
+        switch(entry->offset) {
+            case 1: {
+                shadow_vmctx->reg.rADDR1 = NULL;
+                break;
+            }
+            case 2: {
+                shadow_vmctx->reg.rADDR2 = NULL;
+                break;
+            }
+            case 3: {
+                shadow_vmctx->reg.rADDR3 = NULL;
+                break;
+            }
+            case 4: {
+                shadow_vmctx->reg.rADDR4 = NULL;
+                break;
+            }
+        }
+        return TACTYK_TESTSTATE__PASS;
+    }
+    
     uint64_t num_tokens = tactyk_dblock__count_peers(expected_value);
     if (num_tokens < 2) {
         tactyk_test__report("Not enough arguments to specify a memory binding.");
@@ -460,6 +487,7 @@ uint64_t tactyk_test__TEST_ADDR(struct tactyk_test_entry *entry, struct tactyk_d
     }
     struct tactyk_dblock__DBlock *name = expected_value;
     struct tactyk_dblock__DBlock *reg_ofs = expected_value->next;
+    
 
     // if the name is the name of a loaded program, then a "foreign" memblock is specified, so use the "foreign" program's memblock table.
     //  Also:  I should probably generate a test errror for programs which share the same name as a memblock.
@@ -623,210 +651,309 @@ uint64_t tactyk_test__TEST_REGISTER(struct tactyk_test_entry *valtest_spec, stru
 //      then performs its own state transition check using a floating point comparison with error tolerance.
 //      If the comparison test fails, this will pre-empt the general-purpose state transition tracker by returning a failure.
 uint64_t tactyk_test__TEST_XMM_REGISTER (struct tactyk_test_entry *valtest_spec, struct tactyk_dblock__DBlock *spec) {
-    struct tactyk_dblock__DBlock *expected_value = spec->token->next;
-
-    double fval = 0;
-    if (tactyk_dblock__try_parsedouble(&fval, expected_value)) {
+    struct tactyk_dblock__DBlock *ftype = spec->token->next;
+    struct tactyk_dblock__DBlock *token = ftype;
+    
+    bool bits32_mode = false;
+    bool fpmode = true;
+    
+    double precision = precision_f64;
+    if ( tactyk_dblock__equals_c_string(ftype, "f32") || tactyk_dblock__equals_c_string(ftype, "float32")) {
+        bits32_mode = true;
+        fpmode = true;
+        token = token->next;
+        precision = precision_f32;
+    }
+    else if ( tactyk_dblock__equals_c_string(ftype, "f64") || tactyk_dblock__equals_c_string(ftype, "float64")) {
+        bits32_mode = false;
+        fpmode = true;
+        token = token->next;
+        precision = precision_f64;
+    }
+    else if ( tactyk_dblock__equals_c_string(ftype, "i32") || tactyk_dblock__equals_c_string(ftype, "int32")) {
+        bits32_mode = true;
+        fpmode = false;
+        token = token->next;
+    }
+    else if ( tactyk_dblock__equals_c_string(ftype, "i64") || tactyk_dblock__equals_c_string(ftype, "int64")) {
+        bits32_mode = false;
+        fpmode = false;
+        token = token->next;
+    }
+    
+    // float32+ is for 64-bit floats which have been promoted from the 32-bit format.  A reduced precision is needed for it
+    else  if ( tactyk_dblock__equals_c_string(ftype, "f32+") || tactyk_dblock__equals_c_string(ftype, "float32+")) {
+        bits32_mode = false;
+        fpmode = true;
+        token = token->next;
+        precision = precision_f32;
+    }
+    
+    struct tactyk_dblock__DBlock *expected_value[4];
+    memset(expected_value, 0, sizeof(expected_value));
+    for (uint64_t i = 0; i < 4; i++) {
+        expected_value[i] = token;
+        token = token->next;
+        if (token == NULL) {
+            break;
+        }
+    }
+    
+    if (bits32_mode && fpmode) {
+        double fval = 0;
+        double fval2 = 0;
+        double fval3 = 0;
+        double fval4 = 0;
         double stval = 0;
+        double stval2 = 0;
+        double stval3 = 0;
+        double stval4 = 0;
+        if (expected_value[0] == NULL) {
+            error("Test-XMM -- First value specifier is NULL.", spec);
+        }
+        if (!tactyk_dblock__try_parsedouble(&fval, expected_value[0])) {
+            error("Test-XMM -- Not a floating point number",expected_value[0]);
+        }
+        if (expected_value[1] != NULL) {
+            tactyk_dblock__try_parsedouble(&fval2, expected_value[1]);
+        }
+        if (expected_value[2] != NULL) {
+            tactyk_dblock__try_parsedouble(&fval3, expected_value[2]);
+        }
+        if (expected_value[3] != NULL) {
+            tactyk_dblock__try_parsedouble(&fval4, expected_value[3]);
+        }
+        
+        # define CHK_FIELDS_F32(INDEX, REGNAME) \
+        case INDEX: { \
+            stval = vmctx->reg.REGNAME.f32[0]; \
+            shadow_vmctx->reg.REGNAME.f32[0] = vmctx->reg.REGNAME.f32[0];\
+            stval2 = vmctx->reg.REGNAME.f32[1]; \
+            shadow_vmctx->reg.REGNAME.f32[1] = vmctx->reg.REGNAME.f32[1];\
+            stval3 = vmctx->reg.REGNAME.f32[2]; \
+            shadow_vmctx->reg.REGNAME.f32[2] = vmctx->reg.REGNAME.f32[2];\
+            stval4 = vmctx->reg.REGNAME.f32[3]; \
+            shadow_vmctx->reg.REGNAME.f32[3] = vmctx->reg.REGNAME.f32[3];\
+            break; \
+        }
+    
         switch(valtest_spec->offset) {
-            case 0: {
-                stval = vmctx->reg.xA.f64[0];
-                shadow_vmctx->reg.xA.f64[0] = vmctx->reg.xA.f64[0];
-                break;
-            }
-            case 1: {
-                stval = vmctx->reg.xB.f64[0];
-                shadow_vmctx->reg.xB.f64[0] = vmctx->reg.xB.f64[0];
-                break;
-            }
-            case 2: {
-                stval = vmctx->reg.xC.f64[0];
-                shadow_vmctx->reg.xC.f64[0] = vmctx->reg.xC.f64[0];
-                break;
-            }
-            case 3: {
-                stval = vmctx->reg.xD.f64[0];
-                shadow_vmctx->reg.xD.f64[0] = vmctx->reg.xD.f64[0];
-                break;
-            }
-            case 4: {
-                stval = vmctx->reg.xE.f64[0];
-                shadow_vmctx->reg.xE.f64[0] = vmctx->reg.xE.f64[0];
-                break;
-            }
-            case 5: {
-                stval = vmctx->reg.xF.f64[0];
-                shadow_vmctx->reg.xF.f64[0] = vmctx->reg.xF.f64[0];
-                break;
-            }
-            case 6: {
-                stval = vmctx->reg.xG.f64[0];
-                shadow_vmctx->reg.xG.f64[0] = vmctx->reg.xG.f64[0];
-                break;
-            }
-            case 7: {
-                stval = vmctx->reg.xH.f64[0];
-                shadow_vmctx->reg.xH.f64[0] = vmctx->reg.xH.f64[0];
-                break;
-            }
-            case 8: {
-                stval = vmctx->reg.xI.f64[0];
-                shadow_vmctx->reg.xI.f64[0] = vmctx->reg.xI.f64[0];
-                break;
-            }
-            case 9: {
-                stval = vmctx->reg.xJ.f64[0];
-                shadow_vmctx->reg.xJ.f64[0] = vmctx->reg.xJ.f64[0];
-                break;
-            }
-            case 10: {
-                stval = vmctx->reg.xK.f64[0];
-                shadow_vmctx->reg.xK.f64[0] = vmctx->reg.xK.f64[0];
-                break;
-            }
-            case 11: {
-                stval = vmctx->reg.xL.f64[0];
-                shadow_vmctx->reg.xL.f64[0] = vmctx->reg.xL.f64[0];
-                break;
-            }
-            case 12: {
-                stval = vmctx->reg.xM.f64[0];
-                shadow_vmctx->reg.xM.f64[0] = vmctx->reg.xM.f64[0];
-                break;
-            }
-            case 13: {
-                stval = vmctx->reg.xN.f64[0];
-                shadow_vmctx->reg.xN.f64[0] = vmctx->reg.xN.f64[0];
-                break;
-            }
-            case 14: {
-                stval = vmctx->reg.xTEMPA.f64[0];
-                shadow_vmctx->reg.xTEMPA.f64[0] = vmctx->reg.xTEMPA.f64[0];
-                break;
-            }
-            case 15: {
-                stval = vmctx->reg.xTEMPB.f64[0];
-                shadow_vmctx->reg.xTEMPB.f64[0] = vmctx->reg.xTEMPB.f64[0];
-                break;
-            }
+            CHK_FIELDS_F32(0, xA)
+            CHK_FIELDS_F32(1, xB)
+            CHK_FIELDS_F32(2, xC)
+            CHK_FIELDS_F32(3, xD)
+            CHK_FIELDS_F32(4, xE)
+            CHK_FIELDS_F32(5, xF)
+            CHK_FIELDS_F32(6, xG)
+            CHK_FIELDS_F32(7, xH)
+            CHK_FIELDS_F32(8, xI)
+            CHK_FIELDS_F32(9, xJ)
+            CHK_FIELDS_F32(10, xK)
+            CHK_FIELDS_F32(11, xL)
+            CHK_FIELDS_F32(12, xM)
+            CHK_FIELDS_F32(13, xN)
+            CHK_FIELDS_F32(14, xTEMPA)
+            CHK_FIELDS_F32(15, xTEMPB)
+            
             default: {
                 tactyk_test__report("Test element-offset is invalid");
                 return TACTYK_TESTSTATE__TEST_ERROR;
             }
         }
-        if (tactyk_test__approximately_eq(stval, fval)) {
+        
+        #undef CHK_FIELDS_F32
+        
+        if (
+            tactyk_test__approximately_eq(stval, fval, precision) && 
+            tactyk_test__approximately_eq(stval2, fval2, precision) && 
+            tactyk_test__approximately_eq(stval3, fval3, precision) && 
+            tactyk_test__approximately_eq(stval4, fval4, precision)
+        ) {
             return TACTYK_TESTSTATE__PASS;
         }
         else {
-            sprintf(test_state->report, "deviation: Register %s, expected:%f observed:%f", valtest_spec->name, fval, stval);
+            sprintf(test_state->report, "deviation: Register %s, expected:%f,%f,%f,%f observed:%f,%f,%f,%f", valtest_spec->name, fval, fval2, fval3, fval4, stval,stval2,stval3,stval4);
             return TACTYK_TESTSTATE__FAIL;
         }
     }
-    else {
-
+    else if (!bits32_mode && fpmode) {
+        double fval = 0;
+        double fval2 = 0;
+        double stval = 0;
+        double stval2 = 0;
+        
+        if (expected_value[0] == NULL) {
+            error("Test-XMM -- First value specifier is NULL.", spec);
+        }
+        if (!tactyk_dblock__try_parsedouble(&fval, expected_value[0])) {
+            error("Test-XMM -- Not a floating point number",expected_value[0]);
+        }
+        if (expected_value[1] != NULL) {
+            tactyk_dblock__try_parsedouble(&fval2, expected_value[1]);
+        }
+        
+        # define CHK_FIELDS_F64(INDEX, REGNAME) \
+        case INDEX: { \
+            stval = vmctx->reg.REGNAME.f64[0]; \
+            shadow_vmctx->reg.REGNAME.f64[0] = vmctx->reg.REGNAME.f64[0];\
+            stval2 = vmctx->reg.REGNAME.f64[1]; \
+            shadow_vmctx->reg.REGNAME.f64[1] = vmctx->reg.REGNAME.f64[1];\
+            break; \
+        }
+    
+        switch(valtest_spec->offset) {
+            CHK_FIELDS_F64(0, xA)
+            CHK_FIELDS_F64(1, xB)
+            CHK_FIELDS_F64(2, xC)
+            CHK_FIELDS_F64(3, xD)
+            CHK_FIELDS_F64(4, xE)
+            CHK_FIELDS_F64(5, xF)
+            CHK_FIELDS_F64(6, xG)
+            CHK_FIELDS_F64(7, xH)
+            CHK_FIELDS_F64(8, xI)
+            CHK_FIELDS_F64(9, xJ)
+            CHK_FIELDS_F64(10, xK)
+            CHK_FIELDS_F64(11, xL)
+            CHK_FIELDS_F64(12, xM)
+            CHK_FIELDS_F64(13, xN)
+            CHK_FIELDS_F64(14, xTEMPA)
+            CHK_FIELDS_F64(15, xTEMPB)
+            
+            default: {
+                tactyk_test__report("Test element-offset is invalid");
+                return TACTYK_TESTSTATE__TEST_ERROR;
+            }
+        }
+        
+        #undef CHK_FIELDS_F64
+        
+        if (tactyk_test__approximately_eq(stval, fval, precision) && tactyk_test__approximately_eq(stval2, fval2, precision)) {
+            return TACTYK_TESTSTATE__PASS;
+        }
+        else {
+            sprintf(test_state->report, "deviation: Register %s, expected:%f,%f observed:%f,%f", valtest_spec->name, fval, fval2, stval,stval2);
+            return TACTYK_TESTSTATE__FAIL;
+        }
+    }
+    else if (bits32_mode && !fpmode) {
         int64_t ival = 0;
         uint64_t uival1 = 0;
         uint64_t uival2 = 0;
+        uint64_t uival3 = 0;
+        uint64_t uival4 = 0;
 
-        if (expected_value == NULL) {
+        if (expected_value[0] == NULL) {
             tactyk_test__report("XMM-register-test: No value specified.");
             return TACTYK_TESTSTATE__TEST_ERROR;
         }
 
-        if (tactyk_dblock__try_parseint(&ival, expected_value)) {
+        if (tactyk_dblock__try_parseint(&ival, expected_value[0])) {
             uival1 = (uint64_t)ival;
+            if (tactyk_dblock__try_parseint(&ival, expected_value[1])) {
+                uival2 = (uint64_t)ival;
+            }
+            if (tactyk_dblock__try_parseint(&ival, expected_value[2])) {
+                uival3 = (uint64_t)ival;
+            }
+            if (tactyk_dblock__try_parseint(&ival, expected_value[3])) {
+                uival4 = (uint64_t)ival;
+            }
         }
-        else if ( (expected_value->length > 0) && (tactyk_dblock__getchar(expected_value, 0) == '\'') ) {
+        else if ( (expected_value[0]->length > 0) && (tactyk_dblock__getchar(expected_value[0], 0) == '\'') ) {
             // setup string test by copying raw bytes onto integer variables (which are then written to shadow context register content)
             // This assumes tactyk_dblock__export_cstring zero-fills the buffer
             char buf[256];
-            tactyk_dblock__export_cstring(buf, 256, expected_value);
+            tactyk_dblock__export_cstring(buf, 256, expected_value[0]);
+            memcpy(&uival1, &buf[1], 4);
+            memcpy(&uival2, &buf[5], 4);
+            memcpy(&uival3, &buf[9], 4);
+            memcpy(&uival4, &buf[13], 4);
+        }
+
+        # define CHK_FIELDS_I32(INDEX, REGNAME) \
+        case INDEX: { \
+            shadow_vmctx->reg.REGNAME.i32[0] = uival1;\
+            shadow_vmctx->reg.REGNAME.i32[1] = uival2;\
+            shadow_vmctx->reg.REGNAME.i32[2] = uival3;\
+            shadow_vmctx->reg.REGNAME.i32[3] = uival4;\
+            break; \
+        }
+        
+        switch(valtest_spec->offset) {
+            CHK_FIELDS_I32(0, xA)
+            CHK_FIELDS_I32(1, xB)
+            CHK_FIELDS_I32(2, xC)
+            CHK_FIELDS_I32(3, xD)
+            CHK_FIELDS_I32(4, xE)
+            CHK_FIELDS_I32(5, xF)
+            CHK_FIELDS_I32(6, xG)
+            CHK_FIELDS_I32(7, xH)
+            CHK_FIELDS_I32(8, xI)
+            CHK_FIELDS_I32(9, xJ)
+            CHK_FIELDS_I32(10, xK)
+            CHK_FIELDS_I32(11, xL)
+            CHK_FIELDS_I32(12, xM)
+            CHK_FIELDS_I32(13, xN)
+            CHK_FIELDS_I32(14, xTEMPA)
+            CHK_FIELDS_I32(15, xTEMPB)
+        }
+        
+        #undef CHK_FIELDS_I32
+
+        return TACTYK_TESTSTATE__PASS;
+    }
+    else if (!bits32_mode && !fpmode) {
+        int64_t ival = 0;
+        uint64_t uival1 = 0;
+        uint64_t uival2 = 0;
+
+        if (expected_value[0] == NULL) {
+            tactyk_test__report("XMM-register-test: No value specified.");
+            return TACTYK_TESTSTATE__TEST_ERROR;
+        }
+
+        if (tactyk_dblock__try_parseint(&ival, expected_value[0])) {
+            uival1 = (uint64_t)ival;
+            if (tactyk_dblock__try_parseint(&ival, expected_value[1])) {
+                uival2 = (uint64_t)ival;
+            }
+        }
+        else if ( (expected_value[0]->length > 0) && (tactyk_dblock__getchar(expected_value[0], 0) == '\'') ) {
+            // setup string test by copying raw bytes onto integer variables (which are then written to shadow context register content)
+            // This assumes tactyk_dblock__export_cstring zero-fills the buffer
+            char buf[256];
+            tactyk_dblock__export_cstring(buf, 256, expected_value[0]);
             memcpy(&uival1, &buf[1], 8);
             memcpy(&uival2, &buf[9], 8);
         }
 
-        switch(valtest_spec->offset) {
-            case 0: {
-                shadow_vmctx->reg.xA.i64[0] = uival1;
-                shadow_vmctx->reg.xA.i64[1] = uival2;
-                break;
-            }
-            case 1: {
-                shadow_vmctx->reg.xB.i64[0] = uival1;
-                shadow_vmctx->reg.xB.i64[1] = uival2;
-                break;
-            }
-            case 2: {
-                shadow_vmctx->reg.xC.i64[0] = uival1;
-                shadow_vmctx->reg.xC.i64[1] = uival2;
-                break;
-            }
-            case 3: {
-                shadow_vmctx->reg.xD.i64[0] = uival1;
-                shadow_vmctx->reg.xD.i64[1] = uival2;
-                break;
-            }
-            case 4: {
-                shadow_vmctx->reg.xE.i64[0] = uival1;
-                shadow_vmctx->reg.xE.i64[1] = uival2;
-                break;
-            }
-            case 5: {
-                shadow_vmctx->reg.xF.i64[0] = uival1;
-                shadow_vmctx->reg.xF.i64[1] = uival2;
-                break;
-            }
-            case 6: {
-                shadow_vmctx->reg.xG.i64[0] = uival1;
-                shadow_vmctx->reg.xG.i64[1] = uival2;
-                break;
-            }
-            case 7: {
-                shadow_vmctx->reg.xH.i64[0] = uival1;
-                shadow_vmctx->reg.xH.i64[1] = uival2;
-                break;
-            }
-            case 8: {
-                shadow_vmctx->reg.xI.i64[0] = uival1;
-                shadow_vmctx->reg.xI.i64[1] = uival2;
-                break;
-            }
-            case 9: {
-                shadow_vmctx->reg.xJ.i64[0] = uival1;
-                shadow_vmctx->reg.xJ.i64[1] = uival2;
-                break;
-            }
-            case 10: {
-                shadow_vmctx->reg.xK.i64[0] = uival1;
-                shadow_vmctx->reg.xK.i64[1] = uival2;
-                break;
-            }
-            case 11: {
-                shadow_vmctx->reg.xL.i64[0] = uival1;
-                shadow_vmctx->reg.xL.i64[1] = uival2;
-                break;
-            }
-            case 12: {
-                shadow_vmctx->reg.xM.i64[0] = uival1;
-                shadow_vmctx->reg.xM.i64[1] = uival2;
-                break;
-            }
-            case 13: {
-                shadow_vmctx->reg.xN.i64[0] = uival1;
-                shadow_vmctx->reg.xN.i64[1] = uival2;
-                break;
-            }
-            case 14: {
-                shadow_vmctx->reg.xTEMPA.i64[0] = uival1;
-                shadow_vmctx->reg.xTEMPA.i64[1] = uival2;
-                break;
-            }
-            case 15: {
-                shadow_vmctx->reg.xTEMPB.i64[0] = uival1;
-                shadow_vmctx->reg.xTEMPB.i64[1] = uival2;
-                break;
-            }
+        # define CHK_FIELDS_I64(INDEX, REGNAME) \
+        case INDEX: { \
+            shadow_vmctx->reg.REGNAME.i64[0] = uival1;\
+            shadow_vmctx->reg.REGNAME.i64[1] = uival2;\
+            break; \
         }
+        
+        switch(valtest_spec->offset) {
+            CHK_FIELDS_I64(0, xA)
+            CHK_FIELDS_I64(1, xB)
+            CHK_FIELDS_I64(2, xC)
+            CHK_FIELDS_I64(3, xD)
+            CHK_FIELDS_I64(4, xE)
+            CHK_FIELDS_I64(5, xF)
+            CHK_FIELDS_I64(6, xG)
+            CHK_FIELDS_I64(7, xH)
+            CHK_FIELDS_I64(8, xI)
+            CHK_FIELDS_I64(9, xJ)
+            CHK_FIELDS_I64(10, xK)
+            CHK_FIELDS_I64(11, xL)
+            CHK_FIELDS_I64(12, xM)
+            CHK_FIELDS_I64(13, xN)
+            CHK_FIELDS_I64(14, xTEMPA)
+            CHK_FIELDS_I64(15, xTEMPB)
+        }
+        
+        #undef CHK_FIELDS_I64
 
         return TACTYK_TESTSTATE__PASS;
     }
@@ -879,194 +1006,354 @@ uint64_t tactyk_test__TEST_LWCALL_STACK(struct tactyk_test_entry *entry, struct 
 uint64_t tactyk_test__TEST_STASH(struct tactyk_test_entry *entry, struct tactyk_dblock__DBlock *spec) {
     struct tactyk_dblock__DBlock *ofs_token = spec->token->next;
     struct tactyk_dblock__DBlock *fieldname_token = ofs_token->next;
-
+    struct tactyk_dblock__DBlock *val_token = fieldname_token->next;
+    
     uint64_t ofs = 0;
     if (!tactyk_dblock__try_parseuint(&ofs, ofs_token)) {
         ofs = vmctx->reg.rMCSI;
         fieldname_token = ofs_token;
+        val_token = fieldname_token->next;
     }
     else if (ofs >= TACTYK_ASMVM__MCTX_STACK_SIZE) {
         snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "mctx stack offset is out of bounds: %ju", ofs);
         return TACTYK_TESTSTATE__TEST_ERROR;
     }
-
-    struct tactyk_dblock__DBlock *val_token = fieldname_token->next;
-
+    struct tactyk_asmvm__MicrocontextStash *rstash = &vmctx->microcontext_stack[ofs];
     struct tactyk_asmvm__MicrocontextStash *shstash = &shadow_mctxstack[ofs];
-
     char fn[64];
     tactyk_dblock__export_cstring(fn, 64, fieldname_token);
-
-    int64_t ival = 0;
-    int64_t ival2 = 0;
-
     bool field_matched = false;
-
-    if (tactyk_dblock__getchar(val_token, 0) == '\'') {
-        char buf[256];
-        tactyk_dblock__export_cstring(buf, 256, val_token);
-        memcpy(&ival, &buf[1], 8);
-        memcpy(&ival2, &buf[9], 8);
+    
+    struct tactyk_dblock__DBlock *fieldtype_token = val_token;
+    
+    if (tactyk_dblock__equals_c_string(fieldtype_token, "float64")) {
+        val_token = val_token->next;
+        double fval = 0;
+        if (!tactyk_dblock__try_parsedouble(&fval, val_token)) {
+            char buf[64];
+            tactyk_dblock__export_cstring(buf, 64, val_token);
+            snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "[stash] not a floating-point number: %s", buf);
+            return TACTYK_TESTSTATE__TEST_ERROR;
+        }
+        
+        #define STASH_FTEST(NAME, FIELD) \
+        else if (strncmp(fn, #NAME, 64) == 0) { \
+            if (tactyk_test__approximately_eq(fval, rstash->FIELD, precision_f64)) { \
+                shstash->FIELD = rstash->FIELD; \
+                field_matched = true; \
+            } \
+            else { \
+                sprintf(test_state->report, "deviation at stash entry #%ju, field %s, expected:%f observed:%f", ofs, #NAME, fval, rstash->FIELD); \
+                return TACTYK_TESTSTATE__FAIL; \
+            } \
+        }
+        #define STASH_FBTEST(NAME) \
+        else if (strncmp(fn, #NAME, 64) == 0) { \
+            if (tactyk_test__approximately_eq(fval, rstash->NAME.f64[0], precision_f64)) { \
+                shstash->NAME.f64[0] = rstash->NAME.f64[0]; \
+                shstash->NAME.f64[1] = 0; \
+                field_matched = true; \
+            } \
+            else { \
+                sprintf(test_state->report, "deviation at stash entry #%ju, field %s, expected:%f observed:%f", ofs, #NAME, fval, rstash->NAME.f64[0]); \
+                return TACTYK_TESTSTATE__FAIL; \
+            } \
+        }
+        if (false) {}
+        STASH_FTEST(al, a.f64[0])
+        STASH_FTEST(ah, a.f64[1])
+        STASH_FTEST(bl, b.f64[0])
+        STASH_FTEST(bh, b.f64[1])
+        STASH_FTEST(cl, c.f64[0])
+        STASH_FTEST(ch, c.f64[1])
+        STASH_FTEST(dl, d.f64[0])
+        STASH_FTEST(dh, d.f64[1])
+        STASH_FTEST(el, e.f64[0])
+        STASH_FTEST(eh, e.f64[1])
+        STASH_FTEST(fl, f.f64[0])
+        STASH_FTEST(fh, f.f64[1])
+        STASH_FTEST(gl, g.f64[0])
+        STASH_FTEST(gh, g.f64[1])
+        STASH_FTEST(hl, h.f64[0])
+        STASH_FTEST(hh, h.f64[1])
+        STASH_FTEST(il, i.f64[0])
+        STASH_FTEST(ih, i.f64[1])
+        STASH_FTEST(jl, j.f64[0])
+        STASH_FTEST(jh, j.f64[1])
+        STASH_FTEST(kl, k.f64[0])
+        STASH_FTEST(kh, k.f64[1])
+        STASH_FTEST(ll, l.f64[0])
+        STASH_FTEST(lh, l.f64[1])
+        STASH_FTEST(ml, m.f64[0])
+        STASH_FTEST(mh, m.f64[1])
+        STASH_FTEST(nl, n.f64[0])
+        STASH_FTEST(nh, n.f64[1])
+        STASH_FTEST(ol, o.f64[0])
+        STASH_FTEST(oh, o.f64[1])
+        STASH_FTEST(pl, p.f64[0])
+        STASH_FTEST(ph, p.f64[1])
+        STASH_FTEST(ql, q.f64[0])
+        STASH_FTEST(qh, q.f64[1])
+        STASH_FTEST(rl, r.f64[0])
+        STASH_FTEST(rh, r.f64[1])
+        STASH_FTEST(sl, s.f64[0])
+        STASH_FTEST(sh, s.f64[1])
+        STASH_FTEST(tl, t.f64[0])
+        STASH_FTEST(th, t.f64[1])
+        STASH_FTEST(ul, u.f64[0])
+        STASH_FTEST(uh, u.f64[1])
+        STASH_FTEST(vl, v.f64[0])
+        STASH_FTEST(vh, v.f64[1])
+        STASH_FTEST(wl, w.f64[0])
+        STASH_FTEST(wh, w.f64[1])
+        STASH_FTEST(xl, x.f64[0])
+        STASH_FTEST(xh, x.f64[1])
+        STASH_FTEST(yl, y.f64[0])
+        STASH_FTEST(yh, y.f64[1])
+        STASH_FTEST(zl, z.f64[0])
+        STASH_FTEST(zh, z.f64[1])
+        STASH_FTEST(s26l, s26.f64[0])
+        STASH_FTEST(s26h, s26.f64[1])
+        STASH_FTEST(s27l, s27.f64[0])
+        STASH_FTEST(s27h, s27.f64[1])
+        STASH_FTEST(s28l, s28.f64[0])
+        STASH_FTEST(s28h, s28.f64[1])
+        STASH_FTEST(s29l, s29.f64[0])
+        STASH_FTEST(s29h, s29.f64[1])
+        STASH_FTEST(s30l, s30.f64[0])
+        STASH_FTEST(s30h, s30.f64[1])
+        STASH_FTEST(s31l, s31.f64[0])
+        STASH_FTEST(s31h, s31.f64[1])
+        STASH_FBTEST(a)
+        STASH_FBTEST(b)
+        STASH_FBTEST(c)
+        STASH_FBTEST(d)
+        STASH_FBTEST(e)
+        STASH_FBTEST(f)
+        STASH_FBTEST(g)
+        STASH_FBTEST(h)
+        STASH_FBTEST(i)
+        STASH_FBTEST(j)
+        STASH_FBTEST(k)
+        STASH_FBTEST(l)
+        STASH_FBTEST(m)
+        STASH_FBTEST(n)
+        STASH_FBTEST(o)
+        STASH_FBTEST(p)
+        STASH_FBTEST(q)
+        STASH_FBTEST(r)
+        STASH_FBTEST(s)
+        STASH_FBTEST(t)
+        STASH_FBTEST(u)
+        STASH_FBTEST(v)
+        STASH_FBTEST(w)
+        STASH_FBTEST(x)
+        STASH_FBTEST(y)
+        STASH_FBTEST(z)
+        STASH_FBTEST(s26)
+        STASH_FBTEST(s27)
+        STASH_FBTEST(s28)
+        STASH_FBTEST(s29)
+        STASH_FBTEST(s30)
+        STASH_FBTEST(s31)
+    }
+    else if (tactyk_dblock__equals_c_string(fieldtype_token, "float80")) {
+        val_token = val_token->next;
+        long double fval = 0;
+        if (!tactyk_dblock__try_parselongdouble(&fval, val_token)) {
+            char buf[64];
+            tactyk_dblock__export_cstring(buf, 64, val_token);
+            snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "[stash] not a floating-point number: %s", buf);
+            return TACTYK_TESTSTATE__TEST_ERROR;
+        }
+        
+        #define STASH_FLTEST(NAME) \
+        else if (strncmp(fn, #NAME, 64) == 0) { \
+            if (tactyk_test__approximately_eq__longdbl(fval, rstash->NAME.f80, precision_f80)) { \
+                shstash->NAME.f80 = rstash->NAME.f80; \
+                field_matched = true; \
+            } \
+            else { \
+                sprintf(test_state->report, "deviation at stash entry #%ju, field %s, expected:%Lf observed:%Lf", ofs, #NAME, fval, rstash->NAME.f80); \
+                return TACTYK_TESTSTATE__FAIL; \
+            } \
+        }
+        if (false) {}
+        STASH_FLTEST(a)
+        STASH_FLTEST(b)
+        STASH_FLTEST(c)
+        STASH_FLTEST(d)
+        STASH_FLTEST(e)
+        STASH_FLTEST(f)
+        STASH_FLTEST(g)
+        STASH_FLTEST(h)
+        STASH_FLTEST(i)
+        STASH_FLTEST(j)
+        STASH_FLTEST(k)
+        STASH_FLTEST(l)
+        STASH_FLTEST(m)
+        STASH_FLTEST(n)
+        STASH_FLTEST(o)
+        STASH_FLTEST(p)
+        STASH_FLTEST(q)
+        STASH_FLTEST(r)
+        STASH_FLTEST(s)
+        STASH_FLTEST(t)
+        STASH_FLTEST(u)
+        STASH_FLTEST(v)
+        STASH_FLTEST(w)
+        STASH_FLTEST(x)
+        STASH_FLTEST(y)
+        STASH_FLTEST(z)
+        STASH_FLTEST(s26)
+        STASH_FLTEST(s27)
+        STASH_FLTEST(s28)
+        STASH_FLTEST(s29)
+        STASH_FLTEST(s30)
+        STASH_FLTEST(s31)
     }
     else {
-        tactyk_dblock__try_parseint(&ival, val_token);
-    }
 
-    #define STASH_TEST(NAME, FIELD) \
-    else if (strncmp(fn, #NAME, 64) == 0) { \
-        shstash->FIELD = ival; \
-        field_matched = true; \
-    }
-    #define STASH_ATEST(NAME, FIELD, TYPE) \
-    else if (strncmp(fn, NAME, 64) == 0) { \
-        shstash->FIELD = (TYPE)ival; \
-        field_matched = true; \
-    }
+        int64_t ival = 0;
+        int64_t ival2 = 0;
 
-    #define STASH_BTEST(NAME) \
-    else if (strncmp(fn, #NAME, 64) == 0) { \
-        shstash->NAME.i64[0] = ival; \
-        shstash->NAME.i64[1] = ival2; \
-        field_matched = true; \
-    }
-
-    if ( (strncmp(fn, "addr", 4) == 0) && (strlen(fn) == 5) ) {
-        uint64_t aofs = fn[4] - '1';
-        //struct tactyk_asmvm__memblock_lowlevel *mbll = &stash->memblocks[aofs];
-        struct tactyk_asmvm__memblock_lowlevel *shmbll = &shstash->memblocks[aofs];
-        if (ival == 0) {
-            struct tactyk_dblock__DBlock *prgref = val_token;
-            struct tactyk_dblock__DBlock *addrref = val_token->next;
-            struct tactyk_asmvm__Program *prg = tactyk_dblock__get(programs, prgref);
-            if (prg == NULL) {
-                addrref = val_token;
-                prg = tprg;
-            }
-            struct tactyk_dblock__DBlock *addrofs = addrref->next;
-            struct tactyk_asmvm__memblock_highlevel *mbhl = tactyk_dblock__get(prg->memory_layout_hl, addrref);
-            if (mbhl == NULL) {
-                char buf[64];
-                tactyk_dblock__export_cstring(buf, 64, prgref);
-                snprintf(test_state->report, TACTYK_TEST__REPORT_BUFSIZE, "Undefined memblock:  '%s'", buf);
-                return TACTYK_TESTSTATE__TEST_ERROR;
-            }
-            ival += (int64_t)mbhl->data;
-
-            if (addrofs != NULL) {
-                uint64_t uival = 0;
-                tactyk_dblock__try_parseuint(&uival, addrofs);
-                ival += uival;
-            }
+        if (tactyk_dblock__getchar(val_token, 0) == '\'') {
+            char buf[256];
+            tactyk_dblock__export_cstring(buf, 256, val_token);
+            memcpy(&ival, &buf[1], 8);
+            memcpy(&ival2, &buf[9], 8);
         }
-        shmbll->base_address = (uint8_t*)ival;
-        field_matched = true;
+        else {
+            tactyk_dblock__try_parseint(&ival, val_token);
+        }
+
+        #define STASH_TEST(NAME, FIELD) \
+        else if (strncmp(fn, #NAME, 64) == 0) { \
+            shstash->FIELD = ival; \
+            field_matched = true; \
+        }
+        #define STASH_ATEST(NAME, FIELD, TYPE) \
+        else if (strncmp(fn, NAME, 64) == 0) { \
+            shstash->FIELD = (TYPE)ival; \
+            field_matched = true; \
+        }
+
+        #define STASH_BTEST(NAME) \
+        else if (strncmp(fn, #NAME, 64) == 0) { \
+            shstash->NAME.i64[0] = ival; \
+            shstash->NAME.i64[1] = ival2; \
+            field_matched = true; \
+        }
+        if (false) {}
+        STASH_TEST(al, a.i64[0])
+        STASH_TEST(ah, a.i64[1])
+        STASH_TEST(bl, b.i64[0])
+        STASH_TEST(bh, b.i64[1])
+        STASH_TEST(cl, c.i64[0])
+        STASH_TEST(ch, c.i64[1])
+        STASH_TEST(dl, d.i64[0])
+        STASH_TEST(dh, d.i64[1])
+        STASH_TEST(el, e.i64[0])
+        STASH_TEST(eh, e.i64[1])
+
+        STASH_TEST(fl, f.i64[0])
+        STASH_TEST(fh, f.i64[1])
+        STASH_TEST(gl, g.i64[0])
+        STASH_TEST(gh, g.i64[1])
+        STASH_TEST(hl, h.i64[0])
+        STASH_TEST(hh, h.i64[1])
+        STASH_TEST(il, i.i64[0])
+        STASH_TEST(ih, i.i64[1])
+        STASH_TEST(jl, j.i64[0])
+        STASH_TEST(jh, j.i64[1])
+
+        STASH_TEST(kl, k.i64[0])
+        STASH_TEST(kh, k.i64[1])
+        STASH_TEST(ll, l.i64[0])
+        STASH_TEST(lh, l.i64[1])
+        STASH_TEST(ml, m.i64[0])
+        STASH_TEST(mh, m.i64[1])
+        STASH_TEST(nl, n.i64[0])
+        STASH_TEST(nh, n.i64[1])
+        STASH_TEST(ol, o.i64[0])
+        STASH_TEST(oh, o.i64[1])
+
+        STASH_TEST(pl, p.i64[0])
+        STASH_TEST(ph, p.i64[1])
+        STASH_TEST(ql, q.i64[0])
+        STASH_TEST(qh, q.i64[1])
+        STASH_TEST(rl, r.i64[0])
+        STASH_TEST(rh, r.i64[1])
+        STASH_TEST(sl, s.i64[0])
+        STASH_TEST(sh, s.i64[1])
+        STASH_TEST(tl, t.i64[0])
+        STASH_TEST(th, t.i64[1])
+
+        STASH_TEST(ul, u.i64[0])
+        STASH_TEST(uh, u.i64[1])
+        STASH_TEST(vl, v.i64[0])
+        STASH_TEST(vh, v.i64[1])
+        STASH_TEST(wl, w.i64[0])
+        STASH_TEST(wh, w.i64[1])
+        STASH_TEST(xl, x.i64[0])
+        STASH_TEST(xh, x.i64[1])
+        STASH_TEST(yl, y.i64[0])
+        STASH_TEST(yh, y.i64[1])
+
+        STASH_TEST(zl, z.i64[0])
+        STASH_TEST(zh, z.i64[1])
+        
+        STASH_TEST(s26l, s26.i64[0])
+        STASH_TEST(s26h, s26.i64[1])
+        STASH_TEST(s27l, s27.i64[0])
+        STASH_TEST(s27h, s27.i64[1])
+        STASH_TEST(s28l, s28.i64[0])
+        STASH_TEST(s28h, s28.i64[1])
+        STASH_TEST(s29l, s29.i64[0])
+        STASH_TEST(s29h, s29.i64[1])
+        STASH_TEST(s30l, s30.i64[0])
+        STASH_TEST(s30h, s30.i64[1])
+        STASH_TEST(s31l, s31.i64[0])
+        STASH_TEST(s31h, s31.i64[1])
+
+        STASH_BTEST(a)
+        STASH_BTEST(b)
+        STASH_BTEST(c)
+        STASH_BTEST(d)
+        STASH_BTEST(e)
+        STASH_BTEST(f)
+        STASH_BTEST(g)
+        STASH_BTEST(h)
+        STASH_BTEST(i)
+        STASH_BTEST(j)
+        STASH_BTEST(k)
+        STASH_BTEST(l)
+        STASH_BTEST(m)
+        STASH_BTEST(n)
+        STASH_BTEST(o)
+        STASH_BTEST(p)
+        STASH_BTEST(q)
+        STASH_BTEST(r)
+        STASH_BTEST(s)
+        STASH_BTEST(t)
+        STASH_BTEST(u)
+        STASH_BTEST(v)
+        STASH_BTEST(w)
+        STASH_BTEST(x)
+        STASH_BTEST(y)
+        STASH_BTEST(z)
+        STASH_BTEST(s26)
+        STASH_BTEST(s27)
+        STASH_BTEST(s28)
+        STASH_BTEST(s29)
+        STASH_BTEST(s30)
+        STASH_BTEST(s31)
+
+        #undef STASH_TEST
+        #undef STASH_ATEST
+        #undef STASH_BTEST
     }
-    STASH_ATEST("addr1.array_bound", memblocks[0].array_bound, uint32_t)
-    STASH_ATEST("addr1.element_bound", memblocks[0].element_bound, uint32_t)
-    STASH_ATEST("addr1.index", memblocks[0].memblock_index, uint32_t)
-    STASH_ATEST("addr1.offset", memblocks[0].offset, uint32_t)
-    STASH_ATEST("addr2.array_bound", memblocks[1].array_bound, uint32_t)
-    STASH_ATEST("addr2.element_bound", memblocks[1].element_bound, uint32_t)
-    STASH_ATEST("addr2.index", memblocks[1].memblock_index, uint32_t)
-    STASH_ATEST("addr2.offset", memblocks[1].offset, uint32_t)
-    STASH_ATEST("addr3.array_bound", memblocks[2].array_bound, uint32_t)
-    STASH_ATEST("addr3.element_bound", memblocks[2].element_bound, uint32_t)
-    STASH_ATEST("addr3.index", memblocks[2].memblock_index, uint32_t)
-    STASH_ATEST("addr3.offset", memblocks[2].offset, uint32_t)
-    STASH_ATEST("addr4.array_bound", memblocks[3].array_bound, uint32_t)
-    STASH_ATEST("addr4.element_bound", memblocks[3].element_bound, uint32_t)
-    STASH_ATEST("addr4.index", memblocks[3].memblock_index, uint32_t)
-    STASH_ATEST("addr4.offset", memblocks[3].offset, uint32_t)
-
-    STASH_TEST(al, a.i64[0])
-    STASH_TEST(ah, a.i64[1])
-    STASH_TEST(bl, b.i64[0])
-    STASH_TEST(bh, b.i64[1])
-    STASH_TEST(cl, c.i64[0])
-    STASH_TEST(ch, c.i64[1])
-    STASH_TEST(dl, d.i64[0])
-    STASH_TEST(dh, d.i64[1])
-    STASH_TEST(el, e.i64[0])
-    STASH_TEST(eh, e.i64[1])
-
-    STASH_TEST(fl, f.i64[0])
-    STASH_TEST(fh, f.i64[1])
-    STASH_TEST(gl, g.i64[0])
-    STASH_TEST(gh, g.i64[1])
-    STASH_TEST(hl, h.i64[0])
-    STASH_TEST(hh, h.i64[1])
-    STASH_TEST(il, i.i64[0])
-    STASH_TEST(ih, i.i64[1])
-    STASH_TEST(jl, j.i64[0])
-    STASH_TEST(jh, j.i64[1])
-
-    STASH_TEST(kl, k.i64[0])
-    STASH_TEST(kh, k.i64[1])
-    STASH_TEST(ll, l.i64[0])
-    STASH_TEST(lh, l.i64[1])
-    STASH_TEST(ml, m.i64[0])
-    STASH_TEST(mh, m.i64[1])
-    STASH_TEST(nl, n.i64[0])
-    STASH_TEST(nh, n.i64[1])
-    STASH_TEST(ol, o.i64[0])
-    STASH_TEST(oh, o.i64[1])
-
-    STASH_TEST(pl, p.i64[0])
-    STASH_TEST(ph, p.i64[1])
-    STASH_TEST(ql, q.i64[0])
-    STASH_TEST(qh, q.i64[1])
-    STASH_TEST(rl, r.i64[0])
-    STASH_TEST(rh, r.i64[1])
-    STASH_TEST(sl, s.i64[0])
-    STASH_TEST(sh, s.i64[1])
-    STASH_TEST(tl, t.i64[0])
-    STASH_TEST(th, t.i64[1])
-
-    STASH_TEST(ul, u.i64[0])
-    STASH_TEST(uh, u.i64[1])
-    STASH_TEST(vl, v.i64[0])
-    STASH_TEST(vh, v.i64[1])
-    STASH_TEST(wl, w.i64[0])
-    STASH_TEST(wh, w.i64[1])
-    STASH_TEST(xl, x.i64[0])
-    STASH_TEST(xh, x.i64[1])
-    STASH_TEST(yl, y.i64[0])
-    STASH_TEST(yh, y.i64[1])
-
-    STASH_TEST(zl, z.i64[0])
-    STASH_TEST(zh, z.i64[1])
-
-    STASH_BTEST(a)
-    STASH_BTEST(b)
-    STASH_BTEST(c)
-    STASH_BTEST(d)
-    STASH_BTEST(e)
-    STASH_BTEST(f)
-    STASH_BTEST(g)
-    STASH_BTEST(h)
-    STASH_BTEST(i)
-    STASH_BTEST(j)
-    STASH_BTEST(k)
-    STASH_BTEST(l)
-    STASH_BTEST(m)
-    STASH_BTEST(n)
-    STASH_BTEST(o)
-    STASH_BTEST(p)
-    STASH_BTEST(q)
-    STASH_BTEST(r)
-    STASH_BTEST(s)
-    STASH_BTEST(t)
-    STASH_BTEST(u)
-    STASH_BTEST(v)
-    STASH_BTEST(w)
-    STASH_BTEST(x)
-    STASH_BTEST(y)
-    STASH_BTEST(z)
-
-    #undef STASH_TEST
-    #undef STASH_ATEST
-    #undef STASH_BTEST
-
+    
     if (!field_matched) {
         sprintf(test_state->report, "unrecognized mctx field: '%s'", fn);
         return TACTYK_TESTSTATE__TEST_ERROR;

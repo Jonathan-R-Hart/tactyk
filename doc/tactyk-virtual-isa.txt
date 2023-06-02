@@ -7,9 +7,16 @@ V-ISA is the privileged part of the emit interface.  A V-ISA Configuration is pr
 At present, V-ISA handling assumes/requires program components to be laid out with a predefined data structure (TACTYK_asmvm data structures).  If it is determined that it would be appropriate to make the internal structure configurable, then the V-ISA will have to be extended to include it.  (A predefined base structure for programs was used primarily to ease implementation and allow it to be coded directly for in C, though it does seem that a strong case can be made for requiring a fixed structure).
 
 
+MODULAR LOADING
+
+A V-ISA configuration can be split across multiple files.  In simple modular form, the files are effectively concatenated.
+
+Advanced modular loading involves the use of the "extend" command to inject code into V-ISA subroutines (see below).
+
+
 V-ISA COMPONENTS
 
-V-ISA configuration is the set of top-level components defined within a configuration file.  There are presently just 5 top-level commands used to build a V-ISA configuration:  "instruction", "typespec", "subroutine", "settings", and "header"
+V-ISA configuration is the set of top-level components defined within a configuration file.  There are presently just 6 top-level commands used to build a V-ISA configuration:  "instruction", "typespec", "subroutine", "settings", "header", and "extend"
 
 header::
 Specified an assembly language file containing a header to write directly into the output [prior to anything else].
@@ -19,17 +26,34 @@ A table of values to use as global variables.  (When fetching variables, the glo
 
 At present, TACTYK does not use global variables (though it will if it is determined that the assembly language header should be removed).
 
-instruction::
+instruction <name>::
 The instruction command specifies the subroutine which interprets a script command.
 
-typespec::
+typespec <name>::
 The typespec command defines a type specification.  The term, "type" is used loosely here.  The concept of type within V-ISA only refers to how a command argument is interpreted.  In many cases, it reflects the typing systems from high-level languages.  However, V-ISA may use it merely to pick a few fragments of text to insert into code, or even reduce it to a fragment to be placed into a code template selector.
 
 Internally, typespecs are implemented as a set of named subroutines which are invoked by the "type" operator as part of argument interpretation.
 
-subroutine::
+subroutine <name>::
 A named subroutine which may be freely called by other subroutines.
 
+extend <subroutine-class> <subroutine-name> <target> <opt-index>::
+Inject code into a defined subroutine.  The code to inject is the content of the subordinate block.  The code will be appended to the end of the children of the
+first subroutine matching the specified <target>.
+<subroutine-class> specifies which subroutine table the target subroutine is located in
+  "instruction" - The main instruction table
+  "subroutine" - the generic subroutine table
+  "typespec" - The type specifier table
+<subroutine-name> Is the name of a defined subroutine.
+<target> - The name of a V-ISA command to append to.
+<opt-index> - If specified, skip matching subroutines until the Nth match is found.
+it is mainly intended that this be used to insert extra code templates, like so:
+  extend instruction <script-command-name> select-template
+    case ASDF:
+      code
+        ; <-- insert ASM code here
+        jmp $NEXT_INSTRUCTION
+The broader intent of this is to allow the builtin scripting langauge to be subsetted.
 
 SUBROUTINES
 Virtually everything in V-ISA configuration is a subroutine.  Most operators within a V-ISA simply perform a builtin function, then invoke a subroutine or collection of subroutines.  A named subroutine is invoked to interpret a command, and each aspect of the command interpreter is handled by a hierarchy of subordinate subroutines.  Production of code within the local namespace (of all subroutines) is a side-effect of the invocation of these subroutines.
@@ -126,8 +150,10 @@ The "register" parameter specifies which register the unscrambled value should b
 The optional "inputvar" parameter specifies which variable to take the input value from (if not provided, this defaults to $VALUE).
 This requires a "scramble" subroutine in the V-ISA to generate the descrambling code (must be defined with the "subroutine" V-ISA command).
 
-code <opt-outputvar>
+code <opt-modifier> <opt-outputvar>
 This reads each line from the subordinate data, performs string interpolation against local variables and global variables (search for variable names and replace with variable values), and appends it to a code block.
+If a recognized "modifier" parameter is present, the behavior will be adjusted as follows:
+  new - replace the code block if it already exists.
 If the "outputvar" parameter is specified, this will use the named variable as the code block to append to.  If not, this defaults to the primary code block (what the instruction yields).
 
 int-operand

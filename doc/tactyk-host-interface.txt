@@ -8,7 +8,8 @@ Here is how, with just a few simple function calls, the TACTYK runtime can be se
   
   // Setup backend compilation and program loading components
   tactyk_init();
-  tactyk_visa__init("rsc", "tactyk_core.visa");
+  tactyk_visa__init("rsc");
+  tactyk_visa__load_config_module("tactyk_core.visa");
   struct tactyk_emit__Context *emitctx = tactyk_emit__init();
   tactyk_visa__init_emit(emitctx);
   
@@ -43,8 +44,10 @@ TACTYK static initialization:         tactyk_init();
     error and warning handlers
     Managed object storage
     tactyk_pl function map
-    tactyk_pl defaultmemory layout
+    tactyk_pl default memory layout
     And if the USE_TACTYK_ALLOCATOR compilation option is set, it also sets up a custom mmap-based memory allocator 
+TACTYK module loader:                 tactyk_visa__load_config_module();
+  This loads a collection of subroutines (emit interface functionality)
 
 Virtual ISA initialization:           tactyk_visa__init(resource_directoryname, visa_filename)
   Loads a Virtual ISA configuration file.
@@ -156,3 +159,24 @@ context.microcontext_stack[context.microcontext_stack_offset]
   mctx_stack_floor indicates the base position of the currently executing program's view of the micricontext stack.
 
 For more details, the data structures are defined in tactyk_asmvm.h
+
+CONSTANT TABLES
+
+Constant tables can be provided to tactyk-pl scripts with the following function:
+  tactyk_pl__define_constants(ctx, name, constants);
+  
+  ctx:        A reference to the tactyk-pl contexts
+  name:       Name of the constant table
+  constants:  A table of constants
+
+The constant table uses the table form of tactyk-dblock with string entries.
+__TODO:  Description of the use of tactyk-dblock for building associative arrays.
+
+The constant table is referneced from tactyk-pl scripts through the following directive:
+  use <name>
+  
+  name:       Name of the constant table
+  
+  The result of this directive is that each defined constant will be loaded into the emit interface, and made usable with any
+    script-command which accepts constants.
+

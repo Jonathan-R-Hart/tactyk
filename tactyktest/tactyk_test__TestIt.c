@@ -25,7 +25,9 @@ struct tactyk_asmvm__memblock_lowlevel *shadow_memblocks;
 struct tactyk_asmvm__MicrocontextStash *shadow_mctxstack;
 struct tactyk_asmvm__Stack *shadow_ctx_stack;
 uint32_t *shadow_lwcall_stack;
-double precision;
+double precision_f32;
+double precision_f64;
+long double precision_f80;
 uint64_t callback_id;
 uint64_t ccall_args[6];
 int64_t ccall_retval;
@@ -40,7 +42,9 @@ struct tactyk_dblock__DBlock *test_functions;
 
 struct tactyk_dblock__DBlock *DEFAULT_NAME;
 
-double DEFAULT_PRECISION = DBL_EPSILON * 65536.0;
+long double DEFAULT_PRECISION_F80 = DBL_EPSILON * 1.0;                 // eps * 1
+double DEFAULT_PRECISION_F64 = DBL_EPSILON * 131072.0;            // eps * 2**17
+double DEFAULT_PRECISION_F32 = DBL_EPSILON * 4294967296.0;        // eps * 2**32
 
 struct tactyk_dblock__DBlock **active_test_spec;
 
@@ -140,7 +144,18 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
 
     // should make configuration mutable - some tests will need to load alternative virtual ISA specifications that include special instructions which test
     //      the integrity of the sandbox.
-    tactyk_visa__init("rsc", "tactyk_core.visa");
+    tactyk_visa__init("rsc");
+    tactyk_visa__load_config_module("tactyk_core.visa");
+    tactyk_visa__load_config_module("tactyk_core_typespec.visa");
+    tactyk_visa__load_config_module("tactyk_core_ccall.visa");
+    tactyk_visa__load_config_module("tactyk_core_memory.visa");
+    tactyk_visa__load_config_module("tactyk_core_bulk_transfer.visa");
+    tactyk_visa__load_config_module("tactyk_core_stash.visa");
+    tactyk_visa__load_config_module("tactyk_core_tvmcall.visa");
+    tactyk_visa__load_config_module("tactyk_core_xmm_fpmath.visa");
+    tactyk_visa__load_config_module("tactyk_core_math.visa");
+    tactyk_visa__load_config_module("tactyk_core_simd.visa");
+    tactyk_visa__load_config_module("tactyk_core_simd-util.visa");
     emitctx = tactyk_emit__init();
 
     tactyk_visa__init_emit(emitctx);
@@ -167,7 +182,9 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     programs = tactyk_dblock__new_table(64);
     shadow_memblock_sets = tactyk_dblock__new_table(64);
     DEFAULT_NAME = tactyk_dblock__from_safe_c_string("DEFAULT");
-    precision = DEFAULT_PRECISION;
+    precision_f80 = DEFAULT_PRECISION_F80;
+    precision_f64 = DEFAULT_PRECISION_F64;
+    precision_f32 = DEFAULT_PRECISION_F32;
     test_functions = tactyk_dblock__new_table(64);
 
     tactyk_dblock__put(test_functions, "PROGRAM", tactyk_test__PROGRAM);
@@ -179,6 +196,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_dblock__put(test_functions, "CONTINUE", tactyk_test__CONTINUE);
     tactyk_dblock__put(test_functions, "RETURN", tactyk_test__RETURN);
     tactyk_dblock__put(test_functions, "RESUME", tactyk_test__RESUME);
+    tactyk_dblock__put(test_functions, "EXIT", tactyk_test__EXIT);
     tactyk_dblock__put(test_functions, "XMM-DISPLAYMODE", tactyk_test__XMM_DISPLAYMODE);
 
     base_tests = tactyk_dblock__new_managedobject_table(1024, sizeof(struct tactyk_test_entry));

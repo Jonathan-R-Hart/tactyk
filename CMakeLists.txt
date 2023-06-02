@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(tactyk-p C CXX)
-project(tactyk-p VERSION 0.7.5)
+project(tactyk-p VERSION 0.7.6)
 
 add_library(tactyk
   libtactyk/tactyk.c
@@ -16,6 +16,11 @@ add_library(tactyk
   libtactyk/tactyk_emit_svc.c
   libtactyk/tactyk_visa.c
   libtactyk/tactyk_debug.c
+)
+
+add_library(tactyk_aux
+  aux/aux_util.c
+  aux/aux_printit.c
 )
 
 add_executable(tdemo
@@ -35,8 +40,14 @@ add_executable(ttest
 
 find_package(SDL2 REQUIRED)
 
+target_include_directories(tactyk_aux PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/aux
+)
+
 target_include_directories(tdemo PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/aux
   ${SDL2_INCLUDE_DIRS}
 )
 target_include_directories(tactyk PRIVATE
@@ -46,7 +57,7 @@ target_include_directories(ttest PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries( tdemo tactyk ${SDL2_LIBRARIES} )
+target_link_libraries( tdemo tactyk tactyk_aux ${SDL2_LIBRARIES} )
 target_link_libraries( ttest tactyk )
 
 add_compile_definitions(

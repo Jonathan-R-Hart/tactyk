@@ -1,0 +1,292 @@
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#   Copyright 2023, Jonathan Hart
+#   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
+#   either version 3 of the License, or (at your option) any later version.
+#   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE. See the GNU General Public License for more details.
+#   You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+# TACTYK Core Virtual ISA
+# This is both the default configuration for TACTYK, as well as an example of how to use configuration-based virtual ISA specification
+
+# addresses and data registers are recognized by reading code directly.
+typespec address
+  select-operand
+    case @1 addr1 rADDR1
+      value rADDR1
+      $CTX_ADDR context.addr1
+      $CTX_ARRAY_BOUND context.addr1_array_bound
+      $CTX_ELEMENT_BOUND context.addr1_element_bound
+      $CTX_MEMBLOCK_INDEX context.addr1_memblock_index
+    case @2 addr2 rADDR2
+      value rADDR2
+      $CTX_ADDR context.addr2
+      $CTX_ARRAY_BOUND context.addr2_array_bound
+      $CTX_ELEMENT_BOUND context.addr2_element_bound
+      $CTX_MEMBLOCK_INDEX context.addr2_memblock_index
+    case @3 addr3 rADDR3
+      value rADDR3
+      $CTX_ADDR context.addr3
+      $CTX_ARRAY_BOUND context.addr3_array_bound
+      $CTX_ELEMENT_BOUND context.addr3_element_bound
+      $CTX_MEMBLOCK_INDEX context.addr3_memblock_index
+    case @4 addr4 rADDR4
+      value rADDR4
+      $CTX_ADDR context.addr4
+      $CTX_ARRAY_BOUND context.addr4_array_bound
+      $CTX_ELEMENT_BOUND context.addr4_element_bound
+      $CTX_MEMBLOCK_INDEX context.addr4_memblock_index
+  pick A
+
+typespec data
+  select-operand
+    case a ra rA
+      value rA
+    case b rb rB
+      value rB
+    case c rc rC
+      value rC
+    case d rd rD
+      value rD
+    case e re rE
+      value rE
+    case f rf rF
+      value rF
+  pick D
+
+typespec word
+  select-operand
+    case byte i8
+      pick B
+    case word i16
+      pick W
+    case dword i32
+      pick D
+    case qword i64
+      pick Q
+    case float float64
+      pick F64
+    case float32
+      pick F32
+    case oword bits128
+      pick B128
+
+typespec stackreg
+  select-operand
+    case mctx.pos mcxtstack.pos mctx.position mcxtstack.position
+      value rMCSI
+      $STACK_FLOOR context.microcontext_floor
+    case lwcs.pos lwcstack.pos lwcs.position lwcstack.position
+      value rLWCSI
+      $STACK_FLOOR context.lwcall_floor
+  pick Sreg
+
+
+# integers are recognized by casting to integer, then range-tested to obtain a byte width.
+typespec integer
+  int-operand
+  pick I
+
+typespec float
+  float-operand
+  pick F
+
+# symbolic fields are handled by looking them up in symbol tables.
+typespec branch
+  symbol label
+  pick L
+
+typespec const
+  symbol const
+  pick C
+
+typespec fconst
+  symbol fconst
+  pick Cf
+
+typespec memblock
+  symbol mem
+  pick M
+
+typespec capi
+  symbol capi
+  pick Cfunc
+
+typespec tapi
+  symbol tapi
+  pick Tfunc
+
+typespec none
+  nullarg
+  pick N
+
+typespec string
+  string-operand
+  pick S
+
+typespec context-property
+  select-operand
+    case addr1.array_bound
+      value context.addr1_array_bound
+      $KW dword
+    case addr1.element_bound
+      value context.addr1_element_bound
+      $KW dword
+    case addr1.index
+      value context.addr1_memblock_index
+      $KW dword
+    case addr1.offset
+      value context.addr1_offset
+      $KW dword
+    case addr2.array_bound
+      value context.addr2_array_bound
+      $KW dword
+    case addr2.element_bound
+      value context.addr2_element_bound
+      $KW dword
+    case addr2.index
+      value context.addr2_memblock_index
+      $KW dword
+    case addr2.offset
+      value context.addr2_offset
+      $KW dword
+    case addr3.array_bound
+      value context.addr3_array_bound
+      $KW dword
+    case addr3.element_bound
+      value context.addr3_element_bound
+      $KW dword
+    case addr3.index
+      value context.addr3_memblock_index
+      $KW dword
+    case addr3.offset
+      value context.addr3_offset
+      $KW dword
+    case addr4.array_bound
+      value context.addr4_array_bound
+      $KW dword
+    case addr4.element_bound
+      value context.addr4_element_bound
+      $KW dword
+    case addr4.index
+      value context.addr4_memblock_index
+      $KW dword
+    case addr4.offset
+      value context.addr4_offset
+      $KW dword
+  pick Ctx
+
+# set up a prototype paramter block 
+typespec comparator
+  select-operand
+    case < lt
+      value jl
+      $VPRED 1
+      $VPREDCOMPLEMENT 6
+    case <= le
+      value jle
+      $VPRED 2
+      $VPREDCOMPLEMENT 5
+    case == eq
+      value je
+      $VPRED 0
+      $VPREDCOMPLEMENT 0
+    case >= ge
+      value jge
+      $VPRED 5
+      $VPREDCOMPLEMENT 2
+    case > gt
+      value jg
+      $VPRED 6
+      $VPREDCOMPLEMENT 1
+    case ~= != neq
+      value jne
+      $VPRED 4
+      $VPREDCOMPLEMENT 4
+  pick T
+
+typespec address-offset
+  select-operand
+    case addr1.offset
+      $ADDRESS_REGISTER rADDR1
+      $CTX_ADDRESS context.addr1
+      $CTX_ADDRESS_BOUND context.addr1_array_bound
+    case addr2.offset
+      $ADDRESS_REGISTER rADDR2
+      $CTX_ADDRESS context.addr2
+      $CTX_ADDRESS_BOUND context.addr2_array_bound
+    case addr3.offset
+      $ADDRESS_REGISTER rADDR3
+      $CTX_ADDRESS context.addr3
+      $CTX_ADDRESS_BOUND context.addr3_array_bound
+    case addr4.offset
+      $ADDRESS_REGISTER rADDR4
+      $CTX_ADDRESS context.addr4
+      $CTX_ADDRESS_BOUND context.addr4_array_bound
+  pick O
+
+typespec xmmx
+  select-operand
+    case x0 xmm0 xa xA
+      value xA
+    case x1 xmm1 xb xB
+      value xB
+    case x2 xmm2 xc xC
+      value xC
+    case x3 xmm3 xd xD
+      value xD
+    case x4 xmm4 xe xE
+      value xE
+    case x5 xmm5 xf xF
+      value xF
+    case x6 xmm6 xg xG
+      value xG
+    case x7 xmm7 xh xH
+      value xH
+    case x8 xmm8 xi xI
+      value xI
+    case x9 xmm9 xj xJ
+      value xJ
+    case x10 xmm10 xk xK
+      value xK
+    case x11 xmm11 xl xL
+      value xL
+    case x12 xmm12 xm xM
+      value xM
+    case x13 xmm13 xn xN
+      value xN
+  pick X
+
+typespec xmmx-full
+  select-operand
+    case xx0 xxmm0 xxa xxA
+      value xA
+    case xx1 xxmm1 xxb xxB
+      value xB
+    case xx2 xxmm2 xxc xxC
+      value xC
+    case xx3 xxmm3 xxd xxD
+      value xD
+    case xx4 xxmm4 xxe xxE
+      value xE
+    case xx5 xxmm5 xxf xxF
+      value xF
+    case xx6 xxmm6 xxg xxG
+      value xG
+    case xx7 xxmm7 xxh xxH
+      value xH
+    case xx8 xxmm8 xxi xxI
+      value xI
+    case xx9 xxmm9 xxj xxJ
+      value xJ
+    case xx10 xxmm10 xxk xxK
+      value xK
+    case xx11 xxmm11 xxl xxL
+      value xL
+    case xx12 xxmm12 xxm xxM
+      value xM
+    case xx13 xxmm13 xxn xxN
+      value xN
+  pick Xx

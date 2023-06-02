@@ -1,0 +1,79 @@
+# TEST:  tangent computation
+#
+# Virtual-ISA: tactyk_core
+# Templates:  
+#   tangent xmmx (X)
+#   tangent xmmx-xmmx (XX)
+
+PROGRAM
+  TANGENT_X_1_reg:
+    assign xE -8.6075866131449
+    assign xF 2.8435362748859063
+    assign xG 6.857169668866192
+    assign xH 2.254493864351753
+    assign xI -2.7147800796373804
+    assign xJ 8.989933873960457
+    assign xK 6.704672210681977
+    assign xL -5.383229140658754
+    assign xM -6.005156994546447
+    assign xN 12.558206012745597
+    tangent xE
+    tangent xF
+    tangent xG
+    tangent xH
+    tangent xI
+    tangent xJ
+    tangent xK
+    tangent xL
+    tangent xM
+    tangent xN
+    exit
+  TANGENT_XX_2_reg:
+    assign xA 1.2054541857165137
+    tangent xE xA
+    assign xA 12.070850011677372
+    tangent xF xA
+    assign xA 10.791988228468334
+    tangent xG xA
+    assign xA 2.727352929997661
+    tangent xH xA
+    assign xA -7.828215459217571
+    tangent xI xA
+    assign xA 4.767992600374676
+    tangent xJ xA
+    assign xA -10.045252819486729
+    tangent xK xA
+    assign xA -7.873616458367567
+    tangent xL xA
+    assign xA 5.688715797892009
+    tangent xM xA
+    assign xA 3.8510046349115896
+    tangent xN xA
+    exit
+
+EXEC TANGENT_X_1_reg
+TEST
+  xE 1.0656972298066787
+  xF -0.3072079222394848
+  xG 0.6466042738943092
+  xH -1.2273022358727348
+  xI 0.45476879400255155
+  xJ -0.4644970829983646
+  xK 0.4483571648701739
+  xL 1.2600447828275139
+  xM 0.2854208113632111
+  xN -0.008164783037819744
+EXEC TANGENT_XX_2_reg
+TEST
+  xA 3.8510046349115896
+  xE 2.6142819680945024
+  xF -0.5405003920166312
+  xG 4.843877409176634
+  xH -0.43968116604537893
+  xI -38.801983649100066
+  xJ -17.96590222321054
+  xK -0.7146261279150147
+  xL 50.923373079559774
+  xM -0.676048330409119
+  xN 0.8585067408800959
+

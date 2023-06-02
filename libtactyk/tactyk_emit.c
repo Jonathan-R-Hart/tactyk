@@ -102,6 +102,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     tactyk_dblock__put(ctx->operator_table, "symbol", tactyk_emit__Symbol);
 
+    tactyk_dblock__put(ctx->operator_table, "select", tactyk_emit__Select);
     tactyk_dblock__put(ctx->operator_table, "select-operand", tactyk_emit__SelectOp);
     tactyk_dblock__put(ctx->operator_table, "select-template", tactyk_emit__SelectTemplate);
     tactyk_dblock__put(ctx->operator_table, "select-kw", tactyk_emit__SelectKeyword);
@@ -120,6 +121,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     tactyk_dblock__put(ctx->operator_table, "scramble", tactyk_emit__Scramble);
     tactyk_dblock__put(ctx->operator_table, "code", tactyk_emit__Code);
+    tactyk_dblock__put(ctx->operator_table, "vcode", tactyk_emit__VCode);
 
     tactyk_dblock__put(ctx->operator_table, "int-operand", tactyk_emit__IntOperand);
     tactyk_dblock__put(ctx->operator_table, "float-operand", tactyk_emit__FloatOperand);
@@ -461,6 +463,13 @@ bool tactyk_emit__Flags(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
     }
     return true;
 }
+bool tactyk_emit__Select(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    ctx->select_token = tactyk_emit__fetch_var(ctx, NULL, data->token->next);
+    if (ctx->select_token == NULL) {
+        ctx->select_token = tactyk_dblock__from_c_string("[[ NULL ]]");
+    }
+    return tactyk_emit__ExecSelector(ctx, data);
+}
 bool tactyk_emit__SelectOp(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     ctx->select_token = ctx->pl_operand_raw;
     if (ctx->select_token == NULL) {
@@ -526,12 +535,16 @@ bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock
         error("EMIT -- Not enough arguments", ctx->active_command->pl_code);
     }
     ctx->pl_operand_raw = ctx->pl_operand_raw->next;
-
+    
     if (ctx->pl_operand_raw != NULL) {
         ctx->pl_operand_resolved = tactyk_emit__fetch_var(ctx, NULL, ctx->pl_operand_raw);
+        tactyk_dblock__put(ctx->local_vars, "$RAW_OPERAND", ctx->pl_operand_raw);
+        tactyk_dblock__put(ctx->local_vars, "$RESOLVED_OPERAND", ctx->pl_operand_raw);
     }
-    else {
-        ctx->pl_operand_resolved = tactyk_dblock__from_c_string("[[ NULL ]]");
+    else { 
+        struct tactyk_dblock__DBlock *op_resolved = tactyk_dblock__from_c_string("[[ NULL ]]");
+        tactyk_dblock__put(ctx->local_vars, "$RAW_OPERAND", op_resolved);
+        ctx->pl_operand_resolved = op_resolved;
     }
 
     // Prevent temp vars from leaking.  In most cases, it doesn't matter, as a successfully applied typespec overwrite what is generally expected.
@@ -592,9 +605,9 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
     uint64_t opcount = 0;
     struct tactyk_dblock__DBlock *cfrag = tactyk_dblock__new(4096);
     ctx->active_command->asm_code = cfrag;
+    tactyk_dblock__clear(ctx->code_template);
 
     while ( (ctx->pl_operand_raw != NULL) || (opcount < max_ops) ) {
-
         if (!tactyk_emit__ExecSubroutine(ctx, vopcfg)) {
             if (ctx->pl_operand_raw == NULL) {
                 break;
@@ -604,14 +617,13 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
                 return false;
             }
         }
-
         if (cfrag->length > 0) {
             code_fragments[opcount] = cfrag;
             cfrag = tactyk_dblock__new(4096);
             ctx->active_command->asm_code = cfrag;
             opcount += 1;
-            tactyk_dblock__clear(ctx->code_template);
         }
+        tactyk_dblock__clear(ctx->code_template);
 
         for (uint64_t i = 0; i < opcount; i++) {
             struct tactyk_dblock__DBlock *cfrag_a = code_fragments[i];
@@ -661,6 +673,7 @@ bool tactyk_emit__comprehend_int_value(struct tactyk_emit__Context *ctx, struct 
         uival = (uint64_t)ival;
     }
     else if (!tactyk_dblock__try_parseuint(&uival, data)) {
+        tactyk_dblock__delete(ctx->local_vars, kwname);
         tactyk_dblock__delete(ctx->local_vars, kwname);
         return false;
     }
@@ -784,10 +797,17 @@ bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
         code = ctx->active_command->asm_code;
     }
     else {
-        code = tactyk_dblock__get(ctx->local_vars, target_name);
-        if (code == NULL) {
+        if (tactyk_dblock__equals_c_string(target_name, "new")) {
+            target_name = target_name->next;
             code = tactyk_dblock__new(16);
             tactyk_dblock__put(ctx->local_vars, target_name, code);
+        }
+        else {
+            code = tactyk_dblock__get(ctx->local_vars, target_name);
+            if (code == NULL) {
+                code = tactyk_dblock__new(16);
+                tactyk_dblock__put(ctx->local_vars, target_name, code);
+            }
         }
     }
 
@@ -797,6 +817,41 @@ bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
         code_template = code_template->next;
         tactyk_dblock__append(code, code_rewritten);
         tactyk_dblock__append_char(code, '\n');
+    }
+    return true;
+}
+    
+bool tactyk_emit__VCode(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    uint64_t max = 0;
+    struct tactyk_dblock__DBlock *max_raw = vopcfg->token->next;
+    struct tactyk_dblock__DBlock *code = ctx->active_command->asm_code;
+    
+    if (max_raw == NULL) {
+        error("EMIT - VCode -- Invalid line count", vopcfg);
+    }
+    
+    struct tactyk_dblock__DBlock *max_fetched = tactyk_emit__fetch_var(ctx, NULL, max_raw);
+    if (!tactyk_dblock__try_parseuint(&max, max_fetched)) {
+        error("EMIT - VCode -- Invalid line count", vopcfg);
+    }
+    
+    struct tactyk_dblock__DBlock *code_template = vopcfg->child;
+    while (code_template != NULL) {
+        struct tactyk_dblock__DBlock *token = code_template->token;
+        if (token->data == code_template->data) {
+            code_template->data += token->length;
+            code_template->length -= token->length;
+        }
+        uint64_t hdr = 0;
+        if (!tactyk_dblock__try_parseuint(&hdr, token)) {
+            error("EMIT - VCode -- Invalid vcode line header", code_template);
+        }
+        if (hdr <= max) {
+            struct tactyk_dblock__DBlock *code_rewritten = tactyk_emit__fetch_var(ctx, NULL, code_template);
+            tactyk_dblock__append(code, code_rewritten);
+            tactyk_dblock__append_char(code, '\n');
+        }
+        code_template = code_template->next;
     }
     return true;
 }
@@ -871,7 +926,9 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
             label = label->next;
         }
         struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, cmd->name);
-
+        if (sub == NULL) {
+            error("EMIT-compile -- Unrecognized instruction", cmd->pl_code);
+        }
         sub->func(ctx, sub->vopcfg);
 
         #ifdef TACTYK_DEBUG

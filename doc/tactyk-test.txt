@@ -78,6 +78,7 @@ If the shadow context matches the real context, then proceed with the test.  If 
     expected memory binding.
     <program> specifies which program memblock belongs to.  (default is the most recently accessed program)
     <memblock> is the name of the memblock
+      If "NULL", a NULL memory binding will be expected (and all other parameters will be ignored).
     <offset> specifies the address offset
     <arraybound> and <elementbound> specify the layout.     (defaults are the memblock-provided layout parameters)
   mem <OPT-program> <memblock> <index> <type> <value>

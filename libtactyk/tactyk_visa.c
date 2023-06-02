@@ -30,6 +30,7 @@ bool tactyk_visa__mk_subroutine(struct tactyk_emit__Context *ctx, struct tactyk_
 bool tactyk_visa__ld_header(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *spec);
 bool tactyk_visa__cfg_settings(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *spec);
 bool tactyk_visa__cfg_fterminals(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *spec);
+bool tactyk_visa__extend(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *spec);
 
 struct tactyk_dblock__DBlock *visa_hl_subroutines;
 
@@ -45,7 +46,7 @@ struct tactyk_dblock__DBlock *TACTYK_VISA_FLAG;
 
 char *rsc_directory_name;
 
-void tactyk_visa__init(char *rsc_dname, char *visa_fname) {
+void tactyk_visa__init(char *rsc_dname) {
 
     if (initialized) return;
     initialized = true;
@@ -57,12 +58,15 @@ void tactyk_visa__init(char *rsc_dname, char *visa_fname) {
     tactyk_dblock__put(visa_hl_subroutines, "subroutine", tactyk_visa__mk_subroutine);
     tactyk_dblock__put(visa_hl_subroutines, "settings", tactyk_visa__cfg_settings);
     tactyk_dblock__put(visa_hl_subroutines, "header", tactyk_visa__ld_header);
+    tactyk_dblock__put(visa_hl_subroutines, "extend", tactyk_visa__extend);
 
     if (TACTYK_VISA_FLAG == NULL) {
         TACTYK_VISA_FLAG = tactyk_dblock__from_c_string("flag");
     }
     //sub_instruction
+}
 
+void tactyk_visa__load_config_module(char *visa_fname) {
     // load the configuration file
     // read it line by line
     // use the off-side rule to generate a basic data strcture (pythonish syntactic whitespace)
@@ -96,15 +100,26 @@ void tactyk_visa__init(char *rsc_dname, char *visa_fname) {
     fclose(f);
 
     struct tactyk_dblock__DBlock *visa_src = tactyk_dblock__from_bytes(NULL, fbytes, 0, (uint64_t)len, true);
-
+    
+    
     tactyk_dblock__fix(visa_src);
     tactyk_dblock__tokenize(visa_src, '\n', false);
-    tactyk_visa_spec = tactyk_dblock__remove_blanks(visa_src, ' ', '#');
-    tactyk_dblock__stratify(tactyk_visa_spec, ' ');
-    tactyk_dblock__trim(tactyk_visa_spec);
-    tactyk_dblock__tokenize(tactyk_visa_spec, ' ', true);
-
-    tactyk_dblock__set_persistence_code(tactyk_visa_spec, 100);
+    struct tactyk_dblock__DBlock *vspec = tactyk_dblock__remove_blanks(visa_src, ' ', '#');
+    tactyk_dblock__stratify(vspec, ' ');
+    tactyk_dblock__trim(vspec);
+    tactyk_dblock__tokenize(vspec, ' ', true);
+    tactyk_dblock__set_persistence_code(vspec, 100);
+    
+    if (tactyk_visa_spec == NULL) {
+        tactyk_visa_spec = vspec;
+    }
+    else {
+        struct tactyk_dblock__DBlock *vspec_tail = tactyk_visa_spec;
+        while (vspec_tail->next != NULL) {
+            vspec_tail = vspec_tail->next;
+        }
+        vspec_tail->next = vspec;
+    }
 }
 
 void tactyk_visa__init_emit(struct tactyk_emit__Context *ctx) {
@@ -170,7 +185,6 @@ bool tactyk_visa__mk_typespec(struct tactyk_emit__Context *ctx, struct tactyk_db
     struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__new_managedobject(ctx->typespec_table, name);
     sub->func = tactyk_emit__ExecSubroutine;
     sub->vopcfg = vopcfg;
-    //tactyk_dblock__print_structure_simple(vopcfg);
     struct tactyk_dblock__DBlock *tlist = vopcfg->child;
     while (tlist != NULL) {
         if (strncmp(tlist->data, "select-operand", 14) == 0) {
@@ -236,3 +250,99 @@ bool tactyk_visa__cfg_settings(struct tactyk_emit__Context *ctx, struct tactyk_d
     }
     return true;
 }
+
+bool tactyk_visa__extend(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *spec) {
+    struct tactyk_dblock__DBlock *cls = spec->token->next;
+    if (cls == NULL) {
+        error("VISA -- Subroutine extender does not specify a class", spec);
+    }
+    
+    struct tactyk_dblock__DBlock *name = cls->next;
+    if (name == NULL) {
+        error("VISA -- Subroutine extender does not specify a class", spec);
+    }
+    struct tactyk_dblock__DBlock *target_token = name->next;
+    
+    struct tactyk_emit__subroutine_spec *sub = NULL;
+    if ( tactyk_dblock__equals_c_string(cls, "sub") || tactyk_dblock__equals_c_string(cls, "subroutine") ) {
+        sub = tactyk_dblock__get(ctx->subroutine_table, name);
+    }
+    if ( tactyk_dblock__equals_c_string(cls, "instr") || tactyk_dblock__equals_c_string(cls, "instruction") ) {
+        sub = tactyk_dblock__get(ctx->instruction_table, name);
+    }
+    if ( tactyk_dblock__equals_c_string(cls, "typespec") ) {
+        sub = tactyk_dblock__get(ctx->typespec_table, name);
+    }
+    
+    if (sub == NULL) {
+        error("VISA [subroutine extender] -- subroutine not found", spec);
+    }
+    
+    int64_t stack_index = 0;
+    struct tactyk_dblock__DBlock **sub_stack = calloc(256, sizeof(void*));    
+    struct tactyk_dblock__DBlock *target = sub->vopcfg;
+    sub_stack[stack_index] = target;
+    int64_t ct = 0;
+    
+    if (target_token != NULL) {
+        struct tactyk_dblock__DBlock *index = target_token->next;
+        if (target_token->next != NULL) {
+            if (!tactyk_dblock__try_parseint(&ct, index)) {
+                error("VISA [subroutine extender target index] -- invalid integer", spec);
+            }
+        }
+    }
+    
+    struct tactyk_dblock__DBlock *t = target;
+    while (target_token != NULL) {
+        if (tactyk_dblock__equals(t->token, target_token)) {
+            if (ct <= 0) {
+                target = t;
+                goto appendit;
+            }
+            else {
+                ct -= 1;
+            }
+        }
+        if (t->child != NULL) {
+            t = t->child;
+            stack_index += 1;
+            sub_stack[stack_index] = t;
+        }
+        else if (t->next != NULL) {
+            t = t->next;
+            sub_stack[stack_index] = t;
+        }
+        else if (stack_index > 0) {
+            stack_index -= 1;
+            t = sub_stack[stack_index]->next;
+            sub_stack[stack_index] = t;
+            while (t == NULL) {
+                if (stack_index <= 0) {
+                    error("VISA [subroutine extender] -- Invalid target", spec);
+                }
+                stack_index -= 1;
+                t = sub_stack[stack_index]->next;
+            }
+        }
+        else {
+            error("VISA [subroutine extender] -- Invalid target", spec);
+        }
+    }
+    
+    appendit: {
+        if (target->child == NULL) {
+            target->child = spec->child;
+        }
+        else {
+            target = target->child;
+            while (target->next != NULL) {
+                target = target->next;
+            }
+            target->next = spec->child;
+        }
+    }
+}
+
+
+

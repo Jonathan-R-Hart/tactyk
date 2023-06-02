@@ -1,0 +1,218 @@
+# TEST:  Bounds checking for store instructions (float32)
+#
+# This verifies that tactyk halts when out-of-bounds offsets are used in store instructions
+# 
+# Virtual-ISA: tactyk_core
+# 
+# Coverage:
+#   store float32-addr-data-data    (F32ADX)
+#   store float32-addr-integer-data (F32AIX)
+#   store float32-addr-const-data   (F32ACX)
+
+PROGRAM
+  struct st
+    1 i0
+    1 i1
+    1 i2
+    1 i3
+    1 i4
+    1 i5
+    1 i6
+    1 i7
+    1 i8
+    1 i9
+  
+  const CN1 -1
+  const C0 0
+  const C1 1
+  const C2 2
+  const C3 3
+  const C4 4
+  const C5 5
+  const C6 6
+  const C7 7
+  const C8 8
+  const C9 9
+  const C10 10
+  
+  mem mm st 1
+  
+  INIT:
+    bind addr1 mm
+    assign xA 1000
+    exit
+  
+  st_F32ADX_neg:
+    add xA 1
+    assign b -1
+    store float32 addr1 rB xA
+    exit
+  st_F32ADX_zero:
+    add xA 1
+    assign b 0
+    store float32 addr1 rB xA
+    exit
+  st_F32ADX_edge:
+    add xA 1
+    assign b 6
+    store float32 addr1 rB xA
+    exit
+  st_F32ADX_cross:
+    add xA 1
+    assign b 7
+    store float32 addr1 rB xA
+    exit
+  st_F32ADX_far:
+    add xA 1
+    assign b 9
+    store float32 addr1 rB xA
+    exit
+  st_F32ADX_beyond:
+    add xA 1
+    assign b 10
+    store float32 addr1 rB xA
+    exit
+  
+  st_F32AIX_neg:
+    add xA 1
+    store float32 addr1 -1 xA
+    exit
+  st_F32AIX_zero:
+    add xA 1
+    store float32 addr1 0 xA
+    exit
+  st_F32AIX_edge:
+    add xA 1
+    store float32 addr1 6 xA
+    exit
+  st_F32AIX_cross:
+    add xA 1
+    store float32 addr1 7 xA
+    exit
+  st_F32AIX_far:
+    add xA 1
+    store float32 addr1 9 xA
+    exit
+  st_F32AIX_beyond:
+    add xA 1
+    store float32 addr1 10 xA
+    exit
+  
+  st_F32ACX_neg:
+    add xA 1
+    store float32 addr1 CN1 xA
+    exit
+  st_F32ACX_zero:
+    add xA 1
+    store float32 addr1 C0 xA
+    exit
+  st_F32ACX_edge:
+    add xA 1
+    store float32 addr1 C6 xA
+    exit
+  st_F32ACX_cross:
+    add xA 1
+    store float32 addr1 C7 xA
+    exit
+  st_F32ACX_far:
+    add xA 1
+    store float32 addr1 C9 xA
+    exit
+  st_F32ACX_beyond:
+    add xA 1
+    store float32 addr1 C10 xA
+    exit
+
+EXEC INIT
+TEST
+  addr1 mm 0
+  xA 1000
+
+EXEC st_F32ADX_neg
+TEST
+  status 101
+  xA 1001
+  rB -1
+EXEC st_F32ADX_zero
+TEST
+  status 4
+  xA 1002
+  rB 0
+  mem mm 0 float32 1002
+EXEC st_F32ADX_edge
+TEST
+  status 4
+  xA 1003
+  rB 6
+  mem mm 6 float32 1003
+EXEC st_F32ADX_cross
+TEST
+  status 101
+  xA 1004
+  rB 7
+EXEC st_F32ADX_far
+TEST
+  status 101
+  xA 1005
+  rB 9
+EXEC st_F32ADX_beyond
+TEST
+  status 101
+  xA 1006
+  rB 10
+
+
+EXEC st_F32AIX_neg
+TEST
+  status 101
+  xA 1007
+EXEC st_F32AIX_zero
+TEST
+  status 4
+  xA 1008
+  mem mm 0 float32 1008
+
+EXEC st_F32AIX_edge
+TEST
+  status 4
+  xA 1009
+  mem mm 6 float32 1009
+EXEC st_F32AIX_cross
+TEST
+  status 101
+  xA 1010
+EXEC st_F32AIX_far
+TEST
+  status 101
+  xA 1011
+EXEC st_F32AIX_beyond
+TEST
+  status 101
+  xA 1012
+
+EXEC st_F32ACX_neg
+TEST
+  status 101
+  xA 1013
+EXEC st_F32ACX_zero
+TEST
+  status 4
+  xA 1014
+  mem mm 0 float32 1014
+EXEC st_F32ACX_edge
+TEST
+  status 4
+  xA 1015
+  mem mm 6 float32 1015
+EXEC st_F32ACX_cross
+TEST
+  status 101
+  xA 1016
+EXEC st_F32ACX_far
+TEST
+  status 101
+  xA 1017
+EXEC st_F32ACX_beyond
+TEST
+  status 101
+  xA 1018

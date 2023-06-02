@@ -15,7 +15,8 @@
 
 #include "tactyk_emit.h"
 
-void tactyk_visa__init(char *rsc_dname, char *visa_fname);
+void tactyk_visa__init(char *rsc_dname);
+void tactyk_visa__load_config_module(char *visa_fname);
 void tactyk_visa__init_emit(struct tactyk_emit__Context *ctx);
 
 #endif // TACTYK_VISA__INCLUDE_GUARD

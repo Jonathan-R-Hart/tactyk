@@ -1,0 +1,491 @@
+
+# Bind a memory block to an address register and update corresponding context entries
+# NOTICE:  This instruction will need to be reviewed for spectre/meltdown mitigations 
+#          (transfer of data from the memory block list to the address register & 
+#          context fields is possibly sensitive).  
+#          ((By design, all instructions may be preceded by any combination of gotos, 
+#          conditional branches and by memory-indirect jumps via a read-only jump table 
+#          containing all tactyk-pl provided instructions.  Register allocation is
+#          global and programs are not permitted to make uncontrolled modifications to
+#          anything but data reguisters and the data content of listed memory blocks.))
+
+instruction bind
+  operand
+    type address
+    $ADDR_REG_A $VALUE
+    $CTX_ADDR_A $CTX_ADDR
+  operand
+    type address data memblock integer
+    $ADDR_REG_B $VALUE
+    $CTX_ADDR_B $CTX_ADDR
+    $SRC $VALUE
+    $KWSRC $KW
+    scramble rTEMPA $LD_SRC_IMMEDIATE
+  select-template
+    case AA
+      code
+        mov rTEMPA, fs:[$CTX_ADDR_B + 0 + random_const_FS]
+        mov rTEMPC, fs:[$CTX_ADDR_B + 8 + random_const_FS]
+        mov rTEMPD, fs:[$CTX_ADDR_B + 16 + random_const_FS]
+        mov fs:[$CTX_ADDR_A + 0 + random_const_FS], rTEMPA
+        mov fs:[$CTX_ADDR_A + 8 + random_const_FS], rTEMPC
+        mov fs:[$CTX_ADDR_A + 16 + random_const_FS], rTEMPD
+        mov $ADDR_REG_A, $ADDR_REG_B
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    
+    case AD
+      code
+        mov rTEMPA, $SRC
+        
+        cmp $SRC, 0
+        errorlt STATUS_ROGUE_POINTER
+        cmp rTEMPA, fs:[context.memblocks_count + random_const_FS]
+        errorge STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        imul rTEMPA, 24
+        add rTEMPA, fs:[context.memblocks + random_const_FS]
+        mov $ADDR_REG_A, [rTEMPA]
+        mov fs:[$CTX_ADDR_A + random_const_FS], $ADDR_REG_A
+
+        mov rTEMPC, [rTEMPA+8]
+        mov rTEMPD, [rTEMPA+16]
+        mov fs:[$CTX_ADDR_A+8 + random_const_FS], rTEMPC
+        mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPD
+        
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    
+    case AM AI
+      code
+        $LD_SRC_IMMEDIATE
+        
+        cmp rTEMPA, 0
+        errorlt STATUS_ROGUE_POINTER
+        cmp rTEMPA, fs:[context.memblocks_count + random_const_FS]
+        errorge STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        imul rTEMPA, 24
+        add rTEMPA, fs:[context.memblocks + random_const_FS]
+        mov $ADDR_REG_A, [rTEMPA]
+        mov fs:[$CTX_ADDR_A + random_const_FS], $ADDR_REG_A
+        
+        mov rTEMPC, [rTEMPA+8]
+        mov rTEMPD, [rTEMPA+16]
+        mov fs:[$CTX_ADDR_A+8 + random_const_FS], rTEMPC
+        mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPD
+        
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        xor rTEMPD, rTEMPD
+        jmp $NEXT_INSTRUCTION
+    
+    # Memblock index bounds check is handled by the compiler, so this version probably would be valid.
+    # However there also does not seem much point in having this variant, as memory block binding is not expected to be a frequent
+    # operation outside of degenerate cases.  (If many objects need to be accessed, a large memory block holding an object pool should
+    # be used)
+    #
+    # case AM 
+    #  code
+    #    $LD_SRC_IMMEDIATE
+    #
+    #    imul rTEMPA, 24
+    #    add rTEMPA, fs:[context.memblocks + random_const_FS]
+    #    mov $ADDRESS_REGISTER, [rTEMPA]
+    #    mov fs:[$CTX_ADDR_A + random_const_FS], $ADDR_REG_A
+    #    
+    #    mov rTEMPC, [rTEMPA+8]
+    #    mov rTEMPD, [rTEMPA+16]
+    #    mov fs:[$CTX_ADDR_A+8 + random_const_FS], rTEMPC
+    #    mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPD
+    #    
+    #    xor rTEMPA, rTEMPA
+    #    xor rTEMPC, rTEMPC
+    #    xor rTEMPD, rTEMPD
+    #    jmp $NEXT_INSTRUCTION
+
+instruction unbind
+  operand
+    type address
+    $ADDR_REG_A $VALUE
+    $CTX_ADDR_A $CTX_ADDR
+  code
+    mov qword fs:[$CTX_ADDR_A + 0 + random_const_FS], 0
+    mov qword fs:[$CTX_ADDR_A + 8 + random_const_FS], 0
+    mov qword fs:[$CTX_ADDR_A + 16 + random_const_FS], 0
+    mov $ADDR_REG_A, 0
+    jmp $NEXT_INSTRUCTION
+
+# Read a word from a memory block and write it to a register
+# NOTICE:  This instruction will need to be reviewed for spectre/meltdown mitigations 
+#          (transfer of data from the memory block list to the address register & 
+#          context fields is possibly sensitive).  
+#          ((By design, all instructions may be preceded by any combination of gotos, 
+#          conditional branches and by memory-indirect jumps via a read-only jump table 
+#          containing all tactyk-pl provided instructions.  Register allocation is
+#          global and programs are not permitted to make uncontrolled modifications to
+#          anything but data reguisters and the data content of listed memory blocks.))
+instruction load
+  operand
+    type word
+  operand
+    type data xmmx
+    $DEST__DATA_REG $VALUE
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  operand
+    type data const integer
+    $OFFSET $VALUE
+    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+  select-template
+    case QDAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 7
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        mov $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case QDAI QDAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 7
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        mov $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case DDAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 3
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        mov %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DDAI DDAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 3
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        mov %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+rTEMPC]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case WDAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        dec rTEMPA_32
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movzx $DEST__DATA_REG, word [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case WDAI WDAC
+      code
+        $LD_OFFSET_IMMEDIATE
+
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        dec rTEMPA_32
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movzx $DEST__DATA_REG, word [$ADDRESS_REGISTER+rTEMPC]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    case BDAD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movzx $DEST__DATA_REG, byte [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case BDAI BDAC
+      code
+        $LD_OFFSET_IMMEDIATE
+        
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        
+        lfence
+        
+        movzx $DEST__DATA_REG, byte [$ADDRESS_REGISTER+rTEMPC]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+instruction store
+  operand
+    type word
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  operand
+    type data const integer
+    $OFFSET $VALUE
+    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+  operand
+    type data xmmx
+    $SRC $VALUE
+    scramble rTEMPA $LD_SRC_IMMEDIATE
+  select-template
+    case QADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 7
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov [$ADDRESS_REGISTER+$OFFSET], $SRC
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case QAID QACD
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 7
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov [$ADDRESS_REGISTER+rTEMPC], $SRC
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    
+    case DADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 3
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov dword [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_32
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case DAID DACD
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 3
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov dword [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_32
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    
+    case WADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        dec rTEMPA_32
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov word [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_16
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case WAID WACD
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        dec rTEMPA_32
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov word [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_16
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+    
+    case BADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov byte [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_8
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case BAID BACD
+      code
+        $LD_OFFSET_IMMEDIATE
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        mov byte [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_8
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $NEXT_INSTRUCTION
+
+
+instruction pop
+  operand
+    type data
+    $DEST__DATA_REG $VALUE
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  code
+    mov rTEMPA, $ADDRESS_REGISTER
+    sub rTEMPA, 8
+    cmp rTEMPA, fs:[$CTX_ADDR + random_const_FS]
+    errorlt STATUS_MEMORY_UNDERFLOW
+    lfence
+    sub $ADDRESS_REGISTER, 8
+    mov $DEST__DATA_REG, [$ADDRESS_REGISTER]
+    xor rTEMPA, rTEMPA
+    jmp $NEXT_INSTRUCTION
+
+instruction push
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  operand
+    type data integer const
+    $SRC__DATA_REGISTER $VALUE
+    scramble rTEMPC $LD_SRC_IMMEDIATE
+  select-template
+    case AD
+      code
+        mov rTEMPA, $ADDRESS_REGISTER
+        sub rTEMPA, fs:[$CTX_ADDR + random_const_FS]
+        add rTEMPA, 8
+        cmp rTEMPA, fs:[$CTX_ARRAY_BOUND + random_const_FS]
+        errorge STATUS_MEMORY_OVERFLOW
+        mov [$ADDRESS_REGISTER], $SRC__DATA_REGISTER
+        add $ADDRESS_REGISTER, 8
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+    case AI AC
+      code
+        $LD_SRC_IMMEDIATE
+        mov rTEMPA, $ADDRESS_REGISTER
+        sub rTEMPA, fs:[$CTX_ADDR + random_const_FS]
+        add rTEMPA, 8
+        cmp rTEMPA, fs:[$CTX_ARRAY_BOUND + random_const_FS]
+        errorge STATUS_MEMORY_OVERFLOW
+        mov [$ADDRESS_REGISTER], rTEMPC
+        add $ADDRESS_REGISTER, 8
+        xor rTEMPA, rTEMPA
+        jmp $NEXT_INSTRUCTION
+
+
+extend instruction assign select-template
+  case OD
+    code
+      cmp $B, fs:[$CTX_ADDRESS_BOUND + random_const_FS]
+      errorge STATUS_ROGUE_POINTER
+      cmp $B, 0
+      errorlt STATUS_ROGUE_POINTER
+      lfence
+      mov $ADDRESS_REGISTER, $B
+      add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS + random_const_FS]
+      jmp $NEXT_INSTRUCTION
+  case OI OC
+    code
+      $LD_B_IMMEDIATE
+      cmp rTEMPA, fs:[$CTX_ADDRESS_BOUND + random_const_FS]
+      errorge STATUS_ROGUE_POINTER
+      cmp rTEMPA, 0
+      errorlt STATUS_ROGUE_POINTER
+      lfence
+      mov $ADDRESS_REGISTER, rTEMPA
+      add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS + random_const_FS]
+      xor rTEMPA, rTEMPA
+      jmp $NEXT_INSTRUCTION
+  case DO
+    code
+      mov $A, $ADDRESS_REGISTER
+      sub $A, fs:[$CTX_ADDRESS + random_const_FS]
+      jmp $NEXT_INSTRUCTION
+
+
+extend instruction swap select-template
+  case AA
+    code
+      mov rTEMPA, fs:[$CTX_ADDR_A + 0 + random_const_FS]
+      mov rTEMPC, fs:[$CTX_ADDR_A + 8 + random_const_FS]
+      mov rTEMPD, fs:[$CTX_ADDR_A + 16 + random_const_FS]
+      xchg rTEMPA, fs:[$CTX_ADDR_B + 0 + random_const_FS]
+      xchg rTEMPC, fs:[$CTX_ADDR_B + 8 + random_const_FS]
+      xchg rTEMPD, fs:[$CTX_ADDR_B + 16 + random_const_FS]
+      mov fs:[$CTX_ADDR_A + 0 + random_const_FS], rTEMPA
+      mov fs:[$CTX_ADDR_A + 8 + random_const_FS], rTEMPC
+      mov fs:[$CTX_ADDR_A + 16 + random_const_FS], rTEMPD
+      xchg $ADDR_REG_A, $ADDR_REG_B
+      xor rTEMPA, rTEMPA
+      xor rTEMPC, rTEMPC
+      xor rTEMPD, rTEMPD
+      jmp $NEXT_INSTRUCTION
+

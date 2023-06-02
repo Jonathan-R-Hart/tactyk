@@ -32,6 +32,9 @@
 #include "tactyk_dblock.h"
 #include "tactyk_emit_svc.h"
 
+#include "aux_printit.h"
+#include "aux_util.h"
+
 #include "tactyk.h"
 #include "qstest.h"
 #include "fibtest.h"
@@ -78,7 +81,19 @@ int main() {
 
     printf("%s\n", TACTYK_SE__DESCRIPTION);
 
-    tactyk_visa__init("rsc", "tactyk_core.visa");
+    tactyk_visa__init("rsc");
+    tactyk_visa__load_config_module("tactyk_core.visa");
+    tactyk_visa__load_config_module("tactyk_core_typespec.visa");
+    tactyk_visa__load_config_module("tactyk_core_ccall.visa");
+    tactyk_visa__load_config_module("tactyk_core_memory.visa");
+    tactyk_visa__load_config_module("tactyk_core_bulk_transfer.visa");
+    tactyk_visa__load_config_module("tactyk_core_stash.visa");
+    tactyk_visa__load_config_module("tactyk_core_tvmcall.visa");
+    tactyk_visa__load_config_module("tactyk_core_xmm_fpmath.visa");
+    tactyk_visa__load_config_module("tactyk_core_math.visa");
+    tactyk_visa__load_config_module("tactyk_core_simd.visa");
+    tactyk_visa__load_config_module("tactyk_core_simd-util.visa");
+    
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
 
     tactyk_visa__init_emit(emitctx);
@@ -113,7 +128,7 @@ int main(int argc, char *argv[], char *envp[]) {
     printf("%s\n", TACTYK_SE__DESCRIPTION);
 
     char *visa_directory_name = "rsc";
-    char *visa_fname = "tactyk_core.visa";
+    char *visa_fname = NULL;
 
     bool printctx = false;
 
@@ -129,7 +144,23 @@ int main(int argc, char *argv[], char *envp[]) {
         }
     }
 
-    tactyk_visa__init(visa_directory_name, visa_fname);
+    tactyk_visa__init(visa_directory_name);
+    if (visa_fname == NULL) {
+        tactyk_visa__load_config_module("tactyk_core.visa");
+        tactyk_visa__load_config_module("tactyk_core_typespec.visa");
+        tactyk_visa__load_config_module("tactyk_core_ccall.visa");
+        tactyk_visa__load_config_module("tactyk_core_memory.visa");
+        tactyk_visa__load_config_module("tactyk_core_bulk_transfer.visa");
+        tactyk_visa__load_config_module("tactyk_core_stash.visa");
+        tactyk_visa__load_config_module("tactyk_core_tvmcall.visa");
+        tactyk_visa__load_config_module("tactyk_core_xmm_fpmath.visa");
+        tactyk_visa__load_config_module("tactyk_core_math.visa");
+        tactyk_visa__load_config_module("tactyk_core_simd.visa");
+        tactyk_visa__load_config_module("tactyk_core_simd-util.visa");
+    }
+    else {
+        tactyk_visa__load_config_module(visa_fname);
+    }
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
                                         //tactyk_visa__init(fname);
     tactyk_visa__init_emit(emitctx);
@@ -140,6 +171,8 @@ int main(int argc, char *argv[], char *envp[]) {
     aux_configure(emitctx);
     aux_sdl__configure(emitctx);
     tactyk_emit_svc__configure(emitctx);
+    aux_printit__configure(emitctx);
+    aux_util__configure(emitctx);
 
     // intermediate storage for loaded data
     //  (tactyk uses the allocated data passed in as a backing data source during compilation, so it can't be freed
@@ -149,6 +182,7 @@ int main(int argc, char *argv[], char *envp[]) {
     char **module_src = calloc(argc, sizeof(void*));
 
     struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
+    tactyk_pl__define_constants(plctx, ".VISA", emitctx->visa_token_constants);
 
     // re-scan the args and ingest source code files.
     for (int64_t i = 1; i < argc; i += 1) {

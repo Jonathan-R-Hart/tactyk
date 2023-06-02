@@ -91,6 +91,7 @@ char *esvctest_src = {
 struct tactyk_asmvm__Program* run_esvc_test(struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__Context *ctx) {
 
     struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
+    tactyk_pl__define_constants(plctx, ".VISA", emitctx->visa_token_constants);
     tactyk_pl__load(plctx, esvctest_src);
     struct tactyk_asmvm__Program *prg = tactyk_pl__build(plctx);
     tactyk_asmvm__add_program(ctx, prg);
