@@ -1,0 +1,167 @@
+TACTYK-core high-precision math instructions
+
+TACTYK is able to use the x87 FPU for mathematical calculations with higher precision (80-bit floating point numbers).
+
+The x87 FPU is not formally considered part of the tactyk VM state, its registers are not directly addressable by TACTYk programs, and all validation is conducted by examining results (and not the state of the x87 FPU).
+
+The x87 FPU is instead used only in a transient manner - A math instruction loads values onto the x87 FPU, invokes a series of x87 operations, then transfers the result to its intended destination, and anything left over on the FPU stack is discarded.
+
+INSTRUCTIONS
+
+sine a OPT-b
+  Evaluate trigonmetric sine function
+  The single-operand form replaces the content of register a with sine(a)
+  The two-operand form computes sine(b) and assigns the result to register a
+Typespecs:
+  a:      xmmx
+  b:      xmmx
+Variants:
+  sine xmmx
+  sine xmmx xmmx
+  
+cosine a OPT-b
+  Evaluate trigonmetric cosine function
+  The single-operand form replaces the content of register a with cosine(a)
+  The two-operand form computes cosine(b) and assigns the result to register a
+Typespecs:
+  a:      xmmx
+  b:      xmmx
+Variants:
+  cosine xmmx
+  cosine xmmx xmmx
+
+sine_and_cosine dest-sine dest-cos arg
+  Evaluate trigonmetric sine and cosine functions
+Typespecs:
+  dest-sine:      xmmx
+  dest-cos:       xmmx
+  arg:            xmmx
+Variants:
+  sine_and_cosine xmmx xmmx xmmx
+
+tangent a OPT-b
+  Evaluate trigonmetric tangent function
+  The single-operand form replaces the content of register a with tangent(a)
+  The two-operand form computes tangent(b) and assigns the result to register a
+Typespecs:
+  a:      xmmx
+  b:      xmmx
+Variants:
+  tangent xmmx
+  tangent xmmx xmmx
+
+arctangent a OPT-b OPT-c
+  Evaluate trigonmetric arctangent function
+  The single-opreand form replaces the content of register a with arctangent(a/1)
+  The two-operand form computes arctangent(b/1) and assigns the result to register a
+  The three-operand form computes arctangent(b,c) and assigns the result to register
+    (the "north-clockwise" convention is used for oprerand order)
+Typespecs:
+  a:      xmmx
+  b:      xmmx
+  c:      xmmx
+Variants:
+  arctangent xmmx
+  arctangent xmmx xmmx
+  arctangent xmmx xmmx cmmx
+
+log2 a b
+  base-2 logarithm
+  The single-operand form replaces the content of register a with log2(a)
+  The two-operand form computes log2(b) and assigns the result to register a
+Typespecs:
+  a:      xmmx
+  b:      xmmx
+Variants:
+  log2 xmmx
+  log2 xmmx xmmx
+
+log a b c
+  arbitrary-base logarithm
+  The two-operand form uses register b as the base, computes log-base-b(a), and replaces the value on register a
+  The three-operand form uses register c as the base, computes log-base-c(b), and stores the value on register a
+Typespecs:
+  a:      xmmx
+  b:      xmmx
+  c:      xmmx
+Variants:
+  log xmmx
+  log xmmx xmmx
+  log xmmx xmmx cmmx
+
+
+compute dest *[ operations ... ]
+  Evaluate a mathematical expression
+  This is a complex/composite instruction which aims to use the x87 FPU properly without directly exposing it to TACTYK 
+    (or requring TACTYK scripts ot be able to maintain the FPU stack)
+  
+  Output:
+    The first argument is the destination
+    The destination may be xmmx register, a data register, or a reference to a microcontext stash entry.
+    Returned output is cast as needed to match the destination default format 
+      (integer for data registers, float-64 for xmmx registers, float-64 for upper and lower stash entries, and float-80 for full/expanded stash entries)
+    Output Typespecs:  xmmx data stash-item stash-item-low stash-item-high
+  
+  Input:
+    A variable length list of arguments specifies what the inputs are and which operations to perform
+    Inputs may be integer literals, integer constants, floating point literals, floating point constants, xmmx registers, data registers, and microcontext stash entries.
+    Input Typespecs: xmmx data stash-item stash-item-low stash-item-high, integer, float, const, fconst
+    
+    Operators
+      There are two classes of operators available:  passive and active
+      A passive operator is applied to all input values and is used to combine all inputs with an accumulator
+      When it appears within the expression, a passive operator applies to all subsequent inputs [until the next passive operator is encountered].
+      Active operators transform the accumulator value, take no other inputs, and are applied only where they appear within the expression.
+    
+    Passive opreators:
+      passive opreators are as follows:
+        load:           replace the accumulator value with the input value (default)
+        add:            add the input value to the accumulator value
+        subtract:       subtract the input value from the accumulator value
+        multiply:       multiply the accumulator value by the input value
+        divide:         divide the accumulator value by the input value
+        arctangent:     evaluate the two-argumant form of the arctangent function and replace the accumulator value with the result ("north-clockwise" convention)
+        modulo:         compute acc modulo input and replace the accumulator value with the result
+        logarithm:      compute logarithm of the accumulator value (using the input value as base)
+        ~subtract:      subtract the accumulator value from the input value and replace the accumulator value
+        ~divide:        divide the input value by the accumulator value and replace the accumulator value
+        ~arctangent:    evaluate the two-argumant form of the arctangent function and replace the accumulator value with the result ("ease-counterclockwise" convention)
+        ~logarithm:     compute logarithm of the input value (using the accumulator value as base)
+    
+    Active Operators    
+      sine:             replace accumulator value with sine(acc)
+      cosine:           replace accumulator value with cosine(acc)
+      tangent:          replace accumulator value with tangent(acc)
+      sqrt:             replace accumulator value with square-root(acc)
+      round:            round the accumulator value to the nearest integer (in subsequent revisions, this is to apply whatever the x87 FPU is configured to use for rounding)
+      arctangent:       replace accumulator value with arctangent(acc/1)
+      logarithm-base2:  compute log-base 2 of the accumulator value (same as but more efficient than "logarithm 2")
+    
+    Transient variables
+      Expressions are able to temporarilly store the accumulator value in a transient variable and later retrieve it [within the expression]
+      The FPU stack is used for this
+      Transiently stored variables do not persist beyond the compute instruction
+        (if persistance is requried or preferable, then compute it separately, store it in the stash or on a register, and access the stash or register in other compute operations)
+      The four transient variable names are 'x', 'y', 'z', and 'w'
+      Transient variables are written to with the following write opreators:  ->x ->y ->z ->w
+      Transient variables are fetched with the following fetch opreators:     <-x <-y <-z <-w
+      
+    Builtin constants:
+      pi
+      0 
+      1 
+      (0 and 1 literals are "intercepted" and replaced with the x87 instruction for loading a 0 or 1)
+
+  compute is also simular to the "xcompute" instruction
+    compute has more operators and uses high-precision 80-bit floating point computations (x87 FPU)
+    xcompute has limited arithemetical capabilities and low precision (SSE instructions)
+    xcompute has the ability to access packed fields (whereas compute only handles simple scalar formats)
+
+
+
+
+
+
+
+
+
