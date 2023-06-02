@@ -25,11 +25,12 @@ PROGRAM
     spread xA 1.2 2.4 3.8 4.16
 
     # sqrt ((120+140) × ((1.2+100+1234+50000+400000.4)/2.5))
-    compute xE add xA rA 1234 C50000 Cf400000.4 div 2.5 ->x load rC add rB mul <-x sqrt
+    compute xE add xA rA 1234 C50000 Cf400000.4 div 2.5 ->x load rC add rB mul <-x square-root
+    # compute xE add xA rA 1234 C50000 Cf400000.4
     compute xF 1.75 round
-    compute xG 3 atan 4
+    compute xG 3 ~arctangent 4
     compute xH add 16 32 log2
-    compute xI 8.9 mod 100
+    compute xI 100 mod 8.9
     
     compute rF load 5 ~div 50
     compute xN 555.555
@@ -44,6 +45,10 @@ PROGRAM
     #     100 + x + y + x + w
     #     100 + (9999.31234234234234234 / 555.555) + (pi * pi) + (15) + (-221.456)
     compute sC sB div xN ->w load CONST_PI mul . ->x load 15 ->y load sAh ->z load rA add <-x <-y <-z <-w
+    compute xJ 9999 logarithm-base2
+    compute xK 7500 logarithm 10
+    compute xL 10 ~logarithm 7500
+    compute xM 8.9 ~mod 100
     exit
 
 XMM-DISPLAYMODE float64
@@ -61,6 +66,10 @@ TEST
   xG 0.6435011087932844
   xH 5.584962500721157
   xI 2.1
+  xJ 13.287568102831404356
+  xK 3.875061263391700046
+  xL 3.875061263391700046
+  xM 2.1
   xN 555.555
   rF 10
   

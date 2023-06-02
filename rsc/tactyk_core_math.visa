@@ -199,53 +199,89 @@ instruction sine_and_cosine
 
 
 typespec compute-op
-  $COMPUTE_ARG ;
   select-operand
     # passive functions - these are applied unconditionally to every item loaded by the compute instruction.
     case load
-      $COMPUTE_OP fstp
-      $COMPUTE_ARG 1
+      code new $COMPUTE_OP
+        fxch
+        fstp st0
     case add
-      $COMPUTE_OP faddp
-    case sub
-      $COMPUTE_OP fsubp
-    case div
-      $COMPUTE_OP fdivp
-    case mul
-      $COMPUTE_OP fmulp
-    case ~div
-      $COMPUTE_OP fdivrp
-    case ~sub
-      $COMPUTE_OP fsubrp
-    case atan
-      $COMPUTE_OP fpatan
-    case mod
-      $COMPUTE_OP fprem
+      code new $COMPUTE_OP
+        faddp
+    case sub subtract
+      code new $COMPUTE_OP
+        fsubp
+    case div divide
+      code new $COMPUTE_OP
+        fdivp
+    case mul multiply
+      code new $COMPUTE_OP
+        fmulp
+    case ~div ~divide
+      code new $COMPUTE_OP
+        fdivrp
+    case ~sub ~subtract
+      code new $COMPUTE_OP
+        fsubrp
+    case mod modulo
+      code new $COMPUTE_OP
+        fxch
+        fprem1
+    case ~mod ~modulo
+      code new $COMPUTE_OP
+        fprem1
+    case arctangent atan
+      code new $COMPUTE_OP
+        fxch
+        fpatan
+    case ~arctangent ~atan
+      code new $COMPUTE_OP
+        fpatan
+    case logarithm log
+      code new $COMPUTE_OP
+        fld1
+        fxch
+        fyl2x
+        fld1
+        fdivrp
+        fxch
+        fyl2x
+    case ~logarithm ~log
+      code new $COMPUTE_OP
+        fxch
+        fld1
+        fxch
+        fyl2x
+        fld1
+        fdivrp
+        fxch
+        fyl2x
+        
     
     # apply the passive function using the accumulator vale for both operands 
     case .
       code
         fld st0
-        $COMPUTE_OP $COMPUTE_ARG
+        $COMPUTE_OP
     
     # immediate functions
     # These have special behavior and dont make much sense to use passively.
     #   (and most of them also don't pop an entry off the stack and thus would require more complications if so used)
-    case log2
+    case logarithm-base2 log-base2 log2
       code
         fld1
         fxch
         fyl2x
-    case sin
+    case sine sin
       code
         fsin
-    case cos
+    case cosine cos
       code
         fcos
-    case tan
+    case tangent tan
       code
         ftan
-    case sqrt
+    case square-root sqrt
       code
         fsqrt
     case round
@@ -268,40 +304,40 @@ typespec compute-op
     case <-w <-W <-fw <-fW
       code
         fld st1
-        $COMPUTE_OP $COMPUTE_ARG
+        $COMPUTE_OP
     case <-x <-X <-fx <-fX
       code
         fld st2
-        $COMPUTE_OP $COMPUTE_ARG
+        $COMPUTE_OP
     case <-y <-Y <-fy <-fY
       code
         fld st3
-        $COMPUTE_OP $COMPUTE_ARG
+        $COMPUTE_OP
     case <-z <-Z <-fz <-fZ
       code
         fld st4
-        $COMPUTE_OP $COMPUTE_ARG
+        $COMPUTE_OP
     
     # x87 constant loaders
     #   possibly should include the rest if there is 
     case 0
       code
         fldz
-        $COMPUTE_OP $COMPUTE_ARG
+        $COMPUTE_OP
     case 1
       code
         fld1
-        $COMPUTE_OP $COMPUTE_ARG
+        $COMPUTE_OP
     case CONST_PI
       code
         fldpi
-        $COMPUTE_OP $COMPUTE_ARG
+        $COMPUTE_OP
   pick .
 
 instruction compute
-  $COMPUTE_OP fstp
-  $COMPUTE_ARG ;
-  $CMODE norm
+  code new $COMPUTE_OP
+    fxch
+    fstp st0
   operand
     type xmmx data  stash-item stash-item-low stash-item-high
     $DEST $VALUE
@@ -342,30 +378,32 @@ instruction compute
         code
           movq fs:[context.fpu_a + random_const_FS], $SRC
           fld qword fs:[context.fpu_a + random_const_FS]
-          $COMPUTE_OP $COMPUTE_ARG
+          $COMPUTE_OP
       case Si
         code
           fld tword gs:[microcontext.$SRC+random_const_GS]
+          $COMPUTE_OP
       case Sil Sih
         code
           fld qword gs:[microcontext.$SRC+random_const_GS]
+          $COMPUTE_OP
       case D
         code
           mov fs:[context.fpu_a + random_const_FS], $SRC
           fild qword fs:[context.fpu_a + random_const_FS]
-          $COMPUTE_OP $COMPUTE_ARG
+          $COMPUTE_OP
       case I C
         code
           $LD_B_IMMEDIATE
           mov fs:[context.fpu_a + random_const_FS], rTEMPC
           fild qword fs:[context.fpu_a + random_const_FS]
-          $COMPUTE_OP $COMPUTE_ARG
+          $COMPUTE_OP
       case F Cf
         code
           $LD_B_IMMEDIATE
           mov fs:[context.fpu_a + random_const_FS], rTEMPC
           fld qword fs:[context.fpu_a + random_const_FS]
-          $COMPUTE_OP $COMPUTE_ARG
+          $COMPUTE_OP
       case .
         # do nothing
   code

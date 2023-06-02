@@ -674,6 +674,7 @@ bool tactyk_emit__comprehend_int_value(struct tactyk_emit__Context *ctx, struct 
     }
     else if (!tactyk_dblock__try_parseuint(&uival, data)) {
         tactyk_dblock__delete(ctx->local_vars, kwname);
+        tactyk_dblock__delete(ctx->local_vars, kwname);
         return false;
     }
 
@@ -796,10 +797,17 @@ bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
         code = ctx->active_command->asm_code;
     }
     else {
-        code = tactyk_dblock__get(ctx->local_vars, target_name);
-        if (code == NULL) {
+        if (tactyk_dblock__equals_c_string(target_name, "new")) {
+            target_name = target_name->next;
             code = tactyk_dblock__new(16);
             tactyk_dblock__put(ctx->local_vars, target_name, code);
+        }
+        else {
+            code = tactyk_dblock__get(ctx->local_vars, target_name);
+            if (code == NULL) {
+                code = tactyk_dblock__new(16);
+                tactyk_dblock__put(ctx->local_vars, target_name, code);
+            }
         }
     }
 

@@ -150,8 +150,10 @@ The "register" parameter specifies which register the unscrambled value should b
 The optional "inputvar" parameter specifies which variable to take the input value from (if not provided, this defaults to $VALUE).
 This requires a "scramble" subroutine in the V-ISA to generate the descrambling code (must be defined with the "subroutine" V-ISA command).
 
-code <opt-outputvar>
+code <opt-modifier> <opt-outputvar>
 This reads each line from the subordinate data, performs string interpolation against local variables and global variables (search for variable names and replace with variable values), and appends it to a code block.
+If a recognized "modifier" parameter is present, the behavior will be adjusted as follows:
+  new - replace the code block if it already exists.
 If the "outputvar" parameter is specified, this will use the named variable as the code block to append to.  If not, this defaults to the primary code block (what the instruction yields).
 
 int-operand
