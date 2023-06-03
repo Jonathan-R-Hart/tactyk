@@ -5,9 +5,10 @@
 #include <stdbool.h>
 
 #include "tactyk_asmvm.h"
+#include "tactyk_report.h"
 
 #define TACTYK_TEST__FNAME_BUFSIZE (1<<10)
-#define TACTYK_TEST__REPORT_BUFSIZE (1<<10)
+#define TACTYK_TEST__REPORT_BUFSIZE TACTYK_REPORT__BUFSIZE
 #define TACTYK_TEST__DUMP_BUFSIZE (1<<14)
 
 #define TACTYK_TESTSTATE__EXIT 0

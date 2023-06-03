@@ -12,7 +12,7 @@
 #include "tactyk_pl.h"
 #include "tactyk_debug.h"
 #include "tactyk_emit_svc.h"
-
+#include "tactyk_report.h"
 
 struct tactyk_asmvm__Program *tprg;
 struct tactyk_asmvm__Context *vmctx;
@@ -62,25 +62,49 @@ uint64_t tactyk_test__xmm_display_mode = TACTYK_DEBUG__XMM_DISPLAYMODE__FLOAT64;
 
 void tactyk_test__warning_handler(char *msg, void *data) {
     memset(test_state->warning, 0, TACTYK_TEST__REPORT_BUFSIZE);
-    strncpy(test_state->warning, msg, TACTYK_TEST__REPORT_BUFSIZE);
-    int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-3;
+    if (msg != NULL) {
+        strncpy(test_state->warning, msg, TACTYK_TEST__REPORT_BUFSIZE);
+        int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-3;
 
-    if ((space_remaining > 0) && (data != NULL)) {
-        test_state->warning[strlen(msg)+0] = ':';
-        test_state->warning[strlen(msg)+1] = ' ';
-        tactyk_dblock__export_cstring(&test_state->warning[strlen(msg)+2], space_remaining, data);
+        if ((space_remaining > 0) && (data != NULL)) {
+            test_state->warning[strlen(msg)+0] = ':';
+            test_state->warning[strlen(msg)+1] = ' ';
+            tactyk_dblock__export_cstring(&test_state->warning[strlen(msg)+2], space_remaining, data);
+        }
+    }
+    else {
+        strncpy(test_state->warning, tactyk_report__buffer, TACTYK_TEST__REPORT_BUFSIZE);
+        int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(tactyk_report__buffer)-3;
+
+        if ((space_remaining > 0) && (data != NULL)) {
+            test_state->warning[strlen(tactyk_report__buffer)+0] = ':';
+            test_state->warning[strlen(tactyk_report__buffer)+1] = ' ';
+            tactyk_dblock__export_cstring(&test_state->warning[strlen(tactyk_report__buffer)+2], space_remaining, data);
+        }
     }
 }
 
 void tactyk_test__error_handler(char *msg, void *data) {
     memset(test_state->error, 0, TACTYK_TEST__REPORT_BUFSIZE);
-    strncpy(test_state->error, msg, TACTYK_TEST__REPORT_BUFSIZE);
-    int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-3;
+    if (msg != NULL) {
+        strncpy(test_state->error, msg, TACTYK_TEST__REPORT_BUFSIZE);
+        int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-3;
 
-    if ((space_remaining > 0) && (data != NULL)) {
-        test_state->error[strlen(msg)+0] = ':';
-        test_state->error[strlen(msg)+1] = ' ';
-        tactyk_dblock__export_cstring(&test_state->error[strlen(msg)+2], space_remaining, data);
+        if ((space_remaining > 0) && (data != NULL)) {
+            test_state->error[strlen(msg)+0] = ':';
+            test_state->error[strlen(msg)+1] = ' ';
+            tactyk_dblock__export_cstring(&test_state->error[strlen(msg)+2], space_remaining, data);
+        }
+    }
+    else {
+        strncpy(test_state->error, tactyk_report__buffer, TACTYK_TEST__REPORT_BUFSIZE);
+        int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(tactyk_report__buffer)-3;
+
+        if ((space_remaining > 0) && (data != NULL)) {
+            test_state->error[strlen(tactyk_report__buffer)+0] = ':';
+            test_state->error[strlen(tactyk_report__buffer)+1] = ' ';
+            tactyk_dblock__export_cstring(&test_state->error[strlen(tactyk_report__buffer)+2], space_remaining, data);
+        }
     }
 
     //longjmp(tactyk_test_err_jbuf, 1);
