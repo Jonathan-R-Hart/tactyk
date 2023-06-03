@@ -16,6 +16,7 @@ add_library(tactyk
   libtactyk/tactyk_emit_svc.c
   libtactyk/tactyk_visa.c
   libtactyk/tactyk_debug.c
+  libtactyk/tactyk_report.c
 )
 
 add_library(tactyk_aux

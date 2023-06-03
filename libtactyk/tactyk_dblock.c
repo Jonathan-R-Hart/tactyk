@@ -1169,6 +1169,9 @@ void tactyk_dblock__println(void *ptr) {
 void tactyk_dblock__print_structure_simple(struct tactyk_dblock__DBlock *dblock) {
     tactyk_dblock__fprint_structure(stdout, dblock, true, false, false, 0);
 }
+void tactyk_dblock__fprint_structure_simple(FILE *stream, struct tactyk_dblock__DBlock *dblock) {
+    tactyk_dblock__fprint_structure(stream, dblock, true, false, false, 0);
+}
 void tactyk_dblock__print_structure(struct tactyk_dblock__DBlock *dblock, bool children, bool siblings, bool tokens, uint64_t indent_level) {
     tactyk_dblock__fprint_structure(stdout, dblock, children, siblings, tokens, indent_level);
 }
