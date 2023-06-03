@@ -640,6 +640,7 @@ bool tactyk_pl__data(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
 //void tactyk_pl__struct(struct tactyk_emit__Context *emitctx, struct tactyk_pl__thing *__tokens) {
 bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
     struct tactyk_emit__Context *ectx = ctx->emitctx;
+    tactyk_report__reset();
     tactyk_report__dblock("STRUCT", dblock);
     
     if ( (dblock->token == NULL) || (dblock->token->next == NULL) ) {
@@ -648,14 +649,15 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
     }
 
     struct tactyk_dblock__DBlock *st_name = dblock->token->next;
-
+    
     struct tactyk_asmvm__struct *st = (struct tactyk_asmvm__struct*) tactyk_dblock__new_managedobject(ctx->struct_table, st_name);
-
+    
     tactyk_dblock__export_cstring(st->name, TACTYK__MAX_IDENTIFIER_LENGTH, st_name);
     st->num_properties = tactyk_dblock__count_children(dblock);
-
     st->properties = calloc(st->num_properties, sizeof(struct tactyk_asmvm__property));
-
+    
+    tactyk_report__uint("Field Count", st->num_properties);
+    
     uint64_t offset = 0;
     uint64_t prev_offset = 0;
     uint64_t stride = 0;
@@ -668,12 +670,15 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
     uint64_t p_width;
 
     while (dblock != NULL) {
-        switch(tactyk_dblock__count_tokens(dblock)) {
+        tactyk_report__dblock("FIELD", dblock);
+        int64_t num_tokens = tactyk_dblock__count_tokens(dblock);
+        switch(num_tokens) {
             case 2: {
                 directive = ' ';
                 p_name = dblock->token->next;
                 if (!tactyk_dblock__try_parseuint(&p_width, dblock->token)) {
-                    error("PL -- Invalid Integer", dblock->token);
+                    tactyk_report__msg("  Invalid field width");
+                    error(NULL, NULL);
                 }
                 break;
             }
@@ -682,14 +687,16 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
                 directive = data[0];
                 p_name = dblock->token->next->next;
                 if (!tactyk_dblock__try_parseuint(&p_width, dblock->token->next)) {
-                    error("PL -- Invalid Integer", dblock->token->next);
+                    tactyk_report__msg("  Invalid field width");
+                    error(NULL, NULL);
                 }
                 break;
             }
             case 0:
             case 1:
             default: {
-                error("PL -- Invalid struct entry", dblock);
+                tactyk_report__int("  Invalid token count", num_tokens);
+                error(NULL, NULL);
                 break;
             }
         }
@@ -707,6 +714,9 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
         
         char prop_qname[1024];
         sprintf(prop_qname, "%s.%s", st->name, prop->name);
+        
+        tactyk_report__string("  Identifier", prop_qname);
+        tactyk_report__int("  Width", p_width);
         
         switch(directive) {
             case '.': {
@@ -736,7 +746,8 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
                 break;
             }
         }
-
+        tactyk_report__int("  Offset", prop->byte_offset);
+        
         struct tactyk_dblock__DBlock *propid = tactyk_dblock__from_int(prop->byte_offset);
         tactyk_dblock__put(ectx->const_table, prop_qname, propid);
 
@@ -749,6 +760,9 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
 
         struct tactyk_dblock__DBlock *struct_sz_const = tactyk_dblock__from_int(stride);
         tactyk_dblock__put(ectx->const_table, struct_sz_name, struct_sz_const);
+        tactyk_report__msg("SIZE");
+        tactyk_report__string("  Identifier", struct_sz_name);
+        tactyk_report__uint("  size", stride);
     }
     return true;
 }

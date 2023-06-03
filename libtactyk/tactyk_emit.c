@@ -875,6 +875,7 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     for (uint64_t i = 0; i < ctx->script_commands->element_count; i += 1) {
         struct tactyk_emit__script_command *cmd = tactyk_dblock__index(ctx->script_commands, i);
+        tactyk_report__reset();
         tactyk_report__dblock("COMMAND", cmd->pl_code);
         tactyk_report__uint("INDEX", i);
         ctx->iptr = i;
@@ -893,9 +894,9 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
         }
         sub->func(ctx, sub->vopcfg);
         tactyk_report__dblock_full("ASM", cmd->asm_code);
-        tactyk_report__reset();
     }
 
+    tactyk_report__reset();
     tactyk_report__msg("COMPILE");
     uint64_t program_size = ctx->script_commands->element_count;
     uint64_t *program_map = tactyk_alloc__allocate(program_size, sizeof(uint64_t));
@@ -1013,6 +1014,5 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
         }
     }
     mprotect(command_map, command_map_size, PROT_READ );
-    tactyk_report__reset();
 }
 
