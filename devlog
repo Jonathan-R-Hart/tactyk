@@ -1,6 +1,12 @@
 3 Jon 2023
 Begin development of a new error and warning reporting interface.
   This is intended to simplify code for reporting errors, to make error reports clearer, and to enable advancement beyond simple Console-based execution environments.
+  The new error reporting system is to be a detailed log which is kept in memory.
+  The error report is to be filled with detailed information on how TACTYK responds to a single line of input code.
+  If a fatal error is observed, the error log will be published.
+  If the line of code is accepted and successfully converted to assembly language, then the error report will be erased.
+  As the current TACTYK implementation is a prototype, so there is no plan to make error reporting optional
+    If TACTYK draws wider interest, then the error reporting system shoudl be turned into a compiler option (for performance reasons)
 
 2 Jun 2023 [version 0.8.0]
 compute instruction adjustments

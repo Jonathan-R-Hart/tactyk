@@ -33,6 +33,12 @@ void tactyk_report__dblock_full(char *desc, struct tactyk_dblock__DBlock *dblock
     fflush(rpt_stream);
 }
 
+
+void tactyk_report__string(char *desc, char *value) {
+    fprintf(rpt_stream, "%s: %s\n", desc, value);
+    fflush(rpt_stream);
+}
+
 void tactyk_report__bool(char *desc, bool value) {
     if (value) {
         fprintf(rpt_stream, "%s: TRUE\n", desc);
@@ -47,11 +53,11 @@ void tactyk_report__int(char *desc, int64_t value) {
     fflush(rpt_stream);
 }
 void tactyk_report__uint(char *desc, uint64_t value) {
-    fprintf(rpt_stream, "%s:  %ju\n", desc, value);
+    fprintf(rpt_stream, "%s: %ju\n", desc, value);
     fflush(rpt_stream);
 }
 void tactyk_report__hex(char *desc, uint64_t value) {
-    fprintf(rpt_stream, "%s:  %X.%X.%X.%X\n", desc, 
+    fprintf(rpt_stream, "%s: %X.%X.%X.%X\n", desc, 
         (uint16_t) (((value)>>48) & 0xffff),  
         (uint16_t) (((value)>>32) & 0xffff),  
         (uint16_t) (((value)>>16) & 0xffff),  

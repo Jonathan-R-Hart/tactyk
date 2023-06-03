@@ -828,13 +828,17 @@ bool tactyk_emit__VCode(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
     struct tactyk_dblock__DBlock *max_raw = vopcfg->token->next;
     struct tactyk_dblock__DBlock *code = ctx->active_command->asm_code;
     
+    tactyk_report__dblock("VCODE", max_raw);
+    
     if (max_raw == NULL) {
-        error("EMIT - VCode -- Invalid line count", vopcfg);
+        tactyk_report__msg("  Line count not specified");
+        error(NULL, NULL);
     }
     
     struct tactyk_dblock__DBlock *max_fetched = tactyk_emit__fetch_var(ctx, NULL, max_raw);
     if (!tactyk_dblock__try_parseuint(&max, max_fetched)) {
-        error("EMIT - VCode -- Invalid line count", vopcfg);
+        tactyk_report__dblock("  Invalid line count", max_fetched);
+        error(NULL, NULL);
     }
     
     struct tactyk_dblock__DBlock *code_template = vopcfg->child;
@@ -846,7 +850,8 @@ bool tactyk_emit__VCode(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
         }
         uint64_t hdr = 0;
         if (!tactyk_dblock__try_parseuint(&hdr, token)) {
-            error("EMIT - VCode -- Invalid vcode line header", code_template);
+            tactyk_report__dblock("  Invalid vcode header", code_template);
+            error(NULL, NULL);
         }
         if (hdr <= max) {
             struct tactyk_dblock__DBlock *code_rewritten = tactyk_emit__fetch_var(ctx, NULL, code_template);
@@ -914,10 +919,12 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     for (uint64_t i = 0; i < ctx->script_commands->element_count; i += 1) {
         struct tactyk_emit__script_command *cmd = tactyk_dblock__index(ctx->script_commands, i);
         tactyk_report__dblock("COMMAND", cmd->pl_code);
+        tactyk_report__uint("INDEX", i);
         ctx->iptr = i;
         ctx->active_command = cmd;
         struct tactyk_dblock__DBlock *label = cmd->labels;
         while (label != NULL) {
+            tactyk_report__dblock("LABEL", label);
             tactyk_dblock__append(cmd->asm_code, label);
             tactyk_dblock__append(cmd->asm_code, ":\n");
             label = label->next;
@@ -932,6 +939,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
         tactyk_report__reset();
     }
 
+    tactyk_report__msg("COMPILE");
     uint64_t program_size = ctx->script_commands->element_count;
     uint64_t *program_map = tactyk_alloc__allocate(program_size, sizeof(uint64_t));
     for (uint64_t i = 0; i < program_size; i++) {
@@ -951,7 +959,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     char fname_assembly_code[64];
     char fname_object[64];
     char fname_symbols[64];
-
+    
     sprintf(fname_assembly_code, "/tmp/tactyk_program__XXXXXX.asm");
     sprintf(fname_object, "/tmp/tactyk_object__XXXXXX.obj");
     sprintf(fname_symbols, "/tmp/tactyk_symbols__XXXXXX.map");
@@ -959,7 +967,11 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     int result_asm = mkstemps(fname_assembly_code, 4);
     int result_obj = mkstemps(fname_object, 4);
     int result_sym = mkstemps(fname_symbols, 4);
-
+    
+    tactyk_report__string("ASM FILENAME", fname_assembly_code);
+    tactyk_report__string("OBJECT FILENAME", fname_object);
+    tactyk_report__string("SYMBOL FILENAME", fname_symbols);
+    
     //mkstemp
 
     //FILE *asm_file = fopen
@@ -1044,5 +1056,6 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
         }
     }
     mprotect(command_map, command_map_size, PROT_READ );
+    tactyk_report__reset();
 }
 

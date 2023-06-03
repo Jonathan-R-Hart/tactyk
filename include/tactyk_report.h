@@ -15,6 +15,7 @@ void tactyk_report__msg(char *msg);
 void tactyk_report__dblock(char *desc, struct tactyk_dblock__DBlock *dblock);
 void tactyk_report__dblock_full(char *desc, struct tactyk_dblock__DBlock *dblock);
 
+void tactyk_report__string(char *desc, char *value);
 void tactyk_report__bool(char *desc, bool value);
 void tactyk_report__int(char *desc, int64_t value);
 void tactyk_report__uint(char *desc, uint64_t value);
