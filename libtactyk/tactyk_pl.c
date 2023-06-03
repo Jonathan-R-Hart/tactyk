@@ -15,6 +15,7 @@
 #include "tactyk_alloc.h"
 
 #include "tactyk_dblock.h"
+#include "tactyk_report.h"
 
 typedef bool (*tactyk_pl__func)(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 struct tactyk_dblock__DBlock *tkpl_funcs;
@@ -639,10 +640,11 @@ bool tactyk_pl__data(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
 //void tactyk_pl__struct(struct tactyk_emit__Context *emitctx, struct tactyk_pl__thing *__tokens) {
 bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
     struct tactyk_emit__Context *ectx = ctx->emitctx;
-
+    tactyk_report__dblock("STRUCT", dblock);
+    
     if ( (dblock->token == NULL) || (dblock->token->next == NULL) ) {
-        tactyk_emit__error(ectx, "unnamed struct");
-        exit(1);
+        tactyk_report__msg("No name specified");
+        error(NULL, NULL);
     }
 
     struct tactyk_dblock__DBlock *st_name = dblock->token->next;

@@ -39,42 +39,6 @@
 
 struct tactyk_emit__Context emit_settings;
 
-#define TACTYK_EMIT__ERROR_MSG_MAXLENGTH 1024
-static char error_message[TACTYK_EMIT__ERROR_MSG_MAXLENGTH];
-static jmp_buf err_jbuf;
-
-// Error handling
-// Internal errors result in process termination.  External errors are deferred to the host application.
-//
-// The host application may handle errors by attaching an error handler to the context data structure (non-returning function which accepts a c-string).
-//
-// Detailed explanation:
-//      printf() followed by exit(1) for problems that can be caused by misconfiguration (terminates the process)
-//      assert() for problems that are supposed to be unpossible (terminates the process)
-//      tactyk_emit_error() for problems presumed to be script defects (process continues running, but compilation is halted and the host application is notified (if an error handler is given) )
-static tactyk_emit__error_handler error_handler;
-void tactyk_emit__default_error_handler(char *msg) {
-    printf("TACTYK-EMIT ERROR: '%s'\n", msg);
-    exit(1);
-}
-void tactyk_emit__error(struct tactyk_emit__Context *ctx, void *msg_ptr) {
-    char *msg;
-    if (tactyk_dblock__is_dblock(msg_ptr)) {
-        msg = calloc(1024, 1);
-        tactyk_dblock__export_cstring(msg, 1024, (struct tactyk_dblock__DBlock*) msg_ptr);
-    }
-    else {
-        msg = msg_ptr;
-    }
-    if (msg != error_message) {
-        if (ctx->error_handler != NULL) {
-            error_handler = ctx->error_handler;
-        }
-        snprintf(error_message, TACTYK_EMIT__ERROR_MSG_MAXLENGTH, "%s", msg);
-    }
-    longjmp(err_jbuf, 1);
-}
-
 struct tactyk_emit__Context* tactyk_emit__init() {
     struct tactyk_emit__Context *ctx = tactyk_alloc__allocate(1, sizeof(struct tactyk_emit__Context));
     ctx->random_const_fs = tactyk__rand_uint64() & 0x3fffffff;
@@ -133,13 +97,6 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     ctx->active_labels = NULL;
     ctx->active_labels_last = NULL;
-
-    error_handler = tactyk_emit__default_error_handler;
-
-    if (setjmp(err_jbuf)) {
-        error_handler(error_message);
-        exit(1);
-    }
 
     return ctx;
 }
