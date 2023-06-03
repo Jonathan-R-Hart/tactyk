@@ -924,7 +924,8 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
         }
         struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, cmd->name);
         if (sub == NULL) {
-            error("EMIT-compile -- Unrecognized instruction", cmd->pl_code);
+            tactyk_report__msg("Instruction not defined.");
+            error(NULL, NULL);
         }
         sub->func(ctx, sub->vopcfg);
         tactyk_report__dblock_full("ASM", cmd->asm_code);

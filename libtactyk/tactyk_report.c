@@ -22,7 +22,7 @@ void tactyk_report__msg(char *msg) {
 }
 
 void tactyk_report__dblock(char *desc, struct tactyk_dblock__DBlock *dblock) {
-    fprintf(rpt_stream, "%s", desc);
+    fprintf(rpt_stream, "%s: ", desc);
     tactyk_dblock__fprintln(rpt_stream, dblock);
     fflush(rpt_stream);
 }
