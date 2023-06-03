@@ -898,7 +898,6 @@ void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tact
 }
 
 void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *token, struct tactyk_dblock__DBlock *line) {
-    tactyk_report__dblock("COMMAND", line);
     struct tactyk_dblock__DBlock *name = token;
     struct tactyk_emit__script_command *cmd = tactyk_dblock__new_object(ctx->script_commands);
     cmd->name = name;
@@ -909,18 +908,12 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
 
     ctx->active_labels = NULL;
     ctx->active_labels_last = NULL;
-    tactyk_report__reset();
 }
 
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     for (uint64_t i = 0; i < ctx->script_commands->element_count; i += 1) {
         struct tactyk_emit__script_command *cmd = tactyk_dblock__index(ctx->script_commands, i);
-        #ifdef TACTYK_DEBUG
-            printf("---------\n");
-            printf("CMD #%ju: ", i);
-            tactyk_dblock__println(cmd->tokens);
-            printf("\n");
-        #endif // TACTYK_DEBUG
+        tactyk_report__dblock("COMMAND", cmd->pl_code);
         ctx->iptr = i;
         ctx->active_command = cmd;
         struct tactyk_dblock__DBlock *label = cmd->labels;
@@ -934,15 +927,8 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
             error("EMIT-compile -- Unrecognized instruction", cmd->pl_code);
         }
         sub->func(ctx, sub->vopcfg);
-
-        #ifdef TACTYK_DEBUG
-        {
-            printf("COMMAND: ");
-            tactyk_dblock__println(cmd->name);
-            tactyk_dblock__println(cmd->asm_code);
-            printf("\n");
-        }
-        #endif // TACTYK_DEBUG
+        tactyk_report__dblock_full("ASM", cmd->asm_code);
+        tactyk_report__reset();
     }
 
     uint64_t program_size = ctx->script_commands->element_count;

@@ -1150,12 +1150,12 @@ void tactyk_dblock__fprint(FILE *stream, void *ptr) {
 }
 void tactyk_dblock__fprintln(FILE *stream, void *ptr) {
     if (ptr == NULL) {
-        printf("[[ NULL ]]\n");
+        fprintf(stream, "[[ NULL ]]\n");
     }
     else {
         struct tactyk_dblock__DBlock *dblock = tactyk_dblock__from_string_or_dblock(ptr);
         tactyk_dblock__print_indented(stream, dblock, "");
-        printf("\n");
+        fprintf(stream, "\n");
     }
 }
 
