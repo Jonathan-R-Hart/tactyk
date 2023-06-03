@@ -31,12 +31,14 @@ tactyk__error_handler warn;
 static jmp_buf tactyk_err_jbuf;
 
 void tactyk__default_warning_handler(char *msg, void *data) {
-    if (data == NULL) {
-        printf("WARNING -- %s\n", msg);
-    }
-    else {
-        printf("WARNING -- %s: ", msg);
-        tactyk_dblock__println(data);
+    if (msg != NULL) {
+        if (data == NULL) {
+            printf("WARNING -- %s\n", msg);
+        }
+        else {
+            printf("WARNING -- %s: ", msg);
+            tactyk_dblock__println(data);
+        }
     }
     printf("WARNING-REPORT\n");
     printf("--------------\n");
@@ -44,12 +46,14 @@ void tactyk__default_warning_handler(char *msg, void *data) {
 }
 
 void tactyk__default_error_handler(char *msg, void *data) {
-    if (data == NULL) {
-        printf("ERROR -- %s\n", msg);
-    }
-    else {
-        printf("ERROR -- %s: ", msg);
-        tactyk_dblock__println(data);
+    if (msg != NULL) {
+        if (data == NULL) {
+            printf("ERROR -- %s\n", msg);
+        }
+        else {
+            printf("ERROR -- %s: ", msg);
+            tactyk_dblock__println(data);
+        }
     }
     printf("ERROR-REPORT\n");
     printf("------------\n");

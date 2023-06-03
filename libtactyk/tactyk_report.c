@@ -13,7 +13,7 @@ void tactyk_report__init() {
 }
 
 void tactyk_report__reset() {
-    memset(rpt_stream, 0, TACTYK_REPORT__BUFSIZE);
+    memset(tactyk_report__buffer, 0, TACTYK_REPORT__BUFSIZE);
     fseek(rpt_stream, 0, SEEK_SET);
 }
 void tactyk_report__msg(char *msg) {

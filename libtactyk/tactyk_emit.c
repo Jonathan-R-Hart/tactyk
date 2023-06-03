@@ -20,6 +20,7 @@
 #include "tactyk_asmvm.h"
 #include "tactyk.h"
 #include "tactyk_alloc.h"
+#include "tactyk_report.h"
 
 #include "tactyk_assembler.h"
 #include "tactyk_dblock.h"
@@ -790,6 +791,7 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
 }
 
 bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    
     struct tactyk_dblock__DBlock *target_name = data->token->next;
     struct tactyk_dblock__DBlock *code;
 
@@ -896,6 +898,7 @@ void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tact
 }
 
 void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *token, struct tactyk_dblock__DBlock *line) {
+    tactyk_report__dblock("COMMAND", line);
     struct tactyk_dblock__DBlock *name = token;
     struct tactyk_emit__script_command *cmd = tactyk_dblock__new_object(ctx->script_commands);
     cmd->name = name;
@@ -906,6 +909,7 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
 
     ctx->active_labels = NULL;
     ctx->active_labels_last = NULL;
+    tactyk_report__reset();
 }
 
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
