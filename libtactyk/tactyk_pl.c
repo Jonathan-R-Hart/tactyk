@@ -641,7 +641,8 @@ bool tactyk_pl__data(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
 bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
     struct tactyk_emit__Context *ectx = ctx->emitctx;
     tactyk_report__reset();
-    tactyk_report__dblock("STRUCT", dblock);
+    tactyk_report__msg("TACTYK-PL -- STRUCT");
+    tactyk_report__dblock_full("Code", dblock);
     
     if ( (dblock->token == NULL) || (dblock->token->next == NULL) ) {
         tactyk_report__msg("No name specified");
@@ -768,22 +769,29 @@ bool tactyk_pl__struct(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
 }
 
 bool tactyk_pl__const(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
-
     struct tactyk_emit__Context *ectx = ctx->emitctx;
-
+    tactyk_report__reset();
+    tactyk_report__msg("TACTYK-PL -- CONST");
+    tactyk_report__dblock("Code", dblock);
     if ( (dblock->token == NULL) || (dblock->token->next == NULL) || (dblock->token->next->next == NULL) ) {
-        error("PL -- Invalid const", dblock);
+        tactyk_report__msg("Constant definition is invalid.");
+        error(NULL, NULL);
     }
 
     struct tactyk_dblock__DBlock *name = dblock->token->next;
     struct tactyk_dblock__DBlock *value = dblock->token->next->next;
-
+    
+    tactyk_report__dblock("Name", name);
+    tactyk_report__dblock("Value", value);
+    
     union tactyk_util__float_int v;
     if (tactyk_dblock__try_parseint(&v.ival, value)) {
+        tactyk_report__msg("Type: Integer");
         tactyk_dblock__put(ectx->const_table, name, value);
         return true;
     }
     if (tactyk_dblock__try_parsedouble(&v.fval, value)) {
+        tactyk_report__msg("Type: float-64");
         value = tactyk_dblock__from_uint(v.ival);
         tactyk_dblock__put(ectx->fconst_table, name, value);
         return true;
