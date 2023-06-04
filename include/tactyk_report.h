@@ -6,9 +6,8 @@
 
 #define TACTYK_REPORT__BUFSIZE (1<<18)
 
-extern char tactyk_report__buffer[TACTYK_REPORT__BUFSIZE];
-
 void tactyk_report__init();
+char* tactyk_report__get();
 void tactyk_report__reset();
 void tactyk_report__msg(char *msg);
 
@@ -19,6 +18,7 @@ void tactyk_report__string(char *desc, char *value);
 void tactyk_report__bool(char *desc, bool value);
 void tactyk_report__int(char *desc, int64_t value);
 void tactyk_report__uint(char *desc, uint64_t value);
+void tactyk_report__ptr(char *desc, void *value);
 void tactyk_report__hex(char *desc, uint64_t value);
 void tactyk_report__float80(char *desc, long double value);
 void tactyk_report__float64(char *desc, double value);

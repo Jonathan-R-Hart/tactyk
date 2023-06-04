@@ -42,7 +42,7 @@ void tactyk__default_warning_handler(char *msg, void *data) {
     }
     printf("WARNING-REPORT\n");
     printf("--------------\n");
-    printf("%s\n", tactyk_report__buffer);
+    printf("%s\n", tactyk_report__get());
 }
 
 void tactyk__default_error_handler(char *msg, void *data) {
@@ -57,7 +57,7 @@ void tactyk__default_error_handler(char *msg, void *data) {
     }
     printf("ERROR-REPORT\n");
     printf("------------\n");
-    printf("%s\n", tactyk_report__buffer);
+    printf("%s\n", tactyk_report__get());
     exit(0);
 
     longjmp(tactyk_err_jbuf, 1);
