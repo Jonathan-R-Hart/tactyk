@@ -356,6 +356,9 @@ bool tactyk_pl__mem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock
 //      (all bounds checking is performed at runtime)
 bool tactyk_pl__extmem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
 
+    tactyk_report__reset();
+    tactyk_report__msg("EXTERNAL MEMBLOCK");
+    
     struct tactyk_asmvm__memblock_lowlevel *m_ll = NULL;
     struct tactyk_asmvm__memblock_highlevel *m_hl = NULL;
 
@@ -363,7 +366,7 @@ bool tactyk_pl__extmem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
 
     m_ll->offset = TACTYK_ASMVM__MEMBLOCK_TYPE__EXTERNAL;
     m_hl->type = TACTYK_ASMVM__MEMBLOCK_TYPE__EXTERNAL;
-
+    
     return true;
 }
 
