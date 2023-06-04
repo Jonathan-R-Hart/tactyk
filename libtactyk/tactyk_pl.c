@@ -373,17 +373,30 @@ bool tactyk_pl__extmem(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBl
 bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
     struct tactyk_emit__Context *ectx = ctx->emitctx;
 
+    tactyk_report__reset();
+    tactyk_report__msg("TEXT MEMBLOCK");
+    tactyk_report__dblock_full("code", dblock);
+    
     if ( (dblock->token == NULL) || (dblock->token->next == NULL) ) {
-        error("PL -- unnamed struct", dblock);
+        tactyk_report__msg("Name not specified");
+        error(NULL, NULL);
     }
 
     struct tactyk_dblock__DBlock *name = dblock->token->next;
 
+    
+    tactyk_report__msg("Memblock Definition");
+    
     int64_t id = ctx->memspec_highlevel_table->element_count;
 
+    tactyk_report__uint("  identifier", id);
+    
     struct tactyk_asmvm__memblock_lowlevel *mem_ll = (struct tactyk_asmvm__memblock_lowlevel*) tactyk_dblock__new_object(ctx->memspec_lowlevel_buffer);
     struct tactyk_asmvm__memblock_highlevel *mem_hl = (struct tactyk_asmvm__memblock_highlevel*) tactyk_dblock__new_managedobject(ctx->memspec_highlevel_table, name);
 
+    tactyk_report__ptr("  ref [LL]", mem_ll);
+    tactyk_report__ptr("  ref [HL]", mem_hl);
+    
     mem_ll->offset = 0;
     mem_hl->type = TACTYK_ASMVM__MEMBLOCK_TYPE__STATIC;
 
@@ -406,6 +419,13 @@ bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
     uint8_t *data = tactyk_dblock__release(tbuf);
     tactyk_dblock__dispose(tbuf);
 
+    
+    tactyk_report__uint("  size", len);
+    
+    tactyk_report__uint("  object count", 1);
+    tactyk_report__uint("  element bound", len);
+    tactyk_report__int("  array bound", 1);
+    
     mem_hl->memblock = mem_ll;
     mem_hl->num_entries = 1;
     mem_hl->memblock_id = id;
@@ -426,17 +446,22 @@ bool tactyk_pl__text(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBloc
         char struct_raw_name[1024];
         tactyk_dblock__export_cstring(struct_raw_name, 1024, name);
         snprintf(struct_sz_name, 1040, "%s_size", struct_raw_name);
+        tactyk_report__string("  size identifier", struct_sz_name);
 
         struct tactyk_dblock__DBlock *struct_sz_const = tactyk_dblock__from_int(len);
         tactyk_dblock__put(ectx->const_table, struct_sz_name, struct_sz_const);
     }
-
+    
     return true;
 }
 
 bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
     struct tactyk_emit__Context *ectx = ctx->emitctx;
 
+    tactyk_report__reset();
+    tactyk_report__msg("FLAT-DATA MEMBLOCK");
+    tactyk_report__dblock_full("code", dblock);
+    
     struct tactyk_dblock__DBlock *name = dblock->token->next;
     struct tactyk_dblock__DBlock *type = dblock->token->next->next;
 
@@ -479,6 +504,9 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
     }
 
     uint8_t *data = tactyk_alloc__allocate(item_count, nbytes);
+    tactyk_report__uint("items", item_count);
+    tactyk_report__uint("size(bytes)", item_count*nbytes);
+    tactyk_report__ptr("ref", data);
 
     uint64_t wbytes = nbytes;
     if (wbytes > 8) {
@@ -487,9 +515,7 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
 
     if (isfloat) {
         if (nbytes <= 3) {
-            char errbuf[1024];
-            snprintf(errbuf, 1024, "PL -- The mysterious %ju-byte floating point format is not available.", nbytes);
-            error(errbuf, NULL);
+            tactyk_report__uint("Invalid [floating point format] size", nbytes);
         }
         else if (nbytes <= 7) {
             uint64_t pos = 0;
@@ -503,7 +529,8 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
                         memcpy(&data[pos], &f32val, 4);
                     }
                     else {
-                        warn("PL -- Not an floating point number", token);
+                        tactyk_report__dblock("Not a floating point number", token);
+                        warn(NULL, NULL);
                     }
 
                     pos += nbytes;
@@ -523,7 +550,8 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
                         memcpy(&data[pos], &f64val, 8);
                     }
                     else {
-                        warn("PL -- Not an floating point number", token);
+                        tactyk_report__dblock("Not a floating point number", token);
+                        warn(NULL, NULL);
                     }
                     pos += nbytes;
                     token = token->next;
@@ -543,7 +571,8 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
                     memcpy(&data[pos], &ival, wbytes);
                 }
                 else {
-                    warn("PL -- Not an integer", token);
+                    tactyk_report__dblock("Not a n integerr", token);
+                    warn(NULL, NULL);
                 }
 
                 pos += nbytes;
@@ -564,6 +593,15 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
     struct tactyk_asmvm__memblock_lowlevel *mem_ll = (struct tactyk_asmvm__memblock_lowlevel*) tactyk_dblock__new_object(ctx->memspec_lowlevel_buffer);
     struct tactyk_asmvm__memblock_highlevel *mem_hl = (struct tactyk_asmvm__memblock_highlevel*) tactyk_dblock__new_managedobject(ctx->memspec_highlevel_table, name);
 
+    tactyk_report__msg("Memblock Definition");
+    tactyk_report__uint("  identifier", id);
+    tactyk_report__ptr("  ref [LL]", mem_ll);
+    tactyk_report__ptr("  ref [HL]", mem_hl);
+    tactyk_report__uint("  size", layout->byte_stride);
+    tactyk_report__uint("  object count", 1);
+    tactyk_report__uint("  element bound", layout->byte_stride);
+    tactyk_report__int("  array bound", 1);
+    
     mem_hl->memblock = mem_ll;
     mem_hl->num_entries = 1;
     mem_hl->memblock_id = id;
@@ -579,7 +617,7 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
 
     struct tactyk_dblock__DBlock *memid = tactyk_dblock__from_int(id);
     tactyk_dblock__put(ectx->memblock_table, name, memid);
-
+    
     return true;
 }
 
