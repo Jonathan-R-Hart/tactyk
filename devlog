@@ -1,4 +1,4 @@
-5 Jun 2023
+5 Jun 2023 [0.8.1]
 tactyk-emit now produces detailed error reports when instruction interpretation fails.
 The most common errors are expected to be unrecognized operands, unrecognized instructions, and missing templates, which should be fairly easy to recognize.
 Other more complex issues are expected to need the other parts of the report to puzzle out (particularly if/when the problem is caused by hackish use of Virtual-ISA features).
