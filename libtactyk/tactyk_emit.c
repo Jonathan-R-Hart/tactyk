@@ -123,7 +123,10 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
     tactyk_dblock__put(ctx->symbol_tables, "mem", ctx->memblock_table);
     tactyk_dblock__put(ctx->symbol_tables, "capi", ctx->c_api_table);
     tactyk_dblock__put(ctx->symbol_tables, "tapi", ctx->api_table);
-
+    
+    ctx->active_labels = NULL;
+    ctx->active_command = NULL;
+    
     ctx->program->memory_layout_ll = tactyk_dblock__new_container(TACTYK_ASMVM__MEMBLOCK_CAPACITY, sizeof(struct tactyk_asmvm__memblock_lowlevel));
     tactyk_dblock__fix(ctx->program->memory_layout_ll);
     tactyk_dblock__make_pseudosafe(ctx->program->memory_layout_ll);
@@ -131,6 +134,11 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
 
     tactyk_dblock__set_persistence_code(ctx->program->memory_layout_ll, 10);
     tactyk_dblock__set_persistence_code(ctx->program->memory_layout_hl, 10);
+    
+    ctx->next_codeblock_id = 0;
+    ctx->active_codeblock_index = -1;
+    ctx->codeblocks = tactyk_dblock__new_allocated_container(TACTYK_EMIT__MAX_CODEBLOCK_NESTLEVEL, sizeof(struct tactyk_emit__codeblock));
+    tactyk_dblock__set_persistence_code(ctx->codeblocks, 10);
 }
 
 // release all memory belonging to an emit context.
@@ -239,6 +247,18 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     tactyk_dblock__append(cmd->asm_code, TACTYK_EMIT__COMMAND_PREFIX);
     tactyk_dblock__append(cmd->asm_code, cmd_idx);
     tactyk_dblock__append(cmd->asm_code, ":\n");
+    
+    if (cmd->parent != NULL) {
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_HEADER", cmd->parent->header_label);
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_FIRST", cmd->parent->first_label);
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CLOSE", cmd->parent->close_label);
+    }
+    if (cmd->child != NULL) {
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CHILD_HEADER", cmd->child->header_label);
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CHILD_FIRST", cmd->child->first_label);
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CHILD_CLOSE", cmd->child->close_label);
+    }
+    
     uint64_t code_len = cmd->asm_code->length;
 
     struct tactyk_dblock__DBlock *next_instruction_label = tactyk_dblock__from_c_string(TACTYK_EMIT__COMMAND_PREFIX);
@@ -912,7 +932,7 @@ void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tact
     id->value = ctx->script_commands->element_count;
     tactyk_dblock__export_cstring(id->txt, TACTYK__MAX_IDENTIFIER_LENGTH, raw_label);
     //strncpy(id->txt, tactyk_dblock__export_cstring(raw_label), MAX_IDENTIFIER_LENGTH);
-
+    
     if (ctx->active_labels == NULL) {
         ctx->active_labels = sanitized_label;
         ctx->active_labels_last = sanitized_label;
@@ -923,6 +943,69 @@ void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tact
     }
 }
 
+void tactyk_emit__push_codeblock(struct tactyk_emit__Context *ctx, bool orphan) {
+    ctx->active_codeblock_index += 1;
+    
+    if (ctx->active_codeblock_index >= TACTYK_EMIT__MAX_CODEBLOCK_NESTLEVEL) {
+        tactyk_report__reset();
+        tactyk_report__uint("Codeblock nest level out of bounds", ctx->active_codeblock_index);
+        error(NULL, NULL);
+    }
+    
+    struct tactyk_emit__codeblock *codeblock = tactyk_dblock__index(ctx->codeblocks, ctx->active_codeblock_index);
+    
+    char lbl[64];
+    snprintf(lbl, 64, "codeblock_header#%ju", ctx->next_codeblock_id);
+    codeblock->header_label = tactyk_dblock__from_c_string(lbl);
+    snprintf(lbl, 64, "codeblock_first#%ju", ctx->next_codeblock_id);
+    codeblock->first_label = tactyk_dblock__from_c_string(lbl);
+    snprintf(lbl, 64, "codeblock_close#%ju", ctx->next_codeblock_id);
+    codeblock->close_label = tactyk_dblock__from_c_string(lbl);
+    
+    if (!orphan && (ctx->active_command != NULL)) {
+        ctx->active_command->child = codeblock;
+        struct tactyk_dblock__DBlock *cmd_lbl = ctx->active_command->labels;
+        if (cmd_lbl == NULL) {
+            ctx->active_command->labels = codeblock->header_label;
+        }
+        else {
+            while (cmd_lbl->next != NULL) {
+                cmd_lbl = cmd_lbl->next;
+            }
+            cmd_lbl->next = codeblock->header_label;
+        }
+    }
+    if (ctx->active_labels == NULL) {
+        ctx->active_labels = codeblock->first_label;
+        ctx->active_labels_last = codeblock->first_label;
+    }
+    else {
+        ctx->active_labels_last->next = codeblock->first_label;
+        ctx->active_labels_last = codeblock->first_label;
+    }
+    
+    ctx->next_codeblock_id += 1;
+}
+void tactyk_emit__pop_codeblock(struct tactyk_emit__Context *ctx) {
+    if (ctx->active_codeblock_index == -1) {
+        tactyk_report__reset();
+        tactyk_report__uint("Codeblock nest level out of bounds", ctx->active_codeblock_index);
+        error(NULL, NULL);
+    }
+    
+    struct tactyk_emit__codeblock *codeblock = tactyk_dblock__index(ctx->codeblocks, ctx->active_codeblock_index);
+    
+    if (ctx->active_labels == NULL) {
+        ctx->active_labels = codeblock->close_label;
+        ctx->active_labels_last = codeblock->close_label;
+    }
+    else {
+        ctx->active_labels_last->next = codeblock->close_label;
+        ctx->active_labels_last = codeblock->close_label;
+    }
+    
+    ctx->active_codeblock_index -= 1;
+}
 void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *token, struct tactyk_dblock__DBlock *line) {
     struct tactyk_dblock__DBlock *name = token;
     struct tactyk_emit__script_command *cmd = tactyk_dblock__new_object(ctx->script_commands);
@@ -931,9 +1014,15 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
     cmd->pl_code = line;
     cmd->asm_code = tactyk_dblock__new(4096);
     cmd->labels = ctx->active_labels;
-
+    
     ctx->active_labels = NULL;
     ctx->active_labels_last = NULL;
+    
+    ctx->active_command = cmd;
+    
+    if (ctx->active_codeblock_index != -1) {
+        cmd->parent = tactyk_dblock__index(ctx->codeblocks, ctx->active_codeblock_index);
+    }
 }
 
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {

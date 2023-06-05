@@ -1,3 +1,15 @@
+5 Jun 2023 [0.9.0]
+Add a mechanism for defining code blocks.
+Code blocks [at the V-ISA level] are defined as a set of labels which are accessible from templates
+  These labels are visible to "child" instructions
+    $CODEBLOCK_HEADER - branch target referencing the parent instruction
+    $CODEBLOCK_FIRST  - branch target referencing the first instruction within the parent code block
+    $CODEBLOCK_CLOSE  - branch target referencing the next instruction in the parent code block.
+  These labels are visible to the "parent" instructions
+    $CODEBLOCK_CHILD_HEADER - branch target self-reference
+    $CODEBLOCK_CHILD_FIRST  - branch target referencing the first instruction within the child code block
+    $CODEBLOCK_CHILD_CLOSE  - branch target referencing the next instruction within the current block
+
 5 Jun 2023 [0.8.1]
 tactyk-emit now produces detailed error reports when instruction interpretation fails.
 The most common errors are expected to be unrecognized operands, unrecognized instructions, and missing templates, which should be fairly easy to recognize.

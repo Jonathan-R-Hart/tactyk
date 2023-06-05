@@ -122,6 +122,7 @@ void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblo
                 dbstack[dbstack_index] = dbcode;
                 dbstack_index += 1;
                 dbcode = dbcode->child;
+                tactyk_emit__push_codeblock(emitctx, false);
                 continue;
             }
             else if (dbcode->next != NULL) {
@@ -134,6 +135,7 @@ void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblo
                     if (dbstack_index == -1) {
                         return;
                     }
+                    tactyk_emit__pop_codeblock(emitctx);
                     dbcode = dbstack[dbstack_index]->next;
                 } while (dbcode == NULL);
                 goto handle_dbcode;
