@@ -12,7 +12,7 @@
 #include "tactyk_pl.h"
 #include "tactyk_debug.h"
 #include "tactyk_emit_svc.h"
-
+#include "tactyk_report.h"
 
 struct tactyk_asmvm__Program *tprg;
 struct tactyk_asmvm__Context *vmctx;
@@ -61,6 +61,9 @@ struct tactyk_test__Status *test_state;
 uint64_t tactyk_test__xmm_display_mode = TACTYK_DEBUG__XMM_DISPLAYMODE__FLOAT64;
 
 void tactyk_test__warning_handler(char *msg, void *data) {
+    if (msg == NULL) {
+        msg = tactyk_report__get();
+    }
     memset(test_state->warning, 0, TACTYK_TEST__REPORT_BUFSIZE);
     strncpy(test_state->warning, msg, TACTYK_TEST__REPORT_BUFSIZE);
     int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-3;
@@ -73,6 +76,9 @@ void tactyk_test__warning_handler(char *msg, void *data) {
 }
 
 void tactyk_test__error_handler(char *msg, void *data) {
+    if (msg == NULL) {
+        msg = tactyk_report__get();
+    }
     memset(test_state->error, 0, TACTYK_TEST__REPORT_BUFSIZE);
     strncpy(test_state->error, msg, TACTYK_TEST__REPORT_BUFSIZE);
     int64_t space_remaining = TACTYK_TEST__REPORT_BUFSIZE - strlen(msg)-3;

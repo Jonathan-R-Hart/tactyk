@@ -1123,46 +1123,70 @@ bool tactyk_dblock__contains(struct tactyk_dblock__DBlock *dblock_a, struct tact
 }
 
 char printbuf[256];
-void tactyk_dblock__print_indented(struct tactyk_dblock__DBlock *dblock, char *indent) {
+char tactyk_dblock__print_indented(FILE *stream, struct tactyk_dblock__DBlock *dblock, char *indent) {
     if (dblock == NULL) {
         printf("%s<NULL>", indent);
-        return;
+        return 0;
     }
     uint64_t len = dblock->length;
-
+    if (len == 0) {
+        return 0;
+    }
     if (len < 256) {
         memcpy(printbuf, dblock->data, len);
         printbuf[len] = 0;
-        printf("%s%s", indent, printbuf);
+        fprintf(stream, "%s%s", indent, printbuf);
+        return printbuf[len-1];
     }
     else {
         char *cpy = tactyk_alloc__allocate(dblock->length+1,1);
         //printf("?printit? %ju\n", len);
         memcpy(cpy, dblock->data, len);
         cpy[len] = 0;
-        printf("%s%s", indent, cpy);
+        fprintf(stream, "%s%s", indent, cpy);
+        char last = cpy[len-1];
         tactyk_alloc__free(cpy);
+        return last;
     }
 }
-void tactyk_dblock__print(void *ptr) {
-    struct tactyk_dblock__DBlock *dblock = tactyk_dblock__from_string_or_dblock(ptr);
-    tactyk_dblock__print_indented(dblock, "");
-}
-void tactyk_dblock__println(void *ptr) {
-    if (ptr == NULL) {
-        printf("[[ NULL ]]\n");
+void tactyk_dblock__fprint(FILE *stream, void *ptr) {
+    if ((ptr == NULL) || (ptr == TACTYK_PSEUDONULL))  {
+        fprintf(stream, "[[ NULL ]]");
     }
     else {
         struct tactyk_dblock__DBlock *dblock = tactyk_dblock__from_string_or_dblock(ptr);
-        tactyk_dblock__print_indented(dblock, "");
-        printf("\n");
+        tactyk_dblock__print_indented(stream, dblock, "");
+    }
+}
+void tactyk_dblock__fprintln(FILE *stream, void *ptr) {
+    if ((ptr == NULL) || (ptr == TACTYK_PSEUDONULL))  {
+        fprintf(stream, "[[ NULL ]]\n");
+    }
+    else {
+        struct tactyk_dblock__DBlock *dblock = tactyk_dblock__from_string_or_dblock(ptr);
+        if (tactyk_dblock__print_indented(stream, dblock, "") != '\n') {
+            fputc('\n', stream);
+        }
     }
 }
 
-void tactyk_dblock__print_structure_simple(struct tactyk_dblock__DBlock *dblock) {
-    tactyk_dblock__print_structure(dblock, true, false, false, 0);
+void tactyk_dblock__print(void *ptr) {
+    tactyk_dblock__fprint(stdout, ptr);
 }
-void tactyk_dblock__print_structure(struct tactyk_dblock__DBlock *dblock, bool children, bool siblings, bool tokens, uint64_t indent_level) {
+void tactyk_dblock__println(void *ptr) {
+    tactyk_dblock__fprintln(stdout, ptr);
+}
+
+void tactyk_dblock__print_structure_simple(struct tactyk_dblock__DBlock *dblock) {
+    tactyk_dblock__fprint_structure(stdout, dblock, true, false, false, 0, '\n');
+}
+void tactyk_dblock__fprint_structure_simple(FILE *stream, struct tactyk_dblock__DBlock *dblock) {
+    tactyk_dblock__fprint_structure(stream, dblock, true, false, false, 0, '\n');
+}
+void tactyk_dblock__print_structure(struct tactyk_dblock__DBlock *dblock, bool children, bool siblings, bool tokens, uint64_t indent_level, char sep) {
+    tactyk_dblock__fprint_structure(stdout, dblock, children, siblings, tokens, indent_level, sep);
+}
+void tactyk_dblock__fprint_structure(FILE *stream, struct tactyk_dblock__DBlock *dblock, bool children, bool siblings, bool tokens, uint64_t indent_level, char sep) {
     if (indent_level > TACTYK_DBLOCK__PRINT_MAX_INDENT) {
         indent_level = TACTYK_DBLOCK__PRINT_MAX_INDENT;
     }
@@ -1173,23 +1197,24 @@ void tactyk_dblock__print_structure(struct tactyk_dblock__DBlock *dblock, bool c
         indent[i*2+1] = ' ';
     }
 
-    tactyk_dblock__print_indented(dblock, indent);
+    if (tactyk_dblock__print_indented(stream, dblock, indent) != sep) {
+        fputc(sep, stream);
+    }
     if (tokens) {
         struct tactyk_dblock__DBlock *t = dblock->token;
         while (t != NULL) {
-            printf(" | ");
+            fputs(" | ", stream);
             tactyk_dblock__print(t);
             t = t->next;
         }
-        printf(" | ");
+        fputs(" | ", stream);
     }
-    printf("\n");
 
     if (children & (dblock->child != NULL)) {
-        tactyk_dblock__print_structure(dblock->child, true, true, tokens, indent_level+1);
+        tactyk_dblock__fprint_structure(stream, dblock->child, true, true, tokens, indent_level+1, sep);
     }
     if (siblings & (dblock->next != NULL)) {
-        tactyk_dblock__print_structure(dblock->next, true, true, tokens, indent_level);
+        tactyk_dblock__fprint_structure(stream, dblock->next, true, true, tokens, indent_level, sep);
     }
 }
 

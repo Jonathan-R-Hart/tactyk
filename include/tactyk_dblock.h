@@ -11,6 +11,7 @@
 #ifndef TACTYK_DBLOCK__INCLUDE_GUARD
 #define TACTYK_DBLOCK__INCLUDE_GUARD
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -162,13 +163,17 @@ bool tactyk_dblock__contains(struct tactyk_dblock__DBlock *dblock_a, struct tact
 
 // print the content of a dblock
 void tactyk_dblock__print(void *ptr);
+void tactyk_dblock__fprint(FILE *stream, void *ptr);
 // print the content of a dblock, then print a newline char
 void tactyk_dblock__println(void *ptr);
+void tactyk_dblock__fprintln(FILE *stream, void *ptr);
 //print the content of a dblock, optionally recursively print content of sibling dblocks, and optionally recursively print the content of child dblocks, and optionally show the "tokens"
 //  with the tokenization further emphasized
-void tactyk_dblock__print_structure(struct tactyk_dblock__DBlock *dblock, bool children, bool siblings, bool tokens, uint64_t indent_level);
+void tactyk_dblock__print_structure(struct tactyk_dblock__DBlock *dblock, bool children, bool siblings, bool tokens, uint64_t indent_level, char sep);
+void tactyk_dblock__fprint_structure(FILE *stream, struct tactyk_dblock__DBlock *dblock, bool children, bool siblings, bool tokens, uint64_t indent_level, char sep);
 // shorthand for tactyk_dblock__print_structure(dblock, true, false, false)
 void tactyk_dblock__print_structure_simple(struct tactyk_dblock__DBlock *dblock);
+void tactyk_dblock__fprint_structure_simple(FILE *stream, struct tactyk_dblock__DBlock *dblock);
 
 // copy the content of a dblock to a buffer.
 // If the output buffer is larger than the dblock buffer, the extra space will be zero-filled.

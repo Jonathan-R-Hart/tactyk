@@ -7,6 +7,7 @@
 #include "tactyk.h"
 #include "tactyk_alloc.h"
 #include "tactyk_pl.h"
+#include "tactyk_report.h"
 
 // simple and safe random number generator
 //          -- safe if safe means favoring a secure PRNG over something one has personally invented.
@@ -30,23 +31,35 @@ tactyk__error_handler warn;
 static jmp_buf tactyk_err_jbuf;
 
 void tactyk__default_warning_handler(char *msg, void *data) {
-    if (data == NULL) {
-        printf("WARNING -- %s\n", msg);
+    if (msg != NULL) {
+        if (data == NULL) {
+            printf("WARNING -- %s\n", msg);
+        }
+        else {
+            printf("WARNING -- %s: ", msg);
+            tactyk_dblock__println(data);
+        }
     }
-    else {
-        printf("WARNING -- %s: ", msg);
-        tactyk_dblock__println(data);
-    }
+    printf("WARNING-REPORT\n");
+    printf("--------------\n");
+    printf("%s\n", tactyk_report__get());
 }
 
 void tactyk__default_error_handler(char *msg, void *data) {
-    if (data == NULL) {
-        printf("ERROR -- %s\n", msg);
+    if (msg != NULL) {
+        if (data == NULL) {
+            printf("ERROR -- %s\n", msg);
+        }
+        else {
+            printf("ERROR -- %s: ", msg);
+            tactyk_dblock__println(data);
+        }
     }
-    else {
-        printf("ERROR -- %s: ", msg);
-        tactyk_dblock__println(data);
-    }
+    printf("ERROR-REPORT\n");
+    printf("------------\n");
+    printf("%s\n", tactyk_report__get());
+    exit(0);
+
     longjmp(tactyk_err_jbuf, 1);
 }
 
@@ -54,6 +67,8 @@ void tactyk__default_error_handler(char *msg, void *data) {
 void tactyk_init() {
     error = tactyk__default_error_handler;
     warn = tactyk__default_warning_handler;
+    
+    tactyk_report__init();
 
     // standalone erorr handling is to exit()
     // when invoked as library,t error handling should be to return NULL
