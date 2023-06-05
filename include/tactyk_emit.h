@@ -73,7 +73,10 @@ struct tactyk_emit__codeblock {
     struct tactyk_dblock__DBlock *header_label;
     struct tactyk_dblock__DBlock *first_label;
     struct tactyk_dblock__DBlock *close_label;
-    uint64_t position;
+    struct tactyk_dblock__DBlock *chain_close_label;
+    uint64_t end_instruction_index;
+    uint64_t level;
+    bool chain_out;
 };
 
 void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock* label);
@@ -97,6 +100,8 @@ typedef void (tactyk_emit__tactyk_api_function)(struct tactyk_asmvm__Context *co
 struct tactyk_emit__subroutine_spec {
     struct tactyk_dblock__DBlock *vopcfg;
     tactyk_emit__sub_func func;
+    bool chain_in;
+    bool chain_out;
 };
 
 struct tactyk_emit__Context {

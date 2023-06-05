@@ -252,12 +252,15 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
         tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_HEADER", cmd->parent->header_label);
         tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_FIRST", cmd->parent->first_label);
         tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CLOSE", cmd->parent->close_label);
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CHAIN_CLOSE", cmd->parent->chain_close_label);
     }
     if (cmd->child != NULL) {
         tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CHILD_HEADER", cmd->child->header_label);
         tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CHILD_FIRST", cmd->child->first_label);
         tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CHILD_CLOSE", cmd->child->close_label);
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CHILD_CHAIN_CLOSE", cmd->child->chain_close_label);
     }
+    
     
     uint64_t code_len = cmd->asm_code->length;
 
@@ -974,6 +977,21 @@ void tactyk_emit__push_codeblock(struct tactyk_emit__Context *ctx, bool orphan) 
             }
             cmd_lbl->next = codeblock->header_label;
         }
+        struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, ctx->active_command->name);
+        
+        // if chaining is valid and the code block ended at the current instruction, then keep the existing chain-close label
+        // Otherwise, replace it.
+        if ( !codeblock->chain_out || !sub->chain_in || ((ctx->script_commands->element_count-1) != codeblock->end_instruction_index) ) {
+            snprintf(lbl, 64, "codeblock_chain_close#%ju", ctx->next_codeblock_id);
+            codeblock->chain_close_label = tactyk_dblock__from_c_string(lbl);
+        }
+        codeblock->chain_out = sub->chain_out;
+    }
+    else {
+        // chaining is invalid if not initiated with an actual instruction
+        codeblock->chain_out = false;
+        snprintf(lbl, 64, "codeblock_chain_close#%ju", ctx->next_codeblock_id);
+        codeblock->chain_close_label = tactyk_dblock__from_c_string(lbl);
     }
     if (ctx->active_labels == NULL) {
         ctx->active_labels = codeblock->first_label;
@@ -1004,10 +1022,13 @@ void tactyk_emit__pop_codeblock(struct tactyk_emit__Context *ctx) {
         ctx->active_labels_last = codeblock->close_label;
     }
     
+    codeblock->end_instruction_index = ctx->script_commands->element_count;
+    
     ctx->active_codeblock_index -= 1;
 }
 void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *token, struct tactyk_dblock__DBlock *line) {
     struct tactyk_dblock__DBlock *name = token;
+    uint64_t cmd_index = ctx->script_commands->element_count;
     struct tactyk_emit__script_command *cmd = tactyk_dblock__new_object(ctx->script_commands);
     cmd->name = name;
     cmd->tokens = token;
@@ -1020,9 +1041,13 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
     
     ctx->active_command = cmd;
     
-    if (ctx->active_codeblock_index != -1) {
-        cmd->parent = tactyk_dblock__index(ctx->codeblocks, ctx->active_codeblock_index);
+    struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, name);
+    if (sub == NULL) {
+        tactyk_report__reset();
+        tactyk_emit__error(ctx, "Instruction not defined.", NULL);
     }
+    
+    
 }
 
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
@@ -1041,9 +1066,6 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
             label = label->next;
         }
         struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, cmd->name);
-        if (sub == NULL) {
-            tactyk_emit__error(ctx, "Instruction not defined.", NULL);
-        }
         sub->func(ctx, sub->vopcfg);
         tactyk_report__dblock_full("ASM", cmd->asm_code);
     }

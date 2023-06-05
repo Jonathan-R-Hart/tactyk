@@ -166,10 +166,29 @@ void tactyk_visa__init_emit(struct tactyk_emit__Context *ctx) {
 
 bool tactyk_visa__mk_instruction(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
     struct tactyk_dblock__DBlock *name = vopcfg->token->next;
+    
+    bool chainin = false;
+    bool chainout = false;
+    
+    if (tactyk_dblock__equals_c_string(name, "chain-in")) {
+        name = name->next;
+        chainin = true;
+    }
+    else if (tactyk_dblock__equals_c_string(name, "chain-out")) {
+        name = name->next;
+        chainout = true;
+    }
+    else if (tactyk_dblock__equals_c_string(name, "chain")) {
+        name = name->next;
+        chainin = true;
+        chainout = true;
+    }
     struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__new_managedobject(ctx->instruction_table, name);
     sub->func = tactyk_emit__ExecInstruction;
     sub->vopcfg = vopcfg;
-
+    sub->chain_in = chainin;
+    sub->chain_out = chainout;
+    
     uint64_t index = ctx->token_handle_count;
     ctx->token_handle_count += 1;
     struct tactyk_dblock__DBlock *th_value = tactyk_dblock__from_uint(index);
