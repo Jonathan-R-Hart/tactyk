@@ -148,6 +148,20 @@ void tactyk_emit__dispose(struct tactyk_emit__Context *ctx) {
     tactyk_alloc__free(ctx);
 }
 
+void tactyk_emit__error(struct tactyk_emit__Context *ctx, char *msg, struct tactyk_dblock__DBlock *dblock) {
+    tactyk_report__break();
+    tactyk_report__indent(-16);
+    tactyk_report__dblock_list_vars("LOCAL VARIABLES", ctx->local_vars);
+    tactyk_report__break();
+    if (dblock == NULL) {
+        tactyk_report__msg(msg);
+    }
+    else {
+        tactyk_report__dblock(msg, dblock);
+    }
+    error(NULL, NULL);
+}
+
 bool tactyk_emit__comprehend_int_value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data, char *kwname);
 
 struct tactyk_dblock__DBlock* tactyk_emit__fetch_var(struct tactyk_emit__Context *ctx, void *destination, struct tactyk_dblock__DBlock *raw) {
@@ -182,11 +196,13 @@ bool tactyk_emit__ExecSubroutine(struct tactyk_emit__Context *ctx, struct tactyk
 
                 struct tactyk_dblock__DBlock *varvalue_raw = varname->next;
                 if (varvalue_raw != NULL) {
-                    tactyk_emit__fetch_var(ctx, varname, varvalue_raw);
+                    struct tactyk_dblock__DBlock *varvalue_resolved = tactyk_emit__fetch_var(ctx, varname, varvalue_raw);
+                    tactyk_report__dblock_var("[assign]", varname, varvalue_resolved);
                     goto do_next_sub;
                 };
             }
-            warn("EMIT -- Unrecognized virtual-ISA command", sub_data);
+            tactyk_report__dblock("Unrecognized Virtual-ISA command", sub_data);
+            warn(NULL, NULL);
         }
         do_next_sub:
         sub_data = sub_data->next;
@@ -198,14 +214,16 @@ bool tactyk_emit__ExecSubroutine(struct tactyk_emit__Context *ctx, struct tactyk
 //      (and the general case is expected to only be simple commands which differ from each other only by a single ASM instruction)
 bool tactyk_emit__DoSub(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     struct tactyk_emit__subroutine_spec *spec = tactyk_dblock__get(ctx->subroutine_table, data->token->next);
+    tactyk_report__dblock(">", data);
     if (spec == NULL) {
-        error("EMIT -- Undefined subroutine: ", data);
+        tactyk_emit__error(ctx, "referenced subroutine is undefined", NULL);
     }
     spec->func(ctx, spec->vopcfg);
     return true;
 }
 
 bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    tactyk_report__dblock(">", data);
     struct tactyk_emit__script_command *cmd = ctx->active_command;
     tactyk_dblock__reset_table(ctx->local_vars, true);
     tactyk_dblock__clear(ctx->code_template);
@@ -226,11 +244,17 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     struct tactyk_dblock__DBlock *next_instruction_label = tactyk_dblock__from_c_string(TACTYK_EMIT__COMMAND_PREFIX);
     tactyk_dblock__append(next_instruction_label, cmd_idx_next);
     tactyk_dblock__put(ctx->local_vars, "$NEXT_INSTRUCTION", next_instruction_label);
-
+    
     bool result = tactyk_emit__ExecSubroutine(ctx, data);
-    // clean up any temp dblocks (mostly dynamically text chunks)
-    if (code_len == cmd->asm_code->length) {
-        error("EMIT -- Code generation failed", cmd->pl_code);
+    
+    tactyk_report__dblock_list_vars("LOCAL VARIABLES", ctx->local_vars);
+    if (result == false) {
+        tactyk_report__msg("Instruction handler failed");
+        error(NULL, NULL);
+    }
+    else if (code_len == cmd->asm_code->length) {
+        tactyk_report__msg("Code generation failed");
+        error(NULL, NULL);
     }
     ctx->pl_operand_raw = NULL;
     ctx->pl_operand_resolved = NULL;
@@ -253,13 +277,22 @@ bool tactyk_emit__Type(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
     while (token != NULL) {
         struct tactyk_emit__subroutine_spec *type_applicator = tactyk_dblock__get(ctx->typespec_table, token);
         if (type_applicator == NULL) {
-            error("EMIT -- invalid type specifier", token);
+            tactyk_emit__error(ctx, "Invalid type specifier", token);
         }
+        //tactyk_report__dblock("TYPE", token);
+        tactyk_report__indent(2);
         if (type_applicator->func(ctx, type_applicator->vopcfg)) {
+            tactyk_report__indent(-2);
+            tactyk_report__dblock("TYPE-accept", token);
             return true;
         }
+        else {
+            //tactyk_report__msg("reject");
+        }
+        tactyk_report__indent(-2);
         token = token->next;
     }
+    tactyk_report__dblock_args("type-all-rejected", data);
     return false;
 }
 
@@ -367,7 +400,7 @@ bool tactyk_emit__Symbol(struct tactyk_emit__Context *ctx, struct tactyk_dblock_
     struct tactyk_dblock__DBlock *tbl_name = data->token->next;
     struct tactyk_dblock__DBlock *tbl = tactyk_dblock__get(ctx->symbol_tables, tbl_name);
     if (tbl == NULL) {
-        error("EMIT -- undefined symbol table", data);
+        tactyk_emit__error(ctx, "Undefined symbol table", data);
     }
     else {
         struct tactyk_dblock__DBlock *entry = tactyk_dblock__get(tbl, ctx->pl_operand_resolved);
@@ -386,7 +419,7 @@ bool tactyk_emit__ExecSelector(struct tactyk_emit__Context *ctx, struct tactyk_d
     while (sub_data != NULL) {
         tactyk_emit__sub_func matcher_func = tactyk_dblock__get(ctx->operator_table, sub_data->token);
         if (matcher_func == NULL) {
-            error("EMIT select-operand -- Invalid matcher", sub_data);
+            tactyk_emit__error(ctx, "  Invalid matcher", sub_data);
         }
         else {
             if(matcher_func(ctx, sub_data)) {
@@ -403,12 +436,12 @@ bool tactyk_emit__Flags(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
     ctx->select_token = ctx->pl_operand_resolved;
     struct tactyk_dblock__DBlock *sub_data = data->child;
     bool any_passed = false;
-
+    
     while (sub_data != NULL) {
         tactyk_emit__sub_func matcher_func = tactyk_dblock__get(ctx->operator_table, sub_data->token);
 
         if (matcher_func == NULL) {
-            error("EMIT select-operand -- Invalid matcher", sub_data);
+            tactyk_emit__error(ctx, "Invalid matcher", sub_data);
         }
         else {
             any_passed |= matcher_func(ctx, sub_data);
@@ -417,12 +450,14 @@ bool tactyk_emit__Flags(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
     }
 
     if (!any_passed) {
-        warn("EMIT -- no conditional statements accepted", data);
+        tactyk_report__dblock("No conditional statements accepted", sub_data);
+        warn(NULL, NULL);
     }
     return true;
 }
 bool tactyk_emit__Select(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     ctx->select_token = tactyk_emit__fetch_var(ctx, NULL, data->token->next);
+    //tactyk_report__dblock("select", ctx->select_token);
     if (ctx->select_token == NULL) {
         ctx->select_token = tactyk_dblock__from_c_string("[[ NULL ]]");
     }
@@ -430,21 +465,26 @@ bool tactyk_emit__Select(struct tactyk_emit__Context *ctx, struct tactyk_dblock_
 }
 bool tactyk_emit__SelectOp(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     ctx->select_token = ctx->pl_operand_raw;
+    //tactyk_report__msg("select-operand");
     if (ctx->select_token == NULL) {
         ctx->select_token = tactyk_dblock__from_c_string("[[ NULL ]]");
     }
     return tactyk_emit__ExecSelector(ctx, data);
 }
 bool tactyk_emit__SelectTemplate(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    tactyk_report__dblock("SELECT-TEMPLATE", ctx->code_template);    
+    tactyk_report__indent(2);
     ctx->select_token = ctx->code_template;
-    #ifdef TACTYK_DEBUG
-    printf("SELECT-TEMPLATE:  ");
-    tactyk_dblock__println(ctx->select_token);
-    #endif // TACTYK_DEBUG
-    return tactyk_emit__ExecSelector(ctx, data);
+    bool result = tactyk_emit__ExecSelector(ctx, data);
+    if (!result) {
+        tactyk_report__msg("No match");
+    }
+    tactyk_report__indent(-2);
+    return result;
 }
 
 bool tactyk_emit__SelectKeyword(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    //tactyk_report__msg("select-kw");
     ctx->select_token = tactyk_dblock__get(ctx->local_vars, "$KW");
     return tactyk_emit__ExecSelector(ctx, data);
 }
@@ -453,6 +493,7 @@ bool tactyk_emit__SelectKeyword(struct tactyk_emit__Context *ctx, struct tactyk_
 //  so to resolve it, the scrambler and the subroutine it configures use the cleverly named alternative: "$KW2"
 //      (at this point the selectors should probably just use a parameter to specify which the selection argument should be obtained from)
 bool tactyk_emit__SelectKeyword2(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    tactyk_report__msg("select-kw2");
     ctx->select_token = tactyk_dblock__get(ctx->local_vars, "$KW2");
     return tactyk_emit__ExecSelector(ctx, data);
 }
@@ -484,13 +525,13 @@ bool tactyk_emit__Pick(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
     return true;
 }
 
-bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+bool tactyk_emit__Operand__impl(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     struct tactyk_dblock__DBlock *alt = data->token->next;
     if (alt != NULL) {
-        error("EMIT -- unimplemented feature (explicit data source specification for TACTYK-VISA operands)", data);
+        tactyk_emit__error(ctx, "unimplemented feature (explicit data source specification for TACTYK-VISA operands)", data);
     }
     if (ctx->pl_operand_raw == NULL) {
-        error("EMIT -- Not enough arguments", ctx->active_command->pl_code);
+        tactyk_emit__error(ctx, "Not enough arguments", ctx->active_command->pl_code);
     }
     ctx->pl_operand_raw = ctx->pl_operand_raw->next;
     
@@ -498,6 +539,7 @@ bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock
         ctx->pl_operand_resolved = tactyk_emit__fetch_var(ctx, NULL, ctx->pl_operand_raw);
         tactyk_dblock__put(ctx->local_vars, "$RAW_OPERAND", ctx->pl_operand_raw);
         tactyk_dblock__put(ctx->local_vars, "$RESOLVED_OPERAND", ctx->pl_operand_raw);
+        tactyk_report__dblock("resolved", ctx->pl_operand_resolved);
     }
     else { 
         struct tactyk_dblock__DBlock *op_resolved = tactyk_dblock__from_c_string("[[ NULL ]]");
@@ -524,13 +566,28 @@ bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock
     return true;
 }
 
+bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    if (ctx->pl_operand_raw != NULL) {
+        tactyk_report__dblock("OPERAND", ctx->pl_operand_raw->next);
+    }
+    tactyk_report__indent(2);
+    bool result = tactyk_emit__Operand__impl(ctx, data);
+    tactyk_report__indent(-2);
+    return result;
+}
 bool tactyk_emit__OptionalOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
     struct tactyk_dblock__DBlock *raw_operand = ctx->pl_operand_raw;
+    if (ctx->pl_operand_raw != NULL) {
+        tactyk_report__dblock("OPT-OPERAND", ctx->pl_operand_raw->next);
+    }
 
+    tactyk_report__indent(2);
     // if the standard operand applicator fails, put the raw operand back so a non-optional operand can handle it.
-    if (!tactyk_emit__Operand(ctx, vopcfg)) {
+    if (!tactyk_emit__Operand__impl(ctx, vopcfg)) {
+        tactyk_report__msg("opt-reject");
         ctx->pl_operand_raw = raw_operand;
     }
+    tactyk_report__indent(-2);
     return true;
 
 }
@@ -544,7 +601,8 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
     bool permute = false;
     bool remove_duplicates = false;
     uint64_t max_ops = 16;
-
+    tactyk_report__msg("COMPOSITE-EVALUATOR");
+    tactyk_report__indent(2);
     struct tactyk_dblock__DBlock *param = vopcfg->token;
     while (param != NULL) {
         if (!tactyk_dblock__try_parseuint(&max_ops, param)) {
@@ -571,7 +629,7 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
                 break;
             }
             else {
-                error("EMIT -- nonspecific error during composite command evalation", ctx->active_command->pl_code);
+                tactyk_emit__error(ctx, "Composite instruction - failed to handle all arguments", ctx->active_command->pl_code);
                 return false;
             }
         }
@@ -614,6 +672,7 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
         ctx->active_command->asm_code = main_cb;
     }
 
+    tactyk_report__indent(-2);
     return true;
 }
 
@@ -751,7 +810,7 @@ bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
     
     struct tactyk_dblock__DBlock *target_name = data->token->next;
     struct tactyk_dblock__DBlock *code;
-
+    
     if (target_name == NULL) {
         code = ctx->active_command->asm_code;
     }
@@ -777,6 +836,14 @@ bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
         tactyk_dblock__append(code, code_rewritten);
         tactyk_dblock__append_char(code, '\n');
     }
+    tactyk_report__dblock_content("CODE-TEMPLATE", data);
+    if (target_name == NULL) {
+        tactyk_report__dblock_full("CODE-GENERATED", code);
+    }
+    else {
+        tactyk_report__dblock("CODE-FRAGMENT-NAME", target_name);
+        tactyk_report__dblock_full("CODE-GENERATED", code);
+    }
     return true;
 }
     
@@ -788,14 +855,12 @@ bool tactyk_emit__VCode(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
     tactyk_report__dblock("VCODE", max_raw);
     
     if (max_raw == NULL) {
-        tactyk_report__msg("  Line count not specified");
-        error(NULL, NULL);
+        tactyk_emit__error(ctx, "Line count not specified", NULL);
     }
     
     struct tactyk_dblock__DBlock *max_fetched = tactyk_emit__fetch_var(ctx, NULL, max_raw);
     if (!tactyk_dblock__try_parseuint(&max, max_fetched)) {
-        tactyk_report__dblock("  Invalid line count", max_fetched);
-        error(NULL, NULL);
+        tactyk_emit__error(ctx, "Invalid line count", max_fetched);
     }
     
     struct tactyk_dblock__DBlock *code_template = vopcfg->child;
@@ -807,8 +872,7 @@ bool tactyk_emit__VCode(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
         }
         uint64_t hdr = 0;
         if (!tactyk_dblock__try_parseuint(&hdr, token)) {
-            tactyk_report__dblock("  Invalid vcode header", code_template);
-            error(NULL, NULL);
+            tactyk_emit__error(ctx, "  Invalid vcode header", code_template);
         }
         if (hdr <= max) {
             struct tactyk_dblock__DBlock *code_rewritten = tactyk_emit__fetch_var(ctx, NULL, code_template);
@@ -889,8 +953,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
         }
         struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, cmd->name);
         if (sub == NULL) {
-            tactyk_report__msg("Instruction not defined.");
-            error(NULL, NULL);
+            tactyk_emit__error(ctx, "Instruction not defined.", NULL);
         }
         sub->func(ctx, sub->vopcfg);
         tactyk_report__dblock_full("ASM", cmd->asm_code);

@@ -9,10 +9,16 @@
 void tactyk_report__init();
 char* tactyk_report__get();
 void tactyk_report__reset();
+void tactyk_report__break();
 void tactyk_report__msg(char *msg);
+void tactyk_report__indent(int64_t amount);
 
 void tactyk_report__dblock(char *desc, struct tactyk_dblock__DBlock *dblock);
+void tactyk_report__dblock_args(char *desc, struct tactyk_dblock__DBlock *dblock);
+void tactyk_report__dblock_var(char *desc, struct tactyk_dblock__DBlock *varname, struct tactyk_dblock__DBlock *varvalue);
 void tactyk_report__dblock_full(char *desc, struct tactyk_dblock__DBlock *dblock);
+void tactyk_report__dblock_content(char *desc, struct tactyk_dblock__DBlock *dblock);
+void tactyk_report__dblock_list_vars(char *desc, struct tactyk_dblock__DBlock *dblock);
 
 void tactyk_report__string(char *desc, char *value);
 void tactyk_report__bool(char *desc, bool value);
