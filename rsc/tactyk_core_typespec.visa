@@ -126,7 +126,7 @@ typespec string
   string-operand
   pick S
 
-typespec Codeblock
+typespec codeblock
   codeblock
   pick B
 
