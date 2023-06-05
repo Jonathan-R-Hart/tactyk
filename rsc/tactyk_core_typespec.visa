@@ -126,6 +126,10 @@ typespec string
   string-operand
   pick S
 
+typespec Codeblock
+  codeblock
+  pick B
+
 typespec context-property
   select-operand
     case addr1.array_bound

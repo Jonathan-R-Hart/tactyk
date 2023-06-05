@@ -91,6 +91,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__put(ctx->operator_table, "int-operand", tactyk_emit__IntOperand);
     tactyk_dblock__put(ctx->operator_table, "float-operand", tactyk_emit__FloatOperand);
     tactyk_dblock__put(ctx->operator_table, "string-operand", tactyk_emit__StringOperand);
+    tactyk_dblock__put(ctx->operator_table, "codeblock", tactyk_emit__Codeblock_VOperand);
 
     tactyk_dblock__put(ctx->operator_table, "sub", tactyk_emit__DoSub);
     tactyk_dblock__put(ctx->operator_table, "nullarg", tactyk_emit__NullArg);
@@ -363,6 +364,12 @@ bool tactyk_emit__FloatOperand(struct tactyk_emit__Context *ctx, struct tactyk_d
     else {
         return false;
     }
+}
+
+// All variables this would need to set are handled by the main instruction handler.  
+// All that remains is a simple validation
+bool tactyk_emit__Codeblock_VOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    return ctx->active_command->child != NULL;
 }
 
 bool tactyk_emit__StringOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
