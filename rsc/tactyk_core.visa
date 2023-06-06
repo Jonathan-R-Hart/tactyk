@@ -419,9 +419,20 @@ subroutine cjump
         xor rTEMPA, rTEMPA
         jmp $JTARGET
 
-instruction if
+instruction chain-out if
   sub test
   sub cjump
+
+instruction chain-in else
+  operand
+    type branch codeblock
+    $JTARGET $VALUE
+    select $IS_CODEBLOCK
+      case true
+        $NEXT_INSTRUCTION $CODEBLOCK_CHILD_CHAIN_CLOSE
+      case false
+  code
+    jmp $NEXT_INSTRUCTION
 
 instruction lwcall
   operand
