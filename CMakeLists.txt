@@ -30,6 +30,10 @@ add_executable(tdemo
   tdemo/aux_sdl.c
 )
 
+add_executable(trun
+  runtime/tactyk_basic_runtime.c
+)
+
 add_executable(ttest
   tactyktest/ttest.c
   tactyktest/tactyk_test__TestIt.c
@@ -57,8 +61,13 @@ target_include_directories(tactyk PRIVATE
 target_include_directories(ttest PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+target_include_directories(trun PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/aux
+)
 
 target_link_libraries( tdemo tactyk tactyk_aux ${SDL2_LIBRARIES} )
+target_link_libraries( trun tactyk tactyk_aux )
 target_link_libraries( ttest tactyk )
 
 add_compile_definitions(
@@ -87,4 +96,11 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E create_symlink
           ${CMAKE_CURRENT_SOURCE_DIR}/examples
           ${CMAKE_CURRENT_BINARY_DIR}/examples
+)
+
+add_custom_command(
+  TARGET trun PRE_BUILD
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_CURRENT_SOURCE_DIR}/rsc
+          ${CMAKE_CURRENT_BINARY_DIR}/rsc
 )
