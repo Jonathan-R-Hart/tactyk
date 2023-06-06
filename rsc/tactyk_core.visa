@@ -429,7 +429,7 @@ instruction chain-in else
     $JTARGET $VALUE
     select $IS_CODEBLOCK
       case true
-        $NEXT_INSTRUCTION $CODEBLOCK_CHILD_CHAIN_CLOSE
+        $NEXT_INSTRUCTION $CODEBLOCK_CHILD_FIRST
       case false
   code
     jmp $NEXT_INSTRUCTION
