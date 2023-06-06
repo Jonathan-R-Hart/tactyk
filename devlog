@@ -15,6 +15,10 @@ Due to 'discovered' functionality, the extensive rewrite of the "if" instruction
   There was a plan to implement chained control-flow structures (if-elif-...-else), but it was cancelled due to
     requiring dynamic instruction insertion.
 
+Reset the x87 FPU on context switch
+Also decided that x87 stack content left over after compute operation is underfined behavior.
+  (might consider a complete fpu reset at the end of compute instructions if the unchecked-ness of the matter is considered too bothersome)
+
 5 Jun 2023 [0.8.1]
 tactyk-emit now produces detailed error reports when instruction interpretation fails.
 The most common errors are expected to be unrecognized operands, unrecognized instructions, and missing templates, which should be fairly easy to recognize.

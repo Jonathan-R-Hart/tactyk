@@ -761,6 +761,8 @@
         movdqu xmm15, fs:[context.registers + rbtactyk.xp  + random_const_FS]
         mov rTEMPA_32, fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
         cmp rTEMPA, 0
+        emms
+        finit
         jne .ldctx_restoremxcsr
         stmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
         mov rTEMPA_32, fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
