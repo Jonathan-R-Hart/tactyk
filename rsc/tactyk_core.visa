@@ -191,7 +191,7 @@ instruction assign
     type data xmmx address-offset
     $A $VALUE
   operand
-    type data xmmx stackreg const fconst address-offset context-property integer float string
+    type data xmmx stackreg const branch-index fconst address-offset context-property integer float string
     $B $VALUE
     scramble rTEMPA $LD_B_IMMEDIATE
     scramble rTEMPC $LD_B_HIGHBITS_IMMEDIATE $VALUE_UPPER
@@ -205,7 +205,7 @@ instruction assign
         mov %[$A]_16, %[$B]_16
         sub %[$A]_16, word fs:[$STACK_FLOOR + random_const_FS]
         jmp $NEXT_INSTRUCTION
-    case DI DC DS
+    case DI DC DS DLi
       code 
         $LD_B_IMMEDIATE
         mov $A, rTEMPA
@@ -361,12 +361,35 @@ instruction negate
 
 instruction goto
   operand
-    type branch
+    type branch data const integer
     $JTARGET $VALUE
+    scramble rMAPPER $LD_IMMEDIATE_SOFTREF_BRANCH
   select-template
     case L
       code
         jmp $JTARGET
+    case D
+      code
+        cmp $JTARGET, fs:[context.instruction_count + random_const_FS]
+        errorge STATUS_ROGUE_BRANCH
+        cmp $JTARGET, 0
+        errorlt STATUS_ROGUE_BRANCH
+        lfence
+        mov rMAPPER, $JTARGET
+        shl rMAPPER, 3
+        add rMAPPER, fs:[context.program_map + random_const_FS]
+        jmp [rMAPPER]
+    case C I
+      code
+        $LD_IMMEDIATE_SOFTREF_BRANCH
+        cmp rMAPPER, fs:[context.instruction_count + random_const_FS]
+        errorge STATUS_ROGUE_BRANCH
+        cmp rMAPPER, 0
+        errorlt STATUS_ROGUE_BRANCH
+        lfence
+        shl rMAPPER, 3
+        add rMAPPER, fs:[context.program_map + random_const_FS]
+        jmp [rMAPPER]
 
 subroutine test
   operand

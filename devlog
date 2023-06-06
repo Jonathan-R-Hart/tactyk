@@ -19,6 +19,17 @@ Reset the x87 FPU on context switch
 Also decided that x87 stack content left over after compute operation is underfined behavior.
   (might consider a complete fpu reset at the end of compute instructions if the unchecked-ness of the matter is considered too bothersome)
 
+Add a mechanism for obtaining a dynamic reference to labels (branch targets)
+  added internal "label-index" symbol table + typespec
+  added the label-index typespec to assign operator
+  added a template alias to assign operator ['load constant onto register' template]
+
+Add dynamic branch templates to the goto instruction
+  Dynamic branching jumps to specific instructions (by indexing an opaque global jump table which maps all instructions onto positions in the assembly)
+  A label reference may be obtained by assigning it to a data register, then offset by adding or subtracting integer values  to/from it.
+  It might be worthwhile to add a set of templates to the 'if' instruction, but that would be a lot of extra junk to test, and the real value of this is with 
+    the goto instruction (for implementing jump tables).
+
 5 Jun 2023 [0.8.1]
 tactyk-emit now produces detailed error reports when instruction interpretation fails.
 The most common errors are expected to be unrecognized operands, unrecognized instructions, and missing templates, which should be fairly easy to recognize.

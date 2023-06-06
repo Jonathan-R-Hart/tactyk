@@ -110,6 +110,7 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
 
     ctx->symbol_tables = tactyk_dblock__new_table(128);
     ctx->label_table = tactyk_dblock__new_table(256);
+    ctx->labelindex_table = tactyk_dblock__new_table(256);
     ctx->const_table = tactyk_dblock__new_table(64);
     ctx->fconst_table = tactyk_dblock__new_table(64);
     ctx->memblock_table = tactyk_dblock__new_table(64);
@@ -119,6 +120,7 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
     tactyk_dblock__set_persistence_code(ctx->program->functions, 10);
 
     tactyk_dblock__put(ctx->symbol_tables, "label", ctx->label_table);
+    tactyk_dblock__put(ctx->symbol_tables, "label-index", ctx->labelindex_table);
     tactyk_dblock__put(ctx->symbol_tables, "const", ctx->const_table);
     tactyk_dblock__put(ctx->symbol_tables, "fconst", ctx->fconst_table);
     tactyk_dblock__put(ctx->symbol_tables, "mem", ctx->memblock_table);
@@ -795,7 +797,7 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
         return true;
     }
     tactyk_dblock__dispose(sc_input);
-
+    
     uint64_t rand_val = tactyk__rand_uint64();
     uint64_t diff_val = (uint64_t)raw_val ^ rand_val;
     //bool is_qword = false;
@@ -940,6 +942,8 @@ void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tact
     id->value = ctx->script_commands->element_count;
     tactyk_dblock__export_cstring(id->txt, TACTYK__MAX_IDENTIFIER_LENGTH, raw_label);
     //strncpy(id->txt, tactyk_dblock__export_cstring(raw_label), MAX_IDENTIFIER_LENGTH);
+    struct tactyk_dblock__DBlock *lblidx_entry = tactyk_dblock__from_uint(ctx->script_commands->element_count);
+    tactyk_dblock__put(ctx->labelindex_table, raw_label, lblidx_entry);
     
     if (ctx->active_labels == NULL) {
         ctx->active_labels = sanitized_label;

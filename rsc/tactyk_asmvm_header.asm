@@ -774,6 +774,7 @@
         .ldctx_restoremxcsr:
         ldmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
         .ldctx_end:
+        xor rTEMPA, rTEMPA
     %endmacro
 
     %macro store_context 0

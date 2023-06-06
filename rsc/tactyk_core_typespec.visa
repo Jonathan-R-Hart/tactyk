@@ -99,6 +99,10 @@ typespec branch
   $IS_CODEBLOCK false
   pick L
 
+typespec branch-index
+  symbol label-index
+  pick Li
+
 typespec const
   symbol const
   pick C
