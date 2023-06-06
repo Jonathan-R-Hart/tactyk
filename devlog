@@ -10,6 +10,9 @@ Code blocks [at the V-ISA level] are defined as a set of labels which are access
     $CODEBLOCK_CHILD_FIRST  - branch target referencing the first instruction within the child code block
     $CODEBLOCK_CHILD_CLOSE  - branch target referencing the next instruction within the current block
 
+Due to 'discovered' functionality, the extensive rewrite of the "if" instruction tests can be de-prioritized! 
+  (the conversion was accomplished by overriding branch target variables)
+
 5 Jun 2023 [0.8.1]
 tactyk-emit now produces detailed error reports when instruction interpretation fails.
 The most common errors are expected to be unrecognized operands, unrecognized instructions, and missing templates, which should be fairly easy to recognize.

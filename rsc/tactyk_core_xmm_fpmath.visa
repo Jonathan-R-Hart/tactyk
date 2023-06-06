@@ -489,7 +489,7 @@ extend instruction div select-template
 # Floating point comparisons wherein neither operand is stored on an xmmx register are unspported
 
 extend instruction if select-template    
-  case XTXL
+  case XTXL XTXB
     code
       movsd xTEMPA, $A
       cmpsd xTEMPA, $B, $VPRED
@@ -503,7 +503,7 @@ extend instruction if select-template
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
       jmp $JTARGET
-  case DTXL
+  case DTXL DTXB
     code
       cvtsi2sd xTEMPA, $A
       cmpsd xTEMPA, $B, $VPRED
@@ -517,7 +517,7 @@ extend instruction if select-template
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
       jmp $JTARGET
-  case FTXL CfTXL
+  case FTXL CfTXL FTXB CfTXB
     code
       $LD_IMMEDIATE_A
       movq xTEMPA, rTEMPA
@@ -532,7 +532,7 @@ extend instruction if select-template
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
       jmp $JTARGET
-  case ITXL CTXL
+  case ITXL CTXL ITXB CTXB
     code
       $LD_IMMEDIATE_A
       cvtsi2sd xTEMPA, rTEMPA
@@ -547,7 +547,7 @@ extend instruction if select-template
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
       jmp $JTARGET
-  case XTDL
+  case XTDL XTDB
     code
       cvtsi2sd xTEMPA, $B
       cmpsd xTEMPA, $A, $VPREDCOMPLEMENT
@@ -561,7 +561,7 @@ extend instruction if select-template
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
       jmp $JTARGET
-  case XTFL XTCfL
+  case XTFL XTCfL XTFB XTCfB
     code
       $LD_IMMEDIATE_B
       movq xTEMPA, rTEMPC
@@ -578,7 +578,7 @@ extend instruction if select-template
       xor rTEMPC, rTEMPC
       pxor xTEMPA, xTEMPA
       jmp $JTARGET
-  case XTIL XTCL
+  case XTIL XTCL XTIB XTCB
     code
       $LD_IMMEDIATE_B
       cvtsi2sd xTEMPA, rTEMPC
@@ -596,7 +596,7 @@ extend instruction if select-template
       pxor xTEMPA, xTEMPA
       jmp $JTARGET
   
-  case DTFL DTCfL
+  case DTFL DTCfL DTFB DTCfB
     code
       $LD_IMMEDIATE_B
       cvtsi2sd xTEMPA, $A
@@ -615,7 +615,7 @@ extend instruction if select-template
       pxor xTEMPA, xTEMPA
       pxor xTEMPB, xTEMPB
       jmp $JTARGET
-  case FTDL CfTDL
+  case FTDL CfTDL FTDB CfTDB
     code
       $LD_IMMEDIATE_A
       movq xTEMPA, rTEMPA

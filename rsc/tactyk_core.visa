@@ -381,17 +381,21 @@ instruction if
     $B $VALUE
     scramble rTEMPC $LD_IMMEDIATE_B
   operand
-    type branch
+    type branch codeblock
     $JTARGET $VALUE
+    select $IS_CODEBLOCK
+      case true
+        $NEXT_INSTRUCTION $CODEBLOCK_CHILD_CHAIN_CLOSE
+        $JTARGET $CODEBLOCK_CHILD_FIRST
   select-template
-    case DTDL
+    case DTDL DTDB
       code
         cmp $A, $B
         $CJUMP .pass
         jmp $NEXT_INSTRUCTION
         .pass:
         jmp $JTARGET
-    case DTIL DTCL
+    case DTIL DTCL DTIB DTCB
       code
         $LD_IMMEDIATE_B
         cmp $A, rTEMPC
@@ -401,7 +405,7 @@ instruction if
         .pass:
         xor rTEMPC, rTEMPC
         jmp $JTARGET
-    case ITDL CTDL
+    case ITDL CTDL ITDB CTDB
       code
         $LD_IMMEDIATE_A
         cmp rTEMPA, $B
