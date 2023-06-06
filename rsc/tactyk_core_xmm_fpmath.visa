@@ -488,7 +488,7 @@ extend instruction div select-template
 # is an integer
 # Floating point comparisons wherein neither operand is stored on an xmmx register are unspported
 
-extend instruction if select-template    
+extend subroutine cjump select-template
   case XTXL XTXB
     code
       movsd xTEMPA, $A

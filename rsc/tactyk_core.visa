@@ -368,7 +368,7 @@ instruction goto
       code
         jmp $JTARGET
 
-instruction if
+subroutine test
   operand
     type xmmx data integer const fconst float
     $A $VALUE
@@ -380,6 +380,8 @@ instruction if
     type xmmx data integer const fconst float
     $B $VALUE
     scramble rTEMPC $LD_IMMEDIATE_B
+
+subroutine cjump
   operand
     type branch codeblock
     $JTARGET $VALUE
@@ -416,6 +418,10 @@ instruction if
         .pass:
         xor rTEMPA, rTEMPA
         jmp $JTARGET
+
+instruction if
+  sub test
+  sub cjump
 
 instruction lwcall
   operand
