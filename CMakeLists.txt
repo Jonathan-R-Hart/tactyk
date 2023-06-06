@@ -32,6 +32,7 @@ add_executable(tdemo
 
 add_executable(trun
   runtime/tactyk_basic_runtime.c
+  runtime/tactyk_run_resource_pack.c
 )
 
 add_executable(ttest
@@ -103,4 +104,7 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E create_symlink
           ${CMAKE_CURRENT_SOURCE_DIR}/rsc
           ${CMAKE_CURRENT_BINARY_DIR}/rsc
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+          ${CMAKE_CURRENT_SOURCE_DIR}/extras
+          ${CMAKE_CURRENT_BINARY_DIR}/extras
 )

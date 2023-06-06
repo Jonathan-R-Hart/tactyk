@@ -1,7 +1,9 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "tactyk.h"
+#include "tactyk_report.h"
 #include "tactyk_visa.h"
 #include "tactyk_emit.h"
 #include "tactyk_asmvm.h"
@@ -10,6 +12,8 @@
 #include "tactyk_debug.h"
 #include "aux_printit.h"
 #include "aux_util.h"
+
+#include "tactyk_run_resource_pack.h"
 
 int main(int argc, char *argv[], char *envp[]) {
     tactyk_init();
@@ -50,7 +54,24 @@ int main(int argc, char *argv[], char *envp[]) {
     struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
     tactyk_pl__define_constants(plctx, ".VISA", emitctx->visa_token_constants);
     
-    printf("nothing to see here.\n");
     
+    if (argc <= 1) {
+        printf("Nothing to load.  bye!\n");
+        exit(0);
+    }
+    struct tactyk_run__RSC *rsc = tactyk_run__load_resource_pack(argv[1]);
     exit(0);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
