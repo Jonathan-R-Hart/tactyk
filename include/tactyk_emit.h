@@ -53,6 +53,13 @@
 
 //struct tactyk_structured_text;
 struct tactyk_emit__Context;
+struct tactyk_emit__script_command;
+
+struct tactyk_emit__codeblock {
+    struct tactyk_dblock__DBlock *header_label;
+    struct tactyk_dblock__DBlock *first_label;
+    struct tactyk_dblock__DBlock *close_label;
+};
 
 struct tactyk_emit__script_command {
     struct tactyk_dblock__DBlock *name;
@@ -63,21 +70,12 @@ struct tactyk_emit__script_command {
 
     struct tactyk_dblock__DBlock *asm_code;
     
-    struct tactyk_emit__codeblock *parent;
-    struct tactyk_emit__codeblock *child;
+    struct tactyk_emit__codeblock parent;
+    struct tactyk_emit__codeblock child;
     
     int32_t linenumber;
 };
 
-struct tactyk_emit__codeblock {
-    struct tactyk_dblock__DBlock *header_label;
-    struct tactyk_dblock__DBlock *first_label;
-    struct tactyk_dblock__DBlock *close_label;
-    struct tactyk_dblock__DBlock *chain_close_label;
-    uint64_t end_instruction_index;
-    uint64_t level;
-    bool chain_out;
-};
 
 void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock* label);
 void tactyk_emit__push_codeblock(struct tactyk_emit__Context *ctx, bool orphan);

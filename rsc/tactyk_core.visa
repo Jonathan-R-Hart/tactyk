@@ -387,7 +387,7 @@ subroutine cjump
     $JTARGET $VALUE
     select $IS_CODEBLOCK
       case true
-        $NEXT_INSTRUCTION $CODEBLOCK_CHILD_CHAIN_CLOSE
+        $NEXT_INSTRUCTION $CODEBLOCK_CHILD_CLOSE
         $JTARGET $CODEBLOCK_CHILD_FIRST
       case false
   select-template
@@ -419,20 +419,9 @@ subroutine cjump
         xor rTEMPA, rTEMPA
         jmp $JTARGET
 
-instruction chain-out if
+instruction if
   sub test
   sub cjump
-
-instruction chain-in else
-  operand
-    type branch codeblock
-    $JTARGET $VALUE
-    select $IS_CODEBLOCK
-      case true
-        $NEXT_INSTRUCTION $CODEBLOCK_CHILD_FIRST
-      case false
-  code
-    jmp $NEXT_INSTRUCTION
 
 instruction lwcall
   operand

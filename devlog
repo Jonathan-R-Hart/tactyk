@@ -12,6 +12,8 @@ Code blocks [at the V-ISA level] are defined as a set of labels which are access
 
 Due to 'discovered' functionality, the extensive rewrite of the "if" instruction tests can be de-prioritized! 
   (the conversion was accomplished by overriding branch target variables)
+  There was a plan to implement chained control-flow structures (if-elif-...-else), but it was cancelled due to
+    requiring dynamic instruction insertion.
 
 5 Jun 2023 [0.8.1]
 tactyk-emit now produces detailed error reports when instruction interpretation fails.
