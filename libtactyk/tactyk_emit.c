@@ -966,11 +966,14 @@ void tactyk_emit__append_label_to_command(struct tactyk_emit__script_command *cm
 }
 
 void tactyk_emit__push_codeblock(struct tactyk_emit__Context *ctx, bool orphan) {
+    if (ctx->active_command == NULL) {
+        return;
+    }
     ctx->active_codeblock_index += 1;
     
     if (ctx->active_codeblock_index >= TACTYK_EMIT__MAX_CODEBLOCK_NESTLEVEL) {
         tactyk_report__reset();
-        tactyk_report__uint("Codeblock nest level out of bounds", ctx->active_codeblock_index);
+        tactyk_report__int("Codeblock nest level out of bounds", ctx->active_codeblock_index);
         error(NULL, NULL);
     }
     
@@ -999,9 +1002,7 @@ void tactyk_emit__push_codeblock(struct tactyk_emit__Context *ctx, bool orphan) 
 }
 void tactyk_emit__pop_codeblock(struct tactyk_emit__Context *ctx) {
     if (ctx->active_codeblock_index == -1) {
-        tactyk_report__reset();
-        tactyk_report__uint("Codeblock nest level out of bounds", ctx->active_codeblock_index);
-        error(NULL, NULL);
+        return;
     }
     
     struct tactyk_emit__codeblock *codeblock = tactyk_dblock__index(ctx->codeblocks, ctx->active_codeblock_index);
@@ -1036,7 +1037,7 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
     if (sub == NULL) {
         tactyk_report__reset();
         tactyk_emit__error(ctx, "Instruction not defined.", NULL);
-    }    
+    }
 }
 
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
@@ -1058,7 +1059,7 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
         sub->func(ctx, sub->vopcfg);
         tactyk_report__dblock_full("ASM", cmd->asm_code);
     }
-
+    
     tactyk_report__reset();
     tactyk_report__msg("COMPILE");
     uint64_t program_size = ctx->script_commands->element_count;

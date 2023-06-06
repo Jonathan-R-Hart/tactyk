@@ -162,7 +162,7 @@ struct tactyk_emit__Context {
     uint64_t random_const_gs;
     
     uint64_t next_codeblock_id;
-    uint64_t active_codeblock_index;
+    int64_t active_codeblock_index;
     struct tactyk_dblock__DBlock *codeblocks;
 };
 
