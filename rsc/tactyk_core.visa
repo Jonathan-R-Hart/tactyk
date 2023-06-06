@@ -387,6 +387,7 @@ instruction if
       case true
         $NEXT_INSTRUCTION $CODEBLOCK_CHILD_CHAIN_CLOSE
         $JTARGET $CODEBLOCK_CHILD_FIRST
+      case false
   select-template
     case DTDL DTDB
       code

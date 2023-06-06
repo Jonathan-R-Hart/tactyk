@@ -96,6 +96,7 @@ typespec float
 # symbolic fields are handled by looking them up in symbol tables.
 typespec branch
   symbol label
+  $IS_CODEBLOCK false
   pick L
 
 typespec const
