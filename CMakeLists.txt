@@ -33,6 +33,7 @@ add_executable(tdemo
 add_executable(trun
   runtime/tactyk_basic_runtime.c
   runtime/tactyk_run_resource_pack.c
+  runtime/tactyk_run_platform_functions.c
 )
 
 add_executable(ttest

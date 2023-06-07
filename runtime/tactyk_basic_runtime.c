@@ -14,6 +14,7 @@
 #include "aux_util.h"
 
 #include "tactyk_run_resource_pack.h"
+#include "tactyk_run_platform_functions.h"
 
 int main(int argc, char *argv[], char *envp[]) {
     tactyk_init();
@@ -44,25 +45,26 @@ int main(int argc, char *argv[], char *envp[]) {
     
     tactyk_visa__init_emit(emitctx);
     struct tactyk_asmvm__VM *vm = tactyk_asmvm__new_vm();
-    struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
+    struct tactyk_asmvm__Context *asmvmctx = tactyk_asmvm__new_context(vm);
 
     tactyk_debug__configure_api(emitctx);
     tactyk_emit_svc__configure(emitctx);
     aux_printit__configure(emitctx);
     aux_util__configure(emitctx);
-
-    struct tactyk_pl__Context *plctx = tactyk_pl__new(emitctx);
-    tactyk_pl__define_constants(plctx, ".VISA", emitctx->visa_token_constants);
-    
-    
+   
     if (argc <= 1) {
         printf("Nothing to load.  bye!\n");
         exit(0);
     }
     
-    void tactyk_run__init();
+    tactyk_run__init();
+    tactyk_run__platform_init(emitctx);
     
-    struct tactyk_run__RSC *rsc = tactyk_run__load_resource_pack(argv[1]);
+    struct tactyk_run__RSC *rsc = tactyk_run__load_resource_pack(argv[1], emitctx, asmvmctx);
+    tactyk_run__platform__set_resource_pack(rsc);
+    
+    tactyk_asmvm__invoke(asmvmctx, rsc->main_program, rsc->main_entrypoint);
+    
     exit(0);
 }
 

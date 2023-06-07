@@ -1,8 +1,6 @@
-6 Jun 2023
-Begin development of a generic/standalone tactyk runtime + components.
-  This will start as a copy of demo, but with shell-based program loading replaced with a more formal setup based on a manifest/config file.
-  The manifest file is to provide tagged resource files, tactyk-pl code to load and run (or perhaps load and bind to event handlers), settings,
-  and tactyk-pl constants.
+6-7 Jun 2023
+Begin development of a minimal tactyk runtime + components.
+  Not much to it - just a mechanism for loading data from files, program code, and defining an entry point, and accessing loaded data from tactyk
 
 5 Jun 2023 [0.9.0]
 Add a mechanism for defining code blocks.
