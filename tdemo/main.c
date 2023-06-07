@@ -169,7 +169,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
     tactyk_debug__configure_api(emitctx);
     aux_configure(emitctx);
-    aux_sdl__configure(emitctx);
+    aux_sdl__configure(emitctx, 4096,4096);
     tactyk_emit_svc__configure(emitctx);
     aux_printit__configure(emitctx);
     aux_util__configure(emitctx);

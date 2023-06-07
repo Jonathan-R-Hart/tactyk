@@ -32,11 +32,18 @@ struct aux_sdl__Context {
     uint8_t *framebuffer;
     struct aux_sdl__State *ui_state;
     
+    // an optional buffer for scripted renderers.  
+    // has room to represent each framebuffer pixel in an arbitrary format
+    uint64_t srcatchbufsize;
+    uint8_t *scratchbuffer;
 };
 
 struct aux_sdl__Context *sdlctx;
 
-void aux_sdl__configure(struct tactyk_emit__Context *emit_context) {
+uint64_t aux_sdl__max_window_width;
+uint64_t aux_sdl__max_window_height;
+
+void aux_sdl__configure(struct tactyk_emit__Context *emit_context, uint64_t max_window_width, uint64_t max_window_height) {
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--get-framebuffer", aux_sdl__get_framebuffer);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--get-eventview", aux_sdl__get_event_view);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--new", aux_sdl__new);
@@ -50,6 +57,8 @@ void aux_sdl__configure(struct tactyk_emit__Context *emit_context) {
     if (err != 0) {
         error("AUX-SDL-init -- SDL init failed", NULL);
     }
+    aux_sdl__max_window_width = max_window_width;
+    aux_sdl__max_window_height = max_window_height;
 }
 
 void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx) {
@@ -63,23 +72,26 @@ void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx) {
     
     sdlctx->draw_area.w = asmvm_ctx->reg.rA;
     sdlctx->draw_area.h = asmvm_ctx->reg.rB;
-
+    
     sdlctx->texw = tactyk_util__next_pow2(sdlctx->draw_area.w);
     sdlctx->texh = tactyk_util__next_pow2(sdlctx->draw_area.h);
-
+    
     sdlctx->window = SDL_CreateWindow("TACTYK-SDL Window",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         sdlctx->draw_area.w, sdlctx->draw_area.h,
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
     );
-
+    
     sdlctx->renderer = SDL_CreateRenderer(sdlctx->window, -1, 0);
     sdlctx->texture = SDL_CreateTexture(sdlctx->renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, sdlctx->texw, sdlctx->texh);
-
+    
     sdlctx->bufsize = sdlctx->texw * sdlctx->texh * sizeof(uint32_t);
-    sdlctx->framebuffer = calloc(sdlctx->bufsize+8, 1);
+    sdlctx->framebuffer = calloc(sdlctx->bufsize, 1);
     sdlctx->ui_state = calloc(1, sizeof(struct aux_sdl__State));
+    
+    uint64_t scratchbuf_scale = asmvm_ctx->reg.rC;
+    sdlctx->srcatchbufsize = scratchbuf_scale * sdlctx->texw * sdlctx->texh;
 }
 
 void aux_sdl__get_framebuffer(struct tactyk_asmvm__Context *asmvm_ctx) {
@@ -94,6 +106,23 @@ void aux_sdl__get_framebuffer(struct tactyk_asmvm__Context *asmvm_ctx) {
     asmvm_ctx->reg.rADDR1 = (uint64_t*) sdlctx->framebuffer;
     asmvm_ctx->reg.rA = sdlctx->texw;
     asmvm_ctx->reg.rB = sdlctx->texh;
+}
+
+void aux_sdl__get_scratchbuffer(struct tactyk_asmvm__Context *asmvm_ctx) {
+    
+    if ( (sdlctx->scratchbuffer == NULL) && (sdlctx->srcatchbufsize > 0) ) {
+        sdlctx->scratchbuffer = calloc(sdlctx->srcatchbufsize, 1);
+    }
+    
+    struct tactyk_asmvm__memblock_lowlevel *mem_ll_ctx = &asmvm_ctx->active_memblocks[0];
+    
+    mem_ll_ctx->base_address = (uint8_t*) sdlctx->scratchbuffer;
+    mem_ll_ctx->array_bound = 1;
+    mem_ll_ctx->element_bound = sdlctx->srcatchbufsize;
+    mem_ll_ctx->offset = 0;
+    mem_ll_ctx->memblock_index = 0xffffffff;
+    
+    asmvm_ctx->reg.rADDR1 = (uint64_t*) sdlctx->scratchbuffer;
 }
 
 void aux_sdl__get_event_view(struct tactyk_asmvm__Context *asmvm_ctx) {
