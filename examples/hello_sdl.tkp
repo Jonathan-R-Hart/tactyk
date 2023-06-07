@@ -33,11 +33,11 @@ MAIN:
   ccall printchar
 
   # obtain an SDL-backed framebuffer
-  tcall sdl_init
+  tcall sdl--init
   
   assign a width
   assign b height
-  tcall fb_new
+  tcall sdl--new
   
   tcall sdl--get-eventview
   bind addr3 addr1
@@ -49,7 +49,7 @@ MAIN:
   # b = buffer height
 
   assign b a
-  tcall fb_render
+  tcall sdl--render
   
   # iterate each visible pixel in the frame buffer
   assign f 0
@@ -86,16 +86,16 @@ MAIN:
   
       goto COL
   UPDATE_FB:
-  tcall fb_update
-  tcall fb_render
+  tcall sdl--upload-framebuffer
+  tcall sdl--render
   
   # show it for 1.5 seconds, then exit.
   assign a 1500
   ccall sleep  
   
   # close the SDL window and clean up
-  tcall fb_release
-  tcall sdl_quit
+  tcall sdl--release
+  tcall sdl--quit
   
   bind addr1 footer
   assign b 0

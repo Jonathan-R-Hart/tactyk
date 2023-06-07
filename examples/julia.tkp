@@ -45,10 +45,10 @@ MAIN:
   assign b header_size
   lwcall PRINTIT
   
-  tcall sdl_init 
+  tcall sdl--init 
   assign a width
   assign b height
-  tcall fb_new
+  tcall sdl--new
   tcall sdl--get-eventview
   bind addr3 addr1
   tcall sdl--get-framebuffer
@@ -90,14 +90,14 @@ MAIN:
 
 goto RENDER_FRAC
 DISPLAY_IT:
-  tcall fb_update
-  tcall fb_render
+  tcall sdl--upload-framebuffer
+  tcall sdl--render
   goto MAINLOOP
 DELAY_AND_RETRY:
   assign a 10
   ccall sleep
 MAINLOOP:
-  tcall sdl_update_state
+  tcall sdl--update_ui
   load qword a addr3 sdl_state.key
   if a == 20 CLOSE_AND_EXIT
   if a == 41 CLOSE_AND_EXIT
@@ -116,8 +116,8 @@ MAINLOOP:
   mul xi 2
   sub xi 1
   
-  tcall fb_update
-  tcall fb_render
+  tcall sdl--upload-framebuffer
+  tcall sdl--render
   add xh 0.02
   assign a 0
   assign b 0
@@ -202,8 +202,8 @@ RENDER_FRAC:
   goto SELECT_NEXT_PIXEL
   
 CLOSE_AND_EXIT:
-  tcall fb_release
-  tcall sdl_quit
+  tcall sdl--release
+  tcall sdl--quit
 
   bind addr1 footer
   assign b footer_size

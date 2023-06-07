@@ -36,15 +36,15 @@ struct aux_sdl__Context {
 struct aux_sdl__Context *sdlctx;
 
 void aux_sdl__configure(struct tactyk_emit__Context *emit_context) {
-    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl_init", aux_sdl__init);
+    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--init", aux_sdl__init);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--get-framebuffer", aux_sdl__get_framebuffer);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--get-eventview", aux_sdl__get_event_view);
-    tactyk_emit__add_tactyk_apifunc(emit_context, "fb_new", aux_sdl__new);
-    tactyk_emit__add_tactyk_apifunc(emit_context, "fb_update", aux_sdl__update_buffer);
-    tactyk_emit__add_tactyk_apifunc(emit_context, "fb_render", aux_sdl__render);
-    tactyk_emit__add_tactyk_apifunc(emit_context, "fb_release", aux_sdl__release);
-    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl_update_state", aux_sdl__consume_events);
-    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl_quit", aux_sdl__quit);
+    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--new", aux_sdl__new);
+    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--upload-framebuffer", aux_sdl__upload_framebuffer);
+    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--render", aux_sdl__render);
+    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--release", aux_sdl__release);
+    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--update_ui", aux_sdl__consume_events);
+    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--quit", aux_sdl__quit);
 }
 
 void aux_sdl__init(struct tactyk_asmvm__Context *asmvm_ctx) {
@@ -133,7 +133,7 @@ void aux_sdl__get_event_view(struct tactyk_asmvm__Context *asmvm_ctx) {
     asmvm_ctx->reg.rADDR1 = (uint64_t*) sdlctx->ui_state;
 }
 
-void aux_sdl__update_buffer(struct tactyk_asmvm__Context *asmvm_ctx) {
+void aux_sdl__upload_framebuffer(struct tactyk_asmvm__Context *asmvm_ctx) {
     if (sdlctx == NULL) {
         error("AUX-SDL-update -- SDL context is uninitialized", NULL);
         return;

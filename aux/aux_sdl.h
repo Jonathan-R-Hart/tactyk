@@ -7,7 +7,7 @@ void aux_sdl__get_framebuffer(struct tactyk_asmvm__Context *asmvm_ctx);
 void aux_sdl__get_event_view(struct tactyk_asmvm__Context *asmvm_ctx);
 void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx);
 void aux_sdl__render(struct tactyk_asmvm__Context *asmvm_ctx);
-void aux_sdl__update_buffer(struct tactyk_asmvm__Context *asmvm_ctx);
+void aux_sdl__upload_framebuffer(struct tactyk_asmvm__Context *asmvm_ctx);
 void aux_sdl__release(struct tactyk_asmvm__Context *asmvm_ctx);
 void aux_sdl__quit(struct tactyk_asmvm__Context *asmvm_ctx);
 void aux_sdl__consume_events(struct tactyk_asmvm__Context *asmvm_ctx);
