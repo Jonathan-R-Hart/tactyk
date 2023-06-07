@@ -31,6 +31,7 @@ struct aux_sdl__Context {
     uint64_t bufsize;
     uint8_t *framebuffer;
     struct aux_sdl__State *ui_state;
+    
 };
 
 struct aux_sdl__Context *sdlctx;
@@ -60,7 +61,6 @@ void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx) {
     sdlctx->draw_area.x = 0;
     sdlctx->draw_area.y = 0;
     
-    //active_mblock->
     sdlctx->draw_area.w = asmvm_ctx->reg.rA;
     sdlctx->draw_area.h = asmvm_ctx->reg.rB;
 
@@ -71,37 +71,15 @@ void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx) {
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         sdlctx->draw_area.w, sdlctx->draw_area.h,
-        SDL_WINDOW_RESIZABLE
+        SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
     );
 
     sdlctx->renderer = SDL_CreateRenderer(sdlctx->window, -1, 0);
     sdlctx->texture = SDL_CreateTexture(sdlctx->renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, sdlctx->texw, sdlctx->texh);
 
-    //struct tactyk_asmvm__memblock_lowlevel *mem_ll_ctx = &asmvm_ctx->active_memblocks[mbpos];
-
     sdlctx->bufsize = sdlctx->texw * sdlctx->texh * sizeof(uint32_t);
     sdlctx->framebuffer = calloc(sdlctx->bufsize+8, 1);
     sdlctx->ui_state = calloc(1, sizeof(struct aux_sdl__State));
-    /*
-    uint8_t *fb = calloc(sdlctx->bufsize+8, 1);
-
-    mem_ll_ctx->base_address = fb;
-    mem_ll_ctx->array_bound = 1;
-    mem_ll_ctx->element_bound = sdlctx->bufsize;
-    tactyk_asmvm__update_declared_memblock(asmvm_ctx, mem_ll_ctx, mbpos);
-    sdlctx->framebuffer = fb;
-
-    asmvm_ctx->reg.rA = sdlctx->texw;
-    asmvm_ctx->reg.rB = sdlctx->texh;
-    asmvm_ctx->reg.rC = 0;
-    asmvm_ctx->reg.rD = 0;
-
-    struct tactyk_asmvm__memblock_lowlevel *mem_ll_st = &asmvm_ctx->active_memblocks[stpos];
-    sdlstate = (struct aux_sdl__State*) mem_ll_st->base_address;
-    
-    sdlctx->ui_state = calloc(1, struct aux_sdl__State);
-    // probably should update the rest of mem_hl
-    */
 }
 
 void aux_sdl__get_framebuffer(struct tactyk_asmvm__Context *asmvm_ctx) {
@@ -142,6 +120,7 @@ void aux_sdl__upload_framebuffer(struct tactyk_asmvm__Context *asmvm_ctx) {
     memcpy ( pixels, sdlctx->framebuffer, sdlctx->bufsize );
     SDL_UnlockTexture(sdlctx->texture);
 }
+
 void aux_sdl__render(struct tactyk_asmvm__Context *asmvm_ctx) {
     if (sdlctx == NULL) {
         error("AUX-SDL-render -- SDL context is uninitialized", NULL);
