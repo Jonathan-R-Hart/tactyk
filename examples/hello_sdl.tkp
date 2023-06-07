@@ -19,12 +19,7 @@ struct sdl_state
   6 unused
   8 padding
 
-extmem video
-mem s_state sdl_state 1
-
 MAIN:
-  bind addr4 video
-  bind addr3 s_state
   bind addr1 header
   assign b 0
   
@@ -39,12 +34,15 @@ MAIN:
 
   # obtain an SDL-backed framebuffer
   tcall sdl_init
-
-  assign a 4
-  assign b 3
-  assign c width
-  assign d height
+  
+  assign a width
+  assign b height
   tcall fb_new
+  
+  tcall sdl--get-eventview
+  bind addr3 addr1
+  tcall sdl--get-framebuffer
+  bind addr4 addr1
   
   # result
   # a = buffer width

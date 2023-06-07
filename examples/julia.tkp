@@ -29,9 +29,6 @@ struct sdl_state
   6 unused
   8 padding
 
-extmem video
-mem s_state sdl_state 1
-
 const newline 10
 const sp 32
 const width 640
@@ -43,19 +40,20 @@ struct globals
 mem g globals 1
 
 MAIN:
-  bind addr4 video
-  bind addr3 s_state
   bind addr2 g
   bind addr1 header
   assign b header_size
   lwcall PRINTIT
   
   tcall sdl_init 
-  assign a 4
-  assign b 3
-  assign c width
-  assign d height
+  assign a width
+  assign b height
   tcall fb_new
+  tcall sdl--get-eventview
+  bind addr3 addr1
+  tcall sdl--get-framebuffer
+  bind addr4 addr1
+  
   assign c a
   # store budder width in stash
   stash sC c
@@ -91,7 +89,7 @@ MAIN:
   assign xa xj
 
 goto RENDER_FRAC
-DISPLAY_IT:  
+DISPLAY_IT:
   tcall fb_update
   tcall fb_render
   goto MAINLOOP
