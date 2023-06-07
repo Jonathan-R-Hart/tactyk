@@ -12,6 +12,7 @@
 #include "tactyk_debug.h"
 #include "aux_printit.h"
 #include "aux_util.h"
+#include "aux_sdl.h"
 
 #include "tactyk_run_resource_pack.h"
 #include "tactyk_run_platform_functions.h"
@@ -51,6 +52,7 @@ int main(int argc, char *argv[], char *envp[]) {
     tactyk_emit_svc__configure(emitctx);
     aux_printit__configure(emitctx);
     aux_util__configure(emitctx);
+    aux_sdl__configure(emitctx, 4096,4096);
    
     if (argc <= 1) {
         printf("Nothing to load.  bye!\n");

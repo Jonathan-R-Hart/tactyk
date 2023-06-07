@@ -50,6 +50,7 @@ find_package(SDL2 REQUIRED)
 target_include_directories(tactyk_aux PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/aux
+  ${SDL2_INCLUDE_DIRS}
 )
 
 target_include_directories(tdemo PRIVATE
@@ -69,7 +70,7 @@ target_include_directories(trun PRIVATE
 )
 
 target_link_libraries( tdemo tactyk tactyk_aux ${SDL2_LIBRARIES} )
-target_link_libraries( trun tactyk tactyk_aux )
+target_link_libraries( trun tactyk tactyk_aux ${SDL2_LIBRARIES} )
 target_link_libraries( ttest tactyk )
 
 add_compile_definitions(

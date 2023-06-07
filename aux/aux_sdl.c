@@ -45,6 +45,7 @@ uint64_t aux_sdl__max_window_height;
 
 void aux_sdl__configure(struct tactyk_emit__Context *emit_context, uint64_t max_window_width, uint64_t max_window_height) {
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--get-framebuffer", aux_sdl__get_framebuffer);
+    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--get-scratchbuffer", aux_sdl__get_scratchbuffer);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--get-eventview", aux_sdl__get_event_view);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--new", aux_sdl__new);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--upload-framebuffer", aux_sdl__upload_framebuffer);
