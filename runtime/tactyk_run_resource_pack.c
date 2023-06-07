@@ -9,51 +9,75 @@
 #include "tactyk.h"
 #include "tactyk_report.h"
 
-void tactyk_run__rsc__restrict_charset__default(struct tactyk_run__RSC *ctx);
-void tactyk_run__rsc__restrict_charset(struct tactyk_run__RSC *ctx, char *charset_many, char *charset_one, char *charset_sep);
-bool tactyk_run__rsc__test_filename(struct tactyk_run__RSC *ctx, char *fname);
-void tactyk_run__rsc__load_manifest(struct tactyk_run__RSC *ctx, char *filename);
+void tactyk_run__rsc__restrict_charset__default(struct tactyk_run__RSC *rsc);
+void tactyk_run__rsc__restrict_charset(struct tactyk_run__RSC *rsc, char *charset_many, char *charset_one, char *charset_sep);
+bool tactyk_run__rsc__test_filename(struct tactyk_run__RSC *rsc, char *fname);
+void tactyk_run__rsc__load_manifest(struct tactyk_run__RSC *rsc, char *filename);
+
+struct tactyk_dblock__DBlock *tactyk_run__item_handlers;
+
+void tactyk_run__init() {
+    tactyk_run__item_handlers = tactyk_dblock__new_table(16);
+    tactyk_dblock__set_persistence_code(tactyk_run__item_handlers, 10000);
+    
+}
+
+void tactyk_run__rsc__add_item_handler(char *name, tactyk_run__rsc_item_handler handler) {
+    tactyk_dblock__put(tactyk_run__item_handlers, name, handler);
+}
 
 struct tactyk_run__RSC* tactyk_run__load_resource_pack(char *manifest_filename) {
-    struct tactyk_run__RSC *ctx = calloc(1, sizeof(struct tactyk_run__RSC));
-    tactyk_run__rsc__restrict_charset__default(ctx);
-    tactyk_run__rsc__load_manifest(ctx, manifest_filename);
-    return ctx;
+    struct tactyk_run__RSC *rsc = calloc(1, sizeof(struct tactyk_run__RSC));
+    tactyk_run__rsc__restrict_charset__default(rsc);
+    tactyk_run__rsc__load_manifest(rsc, manifest_filename);
+    
+    rsc->constant_table = tactyk_dblock__new_table(256);
+    rsc->data_table = tactyk_dblock__new_table(256);
+    rsc->module_table = tactyk_dblock__new_table(256);
+    rsc->program_table = tactyk_dblock__new_table(256);
+    
+    tactyk_dblock__set_persistence_code(rsc->constant_table, 10000);
+    tactyk_dblock__set_persistence_code(rsc->data_table, 10000);
+    tactyk_dblock__set_persistence_code(rsc->module_table, 10000);
+    tactyk_dblock__set_persistence_code(rsc->program_table, 10000);
+    
+    return rsc;
 }
-void tactyk_run__rsc__restrict_charset__default(struct tactyk_run__RSC *ctx) {
-    tactyk_run__rsc__restrict_charset(ctx, "01234589abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", ".", "/");
+
+void tactyk_run__rsc__restrict_charset__default(struct tactyk_run__RSC *rsc) {
+    tactyk_run__rsc__restrict_charset(rsc, "01234589abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", ".", "/");
 }
-void tactyk_run__rsc__restrict_charset(struct tactyk_run__RSC *ctx, char *charset_many, char *charset_one, char *charset_sep) {
-    memset(ctx->charset, 0, 256);
+void tactyk_run__rsc__restrict_charset(struct tactyk_run__RSC *rsc, char *charset_many, char *charset_one, char *charset_sep) {
+    memset(rsc->charset, 0, 256);
     uint64_t ln = strlen(charset_many);
     
     for (uint64_t i = 0; i < ln; i += 1) {
-        ctx->charset[(uint8_t)charset_many[i]] = TACTYK_RUN__RESTRICT_CHAR__ALLOW_MANY;
+        rsc->charset[(uint8_t)charset_many[i]] = TACTYK_RUN__RESTRICT_CHAR__ALLOW_MANY;
     }
     ln = strlen(charset_one);
     for (uint64_t i = 0; i < ln; i += 1) {
-        ctx->charset[(uint8_t)charset_one[i]] = TACTYK_RUN__RESTRICT_CHAR__ALLOW_ONE;
+        rsc->charset[(uint8_t)charset_one[i]] = TACTYK_RUN__RESTRICT_CHAR__ALLOW_ONE;
     }
     ln = strlen(charset_sep);
     for (uint64_t i = 0; i < ln; i += 1) {
-        ctx->charset[(uint8_t)charset_sep[i]] = TACTYK_RUN__RESTRICT_CHAR__SEP;
+        rsc->charset[(uint8_t)charset_sep[i]] = TACTYK_RUN__RESTRICT_CHAR__SEP;
     }
 }
-bool tactyk_run__rsc__test_filename(struct tactyk_run__RSC *ctx, char *fname) {
+bool tactyk_run__rsc__test_filename(struct tactyk_run__RSC *rsc, char *fname) {
     uint64_t ln = strlen(fname);
     uint64_t cv = 0;
     uint64_t cv_prev = 0;
     for (uint64_t i = 0; i < ln; i += 1) {
         cv_prev = cv;
         cv = (uint64_t)fname[i];
-        switch(ctx->charset[cv]) {
-            case TACTYK_RUN__RESTRICT_CHAR__SEP:
+        switch(rsc->charset[cv]) {
             case TACTYK_RUN__RESTRICT_CHAR__BAN: {
                 return false;
             }
             case TACTYK_RUN__RESTRICT_CHAR__ALLOW_MANY: {
                 continue;
             }
+            case TACTYK_RUN__RESTRICT_CHAR__SEP:
             case TACTYK_RUN__RESTRICT_CHAR__ALLOW_ONE: {
                 if (cv_prev == cv) {
                     return false;
@@ -66,7 +90,7 @@ bool tactyk_run__rsc__test_filename(struct tactyk_run__RSC *ctx, char *fname) {
     }
     return true;
 }
-void tactyk_run__rsc__load_manifest(struct tactyk_run__RSC *ctx, char *filename) {
+void tactyk_run__rsc__load_manifest(struct tactyk_run__RSC *rsc, char *filename) {
     tactyk_report__string("path from file", filename);
     uint64_t pos = 0;
     uint64_t path_len;
@@ -74,7 +98,7 @@ void tactyk_run__rsc__load_manifest(struct tactyk_run__RSC *ctx, char *filename)
     for (uint64_t pos = 0; pos < len; pos++) {
         char c = filename[pos];
         uint64_t cv = (uint64_t)c;
-        switch(ctx->charset[cv]) {
+        switch(rsc->charset[cv]) {
             case TACTYK_RUN__RESTRICT_CHAR__SEP: {
                 path_len = pos+1;
                 break;

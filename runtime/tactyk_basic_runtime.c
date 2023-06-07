@@ -59,6 +59,9 @@ int main(int argc, char *argv[], char *envp[]) {
         printf("Nothing to load.  bye!\n");
         exit(0);
     }
+    
+    void tactyk_run__init();
+    
     struct tactyk_run__RSC *rsc = tactyk_run__load_resource_pack(argv[1]);
     exit(0);
 }
