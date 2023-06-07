@@ -22,12 +22,12 @@ add_library(tactyk
 add_library(tactyk_aux
   aux/aux_util.c
   aux/aux_printit.c
+  aux/aux_sdl.c
 )
 
 add_executable(tdemo
   tdemo/main.c
   tdemo/aux_testlib.c
-  tdemo/aux_sdl.c
 )
 
 add_executable(trun

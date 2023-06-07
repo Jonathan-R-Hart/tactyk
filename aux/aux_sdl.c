@@ -5,7 +5,6 @@
 #include <SDL2/SDL.h>
 
 #include "tactyk.h"
-#include "aux_testlib.h"
 #include "tactyk_emit.h"
 #include "tactyk_dblock.h"
 #include "tactyk_asmvm.h"
