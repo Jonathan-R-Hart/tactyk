@@ -2,6 +2,13 @@
 Begin development of a minimal tactyk runtime + components.
   Not much to it - just a mechanism for loading data from files, program code, and defining an entry point, and accessing loaded data from tactyk
 
+Upgrade the status of the aux-sdl component (from test code to an actual auxilliary library component)
+  Switch to dynamic memory binding (simplifies setup)
+  Add a "scratch" buffer (not really an SDL thing, but should help with specialized rendering code)
+  Add an OpenGL flag to the SDL window (eventually, a 3D rendering interface based on OpenGL is to be included)
+
+tactyk-core - Add templates for making dynamic lwcalls (referencing jump targets by register or by integer literal/constant)
+
 5 Jun 2023 [0.9.0]
 Add a mechanism for defining code blocks.
 Code blocks [at the V-ISA level] are defined as a set of labels which are accessible from templates

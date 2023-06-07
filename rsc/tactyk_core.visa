@@ -448,21 +448,65 @@ instruction if
 
 instruction lwcall
   operand
-    type branch
+    type branch data const integer
     $JTARGET $VALUE
+    scramble rMAPPER $LD_IMMEDIATE_SOFTREF_BRANCH
     scramble rTEMPC $LD_RETURN_TARGET $COMMAND_INDEX_NEXT
-  code
-    $LD_RETURN_TARGET
-    cmp rLWCSI, lwcall_stack_max
-    errorge STATUS_STACK_OVERFLOW
-    mov rTEMPA, rLWCSI
-    shl rTEMPA, 2
-    add rTEMPA, fs:[context.lwcall_stack_address + random_const_FS]
-    mov dword [rTEMPA], rTEMPC_32
-    inc rLWCSI
-    xor rTEMPA, rTEMPA
-    xor rTEMPC, rTEMPC
-    jmp $JTARGET
+  select-template
+    case L
+      code
+        $LD_RETURN_TARGET
+        cmp rLWCSI, lwcall_stack_max
+        errorge STATUS_STACK_OVERFLOW
+        mov rTEMPA, rLWCSI
+        shl rTEMPA, 2
+        add rTEMPA, fs:[context.lwcall_stack_address + random_const_FS]
+        mov dword [rTEMPA], rTEMPC_32
+        inc rLWCSI
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp $JTARGET
+    case D
+      code
+        $LD_RETURN_TARGET
+        cmp rLWCSI, lwcall_stack_max
+        errorge STATUS_STACK_OVERFLOW
+        mov rTEMPA, rLWCSI
+        shl rTEMPA, 2
+        add rTEMPA, fs:[context.lwcall_stack_address + random_const_FS]
+        mov dword [rTEMPA], rTEMPC_32
+        inc rLWCSI
+        cmp $JTARGET, fs:[context.instruction_count + random_const_FS]
+        errorge STATUS_ROGUE_BRANCH
+        cmp $JTARGET, 0
+        errorlt STATUS_ROGUE_BRANCH
+        lfence
+        mov rMAPPER, $JTARGET
+        shl rMAPPER, 3
+        add rMAPPER, fs:[context.program_map + random_const_FS]
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
+        jmp [rMAPPER]
+    case C I
+      code
+        $LD_RETURN_TARGET
+        cmp rLWCSI, lwcall_stack_max
+        errorge STATUS_STACK_OVERFLOW
+        mov rTEMPA, rLWCSI
+        shl rTEMPA, 2
+        add rTEMPA, fs:[context.lwcall_stack_address + random_const_FS]
+        mov dword [rTEMPA], rTEMPC_32
+        inc rLWCSI
+        
+        $LD_IMMEDIATE_SOFTREF_BRANCH
+        cmp rMAPPER, fs:[context.instruction_count + random_const_FS]
+        errorge STATUS_ROGUE_BRANCH
+        cmp rMAPPER, 0
+        errorlt STATUS_ROGUE_BRANCH
+        lfence
+        shl rMAPPER, 3
+        add rMAPPER, fs:[context.program_map + random_const_FS]
+        jmp [rMAPPER]
 
 instruction lwreturn
   code
