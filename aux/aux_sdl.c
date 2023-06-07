@@ -36,7 +36,6 @@ struct aux_sdl__Context {
 struct aux_sdl__Context *sdlctx;
 
 void aux_sdl__configure(struct tactyk_emit__Context *emit_context) {
-    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--init", aux_sdl__init);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--get-framebuffer", aux_sdl__get_framebuffer);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--get-eventview", aux_sdl__get_event_view);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--new", aux_sdl__new);
@@ -45,9 +44,7 @@ void aux_sdl__configure(struct tactyk_emit__Context *emit_context) {
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--release", aux_sdl__release);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--update_ui", aux_sdl__consume_events);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--quit", aux_sdl__quit);
-}
-
-void aux_sdl__init(struct tactyk_asmvm__Context *asmvm_ctx) {
+    
     int err = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
     if (err != 0) {
         error("AUX-SDL-init -- SDL init failed", NULL);

@@ -45,7 +45,6 @@ MAIN:
   assign b header_size
   lwcall PRINTIT
   
-  tcall sdl--init 
   assign a width
   assign b height
   tcall sdl--new

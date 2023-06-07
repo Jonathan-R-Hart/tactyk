@@ -31,10 +31,8 @@ MAIN:
   
   assign a newline
   ccall printchar
-
-  # obtain an SDL-backed framebuffer
-  tcall sdl--init
   
+  # obtain an SDL-backed framebuffer
   assign a width
   assign b height
   tcall sdl--new
