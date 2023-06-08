@@ -79,6 +79,13 @@ void aux_print__float64_xl(struct tactyk_asmvm__Context *ctx);
 void aux_print__float64_xm(struct tactyk_asmvm__Context *ctx);
 void aux_print__float64_xn(struct tactyk_asmvm__Context *ctx);
 
+#define f(suffix) void aux_print__float80_##suffix(struct tactyk_asmvm__Context *ctx)
+    f(sa); f(se); f(si); f(sm); f(sq); f(su); f(sy);  f(s28);
+    f(sb); f(sf); f(sj); f(sn); f(sr); f(sv); f(sz);  f(s29);
+    f(sc); f(sg); f(sk); f(so); f(ss); f(sw); f(s26); f(s30);
+    f(sd); f(sh); f(sl); f(sp); f(st); f(sx); f(s27); f(s31);
+#undef f
+
 #endif //AUX_PRINTIT_H
 
 

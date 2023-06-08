@@ -9,6 +9,8 @@ Begin development of a 2D rendering & GUI framefork ("tactyk-draw")
   This is a TACTYK-PL project.  It will run in the new standalone runtime.  It will render to a framebuffer and use SDL, both for displaying video output and for obtaining events.
   It will also use a formal rendering pipeline to produce graphics.
 
+aux-printit - add a set of functions for printing long-double values from the stash
+
 6-7 Jun 2023
 Added a minimal tactyk runtime + components.
   Not much to it - just a mechanism for loading data from files, program code, and defining an entry point, and accessing loaded data from tactyk

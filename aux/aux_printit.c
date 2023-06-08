@@ -78,6 +78,12 @@ void aux_printit__configure(struct tactyk_emit__Context *emitctx) {
     tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xm", aux_print__float64_xm);
     tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-xn", aux_print__float64_xn);
     
+    #define f(NAME) tactyk_emit__add_tactyk_apifunc(emitctx, "print-float-"#NAME, aux_print__float80_##NAME)
+    f(sa); f(se); f(si); f(sm); f(sq); f(su); f(sy);  f(s28);
+    f(sb); f(sf); f(sj); f(sn); f(sr); f(sv); f(sz);  f(s29);
+    f(sc); f(sg); f(sk); f(so); f(ss); f(sw); f(s26); f(s30);
+    f(sd); f(sh); f(sl); f(sp); f(st); f(sx); f(s27); f(s31);
+    #undef f
 }
 
 // space and newline print functions
@@ -436,6 +442,16 @@ void aux_print__float64_xn(struct tactyk_asmvm__Context *ctx) {
     fflush(stream);
 }
 
+#define f(NAME, ACCESSOR) \
+void aux_print__float80_##NAME(struct tactyk_asmvm__Context *ctx) { \
+    fprintf(stream, "%Lf", ctx->microcontext_stack[ctx->microcontext_stack_offset].ACCESSOR.f80); \
+    fflush(stream); \
+}
+f(sa, a); f(se, e); f(si, i); f(sm, m); f(sq, q); f(su, u); f(sy, y);    f(s28, s28);
+f(sb, b); f(sf, f); f(sj, j); f(sn, n); f(sr, r); f(sv, v); f(sz, z);    f(s29, s29);
+f(sc, c); f(sg, g); f(sk, k); f(so, o); f(ss, s); f(sw, w); f(s26, s26); f(s30, s30);
+f(sd, d); f(sh, h); f(sl, l); f(sp, p); f(st, t); f(sx, x); f(s27, s27); f(s31, s31);
+#undef f
 
 
 
