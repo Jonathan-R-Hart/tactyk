@@ -14,8 +14,8 @@
 
 struct tactyk_run__RSC {
     uint8_t charset[256];    
-    char *base_path;
-    char *manifest_name;
+    char base_path[256];
+    char manifest_name[256];
     
     struct tactyk_dblock__DBlock *data_table;
     struct tactyk_dblock__DBlock *module_table;

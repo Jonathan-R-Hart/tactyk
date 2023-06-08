@@ -14,7 +14,6 @@ void tactyk_run__platform__set_resource_pack(struct tactyk_run__RSC *rsc) {
     tactyk_run__platform__resources = rsc;
 }
 
-
 //  tcall get-data
 //  input:
 //      rA  - name of data block to retrieve (8 char names)

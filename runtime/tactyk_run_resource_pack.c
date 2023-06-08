@@ -85,17 +85,21 @@ void tactyk_run__rsc__restrict_charset(struct tactyk_run__RSC *rsc, char *charse
     }
 }
 
-void tactyk_run__rsc__load_file(char *path, char *fname, int64_t *len, uint8_t **data) {
+bool tactyk_run__rsc__load_file(char *path, char *fname, int64_t *len, uint8_t **data) {
     char fullname[1024];
     snprintf(fullname, 1024, "%s/%s", path, fname);
     
     FILE *f = fopen(fullname, "r");
+    if (f == NULL) {
+        return false;
+    }
     fseek(f, 0, SEEK_END);
     *len = ftell(f);
     *data = calloc(*len+1, sizeof(uint8_t));
     fseek(f,0, SEEK_SET);
     fread(*data, *len, 1, f);
     fclose(f);
+    return true;
 }
 struct tactyk_dblock__DBlock* tactyk_run__rsc__to_structured_text(char *data) {
     struct tactyk_dblock__DBlock *stext = tactyk_dblock__from_safe_c_string(data);
@@ -163,22 +167,28 @@ void tactyk_run__rsc__load_manifest(struct tactyk_run__RSC *rsc, char *filename)
         }
     }
     tactyk_report__msg("File name test passed");
-    char path[256];
-    char fname[256];
-    memset(path, 0, 256);
-    memset(fname, 0, 256);
-    memcpy(path, &filename[0], path_len-1);
-    memcpy(fname, &filename[path_len], 256-path_len);
+    memset(rsc->base_path, 0, 256);
+    memset(rsc->manifest_name, 0, 256);
+    memcpy(rsc->base_path, &filename[0], path_len-1);
+    memcpy(rsc->manifest_name, &filename[path_len], 256-path_len);
     
-    tactyk_report__string("BASE PATH", path);
-    tactyk_report__string("FILE", fname);
-    rsc->base_path = path;
-    rsc->manifest_name = fname;
+    tactyk_report__string("BASE PATH", rsc->base_path);
+    tactyk_report__string("FILE", rsc->manifest_name);
     
     int64_t mlen = 0;
     uint8_t *mdata = NULL;
     
-    tactyk_run__rsc__load_file(path, fname, &mlen, &mdata);
+    if (!tactyk_run__rsc__load_file(rsc->base_path, rsc->manifest_name, &mlen, &mdata)) {
+        char fname_alt[256];
+        snprintf(fname_alt, 256, "%s.manifest", rsc->manifest_name);
+        printf("modified %s\n", fname_alt);
+        if (!tactyk_run__rsc__load_file(rsc->base_path, fname_alt, &mlen, &mdata)) {
+            tactyk_report__string("Manifest file not found", filename);
+            error(NULL, NULL);
+        }
+        strncpy(rsc->manifest_name, fname_alt, 256);
+    }
+    
     
     tactyk_report__uint("MANIFEST LEN", mlen);
     
