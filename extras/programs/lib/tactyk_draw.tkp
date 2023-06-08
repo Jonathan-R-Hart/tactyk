@@ -112,7 +112,7 @@ GX.render:
   xassign xB 255.0 255.0 255.0 255.0
   
   block-load 2 xxC addr2 gx_info.g_normals
-  tcall dump-ctx
+  
   DRAW_ROW:
   if rE < rB
     DRAW_PIXEL:
