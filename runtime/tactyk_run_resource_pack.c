@@ -66,7 +66,7 @@ struct tactyk_run__RSC* tactyk_run__load_resource_pack(char *manifest_filename, 
 }
 
 void tactyk_run__rsc__restrict_charset__default(struct tactyk_run__RSC *rsc) {
-    tactyk_run__rsc__restrict_charset(rsc, "01234589abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_", ".", "/");
+    tactyk_run__rsc__restrict_charset(rsc, "01234589abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-", ".", "/");
 }
 void tactyk_run__rsc__restrict_charset(struct tactyk_run__RSC *rsc, char *charset_many, char *charset_one, char *charset_sep) {
     memset(rsc->charset, 0, 256);
