@@ -1632,6 +1632,18 @@ instruction xmax
   $XOP max
   sub x-binary-op
 
+instruction x-and
+  $XOP and
+  sub x-binary-op
+
+instruction x-or
+  $XOP or
+  sub x-binary-op
+
+instruction x-xor
+  $XOP xor
+  sub x-binary-op
+
 instruction xduplicate
   $QTY 1
   opt-operand

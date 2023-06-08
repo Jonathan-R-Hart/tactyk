@@ -950,6 +950,14 @@
   .pass:
   xor rTEMPC, rTEMPC
 %endmacro
+    
+; workarounds (map non-existent instructions onto existent ones, to avoid a having to implement a more complex solution)
+%define andss andps
+%define andsd andpd
+%define orss orps
+%define orsd orpd
+%define xorss xorps
+%define xorsd xorpd
 
 run:
   validate_context_pointer rdi

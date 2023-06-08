@@ -9,6 +9,12 @@ Upgrade the status of the aux-sdl component (from test code to an actual auxilli
 
 tactyk-core - Add templates for making dynamic lwcalls (referencing jump targets by register or by integer literal/constant)
 
+tactyk-simd - new instructions: x-and, x-or, x-xor
+  These are based on the "x-binary-op" subroutine (and thus aren't particularly noteworthy for test coverage).
+  x86_64/sse4 does not come with scalar instructions the x-binary-op subroutine wants to use (andsd, andss, orsd, orss, xorsd, xorss), so for a simple workaround, 
+    a set of aliases have been added to the main assembly header which map said non-existent isntructions onto the packed instuctions.
+  The motivation was to hack in an easy floating point absolute value function, but vectorized bitwise operators are very much a welcome addition to tactyk-core.
+
 5 Jun 2023 [0.9.0]
 Add a mechanism for defining code blocks.
 Code blocks [at the V-ISA level] are defined as a set of labels which are accessible from templates
