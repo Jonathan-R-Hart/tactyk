@@ -105,7 +105,7 @@ GX.render:
   # rB:  (fbwidth * height * 4)   [v-end]
   # rC:  (width * 4)              [line-end]
   # rD:  (fbwidth-width) * 4      ["h-blank"]
-
+  
   assign rE 0
   
   xassign xA 0.0   0.0   0.0   0.0
@@ -161,9 +161,6 @@ GX.render:
       # write to framebuffer
       xassign rF xI int32 0
       store dword addr3 rE rF
-      
-      if rE == 20
-        tcall dump-ctx
       
       # iterate (next pixel in current row)
       add rE 4
