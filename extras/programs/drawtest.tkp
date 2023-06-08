@@ -1,0 +1,53 @@
+MAIN:
+  assign rA 1
+  tcall dump-dispmode
+  
+  bind addr1 m_gx_info
+  
+  assign rA 1200
+  assign rB 800
+  
+  store dword addr1 gx_info.width rA
+  store dword addr1 gx_info.height rB
+  
+  # global normals
+  xassign xA 0.0 0.0 0.0 0.0
+  xassign xB 0.0 0.0 0.0 0.0
+  
+  block-store 2 addr1 gx_info.g_normals xxA
+  
+  # global colors
+  xassign xE 1.0 0.25 0.125 0.0
+  xassign xF 0.125 1.0 0.25 0.0
+  xassign xG 0.25 0.125 1.0 0.0
+  xassign xH 0.0 0.0 0.0 1.0
+  transpose float32 xE
+  xassign xI 1.0 1.0 0.25 1.0
+  xassign xJ 1.0 0.25 1.0 1.0
+  xassign xK 0.25 1.0 1.0 1.0
+  xassign xL 1.0 1.0 1.0 1.0
+  transpose float32 xI
+  
+  block-store 8 addr1 gx_info.g_colors xxE
+  
+  assign rA 1200
+  assign rB 800
+  lwcall GX.mk_window
+  
+  xassign xA 0.0 0.9 0.0 0.0
+  xassign xB 0.0 0.0 0.0 0.0
+  
+  xassign xC 0.0 0.0 0.0 0.0
+  xassign xD 0.0 0.0 0.0 0.0
+  xassign xC 0.5 1.0 0.25 0.0
+  # xassign xD 0.10 0.25 0.30 0.0
+  
+  spread rC 5 0 25 200
+  
+  lwcall GX.bind_memblocks
+  lwcall GX.fillrect
+  lwcall GX.render
+  
+  assign rA 2000
+  tcall sleep
+  exit

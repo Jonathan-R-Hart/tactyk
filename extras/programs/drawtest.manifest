@@ -1,0 +1,7 @@
+# GUI test/development program
+
+module draw lib/tactyk_draw.tkp
+module main drawtest.tkp
+
+program prog main draw
+main prog MAIN
