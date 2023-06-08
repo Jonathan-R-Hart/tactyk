@@ -4,11 +4,13 @@ struct gx_pixel
   16 channel_EFGH
   16 normal_ABCD
   16 normal_EFGH
+  64 unused
 
 struct gx_info
   4 width
   4 height
-  8 padding
+  4 fb_width
+  4 fb_height
   128 g_colors
   . 16 g_color_A
   16 g_color_B
@@ -45,6 +47,8 @@ GX.bind_memblocks:
   tcall sdl--get-scratchbuffer
   bind addr4 addr1
   bind addr2 m_gx_info
+  store dword addr2 gx_info.fb_width rA
+  store dword addr2 gx_info.fb_height rB
   lwreturn
 
 GX.cliprect:
@@ -75,11 +79,6 @@ GX.fillrect:
   lwreturn
 
 # A post-compositing pixel shader
-# global input:
-#   xC,xD:    8 global normals (packed 32-bit floats)
-#   xE-xL:    8 global colors, each in RGBA format (packed 32-bit floats)
-# pixel format:
-#   struct gx_pixel (16 components - 8 normals and 8 values)
 # 
 # Per pixel, this multiplies the global colors by pixel blending factors
 # Pixel blending factors are obtained by comparing pixel normals with global normals, subtracting the deviation from one, then multiplying the inverted deviation by pixel values
@@ -87,44 +86,40 @@ GX.fillrect:
 # For now, this is a software shader.
 # At some point, it may be ported to GLSL and used as the final stage in a deferred rendering pipeline.
 
-GX.render:  
-  # from get-framebuffer:
-  # rA - framebuffer width
-  # rB - framebuffer height
-  
-  # fetch actual window dimensions
-  bind addr2 m_gx_info
+GX.render:
+  # fetch dimensions
+  load dword rA addr2 gx_info.fb_width
+  load dword rB addr2 gx_info.fb_height
   load dword rC addr2 gx_info.width
   load dword rD addr2 gx_info.height
   
-  assign rE addr3.element_bound
-  assign rF addr4.element_bound
-    
-  assign rE 0
-  assign rF 0
-  assign rB 0
+  assign rB rA
+  mul rB rD
+  mul rA 4
+  mul rB 4
+  mul rC 4
+  assign rD rA
+  sub rD rC
   
-  stash sZl rA
+  # rA:  (fbwidth) * 4            [fb line size]
+  # rB:  (fbwidth * height * 4)   [v-end]
+  # rC:  (width * 4)              [line-end]
+  # rD:  (fbwidth-width) * 4      ["h-blank"]
+
+  assign rE 0
   
   xassign xA 0.0   0.0   0.0   0.0
   xassign xB 255.0 255.0 255.0 255.0
   
   block-load 2 xxC addr2 gx_info.g_normals
-  
+  tcall dump-ctx
   DRAW_ROW:
-  stash sZh rF
-  if rF < rD
-    
-    # set buffer pointers to first pixel in row
-    stash rA sZl
-    mul rA rF
-    assign rB rA
-    mul rA 4
-    mul rB gx_pixel_size
-    
+  if rE < rB
     DRAW_PIXEL:
     if rE < rC
-      block-load 4 xxK addr4 rB
+      shift-left rE 5
+      block-load 4 xxK addr4 rE
+      shift-right rE 5
       xassign xE xA
       xassign xF xA
       
@@ -149,6 +144,9 @@ GX.render:
       xadd 8 xA float32 xvE float32      
       xmul xA float32 xB float32
       xmin xA float32 xB float32
+      
+      # move it out of the way, re-initialize the next pixel,
+      # and use the re-initailzied pixel to remove negative components from the output pixel
       xassign xI xA
       xmax xI float32 xA float32
       xassign xA 0.0 0.0 0.0 0.0
@@ -160,17 +158,19 @@ GX.render:
       xassign xI int8 2 xG
       xassign xI int8 3 xH
       
+      # write to framebuffer
       xassign rF xI int32 0
-      store dword addr3 rA rF
+      store dword addr3 rE rF
       
-      add rA 4
-      add rB gx_pixel_size
-      inc rE
+      if rE == 20
+        tcall dump-ctx
+      
+      # iterate (next pixel in current row)
+      add rE 4
       goto DRAW_PIXEL
-    
-    assign rE 0
-    stash rF sZh
-    inc rF
+
+    add rC rA
+    add rE rD
     goto DRAW_ROW
   
   tcall sdl--upload-framebuffer
