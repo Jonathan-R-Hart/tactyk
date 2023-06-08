@@ -124,10 +124,6 @@ GX.render:
     
     DRAW_PIXEL:
     if rE < rC
-      stash sQ rA
-      assign rA addr4.element_bound
-      
-      stash rA sQ
       block-load 4 xxK addr4 rB
       xassign xE xA
       xassign xF xA
@@ -140,8 +136,6 @@ GX.render:
       # Add one to obtain a "diffuse" value, clamp at 0
       xadd 2 xvK float32 1.0
       xmax 2 xvK float32 xA float32
-      if rA == 20
-        tcall dump-ctx
       
       # multiply raw weights by channel values to obtain blend factors
       xmul 2 xvM float32 xvK float32
@@ -158,9 +152,9 @@ GX.render:
       xassign xI xA
       xmax xI float32 xA float32
       xassign xA 0.0 0.0 0.0 0.0
-      unpack float32.4 xE xI
       
-      assign xI 0
+      # convert and repack to integer RGBA
+      unpack float32.4 xE xI
       xassign xI int8 0 xE
       xassign xI int8 1 xF
       xassign xI int8 2 xG
@@ -168,13 +162,12 @@ GX.render:
       
       xassign rF xI int32 0
       store dword addr3 rA rF
-      stash rF sZh
       
       add rA 4
       add rB gx_pixel_size
       inc rE
-      
       goto DRAW_PIXEL
+    
     assign rE 0
     stash rF sZh
     inc rF
