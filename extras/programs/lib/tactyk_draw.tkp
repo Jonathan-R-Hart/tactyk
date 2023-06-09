@@ -16,7 +16,8 @@ struct gx_pixel
   4 s
   4 t
   32 unused
-
+  
+  
 struct gx_info
   16 view_size
   . 8 width
@@ -48,18 +49,11 @@ struct gx_info
   4 g_normal_E
   4 g_normal_F
   4 g_normal_G
-  4 g_normal_H
-  
-  48 rasterizer_data
-  . 8 raster_x
-  8 raster_x2
-  8 raster_y
-  8 raster_x1
-  8 raster_y2
-  8 raster_y1
+  4 g_normal_H  
+  128 rasterizer_data
 
 struct gx_program
-  120 functions
+  128 functions
   . 8 f0
   8 f1
   8 f2
@@ -75,27 +69,8 @@ struct gx_program
   8 f12
   8 f13
   8 f14
-  8 first
-  3968 data
-
-struct gx_program__standard
-  120 functions
-  . 8 f0
-  8 f1
-  8 f2
-  8 f3
-  8 f4
-  8 f5
-  8 f6
-  8 f7
-  8 f8
-  8 f9
-  8 f10
-  8 f11
-  8 f12
-  8 f13
-  8 f14
-  8 first
+  8 f15
+  0 end
   3968 data
   . 16 components_ABCD
   16 components_EFGH
@@ -109,6 +84,9 @@ struct gx_program__standard
 mem m_gx_info gx_info 1
 mem m_gx_drawprogram gx_program 1
 
+# Initialize and obtain a window from SDL
+#   At some point, if/when there is a desire to perform off-display rendering, 
+#   responsibility for buffer generation and binding will have to be transferred elsewhere.
 GX.mk_window:
   bind addr2 m_gx_info
   load qword rA addr2 gx_info.width
@@ -118,6 +96,8 @@ GX.mk_window:
   tcall sdl--new
   lwreturn
 
+# Obtain references to tactyk-draw memory
+#   All tactyk address registers are used (addr1 is used by renderers for instance-ish parameters), so other components needing memory will have to rebind it.
 GX.bind_memblocks:
   tcall sdl--get-framebuffer
   bind addr3 addr1
@@ -128,43 +108,14 @@ GX.bind_memblocks:
   store dword addr2 gx_info.fb_height rB
   lwreturn
 
-GX.cliprect:
-  lwreturn
-
-GX.fillrect:
-  stash sA rA sB rB sC rC
-  tcall print-newline
-  FILL_ROW:
-  if rD < rF
-    stash rA sA
-    mul rA rD
-    add rA rC
-    assign rB rA
-    mul rA 4
-    mul rB gx_pixel_size
-    FILL_PIXEL:
-    if rC < rE
-      assign addr4.offset rB
-      block-store 4 addr4 0 xxA
-      add rA 4
-      add rB gx_pixel_size
-      inc rC
-      goto FILL_PIXEL
-    inc rD
-    stash rC sC 
-    goto FILL_ROW
-  stash rA sA rB sB
-  lwreturn
-
-# A post-compositing pixel shader
+# Convert all pixels from the complex internal format to 32-bit integer rgba
 # 
 # Per pixel, this multiplies the global colors by pixel blending factors
 # Pixel blending factors are obtained by comparing pixel normals with global normals, subtracting the deviation from one, then multiplying the inverted deviation by pixel values
 #
 # For now, this is a software shader.
-# At some point, it may be ported to GLSL and used as the final stage in a deferred rendering pipeline.
-
-GX.render:
+# At some point, responsibility for this may be transferred to the tactyk-runtime, with the conversion ported to GLSL and used as the final stage in a deferred rendering pipeline.
+GX.to_rgba:
   # fetch dimensions
   load qword rA addr2 gx_info.fb_width
   load qword rB addr2 gx_info.fb_height
@@ -253,144 +204,60 @@ GX.render:
   tcall sdl--render
   lwreturn
 
-GX.draw:
-  
-  lwreturn
-
-GX.draw.fillrect:
+# fill a rectangular area
+GX.fill.rect:
   bind addr1 m_gx_drawprogram
-  block-store 4 addr1 gx_program__standard.data xxA
-  block-store 4 addr2 gx_info.rasterizer_data rA
-  # input:
-  # x1 y1 w  h  .  .
+  assign rF 0
+  lwcall GX.rect.fill
+  lwcall GX.fills.simple
+  lwcall GX.util.exit
+  assign rF 0
+  goto GX.draw
 
-  # x1 y1 w  h  .  y1
-  assign rF rB
+# draw an inset outline around a rectangular area
+GX.trace.rect:
+  bind addr1 m_gx_drawprogram
+  assign rF 0
+  lwcall GX.rect.outline
+  lwcall GX.fills.simple
+  lwcall GX.util.exit
+  assign rF 0
+  goto GX.draw
 
-  # x1 x2 y1 h  .  y1
-  swap rB rC
-  add rB rA
-  
-  # x1 x2 y1 h  y2 y1
-  assign rE rD
-  add rE rC
-  
-  # x1 x2 y1 x1 y2 y1
-  assign rD rA
-
-  # x  x2 y  x1 y2 y1
-  dec rA
-  block-store 6 addr2 gx_info.rasterizer_data rA
-  
-  #48 rasterizer_data
-  #. 8 raster_x
-  #8 raster_x2
-  #8 raster_y
-  #8 raster_x1
-  #8 raster_y2
-  #8 raster_y1
-
-  assign rA 8
-  assign rB GX.raster.AABox
-  assign rC GX.shader.simple
-  store qword addr1 gx_program__standard.first rA
-  store qword addr1 gx_program__standard.f1 rB
-  store qword addr1 gx_program__standard.f0 rC
-  
-  DRAW_LOOP:
+# main rendering driver
+GX.draw:
   if rF == 1
     lwreturn
-  assign rF 8
-  lwcall GX.raster.AABox
-  goto DRAW_LOOP
+  assign rF 0
+  load qword rE addr1 gx_program.f0
+  lwcall rE
+  goto GX.draw
 
-# Axis-aligned box rasterizer
-GX.raster.AABox:
-  # fetch rasterizer globals
-  block-load 3 rA addr2 gx_info.rasterizer_data
-  # rA: raster_x
-  # rB: raster_x2
-  # rC: raster_y
-  
-  # advance one pixel
-  inc rA
-  if rA == rB
-    block-load 2 rA addr2 gx_info.raster_x1
-    # rA: raster_x1
-    # rB: raster_y2
-    # rC: raster_y
-    inc rC
-    store qword addr2 gx_info.raster_y rC
-    if rB == rC
-      assign rF 1
-      lwreturn
-  store qword addr2 gx_info.raster_x rA
-  
-  # rA: raster_x
-  # rB: buffer position
-  # rC: raster_y
-  load qword rB addr2 gx_info.fb_width
-  mul rB rC
-  add rB rA
-  
-  # should consider generating binary-log2 constants for struct sizes which are powers of two
-  #shift-left rB 2
-  #assign addr3.offset rB
-  #shift-left rB 5
-  #assign addr4.offset rB
-  shift-left rB 7
-  assign addr4.offset rB
-  
-  # rA: raster_x  (u)
-  # rB: x         (absolute x)
-  # rC: raster_y  (v)
-  # rD: y         (absolute y)
-  
-  swap rA rB
-  swap rB rD
-  swap rC rD
-  
-  # rA: x         (absolute x)
-  # rB: y         (absolute y)
-  # rC: raster_x  (u)
-  # rD: raster_y  (v)
-
-  load qword rA addr2 gx_info.x
-  load qword rB addr2 gx_info.y
-  add rA rC
-  add rB rD
-  
-  pack float32.4 xA rA
-  store oword addr4 gx_pixel.x xA
-  
-  #store dword addr4 gx_pixel.x rB
-  #store dword addr4 gx_pixel.y rD
-  #store dword addr4 gx_pixel.u rA
-  #store dword addr4 gx_pixel.v rC
-  
-  sub rF 8
-  if rF == -8
-    lwreturn
-  load qword rE addr1 rF
-  goto rE
-
-GX.raster.AASquare:
-  
-  sub rF 8
-  if rF == -8
-    lwreturn
-  load qword rE addr1 rF
-  goto rE
-
-GX.shader.simple:
-  block-load 4 xxA addr1 gx_program__standard.data
+# basic filling function
+# This performs a simple overwrite of all color channels and normals
+GX.fills.simple:
+  block-store 4 addr1 gx_program.data xxA
+  assign rA GX.fills.simple.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+GX.fills.simple.impl:
+  block-load 4 xxA addr1 gx_program.data
   block-store 4 addr4 0 xxA
-  
-  sub rF 8
-  if rF == -8
+  add rF 8
+  if rF == gx_program.end
     lwreturn
   load qword rE addr1 rF
   goto rE
 
+# return from a renderer
+GX.util.exit:
+  assign rA GX.util.exit.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+GX.util.exit.impl:
+  assign rF gx_program.end
+  lwreturn
 
 

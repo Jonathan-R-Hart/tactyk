@@ -1,8 +1,9 @@
 # GUI test/development program
 
 module draw lib/tactyk_draw.tkp
+module rect-renderers lib/renderers/rect.tkp
 module matrix lib/matrix-simd.tkp
 module main drawtest.tkp
 
-program prog main draw matrix
+program prog main matrix draw rect-renderers
 main prog MAIN

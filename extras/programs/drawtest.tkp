@@ -44,12 +44,14 @@ MAIN:
   xassign xA 0.5 1.0 0.25 0.0
   # xassign xB 0.10 0.25 0.30 0.0
   
-  spread rA 5 0 25 200
+  spread rA 125 310 200 75
   
-  # lwcall GX.fillrect
-  lwcall GX.draw.fillrect
-  lwcall GX.render
+  lwcall GX.fill.rect
+  spread rA 115 300 220 95 2
+  xassign xC 0.8 0.2 0.0 0.0
+  lwcall GX.trace.rect
+  lwcall GX.to_rgba
   
-  assign rA 2000
+  assign rA 5000
   tcall sleep
   exit
