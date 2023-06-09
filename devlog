@@ -1,3 +1,6 @@
+8 Jun 2023 [fix-0.8.2]
+Fix word size used by address offset template
+
 5 Jun 2023 [0.8.1]
 tactyk-emit now produces detailed error reports when instruction interpretation fails.
 The most common errors are expected to be unrecognized operands, unrecognized instructions, and missing templates, which should be fairly easy to recognize.
