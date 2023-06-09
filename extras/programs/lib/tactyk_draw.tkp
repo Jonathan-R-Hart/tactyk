@@ -291,7 +291,7 @@ GX.draw.fillrect:
   #8 raster_y1
 
   assign rA 8
-  assign rB GX.raster.AABox.rowmaj
+  assign rB GX.raster.AABox
   assign rC GX.shader.simple
   store qword addr1 gx_program__standard.first rA
   store qword addr1 gx_program__standard.f1 rB
@@ -301,24 +301,16 @@ GX.draw.fillrect:
   if rF == 1
     lwreturn
   assign rF 8
-  lwcall GX.raster.AABox.rowmaj
+  lwcall GX.raster.AABox
   goto DRAW_LOOP
 
 # Axis-aligned box rasterizer
-GX.raster.AABox.rowmaj:
+GX.raster.AABox:
   # fetch rasterizer globals
   block-load 3 rA addr2 gx_info.rasterizer_data
   # rA: raster_x
   # rB: raster_x2
   # rC: raster_y
-  
-  # . 8 raster_x
-  # 8 raster_x2
-  # 8 raster_y
-  # 8 raster_x1
-  # 8 raster_y2
-  # 8 raster_y1
-
   
   # advance one pixel
   inc rA
@@ -353,15 +345,36 @@ GX.raster.AABox.rowmaj:
   # rB: x         (absolute x)
   # rC: raster_y  (v)
   # rD: y         (absolute y)
-  load qword rB addr2 gx_info.x
-  load qword rD addr2 gx_info.y
-  add rB rA
-  add rD rC
   
-  store dword addr4 gx_pixel.x rB
-  store dword addr4 gx_pixel.y rD
-  store dword addr4 gx_pixel.u rA
-  store dword addr4 gx_pixel.v rC
+  swap rA rB
+  swap rB rD
+  swap rC rD
+  
+  # rA: x         (absolute x)
+  # rB: y         (absolute y)
+  # rC: raster_x  (u)
+  # rD: raster_y  (v)
+
+  load qword rA addr2 gx_info.x
+  load qword rB addr2 gx_info.y
+  add rA rC
+  add rB rD
+  
+  pack float32.4 xA rA
+  store oword addr4 gx_pixel.x xA
+  
+  #store dword addr4 gx_pixel.x rB
+  #store dword addr4 gx_pixel.y rD
+  #store dword addr4 gx_pixel.u rA
+  #store dword addr4 gx_pixel.v rC
+  
+  sub rF 8
+  if rF == -8
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+
+GX.raster.AASquare:
   
   sub rF 8
   if rF == -8

@@ -5,7 +5,7 @@ tactyk-draw - rendering pipeline
     Rasterization shader support
     Shaders with read+write access to the output buffer
 
-tactyk-code-simd
+tactyk-core-simd
   Add templates to the pack instruction for taking values from data registers
   
 8 Jun 2023
