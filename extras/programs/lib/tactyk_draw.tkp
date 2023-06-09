@@ -115,40 +115,44 @@ GX.bind_memblocks:
 # At some point, responsibility for this may be transferred to the tactyk-runtime, with the conversion ported to GLSL and used as the final stage in a deferred rendering pipeline.
 GX.to_rgba:
   # fetch dimensions
-  load qword rA addr2 gx_info.fb_width
-  load qword rB addr2 gx_info.fb_height
-  load qword rC addr2 gx_info.width
+  load qword rE addr2 gx_info.fb_width
+  load qword rC addr2 gx_info.fb_height
+  load qword rB addr2 gx_info.width
   load qword rD addr2 gx_info.height
-  assign rB rA
-  mul rB rD
-  mul rA 4
-  mul rB 4
+  assign rC rE
+  mul rC rD
+  mul rE 4
   mul rC 4
-  assign rD rA
-  sub rD rC
+  mul rB 4
+  assign rD rE
+  sub rD rB
   
-  # rA:  (fbwidth) * 4            [fb line size]
-  # rB:  (fbwidth * height * 4)   [v-end]
-  # rC:  (width * 4)              [line-end]
+  # rE:  (fbwidth) * 4            [fb line size]
+  # rC:  (fbwidth * height * 4)   [v-end]
+  # rB:  (width * 4)              [line-end]
   # rD:  (fbwidth-width) * 4      ["h-blank"]
   
-  assign rE 0
+  assign rA 0
   
-  xassign xA 0.0   0.0   0.0   0.0
+  xassign xE 0.0   0.0   0.0   0.0
   xassign xB 255.0 255.0 255.0 255.0
   
   block-load 2 xxC addr2 gx_info.g_normals
   
   DRAW_ROW:
-  if rE < rB
+  if rA < rC
+    stash sAl rC sAh rD sBl rE
     DRAW_PIXEL:
-    if rE < rC
-      shift-left rE 5
-      assign addr4.offset rE
+    if rA < rB
+      shift-left rA 5
+      assign addr4.offset rA
       block-load 4 xxK addr4 0
-      shift-right rE 5
+      shift-right rA 5
       xassign xE xA
       xassign xF xA
+      
+      #load word rF addr3 gx_pixel.gnorm1
+      #block-load 4 xE addr3
       
       # get negated absolute value of deviation between pixel normals and global normals
       xsub 2 xvM float32 xvC float32
@@ -187,15 +191,16 @@ GX.to_rgba:
       
       # write to framebuffer
       xassign rF xI int32 0
-      assign addr3.offset rE
+      assign addr3.offset rA
       store dword addr3 0 rF
       
       # iterate (next pixel in current row)
-      add rE 4
+      add rA 4
       goto DRAW_PIXEL
-
-    add rC rA
-    add rE rD
+    
+    stash rC sAl rD sAh rE sBl
+    add rB rE
+    add rA rD
     goto DRAW_ROW
   
   tcall sdl--upload-framebuffer
