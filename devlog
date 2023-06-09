@@ -1,3 +1,10 @@
+9 Jun 2023
+tactyk-draw - rendering pipeline
+  A softwre rendering pipeline, modelled loosely on a conventional GPU rendering pipeline.
+  It will break GPU conventions in at least two ways:
+    Rasterization shader support
+    Shaders with read+write access to the output buffer
+  
 8 Jun 2023
 tactyk-simd - new instructions: x-and, x-or, x-xor
   These are based on the "x-binary-op" subroutine (and thus aren't particularly noteworthy for test coverage).
