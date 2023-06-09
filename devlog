@@ -11,6 +11,15 @@ Begin development of a 2D rendering & GUI framefork ("tactyk-draw")
 
 aux-printit - add a set of functions for printing long-double values from the stash
 
+Add option to aux-sdl to choose whether to use a "flat" array format or an "element" array format for framebuffers and scratchbuffer
+  The "flat" format represents the buffer as a simple byte array
+    The flat buffer requires a complete offset be computed for all access
+  The "element" format represents the buffer as an array of objects
+    The element buffer format requires the address offset to be applied separately to the memblock each time a different "object" within it is accessed
+  (It might be worthwhile to consider adding a tactyk function to dynamiclaly set a memblock format)
+
+Use the word size used by the adress offset setter template
+
 6-7 Jun 2023
 Added a minimal tactyk runtime + components.
   Not much to it - just a mechanism for loading data from files, program code, and defining an entry point, and accessing loaded data from tactyk

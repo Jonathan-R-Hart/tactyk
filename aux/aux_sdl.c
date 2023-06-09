@@ -119,7 +119,7 @@ void aux_sdl__get_framebuffer(struct tactyk_asmvm__Context *asmvm_ctx) {
         mem_ll_ctx->element_bound = sdlctx->bufsize;
     }
     else {
-        mem_ll_ctx->array_bound = sdlctx->bufsize - (sdlctx->texw * sdlctx->texh) + 1;
+        mem_ll_ctx->array_bound = sdlctx->bufsize - sdlctx->texscale + 1;
         mem_ll_ctx->element_bound = sdlctx->texscale;
     }
 }

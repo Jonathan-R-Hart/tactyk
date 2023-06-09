@@ -59,6 +59,7 @@ GX.mk_window:
   load qword rA addr2 gx_info.width
   load qword rB addr2 gx_info.height
   assign rC gx_pixel_size
+  assign rD 3
   tcall sdl--new
   lwreturn
 
@@ -77,6 +78,7 @@ GX.cliprect:
 
 GX.fillrect:
   stash sA rA sB rB sC rC
+  tcall print-newline
   FILL_ROW:
   if rD < rF
     stash rA sA
@@ -87,8 +89,8 @@ GX.fillrect:
     mul rB gx_pixel_size
     FILL_PIXEL:
     if rC < rE
-      block-store 4 addr4 rB xxA
-      # tcall dump-ctx
+      assign addr4.offset rB
+      block-store 4 addr4 0 xxA
       add rA 4
       add rB gx_pixel_size
       inc rC
@@ -113,7 +115,6 @@ GX.render:
   load qword rB addr2 gx_info.fb_height
   load qword rC addr2 gx_info.width
   load qword rD addr2 gx_info.height
-  
   assign rB rA
   mul rB rD
   mul rA 4
@@ -139,7 +140,8 @@ GX.render:
     DRAW_PIXEL:
     if rE < rC
       shift-left rE 5
-      block-load 4 xxK addr4 rE
+      assign addr4.offset rE
+      block-load 4 xxK addr4 0
       shift-right rE 5
       xassign xE xA
       xassign xF xA
@@ -181,7 +183,8 @@ GX.render:
       
       # write to framebuffer
       xassign rF xI int32 0
-      store dword addr3 rE rF
+      assign addr3.offset rE
+      store dword addr3 0 rF
       
       # iterate (next pixel in current row)
       add rE 4
