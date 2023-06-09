@@ -444,13 +444,10 @@ instruction push
 extend instruction assign select-template
   case OD
     code
-      ;mov rF, fs:[$CTX_ADDRESS_BOUND + random_const_FS]
       cmp %[$B]_32, dword fs:[$CTX_ADDRESS_BOUND + random_const_FS]
       errorge STATUS_ROGUE_POINTER
-      ;mov rF, 88888
       cmp %[$B]_32, 0
       errorlt STATUS_ROGUE_POINTER
-      ;mov rF, 77777
       lfence
       mov $ADDRESS_REGISTER, $B
       add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS + random_const_FS]

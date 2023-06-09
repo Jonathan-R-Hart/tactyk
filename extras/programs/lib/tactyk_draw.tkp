@@ -1,8 +1,10 @@
 
 struct gx_pixel
-  16 channel_ABCD
+  32 components
+  . 16 channel_ABCD
   16 channel_EFGH
-  16 normal_ABCD
+  32 normals
+  . 16 normal_ABCD
   16 normal_EFGH
   64 shader_data
   . 4 x
@@ -24,6 +26,10 @@ struct gx_info
   . 8 fb_width
   8 fb_height
   
+  16 world_position
+  . 8 x
+  8 y
+  
   128 g_colors
   . 16 g_color_A
   16 g_color_B
@@ -44,15 +50,64 @@ struct gx_info
   4 g_normal_G
   4 g_normal_H
   
-  32 rasterizer_data
+  48 rasterizer_data
   . 8 raster_x
+  8 raster_x2
   8 raster_y
-  8 raster_w
-  8 raster_h
-  8 raster_bufpos_gx
-  8 raster_bufpos_out
+  8 raster_x1
+  8 raster_y2
+  8 raster_y1
+
+struct gx_program
+  120 functions
+  . 8 f0
+  8 f1
+  8 f2
+  8 f3
+  8 f4
+  8 f5
+  8 f6
+  8 f7
+  8 f8
+  8 f9
+  8 f10
+  8 f11
+  8 f12
+  8 f13
+  8 f14
+  8 first
+  3968 data
+
+struct gx_program__standard
+  120 functions
+  . 8 f0
+  8 f1
+  8 f2
+  8 f3
+  8 f4
+  8 f5
+  8 f6
+  8 f7
+  8 f8
+  8 f9
+  8 f10
+  8 f11
+  8 f12
+  8 f13
+  8 f14
+  8 first
+  3968 data
+  . 16 components_ABCD
+  16 components_EFGH
+  16 normals_ABCD
+  16 normals_EFGH
+  64 blend_mat_components_ABCD
+  64 blend_mat_components_DEFG
+  64 blend_mat_normals_ABCD
+  64 blend_mat_normals_EFGH
 
 mem m_gx_info gx_info 1
+mem m_gx_drawprogram gx_program 1
 
 GX.mk_window:
   bind addr2 m_gx_info
@@ -147,13 +202,13 @@ GX.render:
       xassign xF xA
       
       # get negated absolute value of deviation between pixel normals and global normals
-      xsub 2 xvK float32 xvC float32
-      xsub 2 xvE float32 xvK float32
-      xmin 2 xvK float32 xvE float32
+      xsub 2 xvM float32 xvC float32
+      xsub 2 xvE float32 xvM float32
+      xmin 2 xvM float32 xvE float32
       
       # Add one to obtain a "diffuse" value, clamp at 0
-      xadd 2 xvK float32 1.0
-      xmax 2 xvK float32 xA float32
+      xadd 2 xvM float32 1.0
+      xmax 2 xvM float32 xA float32
       
       # multiply raw weights by channel values to obtain blend factors
       xmul 2 xvM float32 xvK float32
@@ -198,6 +253,131 @@ GX.render:
   tcall sdl--render
   lwreturn
 
+GX.draw:
+  
+  lwreturn
+
+GX.draw.fillrect:
+  bind addr1 m_gx_drawprogram
+  block-store 8 addr1 gx_program__standard.data xA
+  block-store 4 addr2 gx_info.rasterizer_data rA
+  # input:
+  # x1 y1 w  h  .  .
+
+  # x1 y1 w  h  .  y1
+  assign rF rB
+
+  # x1 x2 y1 h  .  y1
+  swap rB rC
+  add rB rA
+  
+  # x1 x2 y1 h  y2 y1
+  assign rE rD
+  add rE rC
+  
+  # x1 x2 y1 x1 y2 y1
+  assign rD rA
+
+  # x  x2 y  x1 y2 y1
+  dec rA
+  block-store 6 addr2 gx_info.rasterizer_data rA
+  
+  #48 rasterizer_data
+  #. 8 raster_x
+  #8 raster_x2
+  #8 raster_y
+  #8 raster_x1
+  #8 raster_y2
+  #8 raster_y1
+
+  assign rA 8
+  assign rB GX.raster.AABox.rowmaj
+  assign rC GX.shader.simple
+  store qword addr1 gx_program__standard.first rA
+  store qword addr1 gx_program__standard.f1 rB
+  store qword addr1 gx_program__standard.f0 rC
+  
+  DRAW_LOOP:
+  if rF == 1
+    lwreturn
+  assign rF 8
+  lwcall GX.raster.AABox.rowmaj
+  goto DRAW_LOOP
+
+# Axis-aligned box rasterizer
+GX.raster.AABox.rowmaj:
+  # fetch rasterizer globals
+  block-load 3 rA addr2 gx_info.rasterizer_data
+  # rA: raster_x
+  # rB: raster_x2
+  # rC: raster_y
+  
+  # . 8 raster_x
+  # 8 raster_x2
+  # 8 raster_y
+  # 8 raster_x1
+  # 8 raster_y2
+  # 8 raster_y1
+
+  
+  # advance one pixel
+  inc rA
+  if rA == rB
+    block-load 2 rA addr2 gx_info.raster_x1
+    # rA: raster_x1
+    # rB: raster_y2
+    # rC: raster_y
+    inc rC
+    store qword addr2 gx_info.raster_y rC
+    if rB == rC
+      assign rF 1
+      lwreturn
+  store qword addr2 gx_info.raster_x rA
+  
+  # rA: raster_x
+  # rB: buffer position
+  # rC: raster_y
+  load qword rB addr2 gx_info.fb_width
+  mul rB rC
+  add rB rA
+  
+  # should consider generating binary-log2 constants for struct sizes which are powers of two
+  #shift-left rB 2
+  #assign addr3.offset rB
+  #shift-left rB 5
+  #assign addr4.offset rB
+  shift-left rB 7
+  assign addr4.offset rB
+  
+  # rA: raster_x  (u)
+  # rB: x         (absolute x)
+  # rC: raster_y  (v)
+  # rD: y         (absolute y)
+  load qword rB addr2 gx_info.x
+  load qword rD addr2 gx_info.y
+  add rB rA
+  add rD rC
+  
+  store dword addr4 gx_pixel.x rB
+  store dword addr4 gx_pixel.y rD
+  store dword addr4 gx_pixel.u rA
+  store dword addr4 gx_pixel.v rC
+  
+  sub rF 8
+  if rF == -8
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+
+GX.shader.simple:
+  block-load 8 xA addr1 gx_program__standard.data
+  block-store 8 addr4 0 xA
+  
+  sub rF 8
+  if rF == -8
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
 
 
 

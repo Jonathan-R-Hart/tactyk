@@ -34,18 +34,20 @@ MAIN:
   assign rB 800
   lwcall GX.mk_window
   
-  xassign xA 0.0 0.9 0.0 0.0
-  xassign xB 0.0 0.0 0.0 0.0
-  
-  xassign xC 0.0 0.0 0.0 0.0
-  xassign xD 0.0 0.0 0.0 0.0
-  xassign xC 0.5 1.0 0.25 0.0
-  # xassign xD 0.10 0.25 0.30 0.0
-  
-  spread rC 5 0 25 200
-  
   lwcall GX.bind_memblocks
-  lwcall GX.fillrect
+  
+  xassign xC 0.0 0.9 0.0 0.0
+  xassign xD 0.0 0.0 0.0 0.0
+  
+  xassign xA 0.0 0.0 0.0 0.0
+  xassign xB 0.0 0.0 0.0 0.0
+  xassign xA 0.5 1.0 0.25 0.0
+  # xassign xB 0.10 0.25 0.30 0.0
+  
+  spread rA 5 0 25 200
+  
+  # lwcall GX.fillrect
+  lwcall GX.draw.fillrect
   lwcall GX.render
   
   assign rA 2000
