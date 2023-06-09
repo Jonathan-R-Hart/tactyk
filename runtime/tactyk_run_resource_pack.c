@@ -181,7 +181,6 @@ void tactyk_run__rsc__load_manifest(struct tactyk_run__RSC *rsc, char *filename)
     if (!tactyk_run__rsc__load_file(rsc->base_path, rsc->manifest_name, &mlen, &mdata)) {
         char fname_alt[256];
         snprintf(fname_alt, 256, "%s.manifest", rsc->manifest_name);
-        printf("modified %s\n", fname_alt);
         if (!tactyk_run__rsc__load_file(rsc->base_path, fname_alt, &mlen, &mdata)) {
             tactyk_report__string("Manifest file not found", filename);
             error(NULL, NULL);
