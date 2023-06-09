@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(tactyk-p C CXX)
-project(tactyk-p VERSION 0.8.1)
+project(tactyk-p VERSION 0.8.2)
 
 add_library(tactyk
   libtactyk/tactyk.c
