@@ -6,7 +6,8 @@ tactyk-draw - rendering pipeline
     Shaders with read+write access to the output buffer
 
 tactyk-core-simd
-  Add templates to the pack instruction for taking values from data registers
+  Add a pack instruction template for taking values from data registers
+  Add an unpack instruction template for unpacking to data registers
   
 8 Jun 2023
 tactyk-simd - new instructions: x-and, x-or, x-xor

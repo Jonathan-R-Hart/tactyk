@@ -476,7 +476,7 @@ instruction unpack
     sub simd-format-sse-params
     sub simd-format-pick
   operand
-    type xmmx
+    type data xmmx
     $DEST $VALUE
   operand
     type xmmx
@@ -499,6 +499,14 @@ instruction unpack
       code
         pxor xTEMPA, xTEMPA
         pxor xTEMPB, xTEMPB
+        jmp $NEXT_INSTRUCTION
+    case I32DX
+      vcode $SIMD_ARG
+        1 pextrd %[$DEST~0]_32, $SRC, 0
+        2 pextrd %[$DEST~1]_32, $SRC, 1
+        3 pextrd %[$DEST~2]_32, $SRC, 2
+        4 pextrd %[$DEST~3]_32, $SRC, 3
+      code
         jmp $NEXT_INSTRUCTION
     case I32XX
       vcode $SIMD_ARG
