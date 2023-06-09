@@ -259,7 +259,7 @@ GX.draw:
 
 GX.draw.fillrect:
   bind addr1 m_gx_drawprogram
-  block-store 8 addr1 gx_program__standard.data xA
+  block-store 4 addr1 gx_program__standard.data xxA
   block-store 4 addr2 gx_info.rasterizer_data rA
   # input:
   # x1 y1 w  h  .  .
@@ -370,8 +370,8 @@ GX.raster.AABox.rowmaj:
   goto rE
 
 GX.shader.simple:
-  block-load 8 xA addr1 gx_program__standard.data
-  block-store 8 addr4 0 xA
+  block-load 4 xxA addr1 gx_program__standard.data
+  block-store 4 addr4 0 xxA
   
   sub rF 8
   if rF == -8
