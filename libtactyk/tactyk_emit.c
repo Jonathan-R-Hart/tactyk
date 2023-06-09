@@ -1040,7 +1040,8 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
     struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, name);
     if (sub == NULL) {
         tactyk_report__reset();
-        tactyk_emit__error(ctx, "Instruction not defined.", NULL);
+        tactyk_report__dblock("Instruction not defined", line);
+        error(NULL, NULL);
     }
 }
 
