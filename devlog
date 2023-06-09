@@ -4,6 +4,9 @@ tactyk-draw - rendering pipeline
   It will break GPU conventions in at least two ways:
     Rasterization shader support
     Shaders with read+write access to the output buffer
+
+tactyk-code-simd
+  Add templates to the pack instruction for taking values from data registers
   
 8 Jun 2023
 tactyk-simd - new instructions: x-and, x-or, x-xor
