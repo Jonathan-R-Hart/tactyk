@@ -15,10 +15,35 @@ struct gx_pixel
   4 normal
   4 s
   4 t
-  32 unused
+  
+  # positions of global normal and color tables
+  4 index_gnorm1
+  4 index_gnorm2
+  4 index_gcolors1
+  4 index_gcolors2
+  
+  # alpha-blend factor of set 1 <-> set 2
+  4 blend_gnorm
+  4 blend_gcolors
+  
+  # alpha-blend factor of blended global data <-> pixel data
+  4 blend_pnorm
+  4 blend_pvalue
   
   
 struct gx_info
+  32 g_normals
+  . 16 normals_ABCD
+  16 normals_EFGH
+  32 g_colors
+  . 16 components_ABCD
+  16 components_EFGH
+  64 blend_mat_components_ABCD
+  64 blend_mat_components_DEFG
+  64 blend_mat_normals_ABCD
+  64 blend_mat_normals_EFGH
+  > 65536 g_matrixbuf
+  
   16 view_size
   . 8 width
   8 height
@@ -31,25 +56,6 @@ struct gx_info
   . 8 x
   8 y
   
-  128 g_colors
-  . 16 g_color_A
-  16 g_color_B
-  16 g_color_C
-  16 g_color_D
-  16 g_color_E
-  16 g_color_F
-  16 g_color_G
-  16 g_color_H
-  
-  32 g_normals
-  . 4 g_normal_A
-  4 g_normal_B
-  4 g_normal_C
-  4 g_normal_D
-  4 g_normal_E
-  4 g_normal_F
-  4 g_normal_G
-  4 g_normal_H  
   128 rasterizer_data
 
 struct gx_program
@@ -72,14 +78,6 @@ struct gx_program
   8 f15
   0 end
   3968 data
-  . 16 components_ABCD
-  16 components_EFGH
-  16 normals_ABCD
-  16 normals_EFGH
-  64 blend_mat_components_ABCD
-  64 blend_mat_components_DEFG
-  64 blend_mat_normals_ABCD
-  64 blend_mat_normals_EFGH
 
 mem m_gx_info gx_info 1
 mem m_gx_drawprogram gx_program 1

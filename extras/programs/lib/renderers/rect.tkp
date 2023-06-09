@@ -16,7 +16,7 @@
 
 # This layout helps reduce the amount of unique load instructions
 struct gx_info__fillrect_fields
-  208 _
+  65584 _
   128 rasterizer_data
   . 8 x
   8   x2
@@ -118,11 +118,7 @@ GX.rect.fill.impl:
 
 
 struct gx_info__outlinerect_fields
-  16 view_size
-  16 fbuf_size
-  16 world_position
-  128 g_colors
-  32 g_normals
+  65584 _
   128 rasterizer_data
   . 0 main-iterator
   8 x
@@ -321,7 +317,7 @@ GX.rect.outline.west:
 
 GX.rect.outline.epilogue:
   # absolute (x,y)
-  block-load 2 rC addr2 gx_info__outlinerect_fields.world_position
+  block-load 2 rC addr2 gx_info.world_position
   add rC rA
   add rD rB
   
