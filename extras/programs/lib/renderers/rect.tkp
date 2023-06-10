@@ -16,7 +16,24 @@
 
 # This layout helps reduce the amount of unique load instructions
 struct gx_info__fillrect_fields
-  65584 _
+  32 g_normals
+  . 16 normals_ABCD
+  16 normals_EFGH
+  256 g_colors
+  > 65536 g_matrixbuf
+  
+  16 view_size
+  . 8 width
+  8 height
+  
+  16 fbuf_size
+  . 8 fb_width
+  8 fb_height
+  
+  16 world_position
+  . 8 x
+  8 y
+
   128 rasterizer_data
   . 8 x
   8   x2
@@ -118,7 +135,24 @@ GX.rect.fill.impl:
 
 
 struct gx_info__outlinerect_fields
-  65584 _
+  32 g_normals
+  . 16 normals_ABCD
+  16 normals_EFGH
+  256 g_colors
+  > 65536 g_matrixbuf
+  
+  16 view_size
+  . 8 width
+  8 height
+  
+  16 fbuf_size
+  . 8 fb_width
+  8 fb_height
+  
+  16 world_position
+  . 8 x
+  8 y
+  
   128 rasterizer_data
   . 0 main-iterator
   8 x

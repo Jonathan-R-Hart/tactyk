@@ -15,34 +15,29 @@ struct gx_pixel
   4 normal
   4 s
   4 t
-  
   # positions of global normal and color tables
-  4 index_gnorm1
+  16 gdata_indices
+  . 4 index_gnorm1
   4 index_gnorm2
   4 index_gcolors1
   4 index_gcolors2
-  
-  # alpha-blend factor of set 1 <-> set 2
-  4 blend_gnorm
-  4 blend_gcolors
-  
-  # alpha-blend factor of blended global data <-> pixel data
-  4 blend_pnorm
-  4 blend_pvalue
-  
-  
+  # additive blend factors
+  16 gdata_blend_factors
+  . 4 blend_gcolors1
+  4 blend_gcolors2
+  4 blend_gnorm1
+  4 blend_gnorm2
+
 struct gx_info
   32 g_normals
   . 16 normals_ABCD
   16 normals_EFGH
-  32 g_colors
-  . 16 components_ABCD
-  16 components_EFGH
-  64 blend_mat_components_ABCD
-  64 blend_mat_components_DEFG
-  64 blend_mat_normals_ABCD
-  64 blend_mat_normals_EFGH
-  > 65536 g_matrixbuf
+  128 g_colors
+  . 64 cmat_1a
+  64 cmat_1b
+  64 cmat_2a
+  64 cmat_2b
+  > 65536 g_data
   
   16 view_size
   . 8 width
@@ -104,6 +99,7 @@ GX.bind_memblocks:
   bind addr2 m_gx_info
   store dword addr2 gx_info.fb_width rA
   store dword addr2 gx_info.fb_height rB
+  
   lwreturn
 
 # Convert all pixels from the complex internal format to 32-bit integer rgba
@@ -134,55 +130,83 @@ GX.to_rgba:
   
   assign rA 0
   
-  xassign xE 0.0   0.0   0.0   0.0
+  xassign xA 0.0   0.0   0.0   0.0
   xassign xB 255.0 255.0 255.0 255.0
   
-  block-load 2 xxC addr2 gx_info.g_normals
+  # block-load 2 xxC addr2 gx_info.g_normals
   
   DRAW_ROW:
   if rA < rC
     stash sAl rC sAh rD sBl rE
     DRAW_PIXEL:
     if rA < rB
-      shift-left rA 5
-      assign addr4.offset rA
+      # next position in buffer 
+      assign rC rA
+      shift-left rC 5
+      assign addr3.offset rA
+      assign addr4.offset rC
+      
+      # get local color/shading data
+      load oword xC addr4 gx_pixel.gdata_indices
+      unpack int32.4 rC xC
+      load oword xG addr4 gx_pixel.gdata_blend_factors
+      unpack float32.4 xC xG
+      
+      # blended local normals
+      block-load 2 xxG addr2 rC
+      block-load 2 xxI addr2 rD
+      xmul 2 xvG float32 xE
+      xmul 2 xvI float32 xF
+      xadd 2 xvI float32 xvG float32
+      
+      # get pixel color/shading data
       block-load 4 xxK addr4 0
-      shift-right rA 5
       xassign xE xA
       xassign xF xA
       
-      #load word rF addr3 gx_pixel.gnorm1
-      #block-load 4 xE addr3
-      
-      # get negated absolute value of deviation between pixel normals and global normals
-      xsub 2 xvM float32 xvC float32
+      # compare normals to obtain blending factors
+      #   inverse absolute value of deviation between pixel normals and global normals, low values clamped to zero
+      xsub 2 xvM float32 xvI float32
       xsub 2 xvE float32 xvM float32
       xmin 2 xvM float32 xvE float32
-      
-      # Add one to obtain a "diffuse" value, clamp at 0
       xadd 2 xvM float32 1.0
       xmax 2 xvM float32 xA float32
       
-      # multiply raw weights by channel values to obtain blend factors
+      # combine it with channel values
       xmul 2 xvM float32 xvK float32
       
-      # multiply each global color by the blending factors
-      block-load 8 xxE addr2 gx_info.g_colors
+      # load the first pair of 4 local colors (8 total), blend, apply to values, store
+      #   (these color values establish color model on a per-pixel basis)
+      block-load 4 xxE addr2 rE
+      block-load 4 xxI addr2 rF
+      xmul 4 xvE float32 xC
+      xmul 4 xvI float32 xD
+      xadd 4 xvE float32 xvI float32
       xmul 4 xvE float32 xM float32
-      xmul 4 xvI float32 xN float32
+      xadd 4 xA float32 xvE float32
       
-      # mix the colors, scale to range 0-255, and clip to 255
-      xadd 8 xA float32 xvE float32      
+      # repeat with the second pair of 8 local colors
+      add rE 64
+      add rF 64
+      block-load 4 xxE addr2 rE
+      block-load 4 xxI addr2 rF
+      xmul 4 xvE float32 xC
+      xmul 4 xvI float32 xD
+      xadd 4 xvE float32 xvI float32
+      xmul 4 xvE float32 xN float32
+      xadd 4 xA float32 xvE float32
+      
+      # scale to range 0-255 and clip
       xmul xA float32 xB float32
       xmin xA float32 xB float32
       
-      # move it out of the way, re-initialize the next pixel,
+      # move it out of the way, initialize the next pixel,
       # and use the re-initailzied pixel to remove negative components from the output pixel
       xassign xI xA
       xmax xI float32 xA float32
       xassign xA 0.0 0.0 0.0 0.0
       
-      # convert and repack to integer RGBA
+      # convert and pack to obtain an integer RGBA value
       unpack float32.4 xE xI
       xassign xI int8 0 xE
       xassign xI int8 1 xF
@@ -191,7 +215,6 @@ GX.to_rgba:
       
       # write to framebuffer
       xassign rF xI int32 0
-      assign addr3.offset rA
       store dword addr3 0 rF
       
       # iterate (next pixel in current row)

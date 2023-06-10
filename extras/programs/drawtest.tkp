@@ -11,24 +11,40 @@ MAIN:
   store dword addr1 gx_info.height rB
   
   # global normals
+  # Unlike a "real" rendering pipeline, normals in tactyk-draw are just scalar values.
+  # If used for actual lighting, the lights would effectively be restricted to a plane perpendicular to the view vector, placed at an infinite distance away,
+  # and all lit surfaces lit as if perpendicular to said plane.
   xassign xA 0.0 0.0 0.0 0.0
   xassign xB 0.0 0.0 0.0 0.0
   
   block-store 2 addr1 gx_info.g_normals xxA
   
-  # global colors
-  xassign xE 1.0 0.25 0.125 0.0
-  xassign xF 0.125 1.0 0.25 0.0
-  xassign xG 0.25 0.125 1.0 0.0
-  xassign xH 0.0 0.0 0.0 1.0
+  # global color model
+  # This sets up an RGB-like color space (RGB are the strongest components, but there are other colors mixed into each).
+  #   NOTE:  An actual RGB color space is just an identity matrix
+  xassign xE 1.0    0.25  0.125 0.0
+  xassign xF 0.125  1.0   0.25  0.0
+  xassign xG 0.25   0.125 1.0   0.0
+  xassign xH 0.0    0.0   0.0   1.0
   transpose float32 xE
-  xassign xI 1.0 1.0 0.25 1.0
-  xassign xJ 1.0 0.25 1.0 1.0
-  xassign xK 0.25 1.0 1.0 1.0
-  xassign xL 1.0 1.0 1.0 1.0
+  
+  # a subtractive color space (use negative values)
+  #  (this demo does not draw any pixels with non-zero components which interact with this matrix, so it has no effect.)
+  xassign xI 1.0  1.0   0.25  1.0
+  xassign xJ 1.0  0.25  1.0   1.0
+  xassign xK 0.25 1.0   1.0   1.0
+  xassign xL 1.0  1.0   1.0   1.0
   transpose float32 xI
   
-  block-store 8 addr1 gx_info.g_colors xxE
+  block-store 4 addr1 gx_info.cmat_1a xxE
+  block-store 4 addr1 gx_info.cmat_1b xxI
+  
+  #assign rE gx_info.cmat_1a
+  #assign rF gx_info.cmat_1b
+  #block-load 4 xxA addr1 96
+  #tcall dump-ctx
+  #exit
+  
   
   assign rA 1200
   assign rB 800
@@ -36,22 +52,50 @@ MAIN:
   
   lwcall GX.bind_memblocks
   
+  # I dont have a suitable generator for producing localized color spaces, so initialize all pixels with a common set of colors, normals, and blending factors
+  #   (to at least verify that it works)
+  spread xA 1.0 0.0 1.0 0.0
+  spread rB 0 16 32 160
+  assign rA 0
+  assign rF addr4.array_bound
+  sub rF gx_pixel_size
+  adjust_pixels:
+  if rA < rF
+    add rA gx_pixel_size
+    assign addr4.offset rA
+    store dword addr4 gx_pixel.index_gnorm1 rB
+    store dword addr4 gx_pixel.index_gnorm2 rB
+    store dword addr4 gx_pixel.index_gcolors1 rD
+    store dword addr4 gx_pixel.index_gcolors2 rE
+    store float32 addr4 gx_pixel.blend_gcolors1 xA
+    store float32 addr4 gx_pixel.blend_gcolors2 xB
+    store float32 addr4 gx_pixel.blend_gnorm1 xC
+    store float32 addr4 gx_pixel.blend_gnorm2 xD
+    goto adjust_pixels
+  assign addr4.offset 0
+  
+  # Color to draw with
+  xassign xA 0.5 1.0 0.25 0.0
+  xassign xB 0.0 0.0 0.0 0.0
+  
+  # normal values to draw with
+  #   (note:  global normals are all 0, so a normal value of 0.9 attenuates the green-ish color component)
   xassign xC 0.0 0.9 0.0 0.0
   xassign xD 0.0 0.0 0.0 0.0
   
-  xassign xA 0.0 0.0 0.0 0.0
-  xassign xB 0.0 0.0 0.0 0.0
-  xassign xA 0.5 1.0 0.25 0.0
-  # xassign xB 0.10 0.25 0.30 0.0
-  
+  # draw this rectanble (position 125,310 size 200,75)
   spread rA 125 310 200 75
-  
   lwcall GX.fill.rect
+  
+  # Adjust the drawing normals and draw an outline
   spread rA 115 300 220 95 2
   xassign xC 0.8 0.2 0.0 0.0
   lwcall GX.trace.rect
+  
+  # finally convert it to RGB and upload it to the display.
   lwcall GX.to_rgba
   
+  # show for 5 seconds, then exit
   assign rA 5000
   tcall sleep
   exit

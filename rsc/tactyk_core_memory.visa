@@ -467,7 +467,7 @@ extend instruction assign select-template
   case DO
     code
       mov $A, $ADDRESS_REGISTER
-      sub $A, fs:[$CTX_ADDRESS + random_const_FS]
+      sub %[$A]_32, dword fs:[$CTX_ADDRESS + random_const_FS]
       jmp $NEXT_INSTRUCTION
 
 
