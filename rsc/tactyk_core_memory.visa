@@ -155,6 +155,8 @@ instruction load
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         
         lfence
         
@@ -186,6 +188,8 @@ instruction load
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         
         mov %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+$OFFSET]
         xor rTEMPA, rTEMPA
@@ -200,6 +204,8 @@ instruction load
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         
         lfence
         
@@ -215,6 +221,8 @@ instruction load
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         
         lfence
         
@@ -231,6 +239,8 @@ instruction load
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         
         lfence
         
@@ -245,6 +255,8 @@ instruction load
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         
         lfence
         
@@ -260,6 +272,8 @@ instruction load
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         
         lfence
         
@@ -290,6 +304,8 @@ instruction store
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov [$ADDRESS_REGISTER+$OFFSET], $SRC
         xor rTEMPA, rTEMPA
@@ -303,6 +319,8 @@ instruction store
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov [$ADDRESS_REGISTER+rTEMPC], $SRC
         xor rTEMPA, rTEMPA
@@ -317,6 +335,8 @@ instruction store
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov dword [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_32
         xor rTEMPA, rTEMPA
@@ -330,6 +350,8 @@ instruction store
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov dword [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_32
         xor rTEMPA, rTEMPA
@@ -344,6 +366,8 @@ instruction store
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov word [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_16
         xor rTEMPA, rTEMPA
@@ -357,6 +381,8 @@ instruction store
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov word [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_16
         xor rTEMPA, rTEMPA
@@ -370,6 +396,8 @@ instruction store
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov byte [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_8
         xor rTEMPA, rTEMPA
@@ -382,6 +410,8 @@ instruction store
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov byte [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_8
         xor rTEMPA, rTEMPA

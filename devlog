@@ -1,3 +1,6 @@
+10 Jun 2023
+tactyk-core - add a null pointer check to all dynamic memory access instructions
+
 9 Jun 2023
 tactyk-draw - rendering pipeline
   A software rendering pipeline, modelled loosely on a conventional GPU rendering pipeline.

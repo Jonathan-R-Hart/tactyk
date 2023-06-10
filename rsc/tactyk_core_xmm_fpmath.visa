@@ -25,6 +25,8 @@ extend instruction load select-template
       errorge STATUS_ROGUE_POINTER
       cmp $OFFSET, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       lfence
       movdqu $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
       xor rTEMPA, rTEMPA
@@ -38,6 +40,8 @@ extend instruction load select-template
       errorge STATUS_ROGUE_POINTER
       cmp rTEMPC, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       lfence
       movdqu $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
       xor rTEMPA, rTEMPA
@@ -52,6 +56,8 @@ extend instruction load select-template
       errorge STATUS_ROGUE_POINTER
       cmp $OFFSET, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       
       lfence
       
@@ -68,6 +74,8 @@ extend instruction load select-template
       errorge STATUS_ROGUE_POINTER
       cmp rTEMPC, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       
       lfence
       
@@ -83,6 +91,8 @@ extend instruction load select-template
       errorge STATUS_ROGUE_POINTER
       cmp $OFFSET, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       
       lfence
       
@@ -103,6 +113,8 @@ extend instruction load select-template
       errorge STATUS_ROGUE_POINTER
       cmp rTEMPC, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       
       lfence
       
@@ -122,6 +134,8 @@ extend instruction load select-template
       errorge STATUS_ROGUE_POINTER
       cmp $OFFSET, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       
       lfence
       
@@ -138,6 +152,8 @@ extend instruction load select-template
       errorge STATUS_ROGUE_POINTER
       cmp rTEMPC, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       
       lfence
       
@@ -153,6 +169,8 @@ extend instruction load select-template
       errorge STATUS_ROGUE_POINTER
       cmp $OFFSET, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       
       lfence
       
@@ -173,6 +191,8 @@ extend instruction load select-template
       errorge STATUS_ROGUE_POINTER
       cmp rTEMPC, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       
       lfence
       
@@ -193,6 +213,8 @@ extend instruction store select-template
       errorge STATUS_ROGUE_POINTER
       cmp $OFFSET, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       lfence
       movdqu [$ADDRESS_REGISTER+$OFFSET], $SRC
       xor rTEMPA, rTEMPA
@@ -206,6 +228,8 @@ extend instruction store select-template
       errorge STATUS_ROGUE_POINTER
       cmp rTEMPC, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       lfence
       movdqu [$ADDRESS_REGISTER+rTEMPC], $SRC
       xor rTEMPA, rTEMPA
@@ -220,6 +244,8 @@ extend instruction store select-template
       errorge STATUS_ROGUE_POINTER
       cmp $OFFSET, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       lfence
       movq [$ADDRESS_REGISTER+$OFFSET], $SRC
       xor rTEMPA, rTEMPA
@@ -233,6 +259,8 @@ extend instruction store select-template
       errorge STATUS_ROGUE_POINTER
       cmp rTEMPC, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       lfence
       movq [$ADDRESS_REGISTER+rTEMPC], $SRC
       xor rTEMPA, rTEMPA
@@ -247,6 +275,8 @@ extend instruction store select-template
       errorge STATUS_ROGUE_POINTER
       cmp $OFFSET, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       lfence
       cvtsd2ss xTEMPA, $SRC
       movd [$ADDRESS_REGISTER+$OFFSET], xTEMPA
@@ -262,6 +292,8 @@ extend instruction store select-template
       errorge STATUS_ROGUE_POINTER
       cmp rTEMPC, 0
       errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
       lfence
       cvtsd2ss xTEMPA, $SRC
       movd [$ADDRESS_REGISTER+rTEMPC], xTEMPA
