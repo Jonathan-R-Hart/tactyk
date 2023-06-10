@@ -281,6 +281,9 @@ typespec compute-op
     case tangent tan
       code
         ftan
+    case absolute-value abs
+      code
+        fabs
     case square-root sqrt
       code
         fsqrt
