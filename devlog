@@ -1,5 +1,6 @@
 10 Jun 2023
 tactyk-core - add a null pointer check to all dynamic memory access instructions
+tactyk-emit - prevent the composite instruction handler from removing duplicates when not requested
 
 9 Jun 2023
 tactyk-draw - rendering pipeline

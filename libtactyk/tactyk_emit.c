@@ -670,14 +670,16 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
             opcount += 1;
         }
         tactyk_dblock__clear(ctx->code_template);
-
-        for (uint64_t i = 0; i < opcount; i++) {
-            struct tactyk_dblock__DBlock *cfrag_a = code_fragments[i];
-            for (uint64_t j = i+1; j < opcount; j++) {
-                struct tactyk_dblock__DBlock *cfrag_b = code_fragments[j];
-                if (tactyk_dblock__equals(cfrag_a, cfrag_b)) {
-                    tactyk_dblock__clear(cfrag_a);
-                    break;
+        
+        if (remove_duplicates) {
+            for (uint64_t i = 0; i < opcount; i++) {
+                struct tactyk_dblock__DBlock *cfrag_a = code_fragments[i];
+                for (uint64_t j = i+1; j < opcount; j++) {
+                    struct tactyk_dblock__DBlock *cfrag_b = code_fragments[j];
+                    if (tactyk_dblock__equals(cfrag_a, cfrag_b)) {
+                        tactyk_dblock__clear(cfrag_a);
+                        break;
+                    }
                 }
             }
         }
