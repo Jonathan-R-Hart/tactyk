@@ -170,6 +170,56 @@ instruction log
         movq $A, fs:[context.fpu_a + random_const_FS]
         jmp $NEXT_INSTRUCTION
 
+instruction pow
+  operand
+    type xmmx
+    $A $VALUE
+  operand
+    type xmmx
+    $B $VALUE
+  opt-operand
+    type xmmx
+    $C $VALUE
+  select-template
+    case XX
+      code
+        movq fs:[context.fpu_c + random_const_FS], $B
+        fld qword fs:[context.fpu_c + random_const_FS]
+        movq fs:[context.fpu_b + random_const_FS], $A
+        fld qword fs:[context.fpu_b + random_const_FS]
+        fabs
+        fyl2x
+        fld1
+        fld st1
+        fprem
+        f2xm1
+        fadd
+        fscale
+        fxch
+        fstp st0
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
+        jmp $NEXT_INSTRUCTION
+    case XXX
+      code
+        movq fs:[context.fpu_c + random_const_FS], $C
+        fld qword fs:[context.fpu_c + random_const_FS]
+        movq fs:[context.fpu_b + random_const_FS], $B
+        fld qword fs:[context.fpu_b + random_const_FS]
+        fabs
+        fyl2x
+        fld1
+        fld st1
+        fprem
+        f2xm1
+        fadd
+        fscale
+        fxch
+        fstp st0
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
+        jmp $NEXT_INSTRUCTION
+
 # Compute sine and cosine of X and store both results
 #   $DEST_SINE:     xmm register to write the result of sine(X) to
 #   $DEST_COSINE:   xmm register to write the result of cosine(X) to
@@ -256,7 +306,29 @@ typespec compute-op
         fdivrp
         fxch
         fyl2x
-        
+    case pow exp exponentiate
+      code new $COMPUTE_OP
+        fxch
+        fyl2x
+        fld1
+        fld st1
+        fprem
+        f2xm1
+        fadd
+        fscale
+        fxch
+        fstp st0
+    case ~pow ~exp ~exponentiate
+      code new $COMPUTE_OP
+        fyl2x
+        fld1
+        fld st1
+        fprem
+        f2xm1
+        fadd
+        fscale
+        fxch
+        fstp st0
     
     # apply the passive function using the accumulator vale for both operands 
     case .
