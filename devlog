@@ -1,3 +1,9 @@
+13 Jun 2023
+tactyk-core-simd - added instructions:  "xadd-interleaved", xsxub-interleaved", and "xsqrt"
+  These functions accept one of two xmm register arguments and optionally may be vectorized further by prepending it with a quantity (like the other x-whatever instrucitons)
+  the "interleaved" instructions are perform operations between adjacent values within a packed register ("horizontal" in SSE terminology)
+  like multiplication and division operators are desirable, but they'll have to be synthesized from other packed instructions (shuffle + op).
+
 12 Jun 2023
 tactyk-core-math - add an exponentiation function to the compute instruction, as well as an equivalent exponentiation instruction.
   For the time being, these functions only work with positive base values, so negative numbers need to be handled correctly, wrap it and handle the sign/parity explicitly.

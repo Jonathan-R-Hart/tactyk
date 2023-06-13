@@ -1908,9 +1908,129 @@ instruction shuffle
         jmp $NEXT_INSTRUCTION
 
 
+subroutine x-unary-op
+  $QTY 1
+  $SSE_CLASS_A sd
+  opt-operand
+    type ssimd-int-1-14
+    $QTY $VALUE
+  opt-operand
+    type simd-format-discriminator
+    sub simd-format-sse-params
+    sub simd-format-pick
+    $SSE_CLASS_A $SSE_CLASS
+  operand
+    type ssimd-xvector xmmx
+    $A $VALUE
+  opt-operand
+    type ssimd-xvector xmmx
+    $B $VALUE
+  select-template
+    case X F64X
+      code
+        %[$XOP]pd $A, $A
+        jmp $NEXT_INSTRUCTION
+    case F32X
+      code
+        %[$XOP]ps $A, $A
+        jmp $NEXT_INSTRUCTION
+    case XX F64XX
+      code
+        %[$XOP]pd $A, $B
+        jmp $NEXT_INSTRUCTION
+    case F32XX
+      code
+        %[$XOP]ps $A, $B
+        jmp $NEXT_INSTRUCTION
 
+    case VX VF64X VXv VF64Xv
+      vcode $QTY
+        1 %[$XOP]pd $A~0, $A~0
+        2 %[$XOP]pd $A~1, $A~1
+        3 %[$XOP]pd $A~2, $A~2
+        4 %[$XOP]pd $A~3, $A~3
+        5 %[$XOP]pd $A~4, $A~4
+        6 %[$XOP]pd $A~5, $A~5
+        7 %[$XOP]pd $A~6, $A~6
+        8 %[$XOP]pd $A~7, $A~7
+        9 %[$XOP]pd $A~8, $A~8
+        10 %[$XOP]pd $A~9, $A~9
+        11 %[$XOP]pd $A~10, $A~10
+        12 %[$XOP]pd $A~11, $A~11
+        13 %[$XOP]pd $A~12, $A~12
+        14 %[$XOP]pd $A~13, $A~13
+      code
+        jmp $NEXT_INSTRUCTION
+    case VF32X VF32Xv
+      vcode $QTY
+        1 %[$XOP]ps $A~0, $A~0
+        2 %[$XOP]ps $A~1, $A~1
+        3 %[$XOP]ps $A~2, $A~2
+        4 %[$XOP]ps $A~3, $A~3
+        5 %[$XOP]ps $A~4, $A~4
+        6 %[$XOP]ps $A~5, $A~5
+        7 %[$XOP]ps $A~6, $A~6
+        8 %[$XOP]ps $A~7, $A~7
+        9 %[$XOP]ps $A~8, $A~8
+        10 %[$XOP]ps $A~9, $A~9
+        11 %[$XOP]ps $A~10, $A~10
+        12 %[$XOP]ps $A~11, $A~11
+        13 %[$XOP]ps $A~12, $A~12
+        14 %[$XOP]ps $A~13, $A~13
+      code
+        jmp $NEXT_INSTRUCTION
+    case VXX VF64XX VXvXv VF64XvXv
+      vcode $QTY
+        1 %[$XOP]pd $A~0, $B~0
+        2 %[$XOP]pd $A~1, $B~1
+        3 %[$XOP]pd $A~2, $B~2
+        4 %[$XOP]pd $A~3, $B~3
+        5 %[$XOP]pd $A~4, $B~4
+        6 %[$XOP]pd $A~5, $B~5
+        7 %[$XOP]pd $A~6, $B~6
+        8 %[$XOP]pd $A~7, $B~7
+        9 %[$XOP]pd $A~8, $B~8
+        10 %[$XOP]pd $A~9, $B~9
+        11 %[$XOP]pd $A~10, $B~10
+        12 %[$XOP]pd $A~11, $B~11
+        13 %[$XOP]pd $A~12, $B~12
+        14 %[$XOP]pd $A~13, $B~13
+      code
+        jmp $NEXT_INSTRUCTION
+    case VF32XX VF32XvXv
+      vcode $QTY
+        1 %[$XOP]ps $A~0, $B~0
+        2 %[$XOP]ps $A~1, $B~1
+        3 %[$XOP]ps $A~2, $B~2
+        4 %[$XOP]ps $A~3, $B~3
+        5 %[$XOP]ps $A~4, $B~4
+        6 %[$XOP]ps $A~5, $B~5
+        7 %[$XOP]ps $A~6, $B~6
+        8 %[$XOP]ps $A~7, $B~7
+        9 %[$XOP]ps $A~8, $B~8
+        10 %[$XOP]ps $A~9, $B~9
+        11 %[$XOP]ps $A~10, $B~10
+        12 %[$XOP]ps $A~11, $B~11
+        13 %[$XOP]ps $A~12, $B~12
+        14 %[$XOP]ps $A~13, $B~13
+      code
+        jmp $NEXT_INSTRUCTION
 
+instruction xadd-interleaved
+  $XOP hadd
+  sub x-unary-op
+instruction xsub-interleaved
+  $XOP hsub
+  sub x-unary-op
+instruction xsqrt
+  $XOP sqrt
+  sub x-unary-op
 
-
-
+# These do not exist in x86, but can be fabricated with pshufd and the "vertical" ops
+#instruction xmul-interleaved
+#  $XOP hmul
+#  sub x-unary-op
+#instruction xdiv-interleaved
+#  $XOP hdiv
+#  sub x-unary-op
 
