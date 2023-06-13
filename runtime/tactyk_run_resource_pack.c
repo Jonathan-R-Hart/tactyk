@@ -21,6 +21,7 @@ struct tactyk_dblock__DBlock *tactyk_run__item_handlers;
 
 bool tactyk_run__rsc__load_module(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data);
 bool tactyk_run__rsc__load_data(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data);
+bool tactyk_run__rsc__prepare_export_target(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data);
 bool tactyk_run__rsc__build_program(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data);
 bool tactyk_run__rsc__define_entrypoint(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data);
 bool tactyk_run__rsc__message(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data);
@@ -33,6 +34,7 @@ void tactyk_run__init() {
     tactyk_dblock__put(tactyk_run__item_handlers, "mod", tactyk_run__rsc__load_module);
     tactyk_dblock__put(tactyk_run__item_handlers, "data", tactyk_run__rsc__load_data);
     tactyk_dblock__put(tactyk_run__item_handlers, "dat", tactyk_run__rsc__load_data);
+    tactyk_dblock__put(tactyk_run__item_handlers, "export", tactyk_run__rsc__prepare_export_target);
     tactyk_dblock__put(tactyk_run__item_handlers, "program", tactyk_run__rsc__build_program);
     tactyk_dblock__put(tactyk_run__item_handlers, "prg", tactyk_run__rsc__build_program);
     tactyk_dblock__put(tactyk_run__item_handlers, "main", tactyk_run__rsc__define_entrypoint);
@@ -51,8 +53,10 @@ struct tactyk_run__RSC* tactyk_run__load_resource_pack(char *manifest_filename, 
     rsc->data_table = tactyk_dblock__new_table(256);
     rsc->module_table = tactyk_dblock__new_table(256);
     rsc->program_table = tactyk_dblock__new_table(256);
+    rsc->export_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_run__exportable));
     
     tactyk_dblock__set_persistence_code(rsc->data_table, 10000);
+    tactyk_dblock__set_persistence_code(rsc->export_table, 10000);
     tactyk_dblock__set_persistence_code(rsc->module_table, 10000);
     tactyk_dblock__set_persistence_code(rsc->program_table, 10000);
     
@@ -85,11 +89,25 @@ void tactyk_run__rsc__restrict_charset(struct tactyk_run__RSC *rsc, char *charse
     }
 }
 
-bool tactyk_run__rsc__load_file(char *path, char *fname, int64_t *len, uint8_t **data) {
+//  It didn't work like this the first time, and it isn't a high enough priority to investigate.
+// 
+//  void tactyk_run__rsc__delete_file(char *path, char *fname) {
+//      char fullname[1024];
+//      snprintf(fullname, 1024, "%s/%s", path, fname);
+//      remove(fullname);
+//  }
+
+
+FILE* tactyk_run__rsc__get_fileref(char *path, char *fname, char *mode) {
     char fullname[1024];
     snprintf(fullname, 1024, "%s/%s", path, fname);
     
-    FILE *f = fopen(fullname, "r");
+    FILE *f = fopen(fullname, mode);
+    return f;
+}
+
+bool tactyk_run__rsc__load_file(char *path, char *fname, int64_t *len, uint8_t **data) {    
+    FILE *f = tactyk_run__rsc__get_fileref(path, fname, "r");
     if (f == NULL) {
         return false;
     }
@@ -288,12 +306,65 @@ bool tactyk_run__rsc__load_data(struct tactyk_run__RSC *rsc, struct tactyk_dbloc
     uint8_t *bytes;
     
     tactyk_report__string("Load data-file", filename_text);
-    tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes);    
+    tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes);
     tactyk_report__int("Loaded bytes", len);
     
     struct tactyk_dblock__DBlock *dbctn = tactyk_dblock__from_bytes(NULL, bytes, 0, len, true); 
     
     tactyk_dblock__put(rsc->data_table, name, dbctn);
+    
+}
+
+// named export target - like other things, must be within the directory containing the manifest file (or a subdirectory).
+// This generates an empty data buffer which a program may access like any other data buffer.
+// The export function is used to save the contents of the data buffer to the specified file.
+bool tactyk_run__rsc__prepare_export_target(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data) {
+    
+    struct tactyk_dblock__DBlock *token = data->token->next;
+    struct tactyk_dblock__DBlock *name = token;
+    struct tactyk_dblock__DBlock *size = NULL;
+    struct tactyk_dblock__DBlock *filename = NULL;
+    
+    tactyk_report__dblock("prepare-export", data);
+    
+    if (name == NULL) {
+        tactyk_report__msg("Export directive parameters are missing");
+        error(NULL, NULL);
+    }
+    token = token->next;
+    size = token;
+    if (size == NULL) {
+        tactyk_report__msg("Export directive size parameter is missing");
+        error(NULL, NULL);
+    }
+    token = token->next;
+    filename = token;
+    if (filename == NULL) {
+        tactyk_report__msg("Export directive filename parameter is missing");
+        error(NULL, NULL);
+    }
+    
+    char filename_text[256];
+    tactyk_dblock__export_cstring(filename_text, 256, filename);
+    
+    if (!tactyk_run__rsc__test_filename(rsc, filename_text)) {
+        tactyk_report__string("Export file name rejected (BANNED chars of undesirable patterns)", filename_text);
+        error(NULL, NULL);
+    }
+    
+    uint64_t len = 0;
+    if (!tactyk_dblock__try_parseuint(&len, size)) {
+        tactyk_report__dblock("Export - invalid file size", size);
+        error(NULL, NULL);
+    }
+    uint8_t *bytes = calloc(len, 1);
+    struct tactyk_dblock__DBlock *dbctn = tactyk_dblock__from_bytes(NULL, bytes, 0, len, true); 
+    tactyk_dblock__put(rsc->data_table, name, dbctn);
+    struct tactyk_run__exportable *exp = tactyk_dblock__new_managedobject(rsc->export_table, name);
+    tactyk_dblock__export_cstring(exp->fname, 1024, filename);
+    exp->data = bytes;
+    exp->maxlen = len;
+    tactyk_report__string("Export data-file", filename_text);
     
 }
 bool tactyk_run__rsc__build_program(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data) {

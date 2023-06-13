@@ -10,6 +10,15 @@ tactyk-draw
   Irregular Value Noise - First texture!  A value noise function based on distance drop-off.  It has an inefficient x87-based implementation, as well as a much more effiicent 
     SIMD implementation.
 
+tactyk-runtime - Added a data export mechanism
+  Data storage must be declared in the manifest file (a specific file name, maximum file length, and buffer name).
+  When setting up the runtime, this adds an export target with a data buffer equal to the specified maximum file length, and makes it available through the "get-data" tcall function.
+  The program may freely read and write to that buffer.
+  To store the data, use "tcall export" while the export buffer is bound to addr1.  This will then measure the length of the data buffer [by scanning for the last non-zero byte],
+    then write it to the file specified in the application manifest file.
+  If your application needs to read the file back in [in a lsubsequent session],
+    add a regular data buffer reference to the file [with a different buffer name] to the application manifest file.
+
 12 Jun 2023
 tactyk-core-math - add an exponentiation function to the compute instruction, as well as an equivalent exponentiation instruction.
   For the time being, these functions only work with positive base values, so negative numbers need to be handled correctly, wrap it and handle the sign/parity explicitly.

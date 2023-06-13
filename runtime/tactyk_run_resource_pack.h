@@ -1,7 +1,8 @@
 #ifndef TACTYK_RUN__RESOURCE_PACK_H
 #define TACTYK_RUN__RESOURCE_PACK_H
 
-#include "stdbool.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "tactyk_dblock.h"
 #include "tactyk_emit.h"
@@ -18,6 +19,7 @@ struct tactyk_run__RSC {
     char manifest_name[256];
     
     struct tactyk_dblock__DBlock *data_table;
+    struct tactyk_dblock__DBlock *export_table;
     struct tactyk_dblock__DBlock *module_table;
     struct tactyk_dblock__DBlock *program_table;
     
@@ -27,10 +29,18 @@ struct tactyk_run__RSC {
     char main_entrypoint[256];
 };
 
+struct tactyk_run__exportable {
+    struct tactyk_dblock__DBlock *dblock;
+    char fname[1024];
+    uint64_t maxlen;
+    void *data;
+};
+
 typedef bool (*tactyk_run__rsc_item_handler)(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data);
 
 void tactyk_run__init();
-
+//  void tactyk_run__rsc__delete_file(char *path, char *fname);
+FILE* tactyk_run__rsc__get_fileref(char *path, char *fname, char *mode);
 struct tactyk_run__RSC* tactyk_run__load_resource_pack(char *manifest_filename, struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__Context *asmvmctx);
 void tactyk_run__rsc__add_item_handler(char *name, tactyk_run__rsc_item_handler handler);
 
