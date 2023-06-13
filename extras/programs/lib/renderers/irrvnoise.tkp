@@ -1,0 +1,271 @@
+# IRRV-Noise:  Irregular value noise with distance dropoff.
+#
+# Noise function consisting of an arbitrary size set of components, each positioned arbitrarilly, evaluated separately, and summed.
+# Each component is distance from a point multiplied by a value.
+#
+# There are two versions of this:
+#   An inefficient version which uses x87 instructions to calculate one component at a time (through the tactyk "compute" instruction).
+#   A much more efficient version which uses SIMD instructions to calculate 20 components at a time
+#     (technically 4 at a time, but 20x is probably realistic for comparing with the x87 code, due to the various limitations of tactyk
+#      and the way the "super-simd" interface gets around said limitations).
+#
+# Output is placed on xA instead of a pixel variable, so a transfer renderer is required.
+#
+# Randomization:
+#   IRRVNOISE_RANDOMIZE (lwcall)
+#     inputs
+#       rA:       Number of components to generate
+#       xA, xB:   Upper-left corner (x,y) of region to place components in
+#       xC, xD:   Lower-right corner (x,y) of region to place components in
+#       xE:       Maximum feature size
+#       xF:       Maximum value
+#   IRRVNOISE_RANDOMIZE.simd (lwcall)
+#       rA:       Number of component sets to generate (will generate 20 components per set)
+#       xA, xB:   Upper-left corner (x,y) of region to place components in
+#       xC, xD:   Lower-right corner (x,y) of region to place components in
+#       xE:       Maximum feature size
+#       xF:       Maximum value
+# 
+# Renderer setup: lwcall IRRVNOISE, IRRVNOISE.simd
+#   IRRVNOISE Clobbers:  rC rD rE, xB xC xD xG xH xL
+#   IRRVNOISE.simd clobbers: rE, xA-xN, sB
+#   This outputs to xA, so a transfer-renderer will be needed
+#
+# Explicit setup:
+#   The quanitity specifier is a 64-bit integer
+#   All other fields are 32-bit floats
+#
+#   If explicitly defining a simple noise function:
+#     Specify how many components, and the position, size, and value of each component
+#
+#   If defining an SIMD function:
+#     Specify the number of component sets (20 components per set)
+#     For each component set:
+#       Generate a max-size vector (the two lower components will be used, the high components can be omitted)
+#       Generate a max-value vector (the two lower components will be used, the high components can be omitted)
+#       Generate positions for all 20 components in the set
+# 
+# The function output is not normalized in any way, so you may need to experiment with settings to obtain a suitable balance of
+# component count, feature size, and value
+
+struct gx_info__irrvnoise
+  65536 g_data
+  16 view_size
+  16 fbuf_size
+  16 world_position
+  128 rasterizer_data
+  65536 properties
+  . 6152 ptxp_properties
+  . 8 num_points
+  8 padding
+  6144 data
+
+struct gx_info__irrvnoise__component
+  4 x
+  4 y
+  4 size
+  4 value
+
+IRRVNOISE:
+  assign rA IRRVNOISE.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+
+RAND_FLOAT:
+  tcall rand
+  and rA h.7fffffffffffffff
+  compute xN rA div h.7fffffffffffffff
+  lwreturn
+
+IRRVNOISE_RANDOM_POSITION:
+  lwcall RAND_FLOAT
+  compute rB xC sub xA mul xN add xA
+  lwcall RAND_FLOAT
+  compute rC xD sub xB mul xN add xB
+  lwcall RAND_FLOAT
+  compute xG xN mul . xE
+  lwcall RAND_FLOAT
+  compute xH xN mul . xF
+  
+  store dword addr2 rE rB
+  add rE 4
+  store dword addr2 rE rC
+  add rE 4
+  store float32 addr2 rE xG
+  add rE 4
+  store float32 addr2 rE xH
+  lwreturn
+
+IRRVNOISE_RANDOMIZE:
+  store qword addr2 gx_info__irrvnoise.num_points rA
+  if xE == 0
+    assign xE 0.01
+  # store float64 addr2 gx_info__irrvnoise.scale xE
+  assign rF rA
+  IRRVNOISE_RANDOMIZE.lp:
+  if rF > 0
+    dec rF
+    assign rE rF
+    shift-left rE 4
+    add rE gx_info__irrvnoise.data
+    lwcall IRRVNOISE_RANDOM_POSITION
+    goto IRRVNOISE_RANDOMIZE.lp
+  lwreturn
+
+IRRVNOISE.impl:
+  load float32 xG addr4 gx_pixel.a
+  load float32 xH addr4 gx_pixel.b
+  load qword rE addr2 gx_info__irrvnoise.num_points
+  stash sVl xA
+  assign xA 0.0
+  assign xL 0.0
+  shift-left rE 4
+  sub rE 4
+  add rE gx_info__irrvnoise.data
+  IRRVNOISE_FILL.lp:
+  if rE > gx_info__irrvnoise.data
+    load float32 xB addr2 rE
+    sub rE 4
+    load float32 xC addr2 rE
+    sub rE 4
+    load dword rD addr2 rE
+    sub rE 4
+    load dword rC addr2 rE
+    sub rE 4
+    compute xD xG sub rC mul . ->w load xH sub rD mul . add <-w sqrt ~sub xC mul xB
+    xmax xD xL
+    add xA xD
+    goto IRRVNOISE_FILL.lp
+  compute xA xA mul sVl
+  # store float32 addr3 16 xA
+  add rF 8
+  if rF == gx_program.end
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+
+struct gx_info__irrvnoise__simd_components
+  16 size
+  . 4 sz_1
+  4 sz_2
+  4 sz_unused1
+  4 sz_unused2
+  16 value
+  . 4 val_1
+  4 val_2
+  4 val_unused1
+  4 val_unused2
+  160 components
+  . 4 cmp1_x
+  4 cmp1_y
+  4 cmp2_x
+  4 cmp2_y
+  4 cmp3_x
+  4 cmp3_y
+  # ...
+
+IRRVNOISE.simd:
+  assign rA IRRVNOISE.simd.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+
+IRRVNOISE.simd.impl:
+  load float32 xG addr4 gx_pixel.a
+  load float32 xH addr4 gx_pixel.b
+  xassign xB xG xH xG xH
+  stash sB xB sVl xA
+  xassign xA 0.0 0.0 0.0 0.0
+  load qword rE addr2 gx_info__irrvnoise.num_points
+  mul rE 192
+  add rE gx_info__irrvnoise.data
+  IRRVNOISE_FILL.simd.lp:
+  if rE > gx_info__irrvnoise.data
+    sub rE 192
+    stash xB sB
+    block-load 12 xxC addr2 rE
+    xsub 10 xvE float32 xB float32
+    x-xor xB float64 xB float64
+    xmul 10 xvE float32 xvE float32
+    xadd-interleaved 10 float32 xvE
+    xsqrt 10 float32 xvE
+    xsub 10 xvE float32 xC float32
+    xmul 10 xvE float32 xD float32
+    xmax 10 xvE float32 xB float32
+    xadd 10 xA float32 xvE float32
+    goto IRRVNOISE_FILL.simd.lp
+  xcompute xA xA.f32.0 add xA.f32.1
+  compute xA xA mul sVl
+  add rF 8
+  if rF == gx_program.end
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+
+RAND_FLOAT.simd:
+  tcall rand
+  and rA h.7fffffffffffffff
+  xcompute xA float32 0 rA div h.7fffffffffffffff
+  tcall rand
+  and rA h.7fffffffffffffff
+  xcompute xA float32 1 rA div h.7fffffffffffffff
+  tcall rand
+  and rA h.7fffffffffffffff
+  xcompute xA float32 2 rA div h.7fffffffffffffff
+  tcall rand
+  and rA h.7fffffffffffffff
+  xcompute xA float32 3 rA div h.7fffffffffffffff
+  lwreturn
+
+IRRVNOISE_RANDOMIZE.simd:
+  store qword addr2 gx_info__irrvnoise.num_points rA
+  mul xF -1.0
+  xassign xN xA xB xA xB
+  xassign xM xC xD xC xD
+  xsub xM float32 xN float32
+  xassign xC xE xE xE xE
+  xassign xD xF xF xF xF
+  # stash sA xN sB xM sC xC sD xD
+  stash sB xM sC xC sD xD
+  # store float64 addr2 gx_info__irrvnoise.scale xE
+  assign rF rA
+  IRRVNOISE_RANDOMIZE.simd.lp:
+  if rF > 0
+    dec rF
+    stash xE sB xF sB xG sB xC sC xD sD
+    xduplicate 3 xH xF
+    xduplicate 4 xK xF
+    # xsub 12 xvC float32 xA float32
+    lwcall RAND_FLOAT.simd
+    xmul xC float32 xA float32
+    lwcall RAND_FLOAT.simd
+    xmul xD float32 xA float32
+    lwcall RAND_FLOAT.simd
+    xmul xE float32 xA float32
+    lwcall RAND_FLOAT.simd
+    xmul xF float32 xA float32
+    lwcall RAND_FLOAT.simd
+    xmul xG float32 xA float32
+    lwcall RAND_FLOAT.simd
+    xmul xH float32 xA float32
+    lwcall RAND_FLOAT.simd
+    xmul xI float32 xA float32
+    lwcall RAND_FLOAT.simd
+    xmul xJ float32 xA float32
+    lwcall RAND_FLOAT.simd
+    xmul xK float32 xA float32
+    lwcall RAND_FLOAT.simd
+    xmul xL float32 xA float32
+    lwcall RAND_FLOAT.simd
+    xmul xM float32 xA float32
+    lwcall RAND_FLOAT.simd
+    xmul xN float32 xA float32
+    #stash xA sA
+    #xadd 10 xvE float32 xA float32
+    assign rE rF
+    mul rE 192
+    add rE gx_info__irrvnoise.data
+    block-store 12 addr2 rE xxC 
+    goto IRRVNOISE_RANDOMIZE.simd.lp
+  lwreturn

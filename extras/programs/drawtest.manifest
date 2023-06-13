@@ -4,6 +4,7 @@ module draw lib/tactyk_draw.tkp
 module rect-renderers lib/renderers/rect.tkp
 module matrix lib/matrix-simd.tkp
 module main drawtest.tkp
+module irrvn lib/renderers/irrvnoise.tkp
 
-program prog main matrix draw rect-renderers
+program prog main matrix rect-renderers draw irrvn
 main prog MAIN

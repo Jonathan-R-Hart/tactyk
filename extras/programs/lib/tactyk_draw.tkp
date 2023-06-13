@@ -6,15 +6,14 @@ struct gx_pixel
   32 normals
   . 16 normal_ABCD
   16 normal_EFGH
-  64 shader_data
-  . 4 x
-  4 y
-  4 u
-  4 v
-  4 depth
-  4 normal
-  4 s
-  4 t
+  4 a
+  4 b
+  4 c
+  4 d
+  4 e
+  4 f
+  4 g
+  4 h
   # positions of global normal and color tables
   16 gdata_indices
   . 4 index_gnorm1
@@ -52,6 +51,7 @@ struct gx_info
   8 y
   
   128 rasterizer_data
+  65536 properties
 
 struct gx_program
   128 functions
@@ -174,15 +174,18 @@ GX.to_rgba:
       
       # combine it with channel values
       xmul 2 xvM float32 xvK float32
+      # xduplicate 2 xM xK
       
       # load the first pair of 4 local colors (8 total), blend, apply to values, store
       #   (these color values establish color model on a per-pixel basis)
       block-load 4 xxE addr2 rE
       block-load 4 xxI addr2 rF
+      
       xmul 4 xvE float32 xC
       xmul 4 xvI float32 xD
       xadd 4 xvE float32 xvI float32
       xmul 4 xvE float32 xM float32
+      transpose xE
       xadd 4 xA float32 xvE float32
       
       # repeat with the second pair of 8 local colors
@@ -194,6 +197,7 @@ GX.to_rgba:
       xmul 4 xvI float32 xD
       xadd 4 xvE float32 xvI float32
       xmul 4 xvE float32 xN float32
+      transpose xE
       xadd 4 xA float32 xvE float32
       
       # scale to range 0-255 and clip
@@ -203,8 +207,8 @@ GX.to_rgba:
       # move it out of the way, initialize the next pixel,
       # and use the re-initailzied pixel to remove negative components from the output pixel
       xassign xI xA
-      xmax xI float32 xA float32
       xassign xA 0.0 0.0 0.0 0.0
+      xmax xI float32 xA float32
       
       # convert and pack to obtain an integer RGBA value
       unpack float32.4 xE xI
@@ -275,6 +279,116 @@ GX.fills.simple.impl:
     lwreturn
   load qword rE addr1 rF
   goto rE
+
+GX.texture:
+  assign rA GX.texture.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+GX.texture.impl:
+  assign xA 1.0
+  add rF 8
+  if rF == gx_program.end
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+GX.transfer.ch0:
+  assign rA GX.transfer.ch0.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+GX.transfer.ch0.impl:
+  store float32 addr4 0 xA
+  add rF 8
+  if rF == gx_program.end
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+GX.transfer.ch1:
+  assign rA GX.transfer.ch1.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+GX.transfer.ch1.impl:
+  store float32 addr4 4 xA
+  add rF 8
+  if rF == gx_program.end
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+GX.transfer.ch2:
+  assign rA GX.transfer.ch2.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+GX.transfer.ch2.impl:
+  store float32 addr4 8 xA
+  add rF 8
+  if rF == gx_program.end
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+GX.transfer.ch3:
+  assign rA GX.transfer.ch3.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+GX.transfer.ch3.impl:
+  store float32 addr4 12 xA
+  add rF 8
+  if rF == gx_program.end
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+GX.transfer.ch4:
+  assign rA GX.transfer.ch4.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+GX.transfer.ch4.impl:
+  store float32 addr4 16 xA
+  add rF 8
+  if rF == gx_program.end
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+GX.transfer.ch5:
+  assign rA GX.transfer.ch5.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+GX.transfer.ch5.impl:
+  store float32 addr4 20 xA
+  add rF 8
+  if rF == gx_program.end
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+GX.transfer.ch6:
+  assign rA GX.transfer.ch6.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+GX.transfer.ch6.impl:
+  store float32 addr4 24 xA
+  add rF 8
+  if rF == gx_program.end
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+GX.transfer.ch7:
+  assign rA GX.transfer.ch7.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+GX.transfer.ch7.impl:
+  store float32 addr4 28 xA
+  add rF 8
+  if rF == gx_program.end
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+  
 
 # return from a renderer
 GX.util.exit:

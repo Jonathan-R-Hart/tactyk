@@ -4,6 +4,12 @@ tactyk-core-simd - added instructions:  "xadd-interleaved", xsxub-interleaved", 
   the "interleaved" instructions are perform operations between adjacent values within a packed register ("horizontal" in SSE terminology)
   like multiplication and division operators are desirable, but they'll have to be synthesized from other packed instructions (shuffle + op).
 
+tactyk-draw
+  texture generation - "texture" within tactyk-draw is defined as any multiplicative combination of single-channel generators.
+    These are initiated with the 'GX.texture' function, then any series ot texture functions are run, then the result is applied with a GX.transfer.<destination> function.
+  Irregular Value Noise - First texture!  A value noise function based on distance drop-off.  It has an inefficient x87-based implementation, as well as a much more effiicent 
+    SIMD implementation.
+
 12 Jun 2023
 tactyk-core-math - add an exponentiation function to the compute instruction, as well as an equivalent exponentiation instruction.
   For the time being, these functions only work with positive base values, so negative numbers need to be handled correctly, wrap it and handle the sign/parity explicitly.

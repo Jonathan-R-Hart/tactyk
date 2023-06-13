@@ -9,14 +9,7 @@ MAIN:
   
   store dword addr1 gx_info.width rA
   store dword addr1 gx_info.height rB
-  
-  # global normals
-  # Unlike a "real" rendering pipeline, normals in tactyk-draw are just scalar values.
-  # If used for actual lighting, the lights would effectively be restricted to a plane perpendicular to the view vector, placed at an infinite distance away,
-  # and all lit surfaces lit as if perpendicular to said plane.
-  xassign xA 0.0 0.0 0.0 0.0
-  xassign xB 0.0 0.0 0.0 0.0
-  
+    
   block-store 2 addr1 gx_info.g_normals xxA
   
   # global color model
@@ -36,15 +29,8 @@ MAIN:
   xassign xL 1.0  1.0   1.0   1.0
   transpose float32 xI
   
-  block-store 4 addr1 gx_info.cmat_1a xxE
-  block-store 4 addr1 gx_info.cmat_1b xxI
-  
-  #assign rE gx_info.cmat_1a
-  #assign rF gx_info.cmat_1b
-  #block-load 4 xxA addr1 96
-  #tcall dump-ctx
-  #exit
-  
+  block-store 4 addr1 1024 xxE
+  block-store 4 addr1 1088 xxI
   
   assign rA 1200
   assign rB 800
@@ -52,10 +38,9 @@ MAIN:
   
   lwcall GX.bind_memblocks
   
-  # I dont have a suitable generator for producing localized color spaces, so initialize all pixels with a common set of colors, normals, and blending factors
-  #   (to at least verify that it works)
+  # Initialize all pixels with a common color space, normals, and blending factors
   spread xA 1.0 0.0 1.0 0.0
-  spread rB 0 16 32 160
+  spread rB 0 16 1024 1152
   assign rA 0
   assign rF addr4.array_bound
   sub rF gx_pixel_size
@@ -80,18 +65,60 @@ MAIN:
   
   # normal values to draw with
   #   (note:  global normals are all 0, so a normal value of 0.9 attenuates the green-ish color component)
-  xassign xC 0.0 0.9 0.0 0.0
+  xassign xC 0.0 0.0 0.0 0.0
   xassign xD 0.0 0.0 0.0 0.0
   
-  # draw this rectanble (position 125,310 size 200,75)
-  spread rA 125 310 200 75
-  lwcall GX.fill.rect
+  bind addr1 m_gx_drawprogram
+  assign rA 5
+  spread xA 0.0 0.0 1200.0 800.0 250.0 0.00075
   
+  lwcall IRRVNOISE_RANDOMIZE.simd
+  assign rF 0
+  spread rA 0 0 1200 800
+  xassign xA 0.0 0.0 0.15 0.0
+  xassign xB 0.0 0.0 0.0 0.0
+  xassign xC 0.0 0.0 0.0 0.0
+  xassign xD 0.0 0.0 0.0 0.0
+  lwcall GX.rect.fill
+  #lwcall PTPX_TEST
+  #bind addr1 m_gx_drawprogram
+  #lwcall PTPX_FILL
+  lwcall GX.fills.simple
+  lwcall GX.texture
+  lwcall IRRVNOISE.simd
+  lwcall GX.transfer.ch6
+  lwcall GX.util.exit
+  assign rF 0
+  lwcall GX.draw
+  
+  xassign xA 1.0 0.0 0.0 0.0
+  xassign xB 1.0 0.0 0.0 0.0
+  xassign xC 0.0 0.0 0.0 0.0
+  xassign xD 0.0 0.0 0.0 0.0
+
   # Adjust the drawing normals and draw an outline
-  spread rA 115 300 220 95 2
+  spread rA 30 30 1140 740 5
   xassign xC 0.8 0.2 0.0 0.0
   lwcall GX.trace.rect
+
+  xassign xA 1.0 0.0 0.0 0.0
+  xassign xB 1.0 0.0 0.0 0.0
+  xassign xC 0.0 0.0 0.0 0.0
+  xassign xD 0.0 0.0 0.0 0.0
+
+  # draw this rectangle (position 125,310 size 200,75)
+  #spread rA 25 25 1150 750
+  #lwcall GX.fill.rect
   
+  xassign xA 0.3 0.0 0.0 0.0
+  xassign xB 0.0 0.0 0.0 0.0
+  xassign xC 0.0 0.0 0.0 0.0
+  xassign xD 0.0 0.0 0.0 0.0
+  
+  spread rA 25 25 1150 750 4
+  lwcall GX.trace.rect
+  
+  lwcall GX.bind_memblocks
   # finally convert it to RGB and upload it to the display.
   lwcall GX.to_rgba
   

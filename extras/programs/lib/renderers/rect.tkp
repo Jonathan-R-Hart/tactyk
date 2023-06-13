@@ -43,7 +43,7 @@ struct gx_info__fillrect_fields
   8   y1
 
 GX.rect.fill:
-  block-store 4 addr2 gx_info__fillrect_fields.rasterizer_data rA
+  # block-store 4 addr2 gx_info__fillrect_fields.rasterizer_data rA
   # input:
   # x1 y1 w  h  .  .
   
@@ -122,7 +122,7 @@ GX.rect.fill.impl:
   add rB rD
   
   pack float32.4 xN rA
-  store oword addr4 gx_pixel.x xN
+  store oword addr4 gx_pixel.a xN
   
   add rF 8
   if rF == gx_program.end
@@ -374,7 +374,7 @@ GX.rect.outline.epilogue:
   xassign xK float32 2 xJ
   block-store 2 addr2 gx_info__outlinerect_fields.uv-export xJ
   
-  store oword addr4 gx_pixel.x xK
+  store oword addr4 gx_pixel.a xK
   add rF 8
   if rF == gx_program.end
     lwreturn
