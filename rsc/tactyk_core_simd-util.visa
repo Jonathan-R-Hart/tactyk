@@ -600,6 +600,134 @@ subroutine simd-format-sse-params
       $SSE_UCLASS q
       $SSE_CLASS sq
 
+typespec xmmf32-packed
+  select-operand
+    case x0.f32 xmm0.f32 xa.f32 xA.f32
+      value xA
+    case x1.f32 xmm1.f32 xb.f32 xB.f32
+      value xB
+    case x2.f32 xmm2.f32 xc.f32 xC.f32
+      value xC
+    case x3.f32 xmm3.f32 xd.f32 xD.f32
+      value xD
+    case x4.f32 xmm4.f32 xe.f32 xE.f32
+      value xE
+    case x5.f32 xmm5.f32 xf.f32 xF.f32
+      value xF
+    case x6.f32 xmm6.f32 xg.f32 xG.f32
+      value xG
+    case x7.f32 xmm7.f32 xh.f32 xH.f32
+      value xH
+    case x8.f32 xmm8.f32 xi.f32 xI.f32
+      value xI
+    case x9.f32 xmm9.f32 xj.f32 xJ.f32
+      value xJ
+    case x10.f32 xmm10.f32 xk.f32 xK.f32
+      value xK
+    case x11.f32 xmm11.f32 xl.f32 xL.f32
+      value xL
+    case x12.f32 xmm12.f32 xm.f32 xM.f32
+      value xM
+    case x13.f32 xmm13.f32 xn.f32 xN.f32
+      value xN
+  pick Xf32p
+
+typespec xmmf64-packed
+  select-operand
+    case x0.f64 xmm0.f64 xa.f64 xA.f64
+      value xA
+    case x1.f64 xmm1.f64 xb.f64 xB.f64
+      value xB
+    case x2.f64 xmm2.f64 xc.f64 xC.f64
+      value xC
+    case x3.f64 xmm3.f64 xd.f64 xD.f64
+      value xD
+    case x4.f64 xmm4.f64 xe.f64 xE.f64
+      value xE
+    case x5.f64 xmm5.f64 xf.f64 xF.f64
+      value xF
+    case x6.f64 xmm6.f64 xg.f64 xG.f64
+      value xG
+    case x7.f64 xmm7.f64 xh.f64 xH.f64
+      value xH
+    case x8.f64 xmm8.f64 xi.f64 xI.f64
+      value xI
+    case x9.f64 xmm9.f64 xj.f64 xJ.f64
+      value xJ
+    case x10.f64 xmm10.f64 xk.f64 xK.f64
+      value xK
+    case x11.f64 xmm11.f64 xl.f64 xL.f64
+      value xL
+    case x12.f64 xmm12.f64 xm.f64 xM.f64
+      value xM
+    case x13.f64 xmm13.f64 xn.f64 xN.f64
+      value xN
+  pick Xf64p
+
+typespec xmmi32-packed
+  select-operand
+    case x0.i32 xmm0.i32 xa.i32 xA.i32
+      value xA
+    case x1.i32 xmm1.i32 xb.i32 xB.i32
+      value xB
+    case x2.i32 xmm2.i32 xc.i32 xC.i32
+      value xC
+    case x3.i32 xmm3.i32 xd.i32 xD.i32
+      value xD
+    case x4.i32 xmm4.i32 xe.i32 xE.i32
+      value xE
+    case x5.i32 xmm5.i32 xf.i32 xF.i32
+      value xF
+    case x6.i32 xmm6.i32 xg.i32 xG.i32
+      value xG
+    case x7.i32 xmm7.i32 xh.i32 xH.i32
+      value xH
+    case x8.i32 xmm8.i32 xi.i32 xI.i32
+      value xI
+    case x9.i32 xmm9.i32 xj.i32 xJ.i32
+      value xJ
+    case x10.i32 xmm10.i32 xk.i32 xK.i32
+      value xK
+    case x11.i32 xmm11.i32 xl.i32 xL.i32
+      value xL
+    case x12.i32 xmm12.i32 xm.i32 xM.i32
+      value xM
+    case x13.i32 xmm13.i32 xn.i32 xN.i32
+      value xN
+  pick Xi32p
+
+typespec xmmi64-packed
+  select-operand
+    case x0.i64 xmm0.i64 xa.i64 xA.i64
+      value xA
+    case x1.i64 xmm1.i64 xb.i64 xB.i64
+      value xB
+    case x2.i64 xmm2.i64 xc.i64 xC.i64
+      value xC
+    case x3.i64 xmm3.i64 xd.i64 xD.i64
+      value xD
+    case x4.i64 xmm4.i64 xe.i64 xE.i64
+      value xE
+    case x5.i64 xmm5.i64 xf.i64 xF.i64
+      value xF
+    case x6.i64 xmm6.i64 xg.i64 xG.i64
+      value xG
+    case x7.i64 xmm7.i64 xh.i64 xH.i64
+      value xH
+    case x8.i64 xmm8.i64 xi.i64 xI.i64
+      value xI
+    case x9.i64 xmm9.i64 xj.i64 xJ.i64
+      value xJ
+    case x10.i64 xmm10.i64 xk.i64 xK.i64
+      value xK
+    case x11.i64 xmm11.i64 xl.i64 xL.i64
+      value xL
+    case x12.i64 xmm12.i64 xm.i64 xM.i64
+      value xM
+    case x13.i64 xmm13.i64 xn.i64 xN.i64
+      value xN
+  pick Xi64p
+
 # Yet more syntax for expressing packed xmm register slots
 #   This one does not conflict with integer data types. 
 typespec xmmf64

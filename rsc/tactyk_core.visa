@@ -393,14 +393,14 @@ instruction goto
 
 subroutine test
   operand
-    type xmmx data integer const fconst float
+    type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed data integer const fconst float
     $A $VALUE
     scramble rTEMPA $LD_IMMEDIATE_A
   operand
     type comparator
     $CJUMP $VALUE
   operand
-    type xmmx data integer const fconst float
+    type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed data integer const fconst float
     $B $VALUE
     scramble rTEMPC $LD_IMMEDIATE_B
 
