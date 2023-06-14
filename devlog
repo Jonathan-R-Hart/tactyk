@@ -5,7 +5,7 @@ tactyk-core - if
   Add generic packed-xmm register type specifications
   Add typed xmm registers as recognizable arguments to the if instruction (no templates yet, and the specialized comparators will probably be limited in scope)
   Expanded the comparator type specification to include "any" and "all" hints for comparisons involving packed types.
-  Added templates to 'if' for conditional jumps involving packed floating point fields (32 and 64 bit, "any-pass" and "all-pass")
+  Added templates to 'if' for conditional jumps involving packed floating point and integer fields (32 and 64 bit floats, 8,16,32, and 64 bit integers, "any-pass" and "all-pass")
 
 13 Jun 2023
 tactyk-core-simd - added instructions:  "xadd-interleaved", xsxub-interleaved", and "xsqrt"

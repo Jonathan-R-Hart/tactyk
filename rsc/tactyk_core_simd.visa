@@ -2034,78 +2034,101 @@ instruction xsqrt
 #  $XOP hdiv
 #  sub x-unary-op
 
+subroutine compare-packed-int
+  # more synthetic ops
+  select $CJUMP
+    case jl
+      code
+        movdqa xTEMPA, $A
+        movdqa xTEMPB, $A
+        pcmpgt$WORD xTEMPA, $B
+        pcmpeq$WORD xTEMPB, $B
+        por xTEMPA, xTEMPB
+        pcmpeqd xTEMPB, xTEMPB
+        pxor xTEMPA, xTEMPB
+    case jle
+      code
+        pcmpgt$WORD xTEMPA, $B
+        pcmpeqd xTEMPB, xTEMPB
+        pxor xTEMPA, xTEMPB
+        movdqa xTEMPB, $A
+        pcmpeq$WORD xTEMPB, $B
+        por xTEMPA, xTEMPB
+    case je
+      code
+        movdqa xTEMPA, $A
+        pcmpeq$WORD xTEMPA, $B
+    case jge
+      code
+        movdqa xTEMPA, $A
+        movdqa xTEMPB, $A
+        pcmpgt$WORD xTEMPA, $B
+        pcmpeq$WORD xTEMPB, $B
+        por xTEMPA, xTEMPB
+    case jg
+      code
+        movdqa xTEMPA, $A
+        pcmpgt$WORD xTEMPA, $B
+
+subroutine packed-cjump-any
+  code
+    movhlps xTEMPB, xTEMPA
+    por xTEMPA, xTEMPB
+    movq rTEMPA, xTEMPA
+    cmp rTEMPA, 0
+    jne .pass
+    xor rTEMPA, rTEMPA
+    pxor xTEMPA, xTEMPA
+    pxor xTEMPB, xTEMPB
+    jmp $NEXT_INSTRUCTION
+    .pass:
+    xor rTEMPA, rTEMPA
+    pxor xTEMPA, xTEMPA
+    pxor xTEMPB, xTEMPB
+    jmp $JTARGET
+
+subroutine packed-cjump-all
+  code
+    movhlps xTEMPB, xTEMPA
+    pand xTEMPA, xTEMPB
+    movq rTEMPA, xTEMPA
+    mov rD, rTEMPA
+    cmp rTEMPA, -1
+    je .pass
+    xor rTEMPA, rTEMPA
+    pxor xTEMPA, xTEMPA
+    pxor xTEMPB, xTEMPB
+    jmp $NEXT_INSTRUCTION
+    .pass:
+    xor rTEMPA, rTEMPA
+    pxor xTEMPA, xTEMPA
+    pxor xTEMPB, xTEMPB
+    jmp $JTARGET
+
 extend subroutine cjump select-template
+  case XipTXipL XipTXipB
+    sub compare-packed-int
+    sub packed-cjump-any
+  case XipTaXipL XipTaXipB
+    sub compare-packed-int
+    sub packed-cjump-all
   case Xf32pTXf32pL Xf32pTXf32pB
     code
       movdqa xTEMPA, $A
       cmpps xTEMPA, $B, $VPRED
-      movhlps xTEMPB, xTEMPA
-      por xTEMPA, xTEMPB
-      movq rTEMPA, xTEMPA
-      cmp rTEMPA, 0
-      jne .pass
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
-      jmp $JTARGET
+    sub packed-cjump-any
   case Xf32pTaXf32pL Xf32pTaXf32pB
     code
       movdqa xTEMPA, $A
       cmpps xTEMPA, $B, $VPRED
-      movhlps xTEMPB, xTEMPA
-      pand xTEMPA, xTEMPB
-      movq rTEMPA, xTEMPA
-      mov rD, rTEMPA
-      cmp rTEMPA, -1
-      je .pass
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      jmp $JTARGET
-
+    sub packed-cjump-all
   case Xf64pTXf64pL Xf64pTXf64pB
     code
       movdqa xTEMPA, $A
       cmppd xTEMPA, $B, $VPRED
-      movdqa xN, xTEMPA
-      movhlps xTEMPB, xTEMPA
-      por xTEMPA, xTEMPB
-      movq rTEMPA, xTEMPA
-      cmp rTEMPA, 0
-      jne .pass
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
-      jmp $JTARGET
+    sub packed-cjump-any
   case Xf64pTaXf64pL Xf64pTaXf64pB
     code
       movdqa xTEMPA, $A
       cmppd xTEMPA, $B, $VPRED
-      movhlps xTEMPB, xTEMPA
-      pand xTEMPA, xTEMPB
-      movq rTEMPA, xTEMPA
-      mov rD, rTEMPA
-      cmp rTEMPA, -1
-      je .pass
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
-      jmp $JTARGET
+    sub packed-cjump-all
