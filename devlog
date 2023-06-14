@@ -3,6 +3,7 @@ tactyk-core
   Added templates for handling xmm registers to the basic bitwise operators
   Add generic packed-xmm register type specifications
   Add typed xmm registers as recognizable arguments to the if instruction (no templates yet, and the specialized comparators will probably be limited in scope)
+  Expanded the comparator type specification to include "any" and "all" hints for comparisons involving packed types.
 
 13 Jun 2023
 tactyk-core-simd - added instructions:  "xadd-interleaved", xsxub-interleaved", and "xsqrt"
