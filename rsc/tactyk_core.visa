@@ -128,10 +128,10 @@ subroutine simple_unary_instruction
 
 subroutine simple_binary_instruction
   operand 
-    type data
+    type data xmmx
     $A $VALUE
   operand
-    type data const integer
+    type data const integer xmmx
     $B $VALUE
     scramble rTEMPA $LD_B_IMMEDIATE
   select-template

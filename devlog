@@ -1,3 +1,6 @@
+14 Jun 2023
+tactyk-core - Added templates for handling xmm registers to the basic bitwise operators
+
 13 Jun 2023
 tactyk-core-simd - added instructions:  "xadd-interleaved", xsxub-interleaved", and "xsqrt"
   These functions accept one of two xmm register arguments and optionally may be vectorized further by prepending it with a quantity (like the other x-whatever instrucitons)

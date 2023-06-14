@@ -345,7 +345,31 @@ extend instruction assign select-template
       xor rTEMPA, rTEMPA
       jmp $NEXT_INSTRUCTION
 
-
+extend subroutine simple_binary_instruction select-template
+  case DX
+    code
+      movq rTEMPA, $B
+      p$INSTRUCTION $A, rTEMPA
+      xor rTEMPA, rTEMPA
+      jmp $NEXT_INSTRUCTION
+  case XD
+    code
+      movq xTEMPA, $B
+      p$INSTRUCTION $A, xTEMPA
+      pxor xTEMPA, xTEMPA
+      jmp $NEXT_INSTRUCTION
+  case XI XC
+    code
+      $LD_B_IMMEDIATE
+      movq xTEMPA, rTEMPA
+      p$INSTRUCTION $A, xTEMPA
+      xor rTEMPA, rTEMPA
+      pxor xTEMPA, xTEMPA
+      jmp $NEXT_INSTRUCTION
+  case XX
+    code
+      p$INSTRUCTION $A, $B
+      jmp $NEXT_INSTRUCTION
 
 extend subroutine binary_instruction select-template
   case DX
