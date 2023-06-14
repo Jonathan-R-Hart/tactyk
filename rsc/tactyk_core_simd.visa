@@ -2034,3 +2034,78 @@ instruction xsqrt
 #  $XOP hdiv
 #  sub x-unary-op
 
+extend subroutine cjump select-template
+  case Xf32pTXf32pL Xf32pTXf32pB
+    code
+      movdqa xTEMPA, $A
+      cmpps xTEMPA, $B, $VPRED
+      movhlps xTEMPB, xTEMPA
+      por xTEMPA, xTEMPB
+      movq rTEMPA, xTEMPA
+      cmp rTEMPA, 0
+      jne .pass
+      xor rTEMPA, rTEMPA
+      pxor xTEMPA, xTEMPA
+      pxor xTEMPB, xTEMPB
+      jmp $NEXT_INSTRUCTION
+      .pass:
+      xor rTEMPA, rTEMPA
+      pxor xTEMPA, xTEMPA
+      pxor xTEMPB, xTEMPB
+      jmp $JTARGET
+  case Xf32pTaXf32pL Xf32pTaXf32pB
+    code
+      movdqa xTEMPA, $A
+      cmpps xTEMPA, $B, $VPRED
+      movhlps xTEMPB, xTEMPA
+      pand xTEMPA, xTEMPB
+      movq rTEMPA, xTEMPA
+      mov rD, rTEMPA
+      cmp rTEMPA, -1
+      je .pass
+      xor rTEMPA, rTEMPA
+      pxor xTEMPA, xTEMPA
+      jmp $NEXT_INSTRUCTION
+      .pass:
+      xor rTEMPA, rTEMPA
+      pxor xTEMPA, xTEMPA
+      jmp $JTARGET
+
+  case Xf64pTXf64pL Xf64pTXf64pB
+    code
+      movdqa xTEMPA, $A
+      cmppd xTEMPA, $B, $VPRED
+      movdqa xN, xTEMPA
+      movhlps xTEMPB, xTEMPA
+      por xTEMPA, xTEMPB
+      movq rTEMPA, xTEMPA
+      cmp rTEMPA, 0
+      jne .pass
+      xor rTEMPA, rTEMPA
+      pxor xTEMPA, xTEMPA
+      pxor xTEMPB, xTEMPB
+      jmp $NEXT_INSTRUCTION
+      .pass:
+      xor rTEMPA, rTEMPA
+      pxor xTEMPA, xTEMPA
+      pxor xTEMPB, xTEMPB
+      jmp $JTARGET
+  case Xf64pTaXf64pL Xf64pTaXf64pB
+    code
+      movdqa xTEMPA, $A
+      cmppd xTEMPA, $B, $VPRED
+      movhlps xTEMPB, xTEMPA
+      pand xTEMPA, xTEMPB
+      movq rTEMPA, xTEMPA
+      mov rD, rTEMPA
+      cmp rTEMPA, -1
+      je .pass
+      xor rTEMPA, rTEMPA
+      pxor xTEMPA, xTEMPA
+      pxor xTEMPB, xTEMPB
+      jmp $NEXT_INSTRUCTION
+      .pass:
+      xor rTEMPA, rTEMPA
+      pxor xTEMPA, xTEMPA
+      pxor xTEMPB, xTEMPB
+      jmp $JTARGET
