@@ -230,6 +230,70 @@ typespec stash-item-high
       value s31h
   pick Sih
 
+instruction stash-data
+  operand
+    type stash-item
+    $DEST $VALUE
+  code
+    mov gs:[ (microcontext.$DEST+0 )%microcontext_size + random_const_GS], rA
+    mov gs:[ (microcontext.$DEST+8 )%microcontext_size + random_const_GS], rB
+    mov gs:[ (microcontext.$DEST+16)%microcontext_size + random_const_GS], rC
+    mov gs:[ (microcontext.$DEST+24)%microcontext_size + random_const_GS], rD
+    mov gs:[ (microcontext.$DEST+32)%microcontext_size + random_const_GS], rE
+    mov gs:[ (microcontext.$DEST+40)%microcontext_size + random_const_GS], rF
+    jmp $NEXT_INSTRUCTION
+instruction stash-xmmx
+  operand
+    type stash-item
+    $DEST $VALUE
+  code
+    movdqu gs:[ (microcontext.$DEST+0  )%microcontext_size + random_const_GS], xA
+    movdqu gs:[ (microcontext.$DEST+16 )%microcontext_size + random_const_GS], xB
+    movdqu gs:[ (microcontext.$DEST+32 )%microcontext_size + random_const_GS], xC
+    movdqu gs:[ (microcontext.$DEST+48 )%microcontext_size + random_const_GS], xD
+    movdqu gs:[ (microcontext.$DEST+64 )%microcontext_size + random_const_GS], xE
+    movdqu gs:[ (microcontext.$DEST+80 )%microcontext_size + random_const_GS], xF
+    movdqu gs:[ (microcontext.$DEST+96 )%microcontext_size + random_const_GS], xG
+    movdqu gs:[ (microcontext.$DEST+112)%microcontext_size + random_const_GS], xH
+    movdqu gs:[ (microcontext.$DEST+128)%microcontext_size + random_const_GS], xI
+    movdqu gs:[ (microcontext.$DEST+144)%microcontext_size + random_const_GS], xJ
+    movdqu gs:[ (microcontext.$DEST+160)%microcontext_size + random_const_GS], xK
+    movdqu gs:[ (microcontext.$DEST+176)%microcontext_size + random_const_GS], xL
+    movdqu gs:[ (microcontext.$DEST+192)%microcontext_size + random_const_GS], xM
+    movdqu gs:[ (microcontext.$DEST+208)%microcontext_size + random_const_GS], xN
+    jmp $NEXT_INSTRUCTION
+instruction unstash-data
+  operand
+    type stash-item
+    $DEST $VALUE
+  code
+    mov rA, gs:[ (microcontext.$DEST+0 )%microcontext_size + random_const_GS]
+    mov rB, gs:[ (microcontext.$DEST+8 )%microcontext_size + random_const_GS]
+    mov rC, gs:[ (microcontext.$DEST+16)%microcontext_size + random_const_GS]
+    mov rD, gs:[ (microcontext.$DEST+24)%microcontext_size + random_const_GS]
+    mov rE, gs:[ (microcontext.$DEST+32)%microcontext_size + random_const_GS]
+    mov rF, gs:[ (microcontext.$DEST+40)%microcontext_size + random_const_GS]
+    jmp $NEXT_INSTRUCTION
+instruction unstash-xmmx
+  operand
+    type stash-item
+    $DEST $VALUE
+  code
+    movdqu xA, gs:[ (microcontext.$DEST+0  )%microcontext_size + random_const_GS]
+    movdqu xB, gs:[ (microcontext.$DEST+16 )%microcontext_size + random_const_GS]
+    movdqu xC, gs:[ (microcontext.$DEST+32 )%microcontext_size + random_const_GS]
+    movdqu xD, gs:[ (microcontext.$DEST+48 )%microcontext_size + random_const_GS]
+    movdqu xE, gs:[ (microcontext.$DEST+64 )%microcontext_size + random_const_GS]
+    movdqu xF, gs:[ (microcontext.$DEST+80 )%microcontext_size + random_const_GS]
+    movdqu xG, gs:[ (microcontext.$DEST+96 )%microcontext_size + random_const_GS]
+    movdqu xH, gs:[ (microcontext.$DEST+112)%microcontext_size + random_const_GS]
+    movdqu xI, gs:[ (microcontext.$DEST+128)%microcontext_size + random_const_GS]
+    movdqu xJ, gs:[ (microcontext.$DEST+144)%microcontext_size + random_const_GS]
+    movdqu xK, gs:[ (microcontext.$DEST+160)%microcontext_size + random_const_GS]
+    movdqu xL, gs:[ (microcontext.$DEST+176)%microcontext_size + random_const_GS]
+    movdqu xM, gs:[ (microcontext.$DEST+192)%microcontext_size + random_const_GS]
+    movdqu xN, gs:[ (microcontext.$DEST+208)%microcontext_size + random_const_GS]
+    jmp $NEXT_INSTRUCTION
 instruction stash
   composite 16 permute-code no-duplicates
     opt-operand
