@@ -7,11 +7,16 @@ tactyk-core - if
   Expanded the comparator type specification to include "any" and "all" hints for comparisons involving packed types.
   Added templates to 'if' for conditional jumps involving packed floating point and integer fields (32 and 64 bit floats, 8,16,32, and 64 bit integers, "any-pass" and "all-pass")
     Packed integer comparators needed specialized logic to synthesize the operations from eq and gt comparators and bitwise inversion
-tactyk-core - stash ops
-  Added instructions for transfering complete register files in and out of the stash:  stash-data, stash-xmmx, unstash-data, unstash-xmmx
-  Each of these commands accepts one argument specifying which stash entry to begin writing to.
-  the data stash/unstash uses 3 complete stash entries (6 64-bit fields), and the xmmx stash/unstash uses 14 complete entries (14 128-bit fields)
-  This is intended to help make the stash useful for what its intended purpose -- as rapid local storage that does not need to and does not invoke any type or bounds checks
+
+tactyk-core - new instruction: block-stash
+  This is an alternative (and simpler and faster) stash instruction which transfers entire register groups in and out of the stash
+  It works similarly to stash, in that it accepts a stash reference and a register, performs a transfer in or out of the stash depending on argument order,
+    and optionally instead performs a swap if the "swap" keyword is present
+  It also accepts an integer quanity specifying how wide the stash opreation shoudl be (defaults to maximum amount)
+  And, like the block-load and block-store commands, it operates on register groups (consecutive registers by lexical ordering, with wraparound)
+  Unlike the stash command, this does not permit stash-stash transfers, and it does not allow upper/lower halves of a 128-bit element to be targetted specifically
+    Instead, all stash operations start at the lower element and affect entire entries (a complete data stash fills 3 stash entries, and a complete xmm stash fills 14)
+  This should help to reinforce the concept for which the "microcontext" stash was named.
 
 13 Jun 2023
 tactyk-core-simd - added instructions:  "xadd-interleaved", xsxub-interleaved", and "xsqrt"

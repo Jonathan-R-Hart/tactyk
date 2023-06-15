@@ -230,70 +230,139 @@ typespec stash-item-high
       value s31h
   pick Sih
 
-instruction stash-data
+instruction block-stash
   operand
-    type stash-item
-    $DEST $VALUE
-  code
-    mov gs:[ (microcontext.$DEST+0 )%microcontext_size + random_const_GS], rA
-    mov gs:[ (microcontext.$DEST+8 )%microcontext_size + random_const_GS], rB
-    mov gs:[ (microcontext.$DEST+16)%microcontext_size + random_const_GS], rC
-    mov gs:[ (microcontext.$DEST+24)%microcontext_size + random_const_GS], rD
-    mov gs:[ (microcontext.$DEST+32)%microcontext_size + random_const_GS], rE
-    mov gs:[ (microcontext.$DEST+40)%microcontext_size + random_const_GS], rF
-    jmp $NEXT_INSTRUCTION
-instruction stash-xmmx
+    type block-quantity
+  opt-operand
+    select-operand
+      case swap
+        pick W
   operand
-    type stash-item
+    type data xmmx stash-item
     $DEST $VALUE
-  code
-    movdqu gs:[ (microcontext.$DEST+0  )%microcontext_size + random_const_GS], xA
-    movdqu gs:[ (microcontext.$DEST+16 )%microcontext_size + random_const_GS], xB
-    movdqu gs:[ (microcontext.$DEST+32 )%microcontext_size + random_const_GS], xC
-    movdqu gs:[ (microcontext.$DEST+48 )%microcontext_size + random_const_GS], xD
-    movdqu gs:[ (microcontext.$DEST+64 )%microcontext_size + random_const_GS], xE
-    movdqu gs:[ (microcontext.$DEST+80 )%microcontext_size + random_const_GS], xF
-    movdqu gs:[ (microcontext.$DEST+96 )%microcontext_size + random_const_GS], xG
-    movdqu gs:[ (microcontext.$DEST+112)%microcontext_size + random_const_GS], xH
-    movdqu gs:[ (microcontext.$DEST+128)%microcontext_size + random_const_GS], xI
-    movdqu gs:[ (microcontext.$DEST+144)%microcontext_size + random_const_GS], xJ
-    movdqu gs:[ (microcontext.$DEST+160)%microcontext_size + random_const_GS], xK
-    movdqu gs:[ (microcontext.$DEST+176)%microcontext_size + random_const_GS], xL
-    movdqu gs:[ (microcontext.$DEST+192)%microcontext_size + random_const_GS], xM
-    movdqu gs:[ (microcontext.$DEST+208)%microcontext_size + random_const_GS], xN
-    jmp $NEXT_INSTRUCTION
-instruction unstash-data
   operand
-    type stash-item
-    $DEST $VALUE
+    type data xmmx stash-item
+    $SRC $VALUE
+  select-template
+    case BqsSiD
+      vcode $QTY
+        1 mov gs:[ (microcontext.$DEST+0 )%microcontext_size + random_const_GS], $SRC~0
+        2 mov gs:[ (microcontext.$DEST+8 )%microcontext_size + random_const_GS], $SRC~1
+        3 mov gs:[ (microcontext.$DEST+16)%microcontext_size + random_const_GS], $SRC~2
+        4 mov gs:[ (microcontext.$DEST+24)%microcontext_size + random_const_GS], $SRC~3
+        5 mov gs:[ (microcontext.$DEST+32)%microcontext_size + random_const_GS], $SRC~4
+        6 mov gs:[ (microcontext.$DEST+40)%microcontext_size + random_const_GS], $SRC~5
+    case BqsDSi
+      vcode $QTY
+        1 mov $DEST~0, gs:[ (microcontext.$SRC+0 )%microcontext_size + random_const_GS]
+        2 mov $DEST~1, gs:[ (microcontext.$SRC+8 )%microcontext_size + random_const_GS]
+        3 mov $DEST~2, gs:[ (microcontext.$SRC+16)%microcontext_size + random_const_GS]
+        4 mov $DEST~3, gs:[ (microcontext.$SRC+24)%microcontext_size + random_const_GS]
+        5 mov $DEST~4, gs:[ (microcontext.$SRC+32)%microcontext_size + random_const_GS]
+        6 mov $DEST~5, gs:[ (microcontext.$SRC+40)%microcontext_size + random_const_GS]
+    case BqsSiX BqlSiX
+      vcode $QTY
+        1 movdqu gs:[ (microcontext.$DEST+0  )%microcontext_size + random_const_GS], $SRC~0
+        2 movdqu gs:[ (microcontext.$DEST+16 )%microcontext_size + random_const_GS], $SRC~1
+        3 movdqu gs:[ (microcontext.$DEST+32 )%microcontext_size + random_const_GS], $SRC~2
+        4 movdqu gs:[ (microcontext.$DEST+48 )%microcontext_size + random_const_GS], $SRC~3
+        5 movdqu gs:[ (microcontext.$DEST+64 )%microcontext_size + random_const_GS], $SRC~4
+        6 movdqu gs:[ (microcontext.$DEST+80 )%microcontext_size + random_const_GS], $SRC~5
+        7 movdqu gs:[ (microcontext.$DEST+96 )%microcontext_size + random_const_GS], $SRC~6
+        8 movdqu gs:[ (microcontext.$DEST+112)%microcontext_size + random_const_GS], $SRC~7
+        9 movdqu gs:[ (microcontext.$DEST+128)%microcontext_size + random_const_GS], $SRC~8
+        10 movdqu gs:[ (microcontext.$DEST+144)%microcontext_size + random_const_GS], $SRC~9
+        11 movdqu gs:[ (microcontext.$DEST+160)%microcontext_size + random_const_GS], $SRC~10
+        12 movdqu gs:[ (microcontext.$DEST+176)%microcontext_size + random_const_GS], $SRC~11
+        13 movdqu gs:[ (microcontext.$DEST+192)%microcontext_size + random_const_GS], $SRC~12
+        14 movdqu gs:[ (microcontext.$DEST+208)%microcontext_size + random_const_GS], $SRC~13
+    case BqsXSi BqlXSi
+      vcode $QTY
+        1 movdqu $DEST~0, gs:[ (microcontext.$SRC+0  )%microcontext_size + random_const_GS]
+        2 movdqu $DEST~1, gs:[ (microcontext.$SRC+16 )%microcontext_size + random_const_GS]
+        3 movdqu $DEST~2, gs:[ (microcontext.$SRC+32 )%microcontext_size + random_const_GS]
+        4 movdqu $DEST~3, gs:[ (microcontext.$SRC+48 )%microcontext_size + random_const_GS]
+        5 movdqu $DEST~4, gs:[ (microcontext.$SRC+64 )%microcontext_size + random_const_GS]
+        6 movdqu $DEST~5, gs:[ (microcontext.$SRC+80 )%microcontext_size + random_const_GS]
+        7 movdqu $DEST~6, gs:[ (microcontext.$SRC+96 )%microcontext_size + random_const_GS]
+        8 movdqu $DEST~7, gs:[ (microcontext.$SRC+112)%microcontext_size + random_const_GS]
+        9 movdqu $DEST~8, gs:[ (microcontext.$SRC+128)%microcontext_size + random_const_GS]
+        10 movdqu $DEST~9, gs:[ (microcontext.$SRC+144)%microcontext_size + random_const_GS]
+        11 movdqu $DEST~10, gs:[ (microcontext.$SRC+160)%microcontext_size + random_const_GS]
+        12 movdqu $DEST~11, gs:[ (microcontext.$SRC+176)%microcontext_size + random_const_GS]
+        13 movdqu $DEST~12, gs:[ (microcontext.$SRC+192)%microcontext_size + random_const_GS]
+        14 movdqu $DEST~13, gs:[ (microcontext.$SRC+208)%microcontext_size + random_const_GS]
+    case BqsWSiD BqlWSiD
+      vcode $QTY
+        1 xchg gs:[ (microcontext.$DEST+0 )%microcontext_size + random_const_GS], $SRC~0
+        2 xchg gs:[ (microcontext.$DEST+8 )%microcontext_size + random_const_GS], $SRC~1
+        3 xchg gs:[ (microcontext.$DEST+16)%microcontext_size + random_const_GS], $SRC~2
+        4 xchg gs:[ (microcontext.$DEST+24)%microcontext_size + random_const_GS], $SRC~3
+        5 xchg gs:[ (microcontext.$DEST+32)%microcontext_size + random_const_GS], $SRC~4
+        6 xchg gs:[ (microcontext.$DEST+40)%microcontext_size + random_const_GS], $SRC~5
+    case BqsWDSi BqlWDSi
+      vcode $QTY
+        1 xchg $DEST~0, gs:[ (microcontext.$SRC+0 )%microcontext_size + random_const_GS]
+        2 xchg $DEST~1, gs:[ (microcontext.$SRC+8 )%microcontext_size + random_const_GS]
+        3 xchg $DEST~2, gs:[ (microcontext.$SRC+16)%microcontext_size + random_const_GS]
+        4 xchg $DEST~3, gs:[ (microcontext.$SRC+24)%microcontext_size + random_const_GS]
+        5 xchg $DEST~4, gs:[ (microcontext.$SRC+32)%microcontext_size + random_const_GS]
+        6 xchg $DEST~5, gs:[ (microcontext.$SRC+40)%microcontext_size + random_const_GS]
+    case BqsWSiX BqsWXSi BqlWSiX BqlWXSi
+      select-template
+        case BqsWXSi BqlWXSi
+        case BqsWSiX BqlWSiX
+          $TEMP $SRC
+          $SRC $DEST
+          $DEST $TEMP
+      vcode $QTY
+        1 movdqu xTEMPA, gs:[ (microcontext.$SRC+0  )%microcontext_size + random_const_GS]
+        2 movdqu xTEMPB, gs:[ (microcontext.$SRC+16 )%microcontext_size + random_const_GS]
+        1 movdqu gs:[ (microcontext.$SRC+0  )%microcontext_size + random_const_GS], $DEST~0
+        2 movdqu gs:[ (microcontext.$SRC+16 )%microcontext_size + random_const_GS], $DEST~1
+        1 movdqa $DEST~0, xTEMPA
+        2 movdqa $DEST~1, xTEMPB
+        3 movdqu xTEMPA, gs:[ (microcontext.$SRC+32  )%microcontext_size + random_const_GS]
+        4 movdqu xTEMPB, gs:[ (microcontext.$SRC+48  )%microcontext_size + random_const_GS]
+        3 movdqu gs:[ (microcontext.$SRC+32 )%microcontext_size + random_const_GS], $DEST~2
+        4 movdqu gs:[ (microcontext.$SRC+48 )%microcontext_size + random_const_GS], $DEST~3
+        3 movdqa $DEST~2, xTEMPA
+        4 movdqa $DEST~3, xTEMPB
+        5 movdqu xTEMPA, gs:[ (microcontext.$SRC+64 )%microcontext_size + random_const_GS]
+        6 movdqu xTEMPB, gs:[ (microcontext.$SRC+80 )%microcontext_size + random_const_GS]
+        5 movdqu gs:[ (microcontext.$SRC+64 )%microcontext_size + random_const_GS], $DEST~4
+        6 movdqu gs:[ (microcontext.$SRC+80 )%microcontext_size + random_const_GS], $DEST~5
+        5 movdqa $DEST~4, xTEMPA
+        6 movdqa $DEST~5, xTEMPB
+        7 movdqu xTEMPA, gs:[ (microcontext.$SRC+96 )%microcontext_size + random_const_GS]
+        8 movdqu xTEMPB, gs:[ (microcontext.$SRC+112)%microcontext_size + random_const_GS]
+        7 movdqu gs:[ (microcontext.$SRC+96 )%microcontext_size + random_const_GS], $DEST~6
+        8 movdqu gs:[ (microcontext.$SRC+112)%microcontext_size + random_const_GS], $DEST~7
+        7 movdqa $DEST~6, xTEMPA
+        8 movdqa $DEST~7, xTEMPB
+        9 movdqu xTEMPA, gs:[ (microcontext.$SRC+128)%microcontext_size + random_const_GS]
+        10 movdqu xTEMPB, gs:[ (microcontext.$SRC+144)%microcontext_size + random_const_GS]
+        9 movdqu gs:[ (microcontext.$SRC+128)%microcontext_size + random_const_GS], $DEST~8
+        10 movdqu gs:[ (microcontext.$SRC+144)%microcontext_size + random_const_GS], $DEST~9
+        9 movdqa $DEST~8, xTEMPA
+        10 movdqa $DEST~9, xTEMPB
+        11 movdqu xTEMPA, gs:[ (microcontext.$SRC+160)%microcontext_size + random_const_GS]
+        12 movdqu xTEMPB, gs:[ (microcontext.$SRC+176)%microcontext_size + random_const_GS]
+        11 movdqu gs:[ (microcontext.$SRC+160)%microcontext_size + random_const_GS], $DEST~10
+        12 movdqu gs:[ (microcontext.$SRC+176)%microcontext_size + random_const_GS], $DEST~11
+        11 movdqa $DEST~10, xTEMPA
+        12 movdqa $DEST~11, xTEMPB
+        13 movdqu xTEMPA, gs:[ (microcontext.$SRC+192)%microcontext_size + random_const_GS]
+        14 movdqu xTEMPB, gs:[ (microcontext.$SRC+208)%microcontext_size + random_const_GS]
+        13 movdqu gs:[ (microcontext.$SRC+192)%microcontext_size + random_const_GS], $DEST~12
+        14 movdqu gs:[ (microcontext.$SRC+208)%microcontext_size + random_const_GS], $DEST~13
+        13 movdqa $DEST~12, xTEMPA
+        14 movdqa $DEST~13, xTEMPB
+        1 pxor xTEMPA, xTEMPA
+        1 pxor xTEMPB, xTEMPB
   code
-    mov rA, gs:[ (microcontext.$DEST+0 )%microcontext_size + random_const_GS]
-    mov rB, gs:[ (microcontext.$DEST+8 )%microcontext_size + random_const_GS]
-    mov rC, gs:[ (microcontext.$DEST+16)%microcontext_size + random_const_GS]
-    mov rD, gs:[ (microcontext.$DEST+24)%microcontext_size + random_const_GS]
-    mov rE, gs:[ (microcontext.$DEST+32)%microcontext_size + random_const_GS]
-    mov rF, gs:[ (microcontext.$DEST+40)%microcontext_size + random_const_GS]
     jmp $NEXT_INSTRUCTION
-instruction unstash-xmmx
-  operand
-    type stash-item
-    $DEST $VALUE
-  code
-    movdqu xA, gs:[ (microcontext.$DEST+0  )%microcontext_size + random_const_GS]
-    movdqu xB, gs:[ (microcontext.$DEST+16 )%microcontext_size + random_const_GS]
-    movdqu xC, gs:[ (microcontext.$DEST+32 )%microcontext_size + random_const_GS]
-    movdqu xD, gs:[ (microcontext.$DEST+48 )%microcontext_size + random_const_GS]
-    movdqu xE, gs:[ (microcontext.$DEST+64 )%microcontext_size + random_const_GS]
-    movdqu xF, gs:[ (microcontext.$DEST+80 )%microcontext_size + random_const_GS]
-    movdqu xG, gs:[ (microcontext.$DEST+96 )%microcontext_size + random_const_GS]
-    movdqu xH, gs:[ (microcontext.$DEST+112)%microcontext_size + random_const_GS]
-    movdqu xI, gs:[ (microcontext.$DEST+128)%microcontext_size + random_const_GS]
-    movdqu xJ, gs:[ (microcontext.$DEST+144)%microcontext_size + random_const_GS]
-    movdqu xK, gs:[ (microcontext.$DEST+160)%microcontext_size + random_const_GS]
-    movdqu xL, gs:[ (microcontext.$DEST+176)%microcontext_size + random_const_GS]
-    movdqu xM, gs:[ (microcontext.$DEST+192)%microcontext_size + random_const_GS]
-    movdqu xN, gs:[ (microcontext.$DEST+208)%microcontext_size + random_const_GS]
-    jmp $NEXT_INSTRUCTION
+
 instruction stash
   composite 16 permute-code no-duplicates
     opt-operand
