@@ -1,0 +1,234 @@
+# Associative arrays using TRIE structures
+
+
+const megatable_kmask 28
+const megatable_krotate 12
+const megatable_scale 6
+const megatable_iterations 16
+struct s_megatable
+  4 a
+  4 b
+  4 c
+  4 d
+  4 e
+  4 f
+  4 g
+  4 h
+  8 id
+  . 8 size
+  8 parent
+  8 extra
+  8 ref
+
+const minitable_kmask 14
+const minitable_krotate 3
+const minitable_scale 5
+const minitable_iterations 22
+struct s_minitable
+  2 a
+  2 b
+  2 c
+  2 d
+  2 e
+  2 f
+  2 g
+  2 h
+  8 id
+  . 8 size
+  2 parent
+  2 extra
+  4 ref
+
+const nanotable_kmask 3
+const nanotable_krotate 2
+const nanotable_scale 4
+const nanotable_iterations 32
+struct s_nanotable
+  1 a
+  1 b
+  1 c
+  1 d
+  1 parent
+  1 extra
+  2 ref
+  8 id
+  . 8 size
+
+mem m_ntable s_minitable 65536
+
+MINITABLE__TEST:
+  bind addr1 m_ntable
+  lwcall MINITABLE__INIT
+  
+  assign rB 'hello!
+  lwcall MINITABLE__LOOKUP
+  tcall dump-ctx
+  assign rA 999
+  lwcall MINITABLE__ADD_NODE
+  tcall dump-ctx
+  lwcall MINITABLE__PRINT_NODE
+  
+  assign rB 'goodbye!
+  lwcall MINITABLE__LOOKUP
+  assign rA 1234
+  lwcall MINITABLE__ADD_NODE
+  tcall dump-ctx
+  lwcall MINITABLE__PRINT_NODE
+  
+  assign rB '...!
+  lwcall MINITABLE__LOOKUP
+  assign rA 4321
+  lwcall MINITABLE__ADD_NODE
+
+  assign rB 'yello!
+  lwcall MINITABLE__LOOKUP
+  assign rA 4321
+  lwcall MINITABLE__ADD_NODE
+  
+  assign rB 'a!
+  lwcall MINITABLE__LOOKUP
+  assign rA 555
+  lwcall MINITABLE__ADD_NODE
+
+  assign rB 's?
+  lwcall MINITABLE__LOOKUP
+  assign rA 12
+  lwcall MINITABLE__ADD_NODE
+
+  assign rB 'dmmmmm
+  lwcall MINITABLE__LOOKUP
+  assign rA 522234
+  lwcall MINITABLE__ADD_NODE
+
+  assign rB 'ffffffff!
+  lwcall MINITABLE__LOOKUP
+  assign rA 3
+  lwcall MINITABLE__ADD_NODE
+
+  assign rB 'ffffffff!
+  lwcall MINITABLE__LOOKUP
+  tcall dump-ctx
+  lwcall MINITABLE__PRINT_NODE
+  lwreturn
+
+MINITABLE__PRINT_NODE:
+  block-stash 6 sA rA
+  assign xA 'OFS
+  assign xB '.id
+  assign xC 'par
+  assign xD '___
+  assign xE 'ref
+  assign rA addr1.offset
+  load qword rB addr1 s_minitable.id
+  load word rC addr1 s_minitable.parent
+  load word rD addr1 s_minitable.extra
+  load dword rE addr1 s_minitable.ref
+  tcall print-text-xa
+  tcall print-space
+  tcall print-int-a
+  tcall print-newline
+  tcall print-text-xb
+  tcall print-space
+  tcall print-int-b
+  tcall print-newline
+  tcall print-text-xc
+  tcall print-space
+  tcall print-int-c
+  tcall print-newline
+  tcall print-text-xd
+  tcall print-space
+  tcall print-int-d
+  tcall print-newline
+  tcall print-text-xe
+  tcall print-space
+  tcall print-int-e
+  tcall print-newline
+  block-stash 6 rA sA
+  lwreturn
+
+MINITABLE__INIT:
+  assign addr1.offset 0
+  spread rA 0 0 1 0
+  block-store 4 addr1 0 rA
+  lwreturn
+
+MINITABLE__LOOKUP:
+  assign addr1.offset 0
+  assign rD 0
+  
+  # hash the key  (mostly want least significant bits to always strongly affect table index selection)
+  assign rC rB
+  rotate-left rC 4
+  xor rC rB
+  
+  assign rE minitable_iterations
+  load qword rF addr1 s_minitable.size
+  
+  # Dont attach any objects to the root node
+  #   (It holds the table size instead)
+  goto MINITABLE_LOOKUP_FROM_ROOT
+  
+  MINITABLE_LOOKUP_PLY:
+  # This should never reach 0
+  if rE > 0 
+    dec rE
+    load qword rA addr1 s_minitable.id
+    
+    # if id matched, succees!
+    if rA == rB
+      load dword rA addr1 s_minitable.ref
+      lwreturn
+    
+    # Select the next node index
+    rotate-right rC minitable_krotate
+    
+    MINITABLE_LOOKUP_FROM_ROOT:
+    assign rD rC
+    and rD minitable_kmask
+    
+    # if a null pointer, then the node doesn't exist (but the current node is the scheduled parent)
+    load word rA addr1 rD
+    shift-left rA minitable_scale
+    if rA == 0
+      assign rA -1
+      lwreturn
+    assign addr1.offset rA
+    goto MINITABLE_LOOKUP_PLY
+
+MINITABLE__ADD_NODE:
+  store dword addr1 rD rF
+  assign rD addr1.offset
+
+  # ref back to parent node (enables dynamic node deletion)
+  shift-right rD minitable_scale
+  
+  inc rF
+  assign addr1.offset 0
+  store qword addr1 s_minitable.size rF
+  dec rF
+  
+  shift-left rF minitable_scale
+  assign addr1.offset rF
+  store qword addr1 s_minitable.id rB
+  store dword addr1 s_minitable.ref rA
+  store word addr1 s_minitable.parent rD
+  
+  lwreturn
+
+MINITABLE__REMOVE_NODE:
+  # iterate children
+  # if any non-null
+    # pick one to promote (HINT: the first non-null one)
+    # read child node data [onto xmm registers]
+    # replace child parent with current parent
+    # overwrite current node with child data
+    # delete the child node [tail-recursive]
+  # if all children null
+    # select last node in set
+    # read last node data [onto xmm registers]
+    # zero last node
+    # overwrite current node with last node data
+    # select last node parent
+    # update reference to last node 
+    # decrement node count [in root node data]
+  lwreturn

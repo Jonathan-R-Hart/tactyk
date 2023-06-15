@@ -18,6 +18,9 @@ tactyk-core - new instruction: block-stash
     Instead, all stash operations start at the lower element and affect entire entries (a complete data stash fills 3 stash entries, and a complete xmm stash fills 14)
   This should help to reinforce the concept for which the "microcontext" stash was named.
 
+tactyk-extras - ministring
+  A TACTYK-PL component for handling 8 and 16 char strings
+
 13 Jun 2023
 tactyk-core-simd - added instructions:  "xadd-interleaved", xsxub-interleaved", and "xsqrt"
   These functions accept one of two xmm register arguments and optionally may be vectorized further by prepending it with a quantity (like the other x-whatever instrucitons)
