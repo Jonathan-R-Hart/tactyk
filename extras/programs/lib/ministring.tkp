@@ -1,0 +1,226 @@
+# "ministring" - a utility for handling 8 and 16-char strings from memblocks containing text
+#   (In TACTYK, the 8 and 16 char string is KING ... of alphanumeric data processing ... because it is as easy to handle as an integer or floating point number) 
+#
+# Usage:
+#   Bind a memblock with text to addr1
+#   assign a space delimiter to rA
+#   assign a line delimiter to rB
+#   lwcall MINISTRING__INIT
+#   lwcall MINISTRING__CONTEXT_ENTER to activate the MINISTRING context
+#   lwcall MINISTRING__CONTEXT_EXIT to de-activate the MINISTRING context
+#   While a MINISTRING context is active:
+#     lwcall MINISTRING__NEXTLINE to select the next line
+#     lwcall MINISTRING__READ_STR8 to read the next 8 chars and store them on register rA (stops at a token delimiter or end of line)
+#     lwcall MINISTRING__READ_STR16 to read next 16 chars and store them on register xA (stops at a token delimiter or end of line)
+#     lwcall MINISTRING__TOKENIZE to read the line, identify up to 14 tokens, extract them, and load them onto xmm registers (tokens are clipped at 16 chars if long)
+#
+#   Register/Stash allocation while the MINISTRING context is active:
+#     rA:     char accumulator, 8-char output, eventually, 8-char input
+#     rB:     read position
+#     rC:     end of line
+#     rD,rE:  scratch space
+#     rF:     token delimiter
+#     xA:     16-char output
+#     s31h:   line delimiter
+#   Register/Stash allocation while the MINISTRING context is inactive:
+#     s29-s31:  MINISTRING context storage
+#
+# NOTES:
+#   MINISTRING is the first *real* component that makes proper use of the TACTYK microcontext.
+
+MINISTRING__INIT:
+  stash s31h rB
+  assign rF rA
+  assign rA rB
+  assign rB 0
+  assign rC addr1.element_bound
+  lwcall SEEK_CHAR
+  assign rC rB
+  assign rB 0
+  block-stash 5 s29 rB
+  lwreturn
+
+MINISTRING__CONTEXT_ENTER:
+MINISTRING__CONTEXT_EXIT:
+  block-stash 5 swap s29 rB
+  lwreturn
+
+MINISTRING__NEXTLINE:
+  assign rB rC
+  inc rB
+  assign rE rB
+  stash rA s31h
+  assign rC addr1.element_bound
+  lwcall SEEK_CHAR
+  assign rC rB
+  assign rB rE
+  lwreturn
+
+# Search memblock addr1 for a byte with a specific value
+#
+# input
+#   rA:   byte value to search for 
+#   rB:   index of first position in buffer
+#   rC:   index of limit position
+# output
+#   rB:   index of found byte, -1 if not found
+# clobbers
+#   rD
+SEEK_CHAR:
+  if rB < rC
+    load byte rD addr1 rB
+    if rA == rD
+      lwreturn
+    inc rB
+    goto SEEK_CHAR
+  assign rB -1
+  lwreturn
+  
+# Read an 8-byte "ministring"
+#
+# input
+#   rB:     index of string
+#   rC:     index of limit
+#   rF:     terminal char
+# output
+#   rA:     result minstring
+# clobbers
+#   rD rE
+MINISTRING__READ_STR8:
+  assign rA 0
+  assign rE 0
+  READ_STR8.cont:
+  if rB >= rC
+    lwreturn
+  load byte rD addr1 rB
+  if rD == rF
+    lwreturn
+  shift-left rD rE
+  or rA rD
+  inc rB
+  add rE 8
+  if rE == 64
+    lwreturn
+  goto READ_STR8.cont
+
+# Read an 16-byte "ministring"
+#
+# input
+#   rB:     index of string
+#   rC:     index of limit
+#   rE:     terminal char
+# output
+#   xA:     result minstring
+# clobbers
+#   rA rB rD rE
+MINISTRING__READ:
+MINISTRING__READ_STR16:
+  lwcall MINISTRING__READ_STR8
+  xassign xA int64 0 rA
+  lwcall MINISTRING__READ_STR8
+  xassign xA int64 1 rA
+  lwreturn
+
+MINISTRING__TOKENIZE:
+  lwcall MINISTRING__READ
+  stash sA xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xB xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xC xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xD xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xE xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xF xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xG xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xH xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xI xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xJ xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xK xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xL xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xM xA
+  lwcall MINISTRING__TOKENIZE.next
+  if rB >= rC MINISTRING__TOKENIZE.ret
+  lwcall MINISTRING__READ
+  xassign xN xA
+  if rB >= rC MINISTRING__TOKENIZE.ret
+MINISTRING__TOKENIZE.next:
+  assign rA rF
+  lwcall SEEK_CHAR
+  add rB 1
+  if rB == 0
+    assign rB rC
+  lwreturn
+MINISTRING__TOKENIZE.ret:
+  stash xA sA
+  lwreturn
+
+MINISTRING__PRINT_TOKENS:
+  tcall print-text-xa
+  tcall print-space
+  tcall print-text-xb
+  tcall print-space
+  tcall print-text-xc
+  tcall print-space
+  tcall print-text-xd
+  tcall print-space
+  tcall print-text-xe
+  tcall print-space
+  tcall print-text-xf
+  tcall print-space
+  tcall print-text-xg
+  tcall print-space
+  tcall print-text-xh
+  tcall print-space
+  tcall print-text-xi
+  tcall print-space
+  tcall print-text-xj
+  tcall print-space
+  tcall print-text-xk
+  tcall print-space
+  tcall print-text-xl
+  tcall print-space
+  tcall print-text-xm
+  tcall print-space
+  tcall print-text-xn
+  tcall print-space
+  tcall print-newline
+  lwreturn
+
+
+
+
+
