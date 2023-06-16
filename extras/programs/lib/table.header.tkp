@@ -1,9 +1,9 @@
 
-const megatable_kmask 28
-const megatable_krotate 12
-const megatable_scale 6
-const megatable_iterations 16
-struct s_megatable
+const MEGATABLE_kmask 28
+const MEGATABLE_krotate 12
+const MEGATABLE_scale 6
+const MEGATABLE_iterations 16
+struct s_MEGATABLE
   4 a
   4 b
   4 c
@@ -14,15 +14,16 @@ struct s_megatable
   4 h
   8 id
   . 8 size
-  8 parent
-  8 prefix
+  4 parent
+  4 prefix
   8 ref
+  8 padding
 
-const minitable_kmask 14
-const minitable_krotate 3
-const minitable_scale 5
-const minitable_iterations 22
-struct s_minitable
+const MINITABLE_kmask 14
+const MINITABLE_krotate 3
+const MINITABLE_scale 5
+const MINITABLE_iterations 22
+struct s_MINITABLE
   2 a
   2 b
   2 c
@@ -37,11 +38,11 @@ struct s_minitable
   2 prefix
   4 ref
 
-const nanotable_kmask 3
-const nanotable_krotate 2
-const nanotable_scale 4
-const nanotable_iterations 32
-struct s_nanotable
+const NANOTABLE_kmask 3
+const NANOTABLE_krotate 2
+const NANOTABLE_scale 4
+const NANOTABLE_iterations 32
+struct s_NANOTABLE
   1 a
   1 b
   1 c
@@ -51,5 +52,3 @@ struct s_nanotable
   2 ref
   8 id
   . 8 size
-
-mem m_ntable s_minitable 65536

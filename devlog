@@ -1,3 +1,10 @@
+16 Jun 2023
+tactyk-extras - table
+  Added NANOTABLE and MEGATABLE variants
+  Made register and stash allocations configurable (tactyk-runtime module loading)
+  I was almost able to get the table size as a configuration option, but a the handling of nanotables differed enough to break the limited generic-ish system.
+    (It was also making the code unreasonably harder to understand -- too many $pesos)
+
 15 Jun 2023
 tactyk-extras - table
   A TACTYK-PL component implementing an associative array

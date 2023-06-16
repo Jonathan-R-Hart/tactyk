@@ -1,0 +1,227 @@
+# Associative arrays using TRIE structures
+#
+# This is intended to be a simple and compact associative array.
+# It does not contain any provisions for managing the memory of any mapped data (or any recognition of anything other than integer types)
+#
+# All keys are 64-bit integers
+#   These tables were also designed with the assumption that the keys are 8-char ascii values (hashing operation was selected for this case)
+#
+# Value type varies based on the size of the table
+#   NANOTABLE:  stores 16-bit values, 16 bytes per record, 8 bit internal key size, presumably cache-friendly
+#   MINITABLE:  stores 32-bit values, 32 bytes per record, 16 bit internal key size, recommended for general use
+#   MEGATABLE:  stores 64-bit values, 64 bytes per record, 32 bit internal key size
+#
+# The smaller internal keys are used to address records within the dynamic trie structure.  The larger 64-bit keys are used as a uniqueness test and to
+# direct which path is taken when traversing the structure.
+#
+# The simplest (and most obvious) way to interact with these table structures is the "INIT", "PUT", "GET", and "REMOVE" functions
+#
+# Table setup:
+# There are two parameters that need to be set when loading a table module
+#   $T -     address register to use as a memblock binding point  (addr1, addr2, addr3,or addr4)
+#   $StTmp - stash entry to use for temp variables (table modules don't store anythign there permenantly, so it can be a shared temp variable)
+#  module table1.nano lib/table.nano.tkp
+#    $T addr1
+#    $StTmp s28h
+#
+# Register allocation:
+#   $T:   memblock, must be configured in the module import declaration
+#     memblock layout must match the expected layout (memblock with layout specified by struct s_*table)
+#   rA:   value
+#   rB:   key
+# clobbers:  rC rD rE rF $StTmp
+# additional MICROTABLE clobbers:  xA-xD
+# additional MEGATABLE clobbers:  xA-xH
+#   (possibly should think about reducing the amount of xmm register space clobbered, expecially for just zero-ing memblock content)
+#   (possibly also should think about making xmm register allocation configurable)
+#
+# Internal register allocation ( other values returned from LOOKUP and used by ADD_NODE/REMOVE_NODE ):
+#   rC:   success or failure indicator
+#   rD:   trie index
+#   rE:   temp/scratch field
+#   rF:   table size
+
+MEGATABLE__PUT.$T:
+  stash $StTmp rA
+  lwcall MEGATABLE__LOOKUP.$T
+  if rC == 0
+    stash rA $StTmp
+    lwcall MEGATABLE__ADD_NODE.$T
+    assign rC 2
+  if rC == 1
+    stash rA $StTmp
+    store qword $T s_MEGATABLE.ref rA
+  lwreturn
+
+MEGATABLE__REMOVE.$T:
+  lwcall MEGATABLE__LOOKUP.$T
+  if rC == 1
+    lwcall MEGATABLE__REMOVE_NODE.$T
+    assign rC 1
+  lwreturn
+
+MEGATABLE__INIT.$T:
+  assign $T.offset 0
+  xassign xA 0 0
+  assign rA 0
+  MEGATABLE__INIT.zero.$T:
+  if rA < s_MEGATABLE_size
+    store oword $T rA xA
+    add rA 16
+    goto MEGATABLE__INIT.zero.$T
+  assign rA 1
+  store qword $T s_MEGATABLE.size rA
+  lwreturn
+
+MEGATABLE__GET.$T:
+MEGATABLE__LOOKUP.$T:
+  assign $T.offset 0
+  assign rD 0
+  
+  # hash the key (to partially mitigate algorithmic bias induced by alphanumeric chars)
+  assign rC rB
+  rotate-left rC 4
+  xor rC rB
+  
+  assign rE MEGATABLE_iterations
+  load qword rF $T s_MEGATABLE.size
+  
+  MEGATABLE_LOOKUP_LOOP.$T:
+    assign rD rC
+    and rD MEGATABLE_kmask
+    
+    # if a null pointer, then the node doesn't exist (but the current node is the scheduled parent)
+    load dword rA $T rD
+    if rA == 0
+      assign rA 0
+      assign rC 0
+      lwreturn
+    shift-left rA MEGATABLE_scale
+    assign $T.offset rA
+    
+    dec rE
+    load qword rA $T s_MEGATABLE.id
+    
+    # if id matched, succees!
+    if rA == rB
+      load qword rA $T s_MEGATABLE.ref
+      assign rC 1
+      lwreturn
+    
+    # Select the next node index
+    rotate-right rC MEGATABLE_krotate
+    
+    # This should never reach 0
+    if rE > 0 MEGATABLE_LOOKUP_LOOP.$T
+
+MEGATABLE__ADD_NODE.$T:
+  store dword $T rD rF
+  assign rC $T.offset
+
+  # ref back to parent node (enables dynamic node deletion)
+  shift-right rC MEGATABLE_scale
+  
+  inc rF
+  assign $T.offset 0
+  store qword $T s_MEGATABLE.size rF
+  dec rF
+  
+  shift-left rF MEGATABLE_scale
+  assign $T.offset rF
+  store qword $T s_MEGATABLE.id rB
+  store qword $T s_MEGATABLE.ref rA
+  store dword $T s_MEGATABLE.parent rC
+  store dword $T s_MEGATABLE.prefix rD
+  lwreturn
+
+MEGATABLE__REMOVE_NODE.$T:
+  assign rF 1
+  MEGATABLE__REMOVE_NODE.recursive_entry.$T:
+  load dword rA $T s_MEGATABLE.parent
+  assign rB $T.offset
+  assign rC 0
+  MEGATABLE_SCAN_CHILDREN.$T:
+  if rC < 32
+    load dword rD $T rC
+    add rC 4
+    if rD == 0 MEGATABLE_SCAN_CHILDREN.$T
+    goto MEGATABLE_PROMOTE_NODE.$T
+  
+  # follow the reference back to the parent and unlink the node (but not if the reentry point has been called)
+  if rF == 1
+    load dword rC $T s_MEGATABLE.prefix
+    shift-left rA MEGATABLE_scale
+    assign $T.offset rA
+    assign rA 0
+    store dword $T rC rA
+
+  # no children - delete node
+  # get ref to last entry (and update table size)
+  assign $T.offset 0
+  load qword rD $T s_MEGATABLE.size
+  dec rD
+  store qword $T s_MEGATABLE.size rD
+  shift-left rD MEGATABLE_scale
+  
+  # take the last entry
+  assign $T.offset rD
+  block-load 4 xxA $T 0
+  xassign xE 0 0
+  xassign xF 0 0
+  xduplicate 2 xG xE
+  block-store 4 $T 0 xxE
+  
+  # ... and move it to the vacated position
+  assign $T.offset rB
+  block-store 4 $T 0 xxA
+    
+  # take the reference to the moved node and navigate to its parent
+  load dword rA $T s_MEGATABLE.parent
+  shift-left rA MEGATABLE_scale
+  load dword rC $T s_MEGATABLE.prefix
+  assign $T.offset rA
+  
+  # lastly, re-link the parent node to the moved node.
+  store dword $T rC rB
+  lwreturn
+  
+  MEGATABLE_PROMOTE_NODE.$T:
+  shift-left rD MEGATABLE_scale
+  assign $T.offset rD
+  block-load 4 xxA $T 0
+  
+  assign $T.offset rB
+  load dword rC $T s_MEGATABLE.prefix
+  block-store 4 $T 0 xxA
+  shift-right rA MEGATABLE_scale
+  store dword $T s_MEGATABLE.parent rA
+  load dword rE $T s_MEGATABLE.prefix
+  
+  shift-left rA MEGATABLE_scale
+  shift-right rB MEGATABLE_scale
+  assign $T.offset rA
+  assign rA 0
+  store dword $T rC rA
+  store dword $T rE rB
+  
+  assign $T.offset rD
+
+  # Remove the vacated node.
+  assign rF 0
+  goto MEGATABLE__REMOVE_NODE.recursive_entry.$T
+  
+  # iterate children
+  # if any non-null
+    # pick one to promote (HINT: the first non-null one)
+    # read child node data [onto xmm registers]
+    # replace child parent with current parent
+    # overwrite current node with child data
+    # delete the child node [tail-recursive]
+  # if all children null
+    # select last node in set
+    # read last node data [onto xmm registers]
+    # zero last node
+    # overwrite current node with last node data
+    # select last node parent
+    # update reference to last node 
+    # decrement node count [in root node data]
