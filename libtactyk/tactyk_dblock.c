@@ -1441,7 +1441,7 @@ int64_t tactyk_dblock__table_find(struct tactyk_dblock__DBlock *table, struct ta
         uint64_t ofs = i * 2;
         struct tactyk_dblock__DBlock *tbl_key = fields[ofs];
         struct tactyk_dblock__DBlock *tbl_value = fields[ofs+1];
-        if ((tbl_value == NULL) || (tbl_value == TACTYK_PSEUDONULL)) {
+        if (tbl_value == NULL) {
             return i;
         }
         if (tactyk_dblock__equals(key, tbl_key)) {
