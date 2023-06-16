@@ -18,7 +18,7 @@
 #     memblock layout must match the expected layout (memblock with layout specified by struct s_*table)
 #   rA:   value
 #   rB:   key
-# clobbers:  rC rD rE rF  s28h
+# clobbers:  rC rD rE rF $StTmp
 #
 # Internal register allocation ( other values returned from LOOKUP and used by ADD_NODE/REMOVE_NODE ):
 #   rC:   success or failure indicator
@@ -27,14 +27,14 @@
 #   rF:   table size
 
 MINITABLE__PUT.$T:
-  stash s28h rA
+  stash $StTmp rA
   lwcall MINITABLE__LOOKUP.$T
   if rC == 0
-    stash rA s28h
+    stash rA $StTmp
     lwcall MINITABLE__ADD_NODE.$T
     assign rC 2
   if rC == 1
-    stash rA s28l
+    stash rA $StTmp
     store dword $T s_minitable.ref rA
   lwreturn
 
