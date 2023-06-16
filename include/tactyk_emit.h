@@ -165,6 +165,11 @@ struct tactyk_emit__Context {
     uint64_t next_codeblock_id;
     int64_t active_codeblock_index;
     struct tactyk_dblock__DBlock *codeblocks;
+    
+    bool use_immediate_scrambling;
+    bool use_executable_layout_randomization;
+    bool use_extra_permutations;
+    bool use_exopointers;
 };
 
 struct tactyk_emit__Context* tactyk_emit__init();

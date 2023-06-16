@@ -98,7 +98,12 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     ctx->active_labels = NULL;
     ctx->active_labels_last = NULL;
-
+    
+    ctx->use_immediate_scrambling = true;
+    ctx->use_executable_layout_randomization = true;
+    ctx->use_extra_permutations = true;
+    ctx->use_exopointers = true;
+    
     return ctx;
 }
 
