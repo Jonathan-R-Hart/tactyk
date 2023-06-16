@@ -53,8 +53,13 @@ struct tactyk_pl__Context {
     struct tactyk_dblock__DBlock *getters;
     struct tactyk_dblock__DBlock *setters;
     
+    struct tactyk_dblock__DBlock *alias_table;
+    bool alias_chars[256];
+    
     struct tactyk_dblock__DBlock *constant_sets;
 };
+
+void tactyk_pl__rewrite_tokens(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dbcode);
 
 bool tactyk_pl__var(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__get(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);

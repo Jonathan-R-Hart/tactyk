@@ -70,6 +70,16 @@ struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx) 
     ctx->constant_sets = tactyk_dblock__new_table(64);
     tactyk_dblock__set_persistence_code(ctx->constant_sets, 10);
     
+    for (int32_t i = 0; i < 256; i++) {
+        ctx->alias_chars[i] = false;
+    }
+    char *achars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.";
+    int32_t nc_count = strlen(achars);
+    for (int32_t i = 0; i < nc_count; i++) {
+        char ch = achars[i];
+        ctx->alias_chars[(int32_t)ch] = true;
+    }
+    
     return ctx;
 }
 void tactyk_pl__define_constants(struct tactyk_pl__Context *ctx, char *name, struct tactyk_dblock__DBlock *constants) {
@@ -91,6 +101,9 @@ void tactyk_pl__load(struct tactyk_pl__Context *plctx, char *code) {
 
 void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblock__DBlock *dbcode) {
     struct tactyk_emit__Context *emitctx = plctx->emitctx;
+    if (plctx->alias_table != NULL) {
+        tactyk_pl__rewrite_tokens(plctx, dbcode);
+    }
     struct tactyk_dblock__DBlock *dbstack[256];
     int64_t dbstack_index = 0;
     dbstack[0] = dbcode;
@@ -140,6 +153,40 @@ void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblo
                 } while (dbcode == NULL);
                 goto handle_dbcode;
             }
+        }
+    }
+}
+
+void tactyk_pl__rewrite_tokens(struct tactyk_pl__Context *plctx, struct tactyk_dblock__DBlock *dbcode) {
+    struct tactyk_dblock__DBlock *dbstack[256];
+    int64_t dbstack_index = 0;
+    dbstack[0] = dbcode;
+    bool escape_block = false;
+    while (dbcode != NULL) {
+        struct tactyk_dblock__DBlock *token = dbcode->token;
+        struct tactyk_dblock__DBlock *alt = tactyk_dblock__get(plctx->alias_table, token);
+        if ( (alt != NULL) && tactyk_dblock__contains_char(token, '$') ) {
+            struct tactyk_dblock__DBlock *ntoken = tactyk_dblock__interpolate(token, '$', plctx->alias_chars, plctx->alias_table, NULL);
+            tactyk_dblock__set_content(token, ntoken);
+        }
+        if (dbcode->child != NULL) {
+            dbstack[dbstack_index] = dbcode;
+            dbstack_index += 1;
+            dbcode = dbcode->child;
+            continue;
+        }
+        else if (dbcode->next != NULL) {
+            dbcode = dbcode->next;
+            continue;
+        }
+        else {
+            do {
+                dbstack_index -= 1;
+                if (dbstack_index == -1) {
+                    return;
+                }
+                dbcode = dbstack[dbstack_index]->next;
+            } while (dbcode == NULL);
         }
     }
 }

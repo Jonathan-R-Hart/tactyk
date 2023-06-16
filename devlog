@@ -1,3 +1,20 @@
+15 Jun 2023
+tactyk-extras - table
+  A TACTYK-PL component implementing an associative array
+  This accepts 8-char keys (or 64-bit integers, if you prefer) and binds 64-bit integer values to them (or indices into an memblock)
+  The internal data structure is a prefix trie -- which was selected mainly due to not needing any data beyond a memblock with a root node at position 0.
+    (and it proved to very simple to implement)
+  All of these tables are expected to uniquely resolve each key to a specific table entry
+  Presently, there is only the "MINITABLE" variant has been implemented
+    It offers a maximum of 65536 entries of storage, uses 3 key bits per lookup iteration, and has a worst-case lookup time of 22 iterations.
+  There are plans to add a "MEGATABLE" (dword) variant with maximum table size of 2^32 (after implementing a table entry removal function)
+  ... and possibly also a "NANOTABLE" (byte) variant that supports just 256 entries
+
+tactyk-pl - add a basic preprocessor
+  It scans tactyk-pl code for the presence of defined aliases, then replaces them with aliased values.
+  This is intended to allow tactyk-pl register allocation to be configurable
+  (With a bit of creativity, it should also be able to support generic programming -- though only through the script import procedure)
+
 14 Jun 2023
 tactyk-core - bitwise opreators (and or xor)
   Added templates for handling xmm registers to the basic bitwise operators

@@ -1122,6 +1122,16 @@ bool tactyk_dblock__contains(struct tactyk_dblock__DBlock *dblock_a, struct tact
     return false;
 }
 
+bool tactyk_dblock__contains_char(struct tactyk_dblock__DBlock *dblock_a, char c) {
+    char *buf = (char*) dblock_a->data;
+    for (uint64_t i = 0; i < dblock_a->length; i++) {
+        if (buf[i] == c) {
+            return true;
+        }
+    }
+    return false;
+}
+
 char printbuf[256];
 char tactyk_dblock__print_indented(FILE *stream, struct tactyk_dblock__DBlock *dblock, char *indent) {
     if (dblock == NULL) {
@@ -1369,7 +1379,7 @@ struct tactyk_dblock__DBlock* tactyk_dblock__interpolate(
     // If the variable can be resolved, write the resolved value to the output buffer, otherwise, write the variable name.
     write_var: {
         struct tactyk_dblock__DBlock *varvalue = tactyk_dblock__get(main_vars, varname);
-        if (varvalue == NULL) {
+        if ( (varvalue == NULL) && (alt_vars != NULL) ) {
             varvalue = tactyk_dblock__get(alt_vars, varname);
         }
         if (varvalue != NULL) {

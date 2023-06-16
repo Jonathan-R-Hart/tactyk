@@ -158,6 +158,7 @@ bool tactyk_dblock__equals_c_string(struct tactyk_dblock__DBlock *dblock_a, char
 
 // seach a dblock's internal buffer for a copy of the content of another dblock and return true if the search succeeds.
 bool tactyk_dblock__contains(struct tactyk_dblock__DBlock *dblock_a, struct tactyk_dblock__DBlock *dblock_b);
+bool tactyk_dblock__contains_char(struct tactyk_dblock__DBlock *dblock_a, char c);
 
 // debug output functions
 
