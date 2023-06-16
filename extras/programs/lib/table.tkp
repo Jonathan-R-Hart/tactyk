@@ -150,7 +150,7 @@ MINITABLE__LOOKUP:
     if rE > 0 MINITABLE_LOOKUP_PLY
 
 MINITABLE__ADD_NODE:
-  store dword addr1 rD rF
+  store word addr1 rD rF
   assign rD addr1.offset
 
   # ref back to parent node (enables dynamic node deletion)
