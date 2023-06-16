@@ -81,154 +81,6 @@ struct s_nanotable
 
 mem m_ntable s_minitable 65536
 
-MINITABLE__TEST:
-  bind addr1 m_ntable
-  lwcall MINITABLE__INIT
-  
-  assign rB 'hello!
-  lwcall MINITABLE__LOOKUP
-  tcall dump-ctx
-  assign rA 999
-  lwcall MINITABLE__ADD_NODE
-  tcall dump-ctx
-  lwcall MINITABLE__PRINT_NODE
-  
-  assign rB 'goodbye!
-  lwcall MINITABLE__LOOKUP
-  assign rA 1234
-  lwcall MINITABLE__ADD_NODE
-  tcall dump-ctx
-  lwcall MINITABLE__PRINT_NODE
-  
-  assign rB '...!
-  lwcall MINITABLE__LOOKUP
-  assign rA 4321
-  lwcall MINITABLE__ADD_NODE
-
-  assign rB 'yello!
-  lwcall MINITABLE__LOOKUP
-  assign rA 4321
-  lwcall MINITABLE__ADD_NODE
-  
-  assign rB 'a!
-  lwcall MINITABLE__LOOKUP
-  assign rA 555
-  lwcall MINITABLE__ADD_NODE
-
-  assign rB 's?
-  lwcall MINITABLE__LOOKUP
-  assign rA 12
-  lwcall MINITABLE__ADD_NODE
-
-  assign rB 'dmmmmm
-  lwcall MINITABLE__LOOKUP
-  assign rA 522234
-  lwcall MINITABLE__ADD_NODE
-
-  assign rB 'ffffffff!
-  lwcall MINITABLE__LOOKUP
-  assign rA 3
-  lwcall MINITABLE__ADD_NODE
-
-  assign rB 'ffffffff!
-  lwcall MINITABLE__CHK
-  assign rB 'a!
-  lwcall MINITABLE__CHK
-  assign rB 'ffffffff!
-  lwcall MINITABLE__CHK
-  
-  assign rA 8765
-  assign rB 'zzz
-  lwcall MINITABLE__TPUT
-  assign rA 10000
-  assign rB 'zzz
-  lwcall MINITABLE__TPUT
-  
-  assign rB 'a!
-  lwcall MINITABLE__CHK
-  assign rB '...!
-  lwcall MINITABLE__TGET
-  assign rB 'zzz
-  lwcall MINITABLE__TGET
-  assign rB '...!
-  lwcall MINITABLE__TREMOVE
-  assign rB '...!
-  lwcall MINITABLE__TGET
-  assign rB 'FAKE
-  lwcall MINITABLE__TREMOVE
-  lwreturn
-
-MINITABLE__PRINT_NODE:
-  block-stash 6 sA rA
-  assign xA 'OFS
-  assign xB '.id
-  assign xC 'par
-  assign xD 'prx
-  assign xE 'ref
-  assign rA addr1.offset
-  load qword rB addr1 s_minitable.id
-  load word rC addr1 s_minitable.parent
-  load word rD addr1 s_minitable.prefix
-  load dword rE addr1 s_minitable.ref
-  tcall print-text-xa
-  tcall print-space
-  tcall print-int-a
-  tcall print-newline
-  tcall print-text-xb
-  tcall print-space
-  tcall print-int-b
-  tcall print-newline
-  tcall print-text-xc
-  tcall print-space
-  tcall print-int-c
-  tcall print-newline
-  tcall print-text-xd
-  tcall print-space
-  tcall print-int-d
-  tcall print-newline
-  tcall print-text-xe
-  tcall print-space
-  tcall print-int-e
-  tcall print-newline
-  block-stash 6 rA sA
-  lwreturn
-
-MINITABLE__CHK:
-  lwcall MINITABLE__LOOKUP
-  tcall print-text-b
-  assign rD ':'
-  tcall print-text-d
-  tcall print-space
-  if rC == 1
-    tcall print-int-a
-  if rC == 0
-    assign rD 'NULL'
-    tcall print-text-d
-  tcall print-newline
-  lwreturn
-
-MINITABLE__TPUT:
-  assign rC 'put
-  assign rD '<-
-  tcall print-text-c
-  tcall print-space
-  tcall print-text-b
-  tcall print-space
-  tcall print-text-d
-  tcall print-space
-  tcall print-int-a
-  lwcall MINITABLE__PUT
-  if rC == 1
-    assign rD '*REPLACE
-  if rC == 2
-    assign rD '*NEW
-  if rC == 0
-    assign rD '*NO.WAY!
-  tcall print-space
-  tcall print-space
-  tcall print-text-d
-  tcall print-newline
-  lwreturn
 MINITABLE__PUT:
   stash s28h rA
   lwcall MINITABLE__LOOKUP
@@ -241,24 +93,7 @@ MINITABLE__PUT:
     store dword addr1 s_minitable.ref rA
   lwreturn
 
-MINITABLE__TREMOVE:
-  assign rC 'rem
-  tcall print-text-c
-  tcall print-space
-  tcall print-text-b
-  tcall print-space
-  lwcall MINTABLE__REMOVE
-  if rC == 0
-    assign rD '*IGNORED
-  if rC == 1
-    assign rD '*REMOVED
-  tcall print-space
-  tcall print-space
-  tcall print-text-d
-  tcall print-newline
-  lwreturn
-
-MINTABLE__REMOVE:
+MINITABLE__REMOVE:
   lwcall MINITABLE__LOOKUP
   if rC == 1
     lwcall MINITABLE__REMOVE_NODE
@@ -271,25 +106,7 @@ MINITABLE__INIT:
   block-store 4 addr1 0 rA
   lwreturn
 
-MINITABLE__TGET:
-  assign rC 'get
-  assign rD '->
-  tcall print-text-c
-  tcall print-space
-  tcall print-text-b
-  tcall print-space
-  tcall print-text-d
-  tcall print-space
-  lwcall MINTABLE__GET
-  if rC == 1
-    tcall print-int-a
-  if rC == 0
-    assign rD 'NULL'
-    tcall print-text-d
-  tcall print-newline
-  lwreturn
-
-MINTABLE__GET:
+MINITABLE__GET:
 MINITABLE__LOOKUP:
   assign addr1.offset 0
   assign rD 0
