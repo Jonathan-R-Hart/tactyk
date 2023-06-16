@@ -151,10 +151,10 @@ MINITABLE__LOOKUP:
 
 MINITABLE__ADD_NODE:
   store word addr1 rD rF
-  assign rD addr1.offset
+  assign rC addr1.offset
 
   # ref back to parent node (enables dynamic node deletion)
-  shift-right rD minitable_scale
+  shift-right rC minitable_scale
   
   inc rF
   assign addr1.offset 0
@@ -165,7 +165,8 @@ MINITABLE__ADD_NODE:
   assign addr1.offset rF
   store qword addr1 s_minitable.id rB
   store dword addr1 s_minitable.ref rA
-  store word addr1 s_minitable.parent rD
+  store word addr1 s_minitable.parent rC
+  store word addr1 s_minitable.prefix rD
   lwreturn
 
 MINITABLE__REMOVE_NODE:
