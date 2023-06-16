@@ -14,7 +14,7 @@
 # The simplest (and most obvious) way to interact with these table structures is the "INIT", "PUT", "GET", and "REMOVE" functions
 #
 # Register allocation:
-#   addr1:
+#   $T:   memblock, must be configured in the module import declaration
 #     memblock layout must match the expected layout (memblock with layout specified by struct s_*table)
 #   rA:   value
 #   rB:   key
@@ -26,89 +26,34 @@
 #   rE:   temp/scratch field
 #   rF:   table size
 
-const megatable_kmask 28
-const megatable_krotate 12
-const megatable_scale 6
-const megatable_iterations 16
-struct s_megatable
-  4 a
-  4 b
-  4 c
-  4 d
-  4 e
-  4 f
-  4 g
-  4 h
-  8 id
-  . 8 size
-  8 parent
-  8 prefix
-  8 ref
-
-const minitable_kmask 14
-const minitable_krotate 3
-const minitable_scale 5
-const minitable_iterations 22
-struct s_minitable
-  2 a
-  2 b
-  2 c
-  2 d
-  2 e
-  2 f
-  2 g
-  2 h
-  8 id
-  . 8 size
-  2 parent
-  2 prefix
-  4 ref
-
-const nanotable_kmask 3
-const nanotable_krotate 2
-const nanotable_scale 4
-const nanotable_iterations 32
-struct s_nanotable
-  1 a
-  1 b
-  1 c
-  1 d
-  1 parent
-  1 prefix
-  2 ref
-  8 id
-  . 8 size
-
-mem m_ntable s_minitable 65536
-
-MINITABLE__PUT:
+MINITABLE__PUT.$T:
   stash s28h rA
-  lwcall MINITABLE__LOOKUP
+  lwcall MINITABLE__LOOKUP.$T
   if rC == 0
     stash rA s28h
-    lwcall MINITABLE__ADD_NODE
+    lwcall MINITABLE__ADD_NODE.$T
     assign rC 2
   if rC == 1
     stash rA s28l
-    store dword addr1 s_minitable.ref rA
+    store dword $T s_minitable.ref rA
   lwreturn
 
-MINITABLE__REMOVE:
-  lwcall MINITABLE__LOOKUP
+MINITABLE__REMOVE.$T:
+  lwcall MINITABLE__LOOKUP.$T
   if rC == 1
-    lwcall MINITABLE__REMOVE_NODE
+    lwcall MINITABLE__REMOVE_NODE.$T
     assign rC 1
   lwreturn
 
-MINITABLE__INIT:
-  assign addr1.offset 0
+MINITABLE__INIT.$T:
+  assign $T.offset 0
   spread rA 0 0 1 0
-  block-store 4 addr1 0 rA
+  block-store 4 $T 0 rA
   lwreturn
 
-MINITABLE__GET:
-MINITABLE__LOOKUP:
-  assign addr1.offset 0
+MINITABLE__GET.$T:
+MINITABLE__LOOKUP.$T:
+  assign $T.offset 0
   assign rD 0
   
   # hash the key (to partially mitigate algorithmic bias induced by alphanumeric chars)
@@ -117,27 +62,27 @@ MINITABLE__LOOKUP:
   xor rC rB
   
   assign rE minitable_iterations
-  load qword rF addr1 s_minitable.size
+  load qword rF $T s_minitable.size
     
-  MINITABLE_LOOKUP_LOOP:
+  MINITABLE_LOOKUP_LOOP.$T:
     assign rD rC
     and rD minitable_kmask
     
     # if a null pointer, then the node doesn't exist (but the current node is the scheduled parent)
-    load word rA addr1 rD
+    load word rA $T rD
     if rA == 0
       assign rA 0
       assign rC 0
       lwreturn
     shift-left rA minitable_scale
-    assign addr1.offset rA
+    assign $T.offset rA
     
     dec rE
-    load qword rA addr1 s_minitable.id
+    load qword rA $T s_minitable.id
     
     # if id matched, succees!
     if rA == rB
-      load dword rA addr1 s_minitable.ref
+      load dword rA $T s_minitable.ref
       assign rC 1
       lwreturn
     
@@ -145,101 +90,101 @@ MINITABLE__LOOKUP:
     rotate-right rC minitable_krotate
     
     # This should never reach 0
-    if rE > 0 MINITABLE_LOOKUP_LOOP
+    if rE > 0 MINITABLE_LOOKUP_LOOP.$T
 
-MINITABLE__ADD_NODE:
-  store word addr1 rD rF
-  assign rC addr1.offset
+MINITABLE__ADD_NODE.$T:
+  store word $T rD rF
+  assign rC $T.offset
 
   # ref back to parent node (enables dynamic node deletion)
   shift-right rC minitable_scale
   
   inc rF
-  assign addr1.offset 0
-  store qword addr1 s_minitable.size rF
+  assign $T.offset 0
+  store qword $T s_minitable.size rF
   dec rF
   
   shift-left rF minitable_scale
-  assign addr1.offset rF
-  store qword addr1 s_minitable.id rB
-  store dword addr1 s_minitable.ref rA
-  store word addr1 s_minitable.parent rC
-  store word addr1 s_minitable.prefix rD
+  assign $T.offset rF
+  store qword $T s_minitable.id rB
+  store dword $T s_minitable.ref rA
+  store word $T s_minitable.parent rC
+  store word $T s_minitable.prefix rD
   lwreturn
 
-MINITABLE__REMOVE_NODE:
+MINITABLE__REMOVE_NODE.$T:
   assign rF 1
-  MINITABLE__REMOVE_NODE.recursive_entry:
-  load word rA addr1 s_minitable.parent
-  assign rB addr1.offset
+  MINITABLE__REMOVE_NODE.recursive_entry.$T:
+  load word rA $T s_minitable.parent
+  assign rB $T.offset
   assign rC 0
-  MINITABLE_SCAN_CHILDREN:
+  MINITABLE_SCAN_CHILDREN.$T:
   if rC < 16
-    load word rD addr1 rC
+    load word rD $T rC
     add rC 2
-    if rD == 0 MINITABLE_SCAN_CHILDREN
-    goto MINITABLE_PROMOTE_NODE
+    if rD == 0 MINITABLE_SCAN_CHILDREN.$T
+    goto MINITABLE_PROMOTE_NODE.$T
   
   # follow the reference back to the parent and unlink the node (but not if the reentry point has been called)
   if rF == 1
-    load word rC addr1 s_minitable.prefix
+    load word rC $T s_minitable.prefix
     shift-left rA minitable_scale
-    assign addr1.offset rA
+    assign $T.offset rA
     assign rA 0
-    store word addr1 rC rA
+    store word $T rC rA
 
   # no children - delete node
   # get ref to last entry (and update table size)
-  assign addr1.offset 0
-  load qword rD addr1 s_minitable.size
+  assign $T.offset 0
+  load qword rD $T s_minitable.size
   dec rD
-  store qword addr1 s_minitable.size rD
+  store qword $T s_minitable.size rD
   shift-left rD minitable_scale
   
   # take the last entry
-  assign addr1.offset rD
-  block-load 2 xxA addr1 0
+  assign $T.offset rD
+  block-load 2 xxA $T 0
   xassign xC 0 0
-  block-store 2 addr1 0 xxC
+  block-store 2 $T 0 xxC
   
   # ... and move it to the vacated position
-  assign addr1.offset rB
-  block-store 2 addr1 0 xxA
+  assign $T.offset rB
+  block-store 2 $T 0 xxA
     
   # take the reference to the moved node and navigate to its parent
-  load word rA addr1 s_minitable.parent
+  load word rA $T s_minitable.parent
   shift-left rA minitable_scale
-  load word rC addr1 s_minitable.prefix
-  assign addr1.offset rA
+  load word rC $T s_minitable.prefix
+  assign $T.offset rA
   
   # lastly, re-link the parent node to the moved node.
-  store word addr1 rC rB
+  store word $T rC rB
   lwreturn
   
-  MINITABLE_PROMOTE_NODE:
+  MINITABLE_PROMOTE_NODE.$T:
   shift-left rD minitable_scale
-  assign addr1.offset rD
-  block-load 2 xxA addr1 0
+  assign $T.offset rD
+  block-load 2 xxA $T 0
   
-  assign addr1.offset rB
-  load word rC addr1 s_minitable.prefix
-  block-store 2 addr1 0 xxA
+  assign $T.offset rB
+  load word rC $T s_minitable.prefix
+  block-store 2 $T 0 xxA
   shift-right rA minitable_scale
-  store dword addr1 s_minitable.parent rA
-  load word rE addr1 s_minitable.prefix
+  store dword $T s_minitable.parent rA
+  load word rE $T s_minitable.prefix
   
   shift-left rA minitable_scale
   shift-right rB minitable_scale
-  assign addr1.offset rA
+  assign $T.offset rA
   assign rA 0
-  store word addr1 rC rA
-  store word addr1 rE rB
+  store word $T rC rA
+  store word $T rE rB
   
-  assign addr1.offset rD
+  assign $T.offset rD
 
   # Remove the vacated node.
   assign rF 0
-  goto MINITABLE__REMOVE_NODE.recursive_entry
+  goto MINITABLE__REMOVE_NODE.recursive_entry.$T
   
   # iterate children
   # if any non-null

@@ -1,0 +1,55 @@
+
+const megatable_kmask 28
+const megatable_krotate 12
+const megatable_scale 6
+const megatable_iterations 16
+struct s_megatable
+  4 a
+  4 b
+  4 c
+  4 d
+  4 e
+  4 f
+  4 g
+  4 h
+  8 id
+  . 8 size
+  8 parent
+  8 prefix
+  8 ref
+
+const minitable_kmask 14
+const minitable_krotate 3
+const minitable_scale 5
+const minitable_iterations 22
+struct s_minitable
+  2 a
+  2 b
+  2 c
+  2 d
+  2 e
+  2 f
+  2 g
+  2 h
+  8 id
+  . 8 size
+  2 parent
+  2 prefix
+  4 ref
+
+const nanotable_kmask 3
+const nanotable_krotate 2
+const nanotable_scale 4
+const nanotable_iterations 32
+struct s_nanotable
+  1 a
+  1 b
+  1 c
+  1 d
+  1 parent
+  1 prefix
+  2 ref
+  8 id
+  . 8 size
+
+mem m_ntable s_minitable 65536
