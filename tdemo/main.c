@@ -162,7 +162,6 @@ int main(int argc, char *argv[], char *envp[]) {
         tactyk_visa__load_config_module(visa_fname);
     }
     struct tactyk_emit__Context *emitctx = tactyk_emit__init();
-                                        //tactyk_visa__init(fname);
     tactyk_visa__init_emit(emitctx);
     struct tactyk_asmvm__VM *vm = tactyk_asmvm__new_vm();
     struct tactyk_asmvm__Context *ctx = tactyk_asmvm__new_context(vm);
@@ -187,7 +186,16 @@ int main(int argc, char *argv[], char *envp[]) {
     // re-scan the args and ingest source code files.
     for (int64_t i = 1; i < argc; i += 1) {
         char *arg = argv[i];
-        if (arg[0] != '-') {
+        if (arg[0] == '-') {
+            if (strstr(argv[i], "perf") != NULL) {
+                printf("Running with experimental security features disabled.  Enjoy!\n");
+                emitctx->use_executable_layout_randomization = false;
+                emitctx->use_exopointers = false;
+                emitctx->use_extra_permutations = false;
+                emitctx->use_immediate_scrambling = false;
+            }
+        }
+        else {
             FILE *f = fopen(arg, "r");
             fseek(f, 0, SEEK_END);
             int64_t len = ftell(f);

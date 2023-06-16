@@ -105,7 +105,6 @@ instruction block-store
         1 mov [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
       code
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case BqsAID BqsACD
       code
         $LD_OFFSET_IMMEDIATE
@@ -128,7 +127,6 @@ instruction block-store
       code
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
     
     case BqsADX BqlADX
       code
@@ -158,7 +156,6 @@ instruction block-store
         1 movq [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
       code
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case BqsAIX BqsACX BqlAIX BqlACX
       code
         $LD_OFFSET_IMMEDIATE
@@ -189,7 +186,6 @@ instruction block-store
       code
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
     
     case BqsADXx BqlADXx
       code
@@ -219,7 +215,6 @@ instruction block-store
         1 movdqu [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
       code
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case BqsAIXx BqsACXx BqlAIXx BqlACXx
       code
         $LD_OFFSET_IMMEDIATE
@@ -250,7 +245,6 @@ instruction block-store
       code
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
 
 instruction block-load
   operand
@@ -286,7 +280,6 @@ instruction block-load
         1 mov $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
       code
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case BqsDAI BqsDAC
       code
         $LD_OFFSET_IMMEDIATE
@@ -309,7 +302,6 @@ instruction block-load
       code
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
     
     case BqsXAD BqlXAD
       code
@@ -339,7 +331,6 @@ instruction block-load
         1 movq $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
       code
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case BqsXAI BqlXAI BqsXAC BqlXAC
       code
         $LD_OFFSET_IMMEDIATE
@@ -370,7 +361,6 @@ instruction block-load
       code
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
     
     case BqsXxAD BqlXxAD
       code
@@ -400,7 +390,6 @@ instruction block-load
         1 movdqu $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
       code
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case BqsXxAI BqlXxAI BqsXxAC BqlXxAC
       code
         $LD_OFFSET_IMMEDIATE
@@ -431,7 +420,6 @@ instruction block-load
       code
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
 
 instruction spread
   operand
@@ -777,4 +765,3 @@ instruction spread
         movq $TARGET~13, rTEMPA
   code
     xor rTEMPA, rTEMPA
-    jmp $NEXT_INSTRUCTION

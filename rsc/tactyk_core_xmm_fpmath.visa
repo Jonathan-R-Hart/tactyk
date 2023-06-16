@@ -10,11 +10,9 @@ instruction square-root
     case X
       code
         sqrtsd $A, $A
-        jmp $NEXT_INSTRUCTION
     case XX
       code
         sqrtsd $A, $B
-        jmp $NEXT_INSTRUCTION
 
 extend instruction load select-template
   case B128XAD
@@ -30,7 +28,6 @@ extend instruction load select-template
       lfence
       movdqu $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
       xor rTEMPA, rTEMPA
-      jmp $NEXT_INSTRUCTION
   case B128XAI B128XAC
     code
       $LD_OFFSET_IMMEDIATE
@@ -46,7 +43,6 @@ extend instruction load select-template
       movdqu $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
       xor rTEMPA, rTEMPA
       xor rTEMPC, rTEMPC
-      jmp $NEXT_INSTRUCTION
   
   case F64XAD
     code
@@ -63,7 +59,6 @@ extend instruction load select-template
       
       movq $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
       xor rTEMPA, rTEMPA
-      jmp $NEXT_INSTRUCTION
   case F64XAI F64XAC
     code
       $LD_OFFSET_IMMEDIATE
@@ -82,7 +77,6 @@ extend instruction load select-template
       movq $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
       xor rTEMPA, rTEMPA
       xor rTEMPC, rTEMPC
-      jmp $NEXT_INSTRUCTION
   case F64DAD
     code
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -101,7 +95,6 @@ extend instruction load select-template
       
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
 
   case F64DAI F64DAC
     code
@@ -124,7 +117,6 @@ extend instruction load select-template
       xor rTEMPA, rTEMPA
       xor rTEMPC, rTEMPC
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   
   case F32XAD
     code
@@ -141,7 +133,6 @@ extend instruction load select-template
       
       cvtss2sd $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
       xor rTEMPA, rTEMPA
-      jmp $NEXT_INSTRUCTION
   case F32XAI F32XAC
     code
       $LD_OFFSET_IMMEDIATE
@@ -160,7 +151,6 @@ extend instruction load select-template
       cvtss2sd $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
       xor rTEMPA, rTEMPA
       xor rTEMPC, rTEMPC
-      jmp $NEXT_INSTRUCTION
   case F32DAD
     code
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -179,7 +169,6 @@ extend instruction load select-template
       
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
 
   case F32DAI F32DAC
     code
@@ -202,7 +191,6 @@ extend instruction load select-template
       xor rTEMPA, rTEMPA
       xor rTEMPC, rTEMPC
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
 
 extend instruction store select-template
   case B128ADX
@@ -218,7 +206,6 @@ extend instruction store select-template
       lfence
       movdqu [$ADDRESS_REGISTER+$OFFSET], $SRC
       xor rTEMPA, rTEMPA
-      jmp $NEXT_INSTRUCTION
   case B128AIX B128ACX
     code
       $LD_OFFSET_IMMEDIATE
@@ -234,7 +221,6 @@ extend instruction store select-template
       movdqu [$ADDRESS_REGISTER+rTEMPC], $SRC
       xor rTEMPA, rTEMPA
       xor rTEMPC, rTEMPC
-      jmp $NEXT_INSTRUCTION
   
   case F64ADX
     code
@@ -249,7 +235,6 @@ extend instruction store select-template
       lfence
       movq [$ADDRESS_REGISTER+$OFFSET], $SRC
       xor rTEMPA, rTEMPA
-      jmp $NEXT_INSTRUCTION
   case F64AIX F64ACX
     code
       $LD_OFFSET_IMMEDIATE
@@ -265,7 +250,6 @@ extend instruction store select-template
       movq [$ADDRESS_REGISTER+rTEMPC], $SRC
       xor rTEMPA, rTEMPA
       xor rTEMPC, rTEMPC
-      jmp $NEXT_INSTRUCTION
   
   case F32ADX
     code
@@ -282,7 +266,6 @@ extend instruction store select-template
       movd [$ADDRESS_REGISTER+$OFFSET], xTEMPA
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case F32AIX F32ACX
     code
       $LD_OFFSET_IMMEDIATE
@@ -300,13 +283,11 @@ extend instruction store select-template
       xor rTEMPA, rTEMPA
       xor rTEMPC, rTEMPC
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
 
 extend instruction assign select-template
   case DX
     code
       cvttsd2si $A, $B
-      jmp $NEXT_INSTRUCTION
   case DF DCf
     code
       $LD_B_IMMEDIATE
@@ -314,21 +295,17 @@ extend instruction assign select-template
       cvttsd2si $A, xTEMPA
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case XX
     code
       movq $A, $B
-      jmp $NEXT_INSTRUCTION
   case XD
     code
       cvtsi2sd $A, $B
-      jmp $NEXT_INSTRUCTION
   case XI XC
     code
       $LD_B_IMMEDIATE
       cvtsi2sd $A, rTEMPA
       xor rTEMPA, rTEMPA
-      jmp $NEXT_INSTRUCTION
   case XS
     code
       $LD_B_IMMEDIATE
@@ -337,13 +314,11 @@ extend instruction assign select-template
       pinsrq $A, rTEMPC, 3
       xor rTEMPA, rTEMPA
       xor rTEMPC, rTEMPC
-      jmp $NEXT_INSTRUCTION
   case XF XCf
     code
       $LD_B_IMMEDIATE
       movq $A, rTEMPA
       xor rTEMPA, rTEMPA
-      jmp $NEXT_INSTRUCTION
 
 extend subroutine simple_binary_instruction select-template
   case DX
@@ -351,13 +326,11 @@ extend subroutine simple_binary_instruction select-template
       movq rTEMPA, $B
       p$INSTRUCTION $A, rTEMPA
       xor rTEMPA, rTEMPA
-      jmp $NEXT_INSTRUCTION
   case XD
     code
       movq xTEMPA, $B
       p$INSTRUCTION $A, xTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case XI XC
     code
       $LD_B_IMMEDIATE
@@ -365,11 +338,9 @@ extend subroutine simple_binary_instruction select-template
       p$INSTRUCTION $A, xTEMPA
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case XX
     code
       p$INSTRUCTION $A, $B
-      jmp $NEXT_INSTRUCTION
 
 extend subroutine binary_instruction select-template
   case DX
@@ -378,7 +349,6 @@ extend subroutine binary_instruction select-template
       %[$INSTRUCTION]sd xTEMPA, $B
       cvttsd2si $A, xTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case DF DCf
     code
       $LD_B_IMMEDIATE
@@ -389,17 +359,14 @@ extend subroutine binary_instruction select-template
       xor rTEMPC, rTEMPC
       pxor xTEMPA, xTEMPA
       pxor xTEMPB, xTEMPB
-      jmp $NEXT_INSTRUCTION
   case XX
     code
       %[$INSTRUCTION]sd $A, $B
-      jmp $NEXT_INSTRUCTION
   case XD
     code
       cvtsi2sd xTEMPA, $B
       %[$INSTRUCTION]sd $A, xTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case XI XC
     code
       $LD_B_IMMEDIATE
@@ -407,7 +374,6 @@ extend subroutine binary_instruction select-template
       %[$INSTRUCTION]sd $A, xTEMPA
       xor rTEMPC, rTEMPC
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case XCf XF
     code
       $LD_B_IMMEDIATE
@@ -415,7 +381,6 @@ extend subroutine binary_instruction select-template
       %[$INSTRUCTION]sd $A, xTEMPA
       xor rTEMPC, rTEMPC
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
 
 extend instruction swap select-template
   case XD
@@ -424,21 +389,18 @@ extend instruction swap select-template
       cvttsd2si $B, $A
       movq $A, xTEMPB
       pxor xTEMPB, xTEMPB
-      jmp $NEXT_INSTRUCTION
   case DX
     code
       cvtsi2sd xTEMPA, $A
       cvttsd2si $A, $B
       movq $B, xTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case XX
     code
       movq xTEMPA, $A
       movq $A, $B
       movq $B, xTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
 
 extend instruction mul select-template
   case DX
@@ -447,7 +409,6 @@ extend instruction mul select-template
       mulsd xTEMPA, $B
       cvttsd2si $A, xTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case DF DCf
     code
       $LD_B_IMMEDIATE
@@ -458,17 +419,14 @@ extend instruction mul select-template
       pxor xTEMPA, xTEMPA
       pxor xTEMPB, xTEMPB
       xor rTEMPC, rTEMPC
-      jmp $NEXT_INSTRUCTION
   case XX
     code
       mulsd $A, $B
-      jmp $NEXT_INSTRUCTION
   case XD
     code
       cvtsi2sd xTEMPA, $B
       mulsd $A, xTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case XI XC
     code
       $LD_B_IMMEDIATE
@@ -476,7 +434,6 @@ extend instruction mul select-template
       mulsd $A, xTEMPA
       xor rTEMPC, rTEMPC
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case XCf XF
     code
       $LD_B_IMMEDIATE
@@ -484,7 +441,6 @@ extend instruction mul select-template
       mulsd $A, xTEMPA
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
 
 extend instruction div select-template
   case DXN
@@ -493,7 +449,6 @@ extend instruction div select-template
       divsd xTEMPA, $B
       cvttsd2si $A, xTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case DFN DCfN
     code
       $LD_B_IMMEDIATE
@@ -505,17 +460,14 @@ extend instruction div select-template
       pxor xTEMPA, xTEMPA
       pxor xTEMPB, xTEMPB
       xor rTEMPC, rTEMPC
-      jmp $NEXT_INSTRUCTION
   case XXN
     code
       divsd $A, $B
-      jmp $NEXT_INSTRUCTION
   case XDN
     code
       cvtsi2sd xTEMPA, $B
       divsd $A, xTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case XIN XCN
     code
       $LD_B_IMMEDIATE
@@ -523,7 +475,6 @@ extend instruction div select-template
       divsd $A, xTEMPA
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
   case XCfN XFN
     code
       $LD_B_IMMEDIATE
@@ -531,8 +482,6 @@ extend instruction div select-template
       divsd $A, xTEMPA
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
-
 
 # comparison with floats on xmmx registers
 #  For packed floats, these all pass if any comparisons pass
@@ -720,7 +669,6 @@ instruction transpose
         insertps $M~1, xTEMPB,  0b01110000
         pxor xTEMPA, xTEMPA
         pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
 
 instruction dot
   opt-operand
@@ -754,14 +702,12 @@ instruction dot
         dpps xTEMPA, $B, 0xf1
         cvtss2sd $DEST, xTEMPA
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case F32.4XIXX XIXX
       code
         movdqa xTEMPA, $A
         dpps xTEMPA, $B, 0xf1
         insertps $DEST, xTEMPA, $INS_ARG
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
 
 instruction cross
   opt-operand
@@ -789,4 +735,3 @@ instruction cross
         subps $DEST, xTEMPB
         pxor xTEMPA, xTEMPA
         pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION

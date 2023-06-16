@@ -77,9 +77,7 @@ instruction tvmpush
         xor rTEMPC, rTEMPC
         xor rTEMPD, rTEMPD
         xor rMAPPER, rMAPPER
-        
         ; the only thing missing here is the return index (not avaialble until the actual jump).
-        jmp $NEXT_INSTRUCTION
     
     case II IC CI CC
       code
@@ -148,9 +146,7 @@ instruction tvmpush
         xor rTEMPC, rTEMPC
         xor rTEMPD, rTEMPD
         xor rMAPPER, rMAPPER
-        
         ; the only thing missing here is the return index (not avaialble until the actual jump).
-        jmp $NEXT_INSTRUCTION
     
     case DI DC
       code
@@ -219,9 +215,7 @@ instruction tvmpush
         xor rTEMPC, rTEMPC
         xor rTEMPD, rTEMPD
         xor rMAPPER, rMAPPER
-        
         ; the only thing missing here is the return index (not avaialble until the actual jump).
-        jmp $NEXT_INSTRUCTION
     
     case ID CD
       code
@@ -292,7 +286,6 @@ instruction tvmpush
         xor rMAPPER, rMAPPER
         
         ; the only thing missing here is the return index (not avaialble until the actual jump).
-        jmp $NEXT_INSTRUCTION
 instruction tvmjump
   terminal
   $KW dword

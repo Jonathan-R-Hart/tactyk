@@ -5,6 +5,20 @@ tactyk-extras - table
   I was almost able to get the table size as a configuration option, but a the handling of nanotables differed enough to break the limited generic-ish system.
     (It was also making the code unreasonably harder to understand -- too many $pesos)
 
+tactyk-emit
+  Add options for enabling/disabling the experimental [and heavy-handed] security features
+  
+  Make aggressive binary executable randomization optional
+    Jumps between adjacent instructions are now handled by the emit interface (and only inserted if the aggressive binary executable layout option is enabled)
+    Added a "terminal" emit operator.  This marks an instruction as a "terminal" (always redicrects control flow).  Terminal instructions will always be ignored by
+      "jump-to-next-isntruction" logic (it's an error if control flow makes it through such instructions, so maybe in the future, an option to insert instructions to
+      terminate and throw an exception should be added).
+    The automatically generated branch targets attached to each instruction are retained.
+      (it is simpler that way, and they are still needed to enable some of the more advanced forms of control flow.  They also are not known to take up any extra space in the executable.)
+  
+  TACTYK has been steadilly gaining interesting features and qualities in other aspects
+  It is starting to seem appropriate to think of tactyk as a general experiment in low-level scripting, and perhaps even as an alternative to Assembly Language.
+
 15 Jun 2023
 tactyk-extras - table
   A TACTYK-PL component implementing an associative array

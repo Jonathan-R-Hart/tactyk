@@ -499,15 +499,12 @@ instruction unpack
       code
         pxor xTEMPA, xTEMPA
         pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
     case I32DX
       vcode $SIMD_ARG
         1 pextrd %[$DEST~0]_32, $SRC, 0
         2 pextrd %[$DEST~1]_32, $SRC, 1
         3 pextrd %[$DEST~2]_32, $SRC, 2
         4 pextrd %[$DEST~3]_32, $SRC, 3
-      code
-        jmp $NEXT_INSTRUCTION
     case I32XX
       vcode $SIMD_ARG
         1 insertps $DEST~0, $SRC, 14
@@ -516,7 +513,6 @@ instruction unpack
         4 insertps $DEST~3, $SRC, 206
       code
         pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
 
 # SUPER-simd vectorized operations!
 # These arithemtical instructions operate on sequences of 1-14 xmm registers
@@ -574,7 +570,6 @@ subroutine x-binary-op
         %[$XOP]sd $A, xTEMPA
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case XI XC
       code
         $LD_A_IMMEDIATE
@@ -582,23 +577,19 @@ subroutine x-binary-op
         %[$XOP]sd $A, xTEMPA
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case XD
       code
         cvtsi2sd xTEMPA, $B
         %[$XOP]sd $A, xTEMPA
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case XXF32
       code
         cvtss2sd xTEMPA, $B
         %[$XOP]sd $A, xTEMPA
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case XX XXF64
       code
         %[$XOP]sd $A, $B
-        jmp $NEXT_INSTRUCTION
     case VXvF VXvCf
       code
         $LD_A_IMMEDIATE
@@ -621,7 +612,6 @@ subroutine x-binary-op
       code
         xor rTEMPA, rTEMPA
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXXv VXXvF64
       vcode $QTY
         1 %[$XOP]sd $A, $B~0
@@ -638,8 +628,6 @@ subroutine x-binary-op
         12 %[$XOP]sd $A, $B~11
         13 %[$XOP]sd $A, $B~12
         14 %[$XOP]sd $A, $B~13
-      code
-        jmp $NEXT_INSTRUCTION
     case VXXvF32
       vcode $QTY
         1 insertps xTEMPA, $B~0, 0
@@ -686,7 +674,6 @@ subroutine x-binary-op
         14 %[$XOP]sd $A, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     
     case XF32F XF32Cf
       code
@@ -698,7 +685,6 @@ subroutine x-binary-op
         %[$XOP]ps $A, xTEMPA
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case XF32I XF32C
       code
         $LD_A_IMMEDIATE
@@ -708,7 +694,6 @@ subroutine x-binary-op
         %[$XOP]ps $A, xTEMPA
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case XF32D
       code
         cvtsi2ss xTEMPA, $B
@@ -716,7 +701,6 @@ subroutine x-binary-op
         movsldup xTEMPA, xTEMPA
         %[$XOP]ps $A, xTEMPA
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case XF32X
       code
         cvtsd2ss xTEMPA, $B
@@ -724,18 +708,15 @@ subroutine x-binary-op
         movsldup xTEMPA, xTEMPA
         %[$XOP]ps $A, xTEMPA
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case XF32XF32
       code
         %[$XOP]ps $A, $B
-        jmp $NEXT_INSTRUCTION
     case XF32XF64
       code
         cvtpd2ps xTEMPA, $B
         movddup xTEMPA, xTEMPA
         %[$XOP]ps $A, xTEMPA
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXF32Xv
       vcode $QTY
         1 cvtsd2ss xTEMPA, $B~0
@@ -796,7 +777,6 @@ subroutine x-binary-op
         14 %[$XOP]ps $A, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXF32XvF32
       vcode $QTY
         1 %[$XOP]ps $A, $B~0
@@ -813,8 +793,6 @@ subroutine x-binary-op
         12 %[$XOP]ps $A, $B~11
         13 %[$XOP]ps $A, $B~12
         14 %[$XOP]ps $A, $B~13
-      code
-        jmp $NEXT_INSTRUCTION
     case VXF32XvF64
       vcode $QTY
         1 cvtpd2ps xTEMPA, $B~0
@@ -861,7 +839,6 @@ subroutine x-binary-op
         14 %[$XOP]ps $A, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     
     case XF64F XF64Cf
       code
@@ -871,7 +848,6 @@ subroutine x-binary-op
         %[$XOP]pd $A, xTEMPA
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case XF64I XF64C
       code
         $LD_A_IMMEDIATE
@@ -880,30 +856,25 @@ subroutine x-binary-op
         %[$XOP]pd $A, xTEMPA
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case XF64D
       code
         cvtsi2sd xTEMPA, $B
         movddup xTEMPA, xTEMPA
         %[$XOP]pd $A, xTEMPA
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case XF64X
       code
         movddup xTEMPA, $B
         %[$XOP]pd $A, xTEMPA
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case XF64XF32
       code
         cvtps2pd xTEMPA, $B
         %[$XOP]pd $A, xTEMPA
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case XF64XF64
       code
         %[$XOP]pd $A, $B
-        jmp $NEXT_INSTRUCTION
     case VXF64Xv
       vcode $QTY
         1 movddup xTEMPA, $B~0
@@ -936,7 +907,6 @@ subroutine x-binary-op
         14 %[$XOP]pd $A, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXF64XvF32
       vcode $QTY
         1 cvtps2pd xTEMPA, $B~0
@@ -969,7 +939,6 @@ subroutine x-binary-op
         14 %[$XOP]pd $A, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXF64XvF64
       vcode $QTY
         1 %[$XOP]pd $A, $B~0
@@ -986,8 +955,6 @@ subroutine x-binary-op
         12 %[$XOP]pd $A, $B~11
         13 %[$XOP]pd $A, $B~12
         14 %[$XOP]pd $A, $B~13
-      code
-        jmp $NEXT_INSTRUCTION
     
     case VXvF VXvCf
       code
@@ -1011,7 +978,6 @@ subroutine x-binary-op
       code
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvI VXvC
       code
         $LD_A_IMMEDIATE
@@ -1034,7 +1000,6 @@ subroutine x-binary-op
       code
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvD
       code
         cvtsi2sd xTEMPA, $B
@@ -1055,7 +1020,6 @@ subroutine x-binary-op
         14 %[$XOP]sd $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvX VXvXF64
       vcode $QTY
         1 %[$XOP]sd $A~0, $B
@@ -1072,8 +1036,6 @@ subroutine x-binary-op
         12 %[$XOP]sd $A~11, $B
         13 %[$XOP]sd $A~12, $B
         14 %[$XOP]sd $A~13, $B
-      code
-        jmp $NEXT_INSTRUCTION
     case VXvXF32
       code
         cvtss2sd xTEMPA, $B
@@ -1094,7 +1056,6 @@ subroutine x-binary-op
         14 %[$XOP]sd $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvXv VXvXvF64
       vcode $QTY
         1 %[$XOP]sd $A~0, $B~0
@@ -1111,8 +1072,6 @@ subroutine x-binary-op
         12 %[$XOP]sd $A~11, $B~11
         13 %[$XOP]sd $A~12, $B~12
         14 %[$XOP]sd $A~13, $B~13
-      code
-        jmp $NEXT_INSTRUCTION
     case VXvXvF32
       vcode $QTY
         1 cvtss2sd xTEMPA, $B~0
@@ -1145,7 +1104,6 @@ subroutine x-binary-op
         14 %[$XOP]sd $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     
     case VXvF32F VXvF32Cf
       code
@@ -1172,7 +1130,6 @@ subroutine x-binary-op
       code
         xor rTEMPA, rTEMPA
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF32I VXvF32C
       code
         $LD_A_IMMEDIATE
@@ -1197,7 +1154,6 @@ subroutine x-binary-op
       code
         xor rTEMPA, rTEMPA
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF32D
       code
         cvtsi2ss xTEMPA, $B
@@ -1220,7 +1176,6 @@ subroutine x-binary-op
         14 %[$XOP]ps $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF32XF32
       vcode $QTY
         1 %[$XOP]ps $A~0, $B
@@ -1237,8 +1192,6 @@ subroutine x-binary-op
         12 %[$XOP]ps $A~11, $B
         13 %[$XOP]ps $A~12, $B
         14 %[$XOP]ps $A~13, $B
-      code
-        jmp $NEXT_INSTRUCTION
     case VXvF32XF64
       code
         cvtpd2ps xTEMPA, $B
@@ -1260,7 +1213,6 @@ subroutine x-binary-op
         14 %[$XOP]ps $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF32X
       code
         cvtsd2ss xTEMPA, $B
@@ -1283,7 +1235,6 @@ subroutine x-binary-op
         14 %[$XOP]ps $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF32Xv
       vcode $QTY
         1 cvtsd2ss xTEMPA, $B~0
@@ -1344,7 +1295,6 @@ subroutine x-binary-op
         14 %[$XOP]ps $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF32XvF32
       vcode $QTY
         1 %[$XOP]ps $A~0, $B~0
@@ -1361,8 +1311,6 @@ subroutine x-binary-op
         12 %[$XOP]ps $A~11, $B~11
         13 %[$XOP]ps $A~12, $B~12
         14 %[$XOP]ps $A~13, $B~13
-      code
-        jmp $NEXT_INSTRUCTION
     case VXvF32XvF64
       vcode $QTY
         1 cvtpd2ps xTEMPA, $B~0
@@ -1409,7 +1357,6 @@ subroutine x-binary-op
         14 %[$XOP]ps $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     
     case VXvF64F VXvF64Cf
       code
@@ -1434,7 +1381,6 @@ subroutine x-binary-op
       code
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF64I VXvF64C
       code
         $LD_A_IMMEDIATE
@@ -1458,7 +1404,6 @@ subroutine x-binary-op
       code
         pxor xTEMPA, xTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF64D
       code
         cvtsi2sd xTEMPA, $B
@@ -1480,7 +1425,6 @@ subroutine x-binary-op
         14 %[$XOP]pd $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF64X
       code
         movddup xTEMPA, $B
@@ -1501,7 +1445,6 @@ subroutine x-binary-op
         14 %[$XOP]pd $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF64XF32
       code
         cvtps2pd xTEMPA, $B
@@ -1522,7 +1465,6 @@ subroutine x-binary-op
         14 %[$XOP]pd $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF64XF64
       vcode $QTY
         1 %[$XOP]pd $A~0, $B
@@ -1539,8 +1481,6 @@ subroutine x-binary-op
         12 %[$XOP]pd $A~11, $B
         13 %[$XOP]pd $A~12, $B
         14 %[$XOP]pd $A~13, $B
-      code
-        jmp $NEXT_INSTRUCTION
     case VXvF64Xv
       vcode $QTY
         1 movddup xTEMPA, $B~0
@@ -1573,7 +1513,6 @@ subroutine x-binary-op
         14 %[$XOP]pd $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF64XvF32
       vcode $QTY
         1 cvtps2pd xTEMPA, $B~0
@@ -1606,7 +1545,6 @@ subroutine x-binary-op
         14 %[$XOP]pd $A~13, xTEMPA
       code
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
     case VXvF64XvF64
       vcode $QTY
         1 %[$XOP]pd $A~0, $B~0
@@ -1623,8 +1561,6 @@ subroutine x-binary-op
         12 %[$XOP]pd $A~11, $B~11
         13 %[$XOP]pd $A~12, $B~12
         14 %[$XOP]pd $A~13, $B~13
-      code
-        jmp $NEXT_INSTRUCTION
       
     # case VXv*F VXv*Cf
     # case VXv*I VXv*C
@@ -1695,8 +1631,6 @@ instruction xduplicate
     5 movdqa $DEST~4, $SRC~4
     6 movdqa $DEST~5, $SRC~5
     7 movdqa $DEST~6, $SRC~6
-  code
-    jmp $NEXT_INSTRUCTION
 
 subroutine x-packed-op-32--step
   opt-operand
@@ -1771,7 +1705,6 @@ instruction xcompute
         movdqa $DEST, xTEMPA
         pxor xTEMPA, xTEMPA
         pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
     case XF32
       sub sse-insps-arg--Szero
       code $FOOTER
@@ -1779,14 +1712,12 @@ instruction xcompute
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
         pxor xTEMPA, xTEMPA
         pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
     case XF64
       sub sse-qword-put
       code $FOOTER
         $QPUTOP $DEST~$DAUG, xTEMPA
         pxor xTEMPA, xTEMPA
         pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
   
   composite 16
     operand
@@ -1905,7 +1836,6 @@ instruction shuffle
     case Fmt32XX
       code
         pshufd $DEST, $SRC, 0b$D$C$B$A
-        jmp $NEXT_INSTRUCTION
 
 
 subroutine x-unary-op
@@ -1929,19 +1859,15 @@ subroutine x-unary-op
     case X F64X
       code
         %[$XOP]pd $A, $A
-        jmp $NEXT_INSTRUCTION
     case F32X
       code
         %[$XOP]ps $A, $A
-        jmp $NEXT_INSTRUCTION
     case XX F64XX
       code
         %[$XOP]pd $A, $B
-        jmp $NEXT_INSTRUCTION
     case F32XX
       code
         %[$XOP]ps $A, $B
-        jmp $NEXT_INSTRUCTION
 
     case VX VF64X VXv VF64Xv
       vcode $QTY
@@ -1959,8 +1885,6 @@ subroutine x-unary-op
         12 %[$XOP]pd $A~11, $A~11
         13 %[$XOP]pd $A~12, $A~12
         14 %[$XOP]pd $A~13, $A~13
-      code
-        jmp $NEXT_INSTRUCTION
     case VF32X VF32Xv
       vcode $QTY
         1 %[$XOP]ps $A~0, $A~0
@@ -1977,8 +1901,6 @@ subroutine x-unary-op
         12 %[$XOP]ps $A~11, $A~11
         13 %[$XOP]ps $A~12, $A~12
         14 %[$XOP]ps $A~13, $A~13
-      code
-        jmp $NEXT_INSTRUCTION
     case VXX VF64XX VXvXv VF64XvXv
       vcode $QTY
         1 %[$XOP]pd $A~0, $B~0
@@ -1995,8 +1917,6 @@ subroutine x-unary-op
         12 %[$XOP]pd $A~11, $B~11
         13 %[$XOP]pd $A~12, $B~12
         14 %[$XOP]pd $A~13, $B~13
-      code
-        jmp $NEXT_INSTRUCTION
     case VF32XX VF32XvXv
       vcode $QTY
         1 %[$XOP]ps $A~0, $B~0
@@ -2013,8 +1933,6 @@ subroutine x-unary-op
         12 %[$XOP]ps $A~11, $B~11
         13 %[$XOP]ps $A~12, $B~12
         14 %[$XOP]ps $A~13, $B~13
-      code
-        jmp $NEXT_INSTRUCTION
 
 instruction xadd-interleaved
   $XOP hadd

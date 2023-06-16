@@ -117,7 +117,6 @@ instruction swap
     case DD
       code
         xchg $A, $B
-        jmp $NEXT_INSTRUCTION
 
 subroutine simple_unary_instruction
   operand 
@@ -125,7 +124,6 @@ subroutine simple_unary_instruction
     $A $VALUE
   code
     $INSTRUCTION $A
-    jmp $NEXT_INSTRUCTION
 
 subroutine simple_binary_instruction
   operand 
@@ -139,13 +137,11 @@ subroutine simple_binary_instruction
     case DD
       code 
         $INSTRUCTION $A, $B
-        jmp $NEXT_INSTRUCTION
     case DI DC
       code 
         $LD_B_IMMEDIATE
         $INSTRUCTION $A, rTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
 
 subroutine binary_instruction
   operand
@@ -159,13 +155,11 @@ subroutine binary_instruction
     case DD
       code
         $INSTRUCTION $A, $B
-        jmp $NEXT_INSTRUCTION
     case DI DC
       code
         $LD_B_IMMEDIATE
         $INSTRUCTION $A, rTEMPC
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
 
 instruction add
   $INSTRUCTION add
@@ -200,24 +194,20 @@ instruction assign
     case DD
       code 
         mov $A, $B
-        jmp $NEXT_INSTRUCTION
     case DSreg
       code
         mov %[$A]_16, %[$B]_16
         sub %[$A]_16, word fs:[$STACK_FLOOR + random_const_FS]
-        jmp $NEXT_INSTRUCTION
     case DI DC DS DLi
       code 
         $LD_B_IMMEDIATE
         mov $A, rTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case DCtx
       select-kw
         case dword
           code
             mov %[$A]_32, fs:[$B + random_const_FS]
-            jmp $NEXT_INSTRUCTION
 
 instruction mul
   operand
@@ -234,7 +224,6 @@ instruction mul
         imul $B
         mov $A, rTEMPA
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case DI DC
       code
         $LD_B_IMMEDIATE
@@ -243,7 +232,6 @@ instruction mul
         mov $A, rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
 
 instruction div
   operand
@@ -267,7 +255,6 @@ instruction div
         mov $A, rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
     case DIN DCN
       code
         $LD_B_IMMEDIATE
@@ -280,7 +267,6 @@ instruction div
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
     case DDL
       code
         cmp $B, 0
@@ -291,7 +277,6 @@ instruction div
         mov $A, rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
     case DIL DCL
       code
         $LD_B_IMMEDIATE
@@ -304,7 +289,6 @@ instruction div
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
 
 subroutine shift
   operand 
@@ -320,13 +304,11 @@ subroutine shift
         mov rcx, $B
         $INSTRUCTION $A, cl
         xor rcx, rcx
-        jmp $NEXT_INSTRUCTION
     case DI DC
       code 
         $LD_B_IMMEDIATE
         $INSTRUCTION $A, cl
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
 
 instruction shift-left
   $INSTRUCTION shl
@@ -445,6 +427,7 @@ subroutine cjump
         jmp $JTARGET
 
 instruction if
+  terminal
   sub test
   sub cjump
 

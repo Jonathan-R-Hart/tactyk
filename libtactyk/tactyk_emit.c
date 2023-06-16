@@ -288,9 +288,8 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
         tactyk_report__msg("Code generation failed");
         error(NULL, NULL);
     }
-    if ( (ctx->is_terminal == false) && (ctx->insert_branch_to_next_instruction != NULL) ) {
+    if ( (ctx->use_executable_layout_randomization) && (!ctx->is_terminal) && (ctx->insert_branch_to_next_instruction != NULL) ) {
         tactyk_emit__ExecSubroutine(ctx, ctx->insert_branch_to_next_instruction->vopcfg);
-        // ctx->insert_branch_to_next_instruction->func(ctx, data);
     }
     ctx->pl_operand_raw = NULL;
     ctx->pl_operand_resolved = NULL;
@@ -1092,16 +1091,18 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
         program_map[i] = i;
     }
     uint64_t j;
+    
+    if (ctx->use_executable_layout_randomization) {
+        for (uint64_t i = 0; i < (program_size-1); i++) {
+            uint64_t j = i + tactyk_util__rand_range(program_size-i);
+            int32_t iv = program_map[i];
+            int32_t jv = program_map[j];
 
-    for (uint64_t i = 0; i < (program_size-1); i++) {
-        uint64_t j = i + tactyk_util__rand_range(program_size-i);
-        int32_t iv = program_map[i];
-        int32_t jv = program_map[j];
-
-        program_map[i] = jv;
-        program_map[j] = iv;
+            program_map[i] = jv;
+            program_map[j] = iv;
+        }
     }
-
+    
     char fname_assembly_code[64];
     char fname_object[64];
     char fname_symbols[64];

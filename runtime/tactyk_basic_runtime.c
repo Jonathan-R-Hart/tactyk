@@ -59,10 +59,28 @@ int main(int argc, char *argv[], char *envp[]) {
         exit(0);
     }
     
+    char *fname = NULL;
+     
+    for (int64_t i = 1; i < argc; i += 1) {
+        char *arg = argv[i];
+        if (arg[0] == '-') {
+            if (strstr(argv[i], "perf") != NULL) {
+                printf("Running with experimental security features disabled.  Enjoy!\n");
+                emitctx->use_executable_layout_randomization = false;
+                emitctx->use_exopointers = false;
+                emitctx->use_extra_permutations = false;
+                emitctx->use_immediate_scrambling = false;
+            }
+        }
+        else {
+            fname = arg;
+        }
+    }
+    
     tactyk_run__init();
     tactyk_run__platform_init(emitctx);
     
-    struct tactyk_run__RSC *rsc = tactyk_run__load_resource_pack(argv[1], emitctx, asmvmctx);
+    struct tactyk_run__RSC *rsc = tactyk_run__load_resource_pack(fname, emitctx, asmvmctx);
     tactyk_run__platform__set_resource_pack(rsc);
     
     tactyk_asmvm__invoke(asmvmctx, rsc->main_program, rsc->main_entrypoint);

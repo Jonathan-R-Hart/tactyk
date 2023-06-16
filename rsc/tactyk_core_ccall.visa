@@ -35,8 +35,6 @@ instruction ccall
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         xor rTEMPD, rTEMPD
-        
-        jmp $NEXT_INSTRUCTION
     case DCfunc
       code
         store_context
@@ -69,8 +67,6 @@ instruction ccall
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
         xor rTEMPD, rTEMPD
-        
-        jmp $NEXT_INSTRUCTION
     case CfuncCfunc DN
       error
 
@@ -110,6 +106,4 @@ instruction tcall
     xor rTEMPA, rTEMPA
     xor rTEMPC, rTEMPC
     xor rTEMPD, rTEMPD
-    
-    jmp $NEXT_INSTRUCTION
     

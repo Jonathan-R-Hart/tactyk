@@ -360,8 +360,6 @@ instruction block-stash
         14 movdqa $DEST~13, xTEMPB
         1 pxor xTEMPA, xTEMPA
         1 pxor xTEMPB, xTEMPB
-  code
-    jmp $NEXT_INSTRUCTION
 
 instruction stash
   composite 16 permute-code no-duplicates
@@ -475,8 +473,6 @@ instruction stash
       #    xor rTEMPA, rTEMPA
       #    xor rTEMPC, rTEMPC
       #    xor rTEMPD, rTEMPD
-  code
-    jmp $NEXT_INSTRUCTION
 
 instruction mctxpush
   code
@@ -489,7 +485,6 @@ instruction mctxpush
     sub rTEMPA, random_const_GS
     wrgsbase rTEMPA
     xor rTEMPA, rTEMPA
-    jmp $NEXT_INSTRUCTION
 
 instruction mctxpop
   code
@@ -502,7 +497,6 @@ instruction mctxpop
     sub rTEMPA, random_const_GS
     wrgsbase rTEMPA
     xor rTEMPA, rTEMPA
-    jmp $NEXT_INSTRUCTION
 
 instruction mctxjump
   operand
@@ -526,7 +520,6 @@ instruction mctxjump
         wrgsbase rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
     case I C
       code
         $LD_IMMEDIATE_TARGET
@@ -543,4 +536,3 @@ instruction mctxjump
         wrgsbase rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
