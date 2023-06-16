@@ -95,6 +95,8 @@ struct tactyk_emit__Context* tactyk_emit__init() {
 
     tactyk_dblock__put(ctx->operator_table, "sub", tactyk_emit__DoSub);
     tactyk_dblock__put(ctx->operator_table, "nullarg", tactyk_emit__NullArg);
+    
+    tactyk_dblock__put(ctx->operator_table, "terminal", tactyk_emit__Terminal);
 
     ctx->active_labels = NULL;
     ctx->active_labels_last = NULL;
@@ -243,6 +245,7 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     struct tactyk_emit__script_command *cmd = ctx->active_command;
     tactyk_dblock__reset_table(ctx->local_vars, true);
     tactyk_dblock__clear(ctx->code_template);
+    ctx->is_terminal = false;
     ctx->valid_parse_result = false;
 
     ctx->pl_operand_raw = cmd->tokens;
@@ -274,7 +277,7 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     tactyk_dblock__append(next_instruction_label, cmd_idx_next);
     tactyk_dblock__put(ctx->local_vars, "$NEXT_INSTRUCTION", next_instruction_label);
     
-    bool result = tactyk_emit__ExecSubroutine(ctx, data);
+    bool result =  tactyk_emit__ExecSubroutine(ctx, data);
     
     tactyk_report__dblock_list_vars("LOCAL VARIABLES", ctx->local_vars);
     if (result == false) {
@@ -284,6 +287,10 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     else if (code_len == cmd->asm_code->length) {
         tactyk_report__msg("Code generation failed");
         error(NULL, NULL);
+    }
+    if ( (ctx->is_terminal == false) && (ctx->insert_branch_to_next_instruction != NULL) ) {
+        tactyk_emit__ExecSubroutine(ctx, ctx->insert_branch_to_next_instruction->vopcfg);
+        // ctx->insert_branch_to_next_instruction->func(ctx, data);
     }
     ctx->pl_operand_raw = NULL;
     ctx->pl_operand_resolved = NULL;
@@ -918,6 +925,11 @@ bool tactyk_emit__VCode(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
         }
         code_template = code_template->next;
     }
+    return true;
+}
+
+bool tactyk_emit__Terminal(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    ctx->is_terminal = true;
     return true;
 }
 

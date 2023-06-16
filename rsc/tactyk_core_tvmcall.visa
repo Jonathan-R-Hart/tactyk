@@ -294,6 +294,7 @@ instruction tvmpush
         ; the only thing missing here is the return index (not avaialble until the actual jump).
         jmp $NEXT_INSTRUCTION
 instruction tvmjump
+  terminal
   $KW dword
   scramble rTEMPA $LD_CMDNEXT_IMMEDIATE $COMMAND_INDEX_NEXT
   code
@@ -339,6 +340,7 @@ instruction tvmjump
     jmp [rMAPPER]
 
 instruction tvmreturn
+  terminal
   code
     mov rTEMPC, fs:[context.stack + random_const_FS]
     mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]

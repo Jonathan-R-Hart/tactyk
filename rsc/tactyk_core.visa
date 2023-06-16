@@ -36,10 +36,9 @@
 
 header tactyk_asmvm_header.asm
 
-# enables all of aggressive binary executable randomization
-settings
-  $ABXR_SCRAMBLE_IMMEDIATES
-  $ABXR_RANDOMIZE_EXECUTABLE
+subroutine next-instruction
+  code
+    jmp $NEXT_INSTRUCTION
 
 # immediate scrambling config
 # This sets up the scrambling system whereby the script-provided immediate values are scrabled in executable memory and
@@ -68,6 +67,7 @@ subroutine scramble
         # xor %[$SC_DEST]_32, $SC_DIFF_LOW
 
 instruction exit
+  terminal
   $KW dword
   scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX
   code
@@ -85,6 +85,7 @@ instruction exit
     ret
 
 instruction break
+  terminal
   $KW dword
   scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
   code
@@ -360,6 +361,7 @@ instruction negate
   sub simple_unary_instruction
 
 instruction goto
+  terminal
   operand
     type branch data const integer
     $JTARGET $VALUE
@@ -447,6 +449,7 @@ instruction if
   sub cjump
 
 instruction lwcall
+  terminal
   operand
     type branch data const integer
     $JTARGET $VALUE
@@ -509,6 +512,7 @@ instruction lwcall
         jmp [rMAPPER]
 
 instruction lwreturn
+  terminal
   code
     cmp rLWCSI_16, fs:[context.lwcall_floor + random_const_FS]
     errorle STATUS_STACK_UNDERFLOW

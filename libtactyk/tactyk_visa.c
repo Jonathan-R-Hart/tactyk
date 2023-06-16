@@ -18,6 +18,7 @@
 #include "tactyk_emit.h"
 #include "tactyk_dblock.h"
 #include "tactyk.h"
+#include "tactyk_report.h"
 
 // tactyk config is intended to have shallow nesting, but a high value is used here because
 //  it was decided that "depth" as a direct indentation measurement would be simpler to implement.
@@ -161,6 +162,12 @@ void tactyk_visa__init_emit(struct tactyk_emit__Context *ctx) {
             assert(ival < t_count);
             ctx->visa_token_invmap[ival] = key;
         }
+    }
+    
+    ctx->insert_branch_to_next_instruction = tactyk_dblock__get(ctx->subroutine_table, "next-instruction");
+    if (ctx->insert_branch_to_next_instruction == NULL) {
+        tactyk_report__msg("subroutine 'next-instruction' is not defined");
+        warn(NULL, NULL);
     }
 }
 

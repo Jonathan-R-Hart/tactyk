@@ -146,6 +146,9 @@ struct tactyk_emit__Context {
     bool valid_parse_result;
     struct tactyk_dblock__DBlock *pl_operand_raw;
     struct tactyk_dblock__DBlock *pl_operand_resolved;
+    
+    bool is_terminal;
+    struct tactyk_emit__subroutine_spec *insert_branch_to_next_instruction;
 
     tactyk_emit__error_handler error_handler;
 
@@ -242,7 +245,9 @@ bool tactyk_emit__NullArg(struct tactyk_emit__Context *ctx, struct tactyk_dblock
 
 bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__DoSub(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
-bool tactyk_emit__Exit(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+
+bool tactyk_emit__Terminal(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+
 //bool tactyk_emit__Subroutine(struct tactyk_emit_new__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 
 
