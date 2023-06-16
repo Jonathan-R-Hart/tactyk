@@ -2,7 +2,7 @@
 #   (In TACTYK, the 8 and 16 char string is KING ... of alphanumeric data processing ... because it is as easy to handle as an integer or floating point number) 
 #
 # Usage:
-#   Bind a memblock with text to addr1
+#   Bind a memblock with text to $T
 #   assign a space delimiter to rA
 #   assign a line delimiter to rB
 #   lwcall MINISTRING__INIT
@@ -10,7 +10,7 @@
 #   lwcall MINISTRING__CONTEXT_EXIT to de-activate the MINISTRING context
 #   While a MINISTRING context is active:
 #     lwcall MINISTRING__NEXTLINE to select the next line
-#     lwcall MINISTRING__READ_STR8 to read the next 8 chars and store them on register rA (stops at a token delimiter or end of line)
+#     lwcall MINISTRING__READ._STR8 to read the next 8 chars and store them on register rA (stops at a token delimiter or end of line)
 #     lwcall MINISTRING__READ_STR16 to read next 16 chars and store them on register xA (stops at a token delimiter or end of line)
 #     lwcall MINISTRING__TOKENIZE to read the line, identify up to 14 tokens, extract them, and load them onto xmm registers (tokens are clipped at 16 chars if long)
 #
@@ -28,35 +28,35 @@
 # NOTES:
 #   MINISTRING is the first *real* component that makes proper use of the TACTYK microcontext.
 
-MINISTRING__INIT:
+MINISTRING__INIT.$T:
   stash s31h rB
   assign rF rA
   assign rA rB
   assign rB 0
-  assign rC addr1.element_bound
-  lwcall SEEK_CHAR
+  assign rC $T.element_bound
+  lwcall SEEK_CHAR.$T
   assign rC rB
   assign rB 0
   block-stash 5 s29 rB
   lwreturn
 
-MINISTRING__CONTEXT_ENTER:
-MINISTRING__CONTEXT_EXIT:
+MINISTRING__CONTEXT_ENTER.$T:
+MINISTRING__CONTEXT_EXIT.$T:
   block-stash 5 swap s29 rB
   lwreturn
 
-MINISTRING__NEXTLINE:
+MINISTRING__NEXTLINE.$T:
   assign rB rC
   inc rB
   assign rE rB
   stash rA s31h
-  assign rC addr1.element_bound
-  lwcall SEEK_CHAR
+  assign rC $T.element_bound
+  lwcall SEEK_CHAR.$T
   assign rC rB
   assign rB rE
   lwreturn
 
-# Search memblock addr1 for a byte with a specific value
+# Search memblock $T for a byte with a specific value
 #
 # input
 #   rA:   byte value to search for 
@@ -66,13 +66,13 @@ MINISTRING__NEXTLINE:
 #   rB:   index of found byte, -1 if not found
 # clobbers
 #   rD
-SEEK_CHAR:
+SEEK_CHAR.$T:
   if rB < rC
-    load byte rD addr1 rB
+    load byte rD $T rB
     if rA == rD
       lwreturn
     inc rB
-    goto SEEK_CHAR
+    goto SEEK_CHAR.$T
   assign rB -1
   lwreturn
   
@@ -86,13 +86,13 @@ SEEK_CHAR:
 #   rA:     result minstring
 # clobbers
 #   rD rE
-MINISTRING__READ_STR8:
+MINISTRING__READ_STR8.$T:
   assign rA 0
   assign rE 0
-  READ_STR8.cont:
+  READ_STR8.cont.$T:
   if rB >= rC
     lwreturn
-  load byte rD addr1 rB
+  load byte rD $T rB
   if rD == rF
     lwreturn
   shift-left rD rE
@@ -101,7 +101,7 @@ MINISTRING__READ_STR8:
   add rE 8
   if rE == 64
     lwreturn
-  goto READ_STR8.cont
+  goto READ_STR8.cont.$T
 
 # Read an 16-byte "ministring"
 #
@@ -113,82 +113,82 @@ MINISTRING__READ_STR8:
 #   xA:     result minstring
 # clobbers
 #   rA rB rD rE
-MINISTRING__READ:
-MINISTRING__READ_STR16:
-  lwcall MINISTRING__READ_STR8
+MINISTRING__READ.$T:
+MINISTRING__READ_STR16.$T:
+  lwcall MINISTRING__READ_STR8.$T
   xassign xA int64 0 rA
-  lwcall MINISTRING__READ_STR8
+  lwcall MINISTRING__READ_STR8.$T
   xassign xA int64 1 rA
   lwreturn
 
-MINISTRING__TOKENIZE:
-  lwcall MINISTRING__READ
+MINISTRING__TOKENIZE.$T:
+  lwcall MINISTRING__READ.$T
   stash sA xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xB xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xC xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xD xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xE xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xF xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xG xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xH xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xI xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xJ xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xK xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xL xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xM xA
-  lwcall MINISTRING__TOKENIZE.next
-  if rB >= rC MINISTRING__TOKENIZE.ret
-  lwcall MINISTRING__READ
+  lwcall MINISTRING__TOKENIZE.next.$T
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  lwcall MINISTRING__READ.$T
   xassign xN xA
-  if rB >= rC MINISTRING__TOKENIZE.ret
-MINISTRING__TOKENIZE.next:
+  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+MINISTRING__TOKENIZE.next.$T:
   assign rA rF
-  lwcall SEEK_CHAR
+  lwcall SEEK_CHAR.$T
   add rB 1
   if rB == 0
     assign rB rC
   lwreturn
-MINISTRING__TOKENIZE.ret:
+MINISTRING__TOKENIZE.ret.$T:
   stash xA sA
   lwreturn
 
-MINISTRING__PRINT_TOKENS:
+MINISTRING__PRINT_TOKENS.$T:
   tcall print-text-xa
   tcall print-space
   tcall print-text-xb
