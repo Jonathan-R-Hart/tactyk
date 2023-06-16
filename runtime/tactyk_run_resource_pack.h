@@ -36,6 +36,11 @@ struct tactyk_run__exportable {
     void *data;
 };
 
+struct tactyk_run__module {
+    struct tactyk_dblock__DBlock *pl_src_code;
+    struct tactyk_dblock__DBlock *alias_table;
+};
+
 typedef bool (*tactyk_run__rsc_item_handler)(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data);
 
 void tactyk_run__init();

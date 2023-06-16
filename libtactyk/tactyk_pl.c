@@ -73,7 +73,7 @@ struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx) 
     for (int32_t i = 0; i < 256; i++) {
         ctx->alias_chars[i] = false;
     }
-    char *achars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.";
+    char *achars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     int32_t nc_count = strlen(achars);
     for (int32_t i = 0; i < nc_count; i++) {
         char ch = achars[i];
@@ -158,16 +158,25 @@ void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblo
 }
 
 void tactyk_pl__rewrite_tokens(struct tactyk_pl__Context *plctx, struct tactyk_dblock__DBlock *dbcode) {
+    tactyk_report__reset();
+    tactyk_report__msg("REWRITE");
     struct tactyk_dblock__DBlock *dbstack[256];
     int64_t dbstack_index = 0;
     dbstack[0] = dbcode;
     bool escape_block = false;
     while (dbcode != NULL) {
         struct tactyk_dblock__DBlock *token = dbcode->token;
-        struct tactyk_dblock__DBlock *alt = tactyk_dblock__get(plctx->alias_table, token);
-        if ( (alt != NULL) && tactyk_dblock__contains_char(token, '$') ) {
-            struct tactyk_dblock__DBlock *ntoken = tactyk_dblock__interpolate(token, '$', plctx->alias_chars, plctx->alias_table, NULL);
-            tactyk_dblock__set_content(token, ntoken);
+        while (token != NULL) {
+            if ( tactyk_dblock__contains_char(token, '$') ) {
+                tactyk_report__dblock("Original line", dbcode);
+                tactyk_report__indent(2);
+                tactyk_report__dblock("Original token", token);
+                struct tactyk_dblock__DBlock *ntoken = tactyk_dblock__interpolate(token, '$', plctx->alias_chars, plctx->alias_table, NULL);
+                tactyk_dblock__set_content(token, ntoken);
+                tactyk_report__dblock("Rewritten token", ntoken);
+                tactyk_report__indent(-2);
+            }
+            token = token->next;
         }
         if (dbcode->child != NULL) {
             dbstack[dbstack_index] = dbcode;

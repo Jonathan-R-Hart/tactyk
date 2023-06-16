@@ -51,7 +51,7 @@ struct tactyk_run__RSC* tactyk_run__load_resource_pack(char *manifest_filename, 
     struct tactyk_run__RSC *rsc = calloc(1, sizeof(struct tactyk_run__RSC));
     
     rsc->data_table = tactyk_dblock__new_table(256);
-    rsc->module_table = tactyk_dblock__new_table(256);
+    rsc->module_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_run__module));
     rsc->program_table = tactyk_dblock__new_table(256);
     rsc->export_table = tactyk_dblock__new_managedobject_table(256, sizeof(struct tactyk_run__exportable));
     
@@ -271,11 +271,23 @@ bool tactyk_run__rsc__load_module(struct tactyk_run__RSC *rsc, struct tactyk_dbl
     
     tactyk_report__string("Load module-file", filename_text);
     tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes);    
-    tactyk_report__int("Loaded bytes", len);
+    tactyk_report__int("Loaded bytes", len);    
+    struct tactyk_run__module *mod = tactyk_dblock__new_managedobject(rsc->module_table, name);
+    mod->pl_src_code = tactyk_run__rsc__to_structured_text(bytes);
+    tactyk_dblock__set_persistence_code(mod->pl_src_code, 123123);
     
-    struct tactyk_dblock__DBlock *tactyk_pl_module_src = tactyk_run__rsc__to_structured_text(bytes);
-    
-    tactyk_dblock__put(rsc->module_table, name, tactyk_pl_module_src);
+    // get alias table from structured text
+    struct tactyk_dblock__DBlock *mdata = data->child;
+    if (mdata != NULL) {
+        mod->alias_table = tactyk_dblock__new_table(256);
+        tactyk_dblock__set_persistence_code(mod->alias_table, 123123);
+        while (mdata != NULL) {
+            struct tactyk_dblock__DBlock *k = mdata->token;
+            struct tactyk_dblock__DBlock *v = mdata->token->next;
+            tactyk_dblock__put(mod->alias_table, k,v);
+            mdata = mdata->next;
+        }
+    }
 }
 bool tactyk_run__rsc__load_data(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data) {
     
@@ -383,14 +395,16 @@ bool tactyk_run__rsc__build_program(struct tactyk_run__RSC *rsc, struct tactyk_d
         error(NULL, NULL);
     }
     while (module_name != NULL) {
-        struct tactyk_dblock__DBlock *module_src = (struct tactyk_dblock__DBlock*) tactyk_dblock__get(rsc->module_table, module_name);
+        struct tactyk_run__module *module = (struct tactyk_run__module*) tactyk_dblock__get(rsc->module_table, module_name);
         
-        if (module_src == NULL) {
+        if (module == NULL) {
             tactyk_report__dblock("tactyk module not defined", module_name);
             error(NULL, NULL);
         }
         
-        tactyk_pl__load_dblock(plctx, module_src);
+        plctx->alias_table = module->alias_table;
+        tactyk_pl__load_dblock(plctx, module->pl_src_code);
+        plctx->alias_table = NULL;
         
         module_name = module_name->next;
     }
