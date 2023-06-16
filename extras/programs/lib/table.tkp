@@ -118,10 +118,8 @@ MINITABLE__LOOKUP:
   
   assign rE minitable_iterations
   load qword rF addr1 s_minitable.size
-  
-  # goto MINITABLE_LOOKUP_PLY
-  
-  MINITABLE_LOOKUP_PLY:
+    
+  MINITABLE_LOOKUP_LOOP:
     assign rD rC
     and rD minitable_kmask
     
@@ -147,7 +145,7 @@ MINITABLE__LOOKUP:
     rotate-right rC minitable_krotate
     
     # This should never reach 0
-    if rE > 0 MINITABLE_LOOKUP_PLY
+    if rE > 0 MINITABLE_LOOKUP_LOOP
 
 MINITABLE__ADD_NODE:
   store word addr1 rD rF
