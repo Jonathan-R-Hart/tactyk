@@ -645,7 +645,7 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
     struct tactyk_dblock__DBlock *param = vopcfg->token;
     while (param != NULL) {
         if (!tactyk_dblock__try_parseuint(&max_ops, param)) {
-            if (tactyk_dblock__equals_c_string(param, "permute-code")) {
+            if (ctx->use_extra_permutations && tactyk_dblock__equals_c_string(param, "permute-code")) {
                 permute = true;
             }
             else if (tactyk_dblock__equals_c_string(param, "no-duplicates")) {
