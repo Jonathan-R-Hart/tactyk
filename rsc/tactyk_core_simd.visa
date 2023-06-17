@@ -1966,7 +1966,7 @@ instruction xsqrt
 #  $XOP hdiv
 #  sub x-unary-op
 
-subroutine compare-packed-int
+subroutine packed-test-int
   # more synthetic ops
   select $CJUMP
     case jl
@@ -2002,24 +2002,15 @@ subroutine compare-packed-int
         movdqa xTEMPA, $A
         pcmpgt$WORD xTEMPA, $B
 
-subroutine packed-cjump-any
+subroutine packed-test-any
   code
     movhlps xTEMPB, xTEMPA
     por xTEMPA, xTEMPB
     movq rTEMPA, xTEMPA
     cmp rTEMPA, 0
     jne .pass
-    xor rTEMPA, rTEMPA
-    pxor xTEMPA, xTEMPA
-    pxor xTEMPB, xTEMPB
-    jmp $NEXT_INSTRUCTION
-    .pass:
-    xor rTEMPA, rTEMPA
-    pxor xTEMPA, xTEMPA
-    pxor xTEMPB, xTEMPB
-    jmp $JTARGET
 
-subroutine packed-cjump-all
+subroutine packed-test-all
   code
     movhlps xTEMPB, xTEMPA
     pand xTEMPA, xTEMPB
@@ -2027,39 +2018,30 @@ subroutine packed-cjump-all
     mov rD, rTEMPA
     cmp rTEMPA, -1
     je .pass
-    xor rTEMPA, rTEMPA
-    pxor xTEMPA, xTEMPA
-    pxor xTEMPB, xTEMPB
-    jmp $NEXT_INSTRUCTION
-    .pass:
-    xor rTEMPA, rTEMPA
-    pxor xTEMPA, xTEMPA
-    pxor xTEMPB, xTEMPB
-    jmp $JTARGET
 
-extend subroutine cjump select-template
-  case XipTXipL XipTXipB
-    sub compare-packed-int
-    sub packed-cjump-any
-  case XipTaXipL XipTaXipB
-    sub compare-packed-int
-    sub packed-cjump-all
-  case Xf32pTXf32pL Xf32pTXf32pB
+extend subroutine test select-template
+  case XipTXip
+    sub packed-test-int
+    sub packed-test-any
+  case XipTaXip
+    sub packed-test-int
+    sub packed-test-all
+  case Xf32pTXf32p
     code
       movdqa xTEMPA, $A
       cmpps xTEMPA, $B, $VPRED
     sub packed-cjump-any
-  case Xf32pTaXf32pL Xf32pTaXf32pB
+  case Xf32pTaXf32p
     code
       movdqa xTEMPA, $A
       cmpps xTEMPA, $B, $VPRED
     sub packed-cjump-all
-  case Xf64pTXf64pL Xf64pTXf64pB
+  case Xf64pTXf64p
     code
       movdqa xTEMPA, $A
       cmppd xTEMPA, $B, $VPRED
     sub packed-cjump-any
-  case Xf64pTaXf64pL Xf64pTaXf64pB
+  case Xf64pTaXf64p
     code
       movdqa xTEMPA, $A
       cmppd xTEMPA, $B, $VPRED

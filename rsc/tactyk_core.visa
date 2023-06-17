@@ -160,7 +160,7 @@ subroutine binary_instruction
     type data xmmx
     $A $VALUE
   operand
-    type data xmmx const fconst integer float
+    type data xmmx const fconst integer float string
     $B $VALUE
     scramble rTEMPC
     $LD_B_IMMEDIATE $SC_LD
@@ -170,7 +170,7 @@ subroutine binary_instruction
     case DD
       code
         $INSTRUCTION $A, $B
-    case DI DC
+    case DI DC DS
       code
         $LD_B_IMMEDIATE
         $INSTRUCTION $A, $TGT_B
@@ -233,7 +233,7 @@ instruction mul
     type data xmmx
     $A $VALUE
   operand
-    type data xmmx const fconst integer float
+    type data xmmx const fconst integer float string
     $B $VALUE
     scramble rTEMPC
     $LD_B_IMMEDIATE $SC_LD
@@ -246,7 +246,7 @@ instruction mul
         imul $B
         mov $A, rTEMPA
         xor rTEMPA, rTEMPA
-    case DI DC
+    case DI DC DS
       code
         $LD_B_IMMEDIATE_INDIRECT
         mov rTEMPA, $A
@@ -260,7 +260,7 @@ instruction div
     type data xmmx
     $A $VALUE
   operand
-    type data xmmx const fconst integer float
+    type data xmmx const fconst integer float string
     $B $VALUE
     scramble rTEMPC
     $LD_B_IMMEDIATE $SC_LD
@@ -280,7 +280,7 @@ instruction div
         mov $A, rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPD, rTEMPD
-    case DIN DCN
+    case DIN DCN DSN
       code
         $LD_B_IMMEDIATE_INDIRECT
         cmp rTEMPC, 0
@@ -302,7 +302,7 @@ instruction div
         mov $A, rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPD, rTEMPD
-    case DIL DCL
+    case DIL DCL DSL
       code
         $LD_B_IMMEDIATE_INDIRECT
         cmp rTEMPC, 0
@@ -404,7 +404,7 @@ instruction goto
 
 subroutine test
   operand
-    type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed  data integer const fconst float
+    type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed  data integer const fconst float string
     $A $VALUE
     scramble rTEMPA
     $LD_IMMEDIATE_A $SC_LD
@@ -414,12 +414,27 @@ subroutine test
     type comparator
     $CJUMP $VALUE
   operand
-    type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed data integer const fconst float
+    type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed data integer const fconst float string
     $B $VALUE
     scramble rTEMPC
     $LD_IMMEDIATE_B $SC_LD
     $LD_IMMEDIATE_B_INDIRECT $SC_LD_INDIRECT
     $TGT_B $SC_TARGET
+  select-template
+    case DTD DTD
+      code
+        cmp $A, $B
+        $CJUMP .pass
+    case DTI DTC DTS
+      code
+        $LD_IMMEDIATE_B
+        cmp $A, $TGT_B
+        $CJUMP .pass
+    case ITD CTD STD
+      code
+        $LD_IMMEDIATE_A_INDIRECT
+        cmp rTEMPA, $B
+        $CJUMP .pass
 
 subroutine cjump
   operand
@@ -430,38 +445,15 @@ subroutine cjump
         $NEXT_INSTRUCTION $CODEBLOCK_CHILD_CLOSE
         $JTARGET $CODEBLOCK_CHILD_FIRST
       case false
-  select-template
-    case DTDL DTDB
-      code
-        cmp $A, $B
-        $CJUMP .pass
-        jmp $NEXT_INSTRUCTION
-        .pass:
-        jmp $JTARGET
-    case DTIL DTCL DTIB DTCB
-      code
-        $LD_IMMEDIATE_B
-        cmp $A, $TGT_B
-        $CJUMP .pass
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
-        .pass:
-        xor rTEMPC, rTEMPC
-        jmp $JTARGET
-    case ITDL CTDL ITDB CTDB
-      code
-        $LD_IMMEDIATE_A_INDIRECT
-        cmp rTEMPA, $B
-        $CJUMP .pass
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-        .pass:
-        xor rTEMPA, rTEMPA
-        jmp $JTARGET
+    code
+      jmp $NEXT_INSTRUCTION
+      .pass:
+      jmp $JTARGET
 
 instruction if
   terminal
   sub test
+  reset-template-selector
   sub cjump
 
 instruction lwcall
