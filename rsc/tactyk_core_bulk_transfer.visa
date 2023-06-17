@@ -87,6 +87,7 @@ instruction block-store
     $SRC $VALUE
   select-template
     case BqsADD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA, $ELEMENT_BOUND_MODIFIER_64
@@ -104,9 +105,10 @@ instruction block-store
         3 mov [$ADDRESS_REGISTER+$OFFSET+16], $SRC~2
         2 mov [$ADDRESS_REGISTER+$OFFSET+8], $SRC~1
         1 mov [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
-      code
-        xor rTEMPA, rTEMPA
+        1 $RESET_TEMP
     case BqsAID BqsACD
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -125,11 +127,10 @@ instruction block-store
         3 mov [$ADDRESS_REGISTER+rTEMPC+16], $SRC~2
         2 mov [$ADDRESS_REGISTER+rTEMPC+8], $SRC~1
         1 mov [$ADDRESS_REGISTER+rTEMPC+0], $SRC~0
-      code
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        1 $RESET_TEMP
     
     case BqsADX BqlADX
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA, $ELEMENT_BOUND_MODIFIER_64
@@ -155,9 +156,10 @@ instruction block-store
         3 movq [$ADDRESS_REGISTER+$OFFSET+16], $SRC~2
         2 movq [$ADDRESS_REGISTER+$OFFSET+8], $SRC~1
         1 movq [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
-      code
-        xor rTEMPA, rTEMPA
+        1 $RESET_TEMP
     case BqsAIX BqsACX BqlAIX BqlACX
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -184,11 +186,10 @@ instruction block-store
         3 movq [$ADDRESS_REGISTER+rTEMPC+16], $SRC~2
         2 movq [$ADDRESS_REGISTER+rTEMPC+8], $SRC~1
         1 movq [$ADDRESS_REGISTER+rTEMPC+0], $SRC~0
-      code
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        1 $RESET_TEMP
     
     case BqsADXx BqlADXx
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA, $ELEMENT_BOUND_MODIFIER_128
@@ -214,9 +215,10 @@ instruction block-store
         3 movdqu [$ADDRESS_REGISTER+$OFFSET+32], $SRC~2
         2 movdqu [$ADDRESS_REGISTER+$OFFSET+16], $SRC~1
         1 movdqu [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
-      code
-        xor rTEMPA, rTEMPA
+        1 $RESET_TEMP
     case BqsAIXx BqsACXx BqlAIXx BqlACXx
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -243,9 +245,7 @@ instruction block-store
         3 movdqu [$ADDRESS_REGISTER+$OFFSET+32], $SRC~2
         2 movdqu [$ADDRESS_REGISTER+$OFFSET+16], $SRC~1
         1 movdqu [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
-      code
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        1 $RESET_TEMP
 
 instruction block-load
   operand
@@ -263,6 +263,7 @@ instruction block-load
     $LD_OFFSET_IMMEDIATE $SC_LD_INDIRECT
   select-template
     case BqsDAD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA, $ELEMENT_BOUND_MODIFIER_64
@@ -280,9 +281,10 @@ instruction block-load
         3 mov $DEST__DATA_REG~2, [$ADDRESS_REGISTER+$OFFSET+16]
         2 mov $DEST__DATA_REG~1, [$ADDRESS_REGISTER+$OFFSET+8]
         1 mov $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
-      code
-        xor rTEMPA, rTEMPA
+        1 $RESET_TEMP
     case BqsDAI BqsDAC
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -301,11 +303,10 @@ instruction block-load
         3 mov $DEST__DATA_REG~2, [$ADDRESS_REGISTER+rTEMPC+16]
         2 mov $DEST__DATA_REG~1, [$ADDRESS_REGISTER+rTEMPC+8]
         1 mov $DEST__DATA_REG~0, [$ADDRESS_REGISTER+rTEMPC+0]
-      code
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        1 $RESET_TEMP
     
     case BqsXAD BqlXAD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA, $ELEMENT_BOUND_MODIFIER_64
@@ -331,9 +332,10 @@ instruction block-load
         3 movq $DEST__DATA_REG~2, [$ADDRESS_REGISTER+$OFFSET+16]
         2 movq $DEST__DATA_REG~1, [$ADDRESS_REGISTER+$OFFSET+8]
         1 movq $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
-      code
-        xor rTEMPA, rTEMPA
+        1 $RESET_TEMP
     case BqsXAI BqlXAI BqsXAC BqlXAC
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -360,11 +362,10 @@ instruction block-load
         3 movq $DEST__DATA_REG~2, [$ADDRESS_REGISTER+rTEMPC+16]
         2 movq $DEST__DATA_REG~1, [$ADDRESS_REGISTER+rTEMPC+8]
         1 movq $DEST__DATA_REG~0, [$ADDRESS_REGISTER+rTEMPC+0]
-      code
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        1 $RESET_TEMP
     
     case BqsXxAD BqlXxAD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA, $ELEMENT_BOUND_MODIFIER_128
@@ -390,9 +391,10 @@ instruction block-load
         3 movdqu $DEST__DATA_REG~2, [$ADDRESS_REGISTER+$OFFSET+32]
         2 movdqu $DEST__DATA_REG~1, [$ADDRESS_REGISTER+$OFFSET+16]
         1 movdqu $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
-      code
-        xor rTEMPA, rTEMPA
+        1 $RESET_TEMP
     case BqsXxAI BqlXxAI BqsXxAC BqlXxAC
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -419,9 +421,7 @@ instruction block-load
         3 movdqu $DEST__DATA_REG~2, [$ADDRESS_REGISTER+$OFFSET+32]
         2 movdqu $DEST__DATA_REG~1, [$ADDRESS_REGISTER+$OFFSET+16]
         1 movdqu $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
-      code
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        1 $RESET_TEMP
 
 instruction spread
   operand
@@ -517,6 +517,7 @@ instruction spread
     $TGT_14 $SC_TARGET
     $LD_IMMEDIATE_14 $SC_LD
     $LD_IMMEDIATE_14_INDIRECT $SC_LD_INDIRECT
+    sub tmp $TGT_0
   select-template
     case DI
       code
@@ -811,4 +812,4 @@ instruction spread
         $LD_IMMEDIATE_13_INDIRECT
         movq $TARGET~13, rTEMPA
   code
-    xor rTEMPA, rTEMPA
+    $RESET_TEMP

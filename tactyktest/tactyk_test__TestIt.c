@@ -169,6 +169,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     emitctx->use_exopointers = test_state->use_exopointers;
     emitctx->use_extra_permutations = test_state->use_extra_permutations;
     emitctx->use_immediate_scrambling = test_state->use_immediate_scrambling;
+    emitctx->use_temp_register_autoreset = test_state->use_temp_register_autoreset;;
     vm = tactyk_asmvm__new_vm();
     vmctx = tactyk_asmvm__new_context(vm);
     shadow_vmctx = calloc(1, sizeof(struct tactyk_asmvm__Context));

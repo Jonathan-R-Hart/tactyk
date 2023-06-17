@@ -193,6 +193,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 emitctx->use_exopointers = false;
                 emitctx->use_extra_permutations = false;
                 emitctx->use_immediate_scrambling = false;
+                emitctx->use_temp_register_autoreset = false;
             }
         }
         else {

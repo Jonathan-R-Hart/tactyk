@@ -10,6 +10,7 @@ instruction float-to-int--cast-mode
         $CONV_FLAGS 0x00004000
       case down round-down
         $CONV_FLAGS 0x00002000
+  sub tmp a
   code
     stmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
     mov rTEMPA_32, fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
@@ -17,7 +18,7 @@ instruction float-to-int--cast-mode
     or rTEMPA_32, $CONV_FLAGS
     mov fs:[context.registers + rbtactyk.mxcsr + random_const_FS ], rTEMPA_32
     ldmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS]
-    jmp $NEXT_INSTRUCTION
+    $RESET_TEMP
 
 instruction xassign
   $SSE_WORD X
@@ -80,285 +81,280 @@ instruction xassign
   select-template
     case XF32X
       sub sse-insps-arg--Szero
+      sub tmp xa
       code
         cvtsd2ss xTEMPA, $SRC
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF32XF32
       sub sse-insps-arg--direct
+      sub tmp xa
       code
         insertps $DEST~$DAUG, $SRC~$SAUG, $INSPS_arg
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF32XF64
       sub sse-insps-arg--Szero
+      sub tmp xa
+      sub tmp ra
       code
         pextrq rTEMPA, $SRC~$SAUG, $SIDX
         movq xTEMPA, rTEMPA
         cvtsd2ss xTEMPA, xTEMPA
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
-        xor rTEMPA, rTEMPA
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF32XI64 XF32XI32 XF32XI16 XF32XI8
       sub sse-insps-arg--Szero
+      sub tmp xa
       code
         pextr$SSW rTEMPA$SRXT,  $SRC~$SAUG, $SIDX
         cvtsi2ss xTEMPA, rTEMPA$SRXT
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF32D
       sub sse-insps-arg--Szero
+      sub tmp xa
       code
         cvtsi2ss xTEMPA, $SRC
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
         pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF32I XF32C
       sub sse-insps-arg--Szero
+      sub tmp xa
+      sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
         cvtsi2ss xTEMPA, rTEMPA_32
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF32F XF32Cf
       sub sse-insps-arg--Szero
+      sub tmp xa
+      sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
         cvtsd2ss xTEMPA, xTEMPA
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF64X
+      sub tmp ra
       code
         movq rTEMPA, $SRC
         pinsrq $DEST~$DAUG, rTEMPA, $DIDX
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF64XF32
       sub sse-insps-arg--Dzero
       sub sse-qword-put
+      sub tmp xa
       code
         insertps xTEMPA, $SRC~$SAUG, $INSPS_arg
         cvtss2sd xTEMPA, xTEMPA
         $QPUTOP $DEST~$DAUG, xTEMPA
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF64XF64
       select $DIDX~$SIDX
         case 0~0
           code
             movsd $DEST~$DAUG, $SRC~$SAUG
-            jmp $NEXT_INSTRUCTION
         case 1~0
           code
             movlhps $DEST~$DAUG, $SRC~$SAUG
-            jmp $NEXT_INSTRUCTION
         case 0~1
           code
             movhlps $DEST~$DAUG, $SRC~$SAUG
-            jmp $NEXT_INSTRUCTION
         case 1~1
+          sub tmp xa
           code
             movhlps xTEMPA, $SRC~$SAUG
             movlhps $DEST~$DAUG, xTEMPA
-            pxor xTEMPA, xTEMPA
-            jmp $NEXT_INSTRUCTION
+            $RESET_TEMP
     case XF64D
       sub sse-qword-put
+      sub tmp xa
       code
         cvtsi2sd xTEMPA, $SRC
         $QPUTOP $DEST~$DAUG, xTEMPA
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF64I XF64C
       sub sse-qword-put
+      sub tmp xa
+      sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
         cvtsi2sd xTEMPA, rTEMPA
         $QPUTOP $DEST~$DAUG, xTEMPA
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF64XI64 XF64XI32 XF64XI16 XF64XI8
       sub sse-qword-put
+      sub tmp xa
+      sub tmp ra
       code
         pextr$SSW rTEMPA$SRXT, $SRC~$SAUG, $SIDX
         cvtsi2sd xTEMPA, rTEMPA
         $QPUTOP $DEST~$DAUG, xTEMPA
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF64F XF64Cf
       sub sse-qword-put
+      sub tmp xa
+      sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
         $QPUTOP $DEST~$DAUG, xTEMPA
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     
     case XXF32
       sub sse-insps-arg--Dzero
+      sub tmp xa
       code
         insertps xTEMPA, $SRC~$SAUG, $INSPS_arg
         pxor $DEST~$DAUG, $DEST~$DAUG
         cvtss2sd $DEST~$DAUG, xTEMPA
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XXF64
       sub sse-qword-get
+      sub tmp xa
       code
         $QGETOP xTEMPA, $SRC~$SAUG
         movq $DEST~$DAUG, xTEMPA
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XXI64 XXI32 XXI16 XXI8
       sub sse-qword-put
+      sub tmp ra
       code
         pextr$SSW rTEMPA$SRXT, $SRC~$SAUG, $SIDX
         pxor $DEST, $DEST
         cvtsi2sd $DEST, rTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XX
       code
         movdqa $DEST, $SRC
-        jmp $NEXT_INSTRUCTION
     case XD
       code
         pxor $DEST, $DEST
         cvtsi2sd $DEST, $SRC
-        jmp $NEXT_INSTRUCTION
     case XI XC
+      sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
         pxor $DEST, $DEST
         cvtsi2sd $DEST, rTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XF XCf
       sub sse-qword-put
+      sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
         movq $DEST~$DAUG, rTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     
     case XI8X XI16X XI32X XI64X
+      sub tmp ra
       code
         cvttsd2si rTEMPA, $SRC~$SAUG
         pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XI8XI8 XI16XI8 XI32XI8 XI64XI8  XI8XI16 XI16XI16 XI32XI16 XI64XI16  XI8XI32 XI16XI32 XI32XI32 XI64XI32  XI8XI64 XI16XI64 XI32XI64 XI64XI64
+      sub tmp ra
       code
         pextr$SSW %[rTEMPA]$SRXT, $SRC~$SAUG, $SIDX
         pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XI8XF32 XI16XF32 XI32XF32 XI64XF32
       sub sse-insps-arg--Dzero
+      sub tmp xa
+      sub tmp ra
       code
         insertps xTEMPA, $SRC~$SAUG, $INSPS_arg
         cvttss2si rTEMPA, xTEMPA
         pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
-        xor rTEMPA, rTEMPA
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XI8XF64 XI16XF64 XI32XF64 XI64XF64
       sub sse-qword-get
+      sub tmp xa
+      sub tmp ra
       code
         $QGETOP xTEMPA, $SRC~$SAUG
         cvttsd2si rTEMPA, xTEMPA
         pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
-        xor rTEMPA, rTEMPA
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XI8X XI16X XI32X XI64X
+      sub tmp ra
       code
         cvttsd2si rTEMPA, $SRC~$SAUG
         pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XI8D XI16D XI32D XI64D
       code
         pinsr$DSW $DEST~$DAUG, %[$SRC]$DRXT, $DIDX
-        jmp $NEXT_INSTRUCTION
     case XI8C XI16C XI32C XI64C  XI8I XI16I XI32I XI64I
+      sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
         pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XI8F XI16F XI32F XI64F XI8Cf XI16Cf XI32Cf XI64Cf
       sub sse-qword-put
+      sub tmp xa
+      sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
         cvttsd2si rTEMPA, xTEMPA
         pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     
     case DXF32
       sub sse-insps-arg--Dzero
+      sub tmp xa
       code
         insertps xTEMPA, $SRC~$SAUG, $INSPS_arg
         cvttss2si $DEST, xTEMPA
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case DXF64
       sub sse-qword-get
+      sub tmp xa
       code
         $QGETOP xTEMPA, $SRC~$SAUG
         cvttsd2si $DEST, xTEMPA
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case DXI8 DXI16 DXI32 DXI64
       code
         pextr$SSW %[$DEST]$SRXT, $SRC~$SAUG, $SIDX
-        jmp $NEXT_INSTRUCTION
     case DD
       code 
         mov $DEST, $SRC
-        jmp $NEXT_INSTRUCTION
     case DI DC DS
+      sub tmp ra
       code 
         $LD_A_IMMEDIATE
         mov $DEST, $TGT_A
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case DX
       code
         cvttsd2si $DEST, $SRC
-        jmp $NEXT_INSTRUCTION
     case DF DCf
       sub sse-qword-put
+      sub tmp xa
+      sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
         cvttsd2si $DEST, xTEMPA
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XFF XFCf XCfF XCfCf  XII XIC XCI XCC
+      sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
         movq $DEST, rTEMPA
         $LD_B_IMMEDIATE_INDIRECT
         pinsrq $DEST, rTEMPA, 1
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XFFFF XFFFCf XFFCfF XFFCfCf  XFCfFF XFCfFCf XFCfCfF XFCfCfCf  XCfFFF XCfFFCf XCfFCfF XCfFCfCf  XCfCfFF XCfCfFCf XCfCfCfF XCfCfCfCf
+      sub tmp xa
+      sub tmp xb
+      sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
@@ -376,11 +372,9 @@ instruction xassign
         cvtsd2ss xTEMPA, xTEMPA
         insertps xTEMPB, xTEMPA, 0b00110000
         movdqa $DEST, xTEMPB
-        xor rTEMPA, rTEMPA
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XIIII XIIIC XIICI XIICC  XICII XICIC XICCI XICCC  XCIII XCIIC XCICI XCICC  XCCII XCCIC XCCCI XCCCC
+      sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
         movq $DEST, rTEMPA
@@ -390,26 +384,23 @@ instruction xassign
         pinsrd $DEST, rTEMPA_32, 2
         $LD_D_IMMEDIATE_INDIRECT
         pinsrd $DEST, rTEMPA_32, 3
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case XDD
       code
         movq $DEST, $SRC
         pinsrq $DEST, $SRC_2, 1
-        jmp $NEXT_INSTRUCTION
     case XDDDD
       code
         movq $DEST, $SRC
         pinsrd $DEST, %[$SRC_2]_32, 1
         pinsrd $DEST, %[$SRC_3]_32, 2
         pinsrd $DEST, %[$SRC_4]_32, 3
-        jmp $NEXT_INSTRUCTION
     case XXX
       code
         movq $DEST, $SRC
         movlhps $DEST, $SRC_2
-        jmp $NEXT_INSTRUCTION
     case XXXXX
+      sub tmp xa
       code
         cvtsd2ss $DEST, $SRC
         cvtsd2ss xTEMPA, $SRC_2
@@ -418,8 +409,7 @@ instruction xassign
         insertps $DEST, xTEMPA, 0b00100000
         cvtsd2ss xTEMPA, $SRC_4
         insertps $DEST, xTEMPA, 0b00110000
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
       
 instruction pack
   operand
@@ -434,9 +424,9 @@ instruction pack
     $SRC $VALUE
   select-template
     case F32XX
-      code
-        pxor $DEST, $DEST
+      sub tmp xa
       vcode $SIMD_ARG
+        1 pxor $DEST, $DEST
         1 cvtsd2ss $DEST, $SRC~0
         2 cvtsd2ss xTEMPA, $SRC~1
         2 insertps $DEST, xTEMPA, 16
@@ -444,23 +434,20 @@ instruction pack
         3 insertps $DEST, xTEMPA, 32
         4 cvtsd2ss xTEMPA, $SRC~3
         4 insertps $DEST, xTEMPA, 48
-      code
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
     case I32XX
+      sub tmp xb
       vcode $SIMD_ARG
         1 insertps xTEMPB, $SRC~0, 0
         2 insertps xTEMPB, $SRC~1, 16
         3 insertps xTEMPB, $SRC~2, 32
         4 insertps xTEMPB, $SRC~3, 48
-      code
-        movdqa $DEST, xTEMPB
-        pxor xTEMPB, xTEMPB
-        jmp $NEXT_INSTRUCTION
+        1 movdqa $DEST, xTEMPB
+        1 $RESET_TEMP
     case F32XD
-      code
-        pxor $DEST, $DEST
+      sub tmp xa
       vcode $SIMD_ARG
+        1 pxor $DEST, $DEST
         1 cvtsi2ss $DEST, $SRC~0
         2 cvtsi2ss xTEMPA, $SRC~1
         2 insertps $DEST, xTEMPA, 16
@@ -468,19 +455,14 @@ instruction pack
         3 insertps $DEST, xTEMPA, 32
         4 cvtsi2ss xTEMPA, $SRC~3
         4 insertps $DEST, xTEMPA, 48
-      code
-        pxor xTEMPA, xTEMPA
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
     case I32XD
-      code
-        pxor $DEST, $DEST
       vcode $SIMD_ARG
+        1 pxor $DEST, $DEST
         1 pinsrd $DEST, %[$SRC~0]_32, 0
         2 pinsrd $DEST, %[$SRC~1]_32, 1
         3 pinsrd $DEST, %[$SRC~2]_32, 2
         4 pinsrd $DEST, %[$SRC~3]_32, 3
-      code
-        jmp $NEXT_INSTRUCTION
   
 instruction unpack
   operand
@@ -495,6 +477,8 @@ instruction unpack
     $SRC $VALUE
   select-template
     case F32XX
+      sub tmp xa
+      sub tmp xb
       vcode $SIMD_ARG
         1 insertps xTEMPA, $SRC, 14
         1 pxor $DEST~0, $DEST~0
@@ -508,9 +492,7 @@ instruction unpack
         4 insertps xTEMPA, $SRC, 206
         4 pxor $DEST~3, $DEST~3
         4 cvtss2sd $DEST~3, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
+        1 $RESET_TEMP
     case I32DX
       vcode $SIMD_ARG
         1 pextrd %[$DEST~0]_32, $SRC, 0
@@ -523,8 +505,6 @@ instruction unpack
         2 insertps $DEST~1, $SRC, 78
         3 insertps $DEST~2, $SRC, 142
         4 insertps $DEST~3, $SRC, 206
-      code
-        pxor xTEMPB, xTEMPB
 
 # SUPER-simd vectorized operations!
 # These arithemtical instructions operate on sequences of 1-14 xmm registers
@@ -577,37 +557,41 @@ subroutine x-binary-op
   #  $SRXT $SSE_REG_EXT
   select-template
     case XF XCf
+      sub tmp ra
+      sub tmp xa
       code
         $LD_A_IMMEDIATE
         movq xTEMPA, rTEMPA
         %[$XOP]sd $A, xTEMPA
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case XI XC
+      sub tmp ra
+      sub tmp xa
       code
         $LD_A_IMMEDIATE
         cvtsi2sd xTEMPA, rTEMPA
         %[$XOP]sd $A, xTEMPA
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case XD
+      sub tmp xa
       code
         cvtsi2sd xTEMPA, $B
         %[$XOP]sd $A, xTEMPA
-        pxor xTEMPA, xTEMPA
+        $RESET_TEMP
     case XXF32
+      sub tmp xa
       code
         cvtss2sd xTEMPA, $B
         %[$XOP]sd $A, xTEMPA
-        pxor xTEMPA, xTEMPA
+        $RESET_TEMP
     case XX XXF64
       code
         %[$XOP]sd $A, $B
     case VXvF VXvCf
-      code
-        $LD_A_IMMEDIATE
-        movq xTEMPA, rTEMPA
+      sub tmp xa
       vcode $QTY
+        1 $LD_A_IMMEDIATE
+        1 movq xTEMPA, rTEMPA
         1 %[$XOP]sd $A~0, xTEMPA
         2 %[$XOP]sd $A~1, xTEMPA
         3 %[$XOP]sd $A~2, xTEMPA
@@ -622,9 +606,7 @@ subroutine x-binary-op
         12 %[$XOP]sd $A~11, xTEMPA
         13 %[$XOP]sd $A~12, xTEMPA
         14 %[$XOP]sd $A~13, xTEMPA
-      code
-        xor rTEMPA, rTEMPA
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXXv VXXvF64
       vcode $QTY
         1 %[$XOP]sd $A, $B~0
@@ -642,6 +624,7 @@ subroutine x-binary-op
         13 %[$XOP]sd $A, $B~12
         14 %[$XOP]sd $A, $B~13
     case VXXvF32
+      sub tmp xa
       vcode $QTY
         1 insertps xTEMPA, $B~0, 0
         1 cvtss2sd xTEMPA, xTEMPA
@@ -685,10 +668,11 @@ subroutine x-binary-op
         14 insertps xTEMPA, $B~13, 0
         14 cvtss2sd xTEMPA, xTEMPA
         14 %[$XOP]sd $A, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     
     case XF32F XF32Cf
+      sub tmp ra
+      sub tmp xa
       code
         $LD_A_IMMEDIATE
         movq xTEMPA, rTEMPA
@@ -696,41 +680,45 @@ subroutine x-binary-op
         movddup xTEMPA, xTEMPA
         movsldup xTEMPA, xTEMPA
         %[$XOP]ps $A, xTEMPA
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case XF32I XF32C
+      sub tmp ra
+      sub tmp xa
       code
         $LD_A_IMMEDIATE
         cvtsi2ss xTEMPA, rTEMPA
         movddup xTEMPA, xTEMPA
         movsldup xTEMPA, xTEMPA
         %[$XOP]ps $A, xTEMPA
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case XF32D
+      sub tmp xa
       code
         cvtsi2ss xTEMPA, $B
         movddup xTEMPA, xTEMPA
         movsldup xTEMPA, xTEMPA
         %[$XOP]ps $A, xTEMPA
-        pxor xTEMPA, xTEMPA
+        $RESET_TEMP
     case XF32X
+      sub tmp xa
       code
         cvtsd2ss xTEMPA, $B
         movddup xTEMPA, xTEMPA
         movsldup xTEMPA, xTEMPA
         %[$XOP]ps $A, xTEMPA
-        pxor xTEMPA, xTEMPA
+        $RESET_TEMP
     case XF32XF32
       code
         %[$XOP]ps $A, $B
     case XF32XF64
+      sub tmp xa
       code
         cvtpd2ps xTEMPA, $B
         movddup xTEMPA, xTEMPA
         %[$XOP]ps $A, xTEMPA
-        pxor xTEMPA, xTEMPA
+        $RESET_TEMP
     case VXF32Xv
+      sub tmp xa
       vcode $QTY
         1 cvtsd2ss xTEMPA, $B~0
         1 movddup xTEMPA, xTEMPA
@@ -788,8 +776,7 @@ subroutine x-binary-op
         14 movddup xTEMPA, xTEMPA
         14 movsldup xTEMPA, xTEMPA
         14 %[$XOP]ps $A, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXF32XvF32
       vcode $QTY
         1 %[$XOP]ps $A, $B~0
@@ -807,6 +794,7 @@ subroutine x-binary-op
         13 %[$XOP]ps $A, $B~12
         14 %[$XOP]ps $A, $B~13
     case VXF32XvF64
+      sub tmp xa
       vcode $QTY
         1 cvtpd2ps xTEMPA, $B~0
         1 movddup xTEMPA, xTEMPA
@@ -850,45 +838,50 @@ subroutine x-binary-op
         14 cvtpd2ps xTEMPA, $B~13
         14 movddup xTEMPA, xTEMPA
         14 %[$XOP]ps $A, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     
     case XF64F XF64Cf
+      sub tmp ra
+      sub tmp xa
       code
         $LD_A_IMMEDIATE
         movq xTEMPA, rTEMPA
         movddup xTEMPA, xTEMPA
         %[$XOP]pd $A, xTEMPA
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case XF64I XF64C
+      sub tmp ra
+      sub tmp xa
       code
         $LD_A_IMMEDIATE
         cvtsi2sd xTEMPA, rTEMPA
         movddup xTEMPA, xTEMPA
         %[$XOP]pd $A, xTEMPA
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case XF64D
+      sub tmp xa
       code
         cvtsi2sd xTEMPA, $B
         movddup xTEMPA, xTEMPA
         %[$XOP]pd $A, xTEMPA
-        pxor xTEMPA, xTEMPA
+        $RESET_TEMP
     case XF64X
+      sub tmp xa
       code
         movddup xTEMPA, $B
         %[$XOP]pd $A, xTEMPA
-        pxor xTEMPA, xTEMPA
+        $RESET_TEMP
     case XF64XF32
+      sub tmp xa
       code
         cvtps2pd xTEMPA, $B
         %[$XOP]pd $A, xTEMPA
-        pxor xTEMPA, xTEMPA
+        $RESET_TEMP
     case XF64XF64
       code
         %[$XOP]pd $A, $B
     case VXF64Xv
+      sub tmp xa
       vcode $QTY
         1 movddup xTEMPA, $B~0
         1 %[$XOP]pd $A, xTEMPA
@@ -918,9 +911,9 @@ subroutine x-binary-op
         13 %[$XOP]pd $A, xTEMPA
         14 movddup xTEMPA, $B~13
         14 %[$XOP]pd $A, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXF64XvF32
+      sub tmp xa
       vcode $QTY
         1 cvtps2pd xTEMPA, $B~0
         1 %[$XOP]pd $A, xTEMPA
@@ -950,8 +943,7 @@ subroutine x-binary-op
         13 %[$XOP]pd $A, xTEMPA
         14 cvtps2pd xTEMPA, $B~13
         14 %[$XOP]pd $A, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXF64XvF64
       vcode $QTY
         1 %[$XOP]pd $A, $B~0
@@ -970,10 +962,11 @@ subroutine x-binary-op
         14 %[$XOP]pd $A, $B~13
     
     case VXvF VXvCf
-      code
-        $LD_A_IMMEDIATE
-        movq xTEMPA, rTEMPA
+      sub tmp ra
+      sub tmp xa
       vcode $QTY
+        1 $LD_A_IMMEDIATE
+        1 movq xTEMPA, rTEMPA
         1 %[$XOP]sd $A~0, xTEMPA
         2 %[$XOP]sd $A~1, xTEMPA
         3 %[$XOP]sd $A~2, xTEMPA
@@ -988,14 +981,13 @@ subroutine x-binary-op
         12 %[$XOP]sd $A~11, xTEMPA
         13 %[$XOP]sd $A~12, xTEMPA
         14 %[$XOP]sd $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
+        1 $RESET_TEMP
     case VXvI VXvC
-      code
-        $LD_A_IMMEDIATE
-        cvtsi2sd xTEMPA, rTEMPA
+      sub tmp ra
+      sub tmp xa
       vcode $QTY
+        1 $LD_A_IMMEDIATE
+        1 cvtsi2sd xTEMPA, rTEMPA
         1 %[$XOP]sd $A~0, xTEMPA
         2 %[$XOP]sd $A~1, xTEMPA
         3 %[$XOP]sd $A~2, xTEMPA
@@ -1010,13 +1002,11 @@ subroutine x-binary-op
         12 %[$XOP]sd $A~11, xTEMPA
         13 %[$XOP]sd $A~12, xTEMPA
         14 %[$XOP]sd $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
+        1 $RESET_TEMP
     case VXvD
-      code
-        cvtsi2sd xTEMPA, $B
+      sub tmp xa
       vcode $QTY
+        1 cvtsi2sd xTEMPA, $B
         1 %[$XOP]sd $A~0, xTEMPA
         2 %[$XOP]sd $A~1, xTEMPA
         3 %[$XOP]sd $A~2, xTEMPA
@@ -1031,8 +1021,7 @@ subroutine x-binary-op
         12 %[$XOP]sd $A~11, xTEMPA
         13 %[$XOP]sd $A~12, xTEMPA
         14 %[$XOP]sd $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvX VXvXF64
       vcode $QTY
         1 %[$XOP]sd $A~0, $B
@@ -1050,9 +1039,9 @@ subroutine x-binary-op
         13 %[$XOP]sd $A~12, $B
         14 %[$XOP]sd $A~13, $B
     case VXvXF32
-      code
-        cvtss2sd xTEMPA, $B
+      sub tmp xa
       vcode $QTY
+        1 cvtss2sd xTEMPA, $B
         1 %[$XOP]sd $A~0, xTEMPA
         2 %[$XOP]sd $A~1, xTEMPA
         3 %[$XOP]sd $A~2, xTEMPA
@@ -1067,8 +1056,7 @@ subroutine x-binary-op
         12 %[$XOP]sd $A~11, xTEMPA
         13 %[$XOP]sd $A~12, xTEMPA
         14 %[$XOP]sd $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvXv VXvXvF64
       vcode $QTY
         1 %[$XOP]sd $A~0, $B~0
@@ -1086,6 +1074,7 @@ subroutine x-binary-op
         13 %[$XOP]sd $A~12, $B~12
         14 %[$XOP]sd $A~13, $B~13
     case VXvXvF32
+      sub tmp xa
       vcode $QTY
         1 cvtss2sd xTEMPA, $B~0
         1 %[$XOP]sd $A~0, xTEMPA
@@ -1115,17 +1104,17 @@ subroutine x-binary-op
         13 %[$XOP]sd $A~12, xTEMPA
         14 cvtss2sd xTEMPA, $B~13
         14 %[$XOP]sd $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     
     case VXvF32F VXvF32Cf
-      code
-        $LD_A_IMMEDIATE
-        movq xTEMPA, rTEMPA
-        cvtsd2ss xTEMPA, xTEMPA
-        movddup xTEMPA, xTEMPA
-        movsldup xTEMPA, xTEMPA
+      sub tmp ra
+      sub tmp xa
       vcode $QTY
+        1 $LD_A_IMMEDIATE
+        1 movq xTEMPA, rTEMPA
+        1 cvtsd2ss xTEMPA, xTEMPA
+        1 movddup xTEMPA, xTEMPA
+        1 movsldup xTEMPA, xTEMPA
         1 %[$XOP]ps $A~0, xTEMPA
         2 %[$XOP]ps $A~1, xTEMPA
         3 %[$XOP]ps $A~2, xTEMPA
@@ -1140,16 +1129,15 @@ subroutine x-binary-op
         12 %[$XOP]ps $A~11, xTEMPA
         13 %[$XOP]ps $A~12, xTEMPA
         14 %[$XOP]ps $A~13, xTEMPA
-      code
-        xor rTEMPA, rTEMPA
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvF32I VXvF32C
-      code
-        $LD_A_IMMEDIATE
-        cvtsi2ss xTEMPA, rTEMPA
-        movddup xTEMPA, xTEMPA
-        movsldup xTEMPA, xTEMPA
+      sub tmp ra
+      sub tmp xa
       vcode $QTY
+        1 $LD_A_IMMEDIATE
+        1 cvtsi2ss xTEMPA, rTEMPA
+        1 movddup xTEMPA, xTEMPA
+        1 movsldup xTEMPA, xTEMPA
         1 %[$XOP]ps $A~0, xTEMPA
         2 %[$XOP]ps $A~1, xTEMPA
         3 %[$XOP]ps $A~2, xTEMPA
@@ -1164,15 +1152,13 @@ subroutine x-binary-op
         12 %[$XOP]ps $A~11, xTEMPA
         13 %[$XOP]ps $A~12, xTEMPA
         14 %[$XOP]ps $A~13, xTEMPA
-      code
-        xor rTEMPA, rTEMPA
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvF32D
-      code
-        cvtsi2ss xTEMPA, $B
-        movddup xTEMPA, xTEMPA
-        movsldup xTEMPA, xTEMPA
+      sub tmp xa
       vcode $QTY
+        1 cvtsi2ss xTEMPA, $B
+        1 movddup xTEMPA, xTEMPA
+        1 movsldup xTEMPA, xTEMPA
         1 %[$XOP]ps $A~0, xTEMPA
         2 %[$XOP]ps $A~1, xTEMPA
         3 %[$XOP]ps $A~2, xTEMPA
@@ -1187,8 +1173,7 @@ subroutine x-binary-op
         12 %[$XOP]ps $A~11, xTEMPA
         13 %[$XOP]ps $A~12, xTEMPA
         14 %[$XOP]ps $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvF32XF32
       vcode $QTY
         1 %[$XOP]ps $A~0, $B
@@ -1206,10 +1191,10 @@ subroutine x-binary-op
         13 %[$XOP]ps $A~12, $B
         14 %[$XOP]ps $A~13, $B
     case VXvF32XF64
-      code
-        cvtpd2ps xTEMPA, $B
-        movddup xTEMPA, xTEMPA
+      sub tmp xa
       vcode $QTY
+        1 cvtpd2ps xTEMPA, $B
+        1 movddup xTEMPA, xTEMPA
         1 %[$XOP]ps $A~0, xTEMPA
         2 %[$XOP]ps $A~1, xTEMPA
         3 %[$XOP]ps $A~2, xTEMPA
@@ -1224,14 +1209,13 @@ subroutine x-binary-op
         12 %[$XOP]ps $A~11, xTEMPA
         13 %[$XOP]ps $A~12, xTEMPA
         14 %[$XOP]ps $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvF32X
-      code
-        cvtsd2ss xTEMPA, $B
-        movddup xTEMPA, xTEMPA
-        movsldup xTEMPA, xTEMPA
+      sub tmp xa
       vcode $QTY
+        1 cvtsd2ss xTEMPA, $B
+        1 movddup xTEMPA, xTEMPA
+        1 movsldup xTEMPA, xTEMPA
         1 %[$XOP]ps $A~0, xTEMPA
         2 %[$XOP]ps $A~1, xTEMPA
         3 %[$XOP]ps $A~2, xTEMPA
@@ -1246,9 +1230,9 @@ subroutine x-binary-op
         12 %[$XOP]ps $A~11, xTEMPA
         13 %[$XOP]ps $A~12, xTEMPA
         14 %[$XOP]ps $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvF32Xv
+      sub tmp xa
       vcode $QTY
         1 cvtsd2ss xTEMPA, $B~0
         1 movddup xTEMPA, xTEMPA
@@ -1306,8 +1290,7 @@ subroutine x-binary-op
         14 movddup xTEMPA, xTEMPA
         14 movsldup xTEMPA, xTEMPA
         14 %[$XOP]ps $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvF32XvF32
       vcode $QTY
         1 %[$XOP]ps $A~0, $B~0
@@ -1325,6 +1308,7 @@ subroutine x-binary-op
         13 %[$XOP]ps $A~12, $B~12
         14 %[$XOP]ps $A~13, $B~13
     case VXvF32XvF64
+      sub tmp xa
       vcode $QTY
         1 cvtpd2ps xTEMPA, $B~0
         1 movddup xTEMPA, xTEMPA
@@ -1368,15 +1352,15 @@ subroutine x-binary-op
         14 cvtpd2ps xTEMPA, $B~13
         14 movddup xTEMPA, xTEMPA
         14 %[$XOP]ps $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     
     case VXvF64F VXvF64Cf
-      code
-        $LD_A_IMMEDIATE
-        movq xTEMPA, rTEMPA
-        movddup xTEMPA, xTEMPA
+      sub tmp ra
+      sub tmp xa
       vcode $QTY
+        1 $LD_A_IMMEDIATE
+        1 movq xTEMPA, rTEMPA
+        1 movddup xTEMPA, xTEMPA
         1 %[$XOP]pd $A~0, xTEMPA
         2 %[$XOP]pd $A~1, xTEMPA
         3 %[$XOP]pd $A~2, xTEMPA
@@ -1391,15 +1375,14 @@ subroutine x-binary-op
         12 %[$XOP]pd $A~11, xTEMPA
         13 %[$XOP]pd $A~12, xTEMPA
         14 %[$XOP]pd $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
+        1 $RESET_TEMP
     case VXvF64I VXvF64C
-      code
-        $LD_A_IMMEDIATE
-        cvtsi2sd xTEMPA, rTEMPA
-        movddup xTEMPA, xTEMPA
+      sub tmp ra
+      sub tmp xa
       vcode $QTY
+        1 $LD_A_IMMEDIATE
+        1 cvtsi2sd xTEMPA, rTEMPA
+        1 movddup xTEMPA, xTEMPA
         1 %[$XOP]pd $A~0, xTEMPA
         2 %[$XOP]pd $A~1, xTEMPA
         3 %[$XOP]pd $A~2, xTEMPA
@@ -1414,14 +1397,12 @@ subroutine x-binary-op
         12 %[$XOP]pd $A~11, xTEMPA
         13 %[$XOP]pd $A~12, xTEMPA
         14 %[$XOP]pd $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
-        xor rTEMPA, rTEMPA
+        1 $RESET_TEMP
     case VXvF64D
-      code
-        cvtsi2sd xTEMPA, $B
-        movddup xTEMPA, xTEMPA
+      sub tmp xa
       vcode $QTY
+        1 cvtsi2sd xTEMPA, $B
+        1 movddup xTEMPA, xTEMPA
         1 %[$XOP]pd $A~0, xTEMPA
         2 %[$XOP]pd $A~1, xTEMPA
         3 %[$XOP]pd $A~2, xTEMPA
@@ -1436,12 +1417,11 @@ subroutine x-binary-op
         12 %[$XOP]pd $A~11, xTEMPA
         13 %[$XOP]pd $A~12, xTEMPA
         14 %[$XOP]pd $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvF64X
-      code
-        movddup xTEMPA, $B
+      sub tmp xa
       vcode $QTY
+        1 movddup xTEMPA, $B
         1 %[$XOP]pd $A~0, xTEMPA
         2 %[$XOP]pd $A~1, xTEMPA
         3 %[$XOP]pd $A~2, xTEMPA
@@ -1456,12 +1436,11 @@ subroutine x-binary-op
         12 %[$XOP]pd $A~11, xTEMPA
         13 %[$XOP]pd $A~12, xTEMPA
         14 %[$XOP]pd $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvF64XF32
-      code
-        cvtps2pd xTEMPA, $B
+      sub tmp xa
       vcode $QTY
+        1 cvtps2pd xTEMPA, $B
         1 %[$XOP]pd $A~0, xTEMPA
         2 %[$XOP]pd $A~1, xTEMPA
         3 %[$XOP]pd $A~2, xTEMPA
@@ -1476,8 +1455,7 @@ subroutine x-binary-op
         12 %[$XOP]pd $A~11, xTEMPA
         13 %[$XOP]pd $A~12, xTEMPA
         14 %[$XOP]pd $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvF64XF64
       vcode $QTY
         1 %[$XOP]pd $A~0, $B
@@ -1495,6 +1473,7 @@ subroutine x-binary-op
         13 %[$XOP]pd $A~12, $B
         14 %[$XOP]pd $A~13, $B
     case VXvF64Xv
+      sub tmp xa
       vcode $QTY
         1 movddup xTEMPA, $B~0
         1 %[$XOP]pd $A~0, xTEMPA
@@ -1524,9 +1503,9 @@ subroutine x-binary-op
         13 %[$XOP]pd $A~12, xTEMPA
         14 movddup xTEMPA, $B~13
         14 %[$XOP]pd $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvF64XvF32
+      sub tmp xa
       vcode $QTY
         1 cvtps2pd xTEMPA, $B~0
         1 %[$XOP]pd $A~0, xTEMPA
@@ -1556,8 +1535,7 @@ subroutine x-binary-op
         13 %[$XOP]pd $A~12, xTEMPA
         14 cvtps2pd xTEMPA, $B~13
         14 %[$XOP]pd $A~13, xTEMPA
-      code
-        pxor xTEMPA, xTEMPA
+        1 $RESET_TEMP
     case VXvF64XvF64
       vcode $QTY
         1 %[$XOP]pd $A~0, $B~0
@@ -1712,25 +1690,24 @@ instruction xcompute
     $DSW $SSE_WORD
     $DRXT $SSE_REG_EXT
   
+  sub tmp xa
+  sub tmp xb
   select-template
     case X
       code $FOOTER
         movdqa $DEST, xTEMPA
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
+        $RESET_TEMP
     case XF32
       sub sse-insps-arg--Szero
       code $FOOTER
         cvtsd2ss xTEMPA, xTEMPA
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
+        $RESET_TEMP
     case XF64
       sub sse-qword-put
       code $FOOTER
         $QPUTOP $DEST~$DAUG, xTEMPA
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
+        $RESET_TEMP
   
   composite 16
     operand
@@ -1751,12 +1728,14 @@ instruction xcompute
               cvtsi2sd xTEMPB, $B
               %[$XCOP]sd xTEMPA, xTEMPB
           case I C
+            sub tmp rc
             code
               $LD_B_IMMEDIATE
               cvtsi2sd xTEMPB, rTEMPC
               xor rTEMPC, rTEMPC
               %[$XCOP]sd xTEMPA, xTEMPB
           case F Cf
+            sub tmp rc
             code
               $LD_B_IMMEDIATE
               movq xTEMPB, rTEMPC
@@ -1786,6 +1765,7 @@ instruction xcompute
               %[$XCOP]sd xTEMPB, xTEMPA
               movq xTEMPA, xTEMPB
           case I C
+            sub tmp rc
             code
               $LD_B_IMMEDIATE
               cvtsi2sd xTEMPB, rTEMPC
@@ -1793,6 +1773,7 @@ instruction xcompute
               %[$XCOP]sd xTEMPB, xTEMPA
               movq xTEMPA, xTEMPB
           case F Cf
+            sub tmp rc
             code
               $LD_B_IMMEDIATE
               movq xTEMPB, rTEMPC
@@ -2003,6 +1984,8 @@ subroutine packed-test-int
         pcmpgt$WORD xTEMPA, $B
 
 subroutine packed-test-any
+  sub xa
+  sub xb
   code
     movhlps xTEMPB, xTEMPA
     por xTEMPA, xTEMPB
@@ -2011,6 +1994,8 @@ subroutine packed-test-any
     jne .pass
 
 subroutine packed-test-all
+  sub xa
+  sub xb
   code
     movhlps xTEMPB, xTEMPA
     pand xTEMPA, xTEMPB

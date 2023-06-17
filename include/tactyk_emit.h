@@ -174,6 +174,7 @@ struct tactyk_emit__Context {
     bool use_executable_layout_randomization;
     bool use_extra_permutations;
     bool use_exopointers;
+    bool use_temp_register_autoreset;
 };
 
 struct tactyk_emit__Context* tactyk_emit__init();
@@ -223,6 +224,7 @@ bool tactyk_emit__SelectKeyword(struct tactyk_emit__Context *ctx, struct tactyk_
 bool tactyk_emit__SelectKeyword2(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Flags(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Case(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+bool tactyk_emit__Default(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Contains(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 //bool tactyk_emit__IntRange(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Match(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);

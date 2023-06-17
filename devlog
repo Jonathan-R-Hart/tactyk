@@ -8,9 +8,41 @@ tactyk-emit
     There is no concept of scope or stack within tactyk-visa/emit
       The variables will persist until either another subroutine is invoked (and will be replaced by a new set of arguments) or until the
       evaluation of the currnet instruction is complete.
+  New operator:  default
+    The "default" operator unconditionally runs its subordinate subroutine and indicates success 
+      (causing select operator to also accept anything)
+    This will prevent evaluation of any subsequent code within a selector subroutine, so if it represents a default case, it should be placed
+      at the end of the selector subroutine.
 
-tactyk-core - restructured if
-  Transferred the conditional jump operator into the "test" subroutine.
+tactyk-core
+  restructured if - Transferred the conditional jump operator into the "test" subroutine.
+  Formally declare temp registers, and make temp register cleanup optional
+    This is accomplished by invoking a new subroutine named "tmp" and passing it a name (or common alias) for a temp register, then
+      placing the text, "$RESET_TEMP" in the location in code where the temp register reset code should be inserted.
+    In cases where the instruction resets the temp register on its own, or where the cleanup is impractical (such as a register-indirect jump),
+      register declaration is not needed or desirable.
+    Except for configuration, this is handled entirely through Virtual-ISA operations
+    In general, it is recommented to declare temp registers immediately before the template which uses temp registers.
+    In cases where temp register use is a bit more dynamic, it is acceptable to place it where the temp register is referenced
+    The temp register subroutine deliberately ignores invalid references (for compatibility with immediate operand not-really-scrambling)
+    Recognized temp register aliases:
+      rTEMPA:  rTEMPA
+      rTEMPC:  rTEMPC
+      rTEMPD:  rTEMPD
+      ra:      rTEMPA
+      rc:      rTEMPC
+      rd:      rTEMPD
+      a:       rTEMPA
+      c:       rTEMPC
+      d:       rTEMPD
+      xTEMPA:  xTEMPA
+      xTEMPB:  xTEMPB
+      xa:      xTEMPA
+      xb:      xTEMPB
+  Adjusted a few memory instructions to resist leaking address register content when temp register resetting is disabled 
+    (or left temp register resets as-is where appropriate adjustment were not available)
+  Adjusted vectorized instructions to use "vcode" directives exclusively
+    (the original design of vcode too rigid, and was also visually ambiguous)
 
 16 Jun 2023
 tactyk-extras - table

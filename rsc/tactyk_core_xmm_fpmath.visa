@@ -16,6 +16,7 @@ instruction square-root
 
 extend instruction load select-template
   case B128XAD
+    sub tmp ra
     code
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
       sub rTEMPA_32, 15
@@ -27,8 +28,10 @@ extend instruction load select-template
       erroreq STATUS_UNBOUND_MEMORY
       lfence
       movdqu $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
-      xor rTEMPA, rTEMPA
+      $RESET_TEMP
   case B128XAI B128XAC
+    sub tmp ra
+    sub tmp rc
     code
       $LD_OFFSET_IMMEDIATE
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -41,10 +44,10 @@ extend instruction load select-template
       erroreq STATUS_UNBOUND_MEMORY
       lfence
       movdqu $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
+      $RESET_TEMP
   
   case F64XAD
+    sub tmp ra
     code
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
       sub rTEMPA_32, 7
@@ -58,8 +61,10 @@ extend instruction load select-template
       lfence
       
       movq $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
-      xor rTEMPA, rTEMPA
+      $RESET_TEMP
   case F64XAI F64XAC
+    sub tmp ra
+    sub tmp rc
     code
       $LD_OFFSET_IMMEDIATE
       
@@ -75,9 +80,10 @@ extend instruction load select-template
       lfence
       
       movq $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
+      $RESET_TEMP
   case F64DAD
+    sub tmp ra
+    sub tmp xa
     code
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
       sub rTEMPA_32, 7
@@ -93,10 +99,12 @@ extend instruction load select-template
       movq xTEMPA, [$ADDRESS_REGISTER+$OFFSET]
       cvttsd2si $DEST__DATA_REG, xTEMPA
       
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
 
   case F64DAI F64DAC
+    sub tmp ra
+    sub tmp rc
+    sub tmp xa
     code
       $LD_OFFSET_IMMEDIATE
       
@@ -114,11 +122,10 @@ extend instruction load select-template
       movq xTEMPA, [$ADDRESS_REGISTER+rTEMPC]
       cvttsd2si $DEST__DATA_REG, xTEMPA
 
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   
   case F32XAD
+    sub tmp ra
     code
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
       sub rTEMPA_32, 3
@@ -132,8 +139,10 @@ extend instruction load select-template
       lfence
       
       cvtss2sd $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
-      xor rTEMPA, rTEMPA
+      $RESET_TEMP
   case F32XAI F32XAC
+    sub tmp ra
+    sub tmp rc
     code
       $LD_OFFSET_IMMEDIATE
       
@@ -149,9 +158,10 @@ extend instruction load select-template
       lfence
       
       cvtss2sd $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
+      $RESET_TEMP
   case F32DAD
+    sub tmp ra
+    sub tmp xa
     code
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
       sub rTEMPA_32, 3
@@ -167,10 +177,12 @@ extend instruction load select-template
       movd xTEMPA, [$ADDRESS_REGISTER+$OFFSET]
       cvttss2si $DEST__DATA_REG, xTEMPA
       
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
 
   case F32DAI F32DAC
+    sub tmp ra
+    sub tmp rc
+    sub tmp xa
     code
       $LD_OFFSET_IMMEDIATE
       
@@ -188,12 +200,11 @@ extend instruction load select-template
       movd xTEMPA, [$ADDRESS_REGISTER+rTEMPC]
       cvttss2si $DEST__DATA_REG, xTEMPA
 
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
 
 extend instruction store select-template
   case B128ADX
+    sub tmp ra
     code
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
       sub rTEMPA_32, 15
@@ -205,8 +216,10 @@ extend instruction store select-template
       erroreq STATUS_UNBOUND_MEMORY
       lfence
       movdqu [$ADDRESS_REGISTER+$OFFSET], $SRC
-      xor rTEMPA, rTEMPA
+      $RESET_TEMP
   case B128AIX B128ACX
+    sub tmp ra
+    sub tmp rc
     code
       $LD_OFFSET_IMMEDIATE
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -219,10 +232,10 @@ extend instruction store select-template
       erroreq STATUS_UNBOUND_MEMORY
       lfence
       movdqu [$ADDRESS_REGISTER+rTEMPC], $SRC
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
+      $RESET_TEMP
   
   case F64ADX
+    sub tmp ra
     code
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
       sub rTEMPA_32, 7
@@ -234,8 +247,10 @@ extend instruction store select-template
       erroreq STATUS_UNBOUND_MEMORY
       lfence
       movq [$ADDRESS_REGISTER+$OFFSET], $SRC
-      xor rTEMPA, rTEMPA
+      $RESET_TEMP
   case F64AIX F64ACX
+    sub tmp ra
+    sub tmp rc
     code
       $LD_OFFSET_IMMEDIATE
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -248,10 +263,11 @@ extend instruction store select-template
       erroreq STATUS_UNBOUND_MEMORY
       lfence
       movq [$ADDRESS_REGISTER+rTEMPC], $SRC
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
+      $RESET_TEMP
   
   case F32ADX
+    sub tmp ra
+    sub tmp xa
     code
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
       sub rTEMPA_32, 3
@@ -264,9 +280,11 @@ extend instruction store select-template
       lfence
       cvtsd2ss xTEMPA, $SRC
       movd [$ADDRESS_REGISTER+$OFFSET], xTEMPA
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case F32AIX F32ACX
+    sub tmp ra
+    sub tmp rc
+    sub tmp xa
     code
       $LD_OFFSET_IMMEDIATE
       mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -280,21 +298,20 @@ extend instruction store select-template
       lfence
       cvtsd2ss xTEMPA, $SRC
       movd [$ADDRESS_REGISTER+rTEMPC], xTEMPA
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
 
 extend instruction assign select-template
   case DX
     code
       cvttsd2si $A, $B
   case DF DCf
+    sub tmp ra
+    sub tmp xa
     code
       $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPA, rTEMPA
       cvttsd2si $A, xTEMPA
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case XX
     code
       movq $A, $B
@@ -302,186 +319,209 @@ extend instruction assign select-template
     code
       cvtsi2sd $A, $B
   case XI XC
+    sub tmp ra
     code
       $LD_B_IMMEDIATE_INDIRECT
       cvtsi2sd $A, rTEMPA
-      xor rTEMPA, rTEMPA
+      $RESET_TEMP
   case XS
+    sub tmp ra
+    sub tmp rc
     code
       $LD_B_IMMEDIATE_INDIRECT
       $LD_B_HIGHBITS_IMMEDIATE_INDIRECT
       movq $A, rTEMPA
       pinsrq $A, rTEMPC, 3
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
+      $RESET_TEMP
   case XF XCf
+    sub tmp ra
     code
       $LD_B_IMMEDIATE_INDIRECT
       movq $A, rTEMPA
-      xor rTEMPA, rTEMPA
+      $RESET_TEMP
 
 extend subroutine simple_binary_instruction select-template
   case DX
+    sub tmp ra
     code
       movq rTEMPA, $B
       p$INSTRUCTION $A, rTEMPA
-      xor rTEMPA, rTEMPA
+      $RESET_TEMP
   case XD
+    sub tmp xa
     code
       movq xTEMPA, $B
       p$INSTRUCTION $A, xTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case XI XC
+    sub tmp ra
+    sub tmp xa
     code
       $LD_B_IMMEDIATE
       movq xTEMPA, rTEMPA
       p$INSTRUCTION $A, xTEMPA
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case XX
     code
       p$INSTRUCTION $A, $B
 
 extend subroutine binary_instruction select-template
   case DX
+    sub tmp xa
     code
       cvtsi2sd xTEMPA, $A
       %[$INSTRUCTION]sd xTEMPA, $B
       cvttsd2si $A, xTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case DF DCf
+    sub tmp rc
+    sub tmp xa
+    sub tmp xb
     code
       $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPB, rTEMPC
       cvtsi2sd xTEMPA, $A
       %[$INSTRUCTION]sd xTEMPA, xTEMPB
       cvttsd2si $A, xTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
+      $RESET_TEMP
   case XX
     code
       %[$INSTRUCTION]sd $A, $B
   case XD
+    sub tmp xa
     code
       cvtsi2sd xTEMPA, $B
       %[$INSTRUCTION]sd $A, xTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case XI XC
+    sub tmp rc
+    sub tmp xa
     code
       $LD_B_IMMEDIATE_INDIRECT
       cvtsi2sd xTEMPA, rTEMPC
       %[$INSTRUCTION]sd $A, xTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case XCf XF
+    sub tmp rc
+    sub tmp xa
     code
       $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPA, rTEMPC
       %[$INSTRUCTION]sd $A, xTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
 
 extend instruction swap select-template
   case XD
+    sub tmp xb
     code
       cvtsi2sd xTEMPB, $B
       cvttsd2si $B, $A
       movq $A, xTEMPB
-      pxor xTEMPB, xTEMPB
+      $RESET_TEMP
   case DX
+    sub tmp xa
     code
       cvtsi2sd xTEMPA, $A
       cvttsd2si $A, $B
       movq $B, xTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case XX
+    sub tmp xa
     code
       movq xTEMPA, $A
       movq $A, $B
       movq $B, xTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
 
 extend instruction mul select-template
   case DX
+    sub tmp xa
     code
       cvtsi2sd xTEMPA, $A
       mulsd xTEMPA, $B
       cvttsd2si $A, xTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case DF DCf
+    sub tmp xa
+    sub tmp xb
+    sub tmp rc
     code
       $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPB, rTEMPC
       cvtsi2sd xTEMPA, $A
       mulsd xTEMPA, xTEMPB
       cvttsd2si $A, xTEMPA
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
-      xor rTEMPC, rTEMPC
+      $RESET_TEMP
   case XX
     code
       mulsd $A, $B
   case XD
+    sub tmp xa
     code
       cvtsi2sd xTEMPA, $B
       mulsd $A, xTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case XI XC
+    sub tmp xa
+    sub tmp rc
     code
       $LD_B_IMMEDIATE_INDIRECT
       cvtsi2sd xTEMPA, rTEMPC
       mulsd $A, xTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case XCf XF
+    sub tmp xa
+    sub tmp rc
     code
       $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPA, rTEMPC
       mulsd $A, xTEMPA
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
 
 extend instruction div select-template
   case DXN
+    sub tmp xa
     code
       cvtsi2sd xTEMPA, $A
       divsd xTEMPA, $B
       cvttsd2si $A, xTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case DFN DCfN
+    sub tmp xa
+    sub tmp xb
+    sub tmp rc
     code
       $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPB, rTEMPC
       cvtsi2sd xTEMPA, $A
       divsd xTEMPA, xTEMPB
       cvttsd2si $A, xTEMPA
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
-      xor rTEMPC, rTEMPC
+      $RESET_TEMP
   case XXN
     code
       divsd $A, $B
   case XDN
+    sub tmp xa
     code
       cvtsi2sd xTEMPA, $B
       divsd $A, xTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case XIN XCN
+    sub tmp xa
+    sub tmp rc
     code
       $LD_B_IMMEDIATE_INDIRECT
       cvtsi2sd xTEMPA, rTEMPC
       divsd $A, xTEMPA
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
   case XCfN XFN
+    sub tmp xa
+    sub tmp rc
     code
       $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPA, rTEMPC
       divsd $A, xTEMPA
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
+      $RESET_TEMP
 
 # comparison with floats on xmmx registers
 #  For packed floats, these all pass if any comparisons pass
@@ -493,152 +533,96 @@ extend instruction div select-template
 # is an integer
 # Floating point comparisons wherein neither operand is stored on an xmmx register are unspported
 
-extend subroutine cjump select-template
-  case XTXL XTXB
+extend subroutine test select-template
+  case XTX
+    sub tmp xa
+    sub tmp ra
     code
       movsd xTEMPA, $A
       cmpsd xTEMPA, $B, $VPRED
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      jmp $JTARGET
-  case DTXL DTXB
+  case DTX
+    sub tmp xa
+    sub tmp ra
     code
       cvtsi2sd xTEMPA, $A
       cmpsd xTEMPA, $B, $VPRED
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      jmp $JTARGET
-  case FTXL CfTXL FTXB CfTXB
+  case FTX CfTX
+    sub tmp xa
+    sub tmp ra
     code
-      $LD_IMMEDIATE_A
+      $LD_IMMEDIATE_A_INDIRECT
       movq xTEMPA, rTEMPA
       cmpsd xTEMPA, $B, $VPRED
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      jmp $JTARGET
-  case ITXL CTXL ITXB CTXB
+  case ITX CTX
+    sub tmp xa
+    sub tmp ra
     code
-      $LD_IMMEDIATE_A
+      $LD_IMMEDIATE_A_INDIRECT
       cvtsi2sd xTEMPA, rTEMPA
       cmpsd xTEMPA, $B, $VPRED
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      jmp $JTARGET
-  case XTDL XTDB
+  case XTD
+    sub tmp xa
+    sub tmp ra
     code
       cvtsi2sd xTEMPA, $B
       cmpsd xTEMPA, $A, $VPREDCOMPLEMENT
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      pxor xTEMPA, xTEMPA
-      jmp $JTARGET
-  case XTFL XTCfL XTFB XTCfB
+  case XTF XTCf
+    sub tmp xa
+    sub tmp rc
     code
       $LD_IMMEDIATE_B
       movq xTEMPA, rTEMPC
       cmpsd xTEMPA, $A, $VPREDCOMPLEMENT
-      movq rTEMPA, xTEMPA
-      cmp rTEMPA, 0
+      movq rTEMPC, xTEMPA
+      cmp rTEMPC, 0
       jne .pass
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
-      jmp $JTARGET
-  case XTIL XTCL XTIB XTCB
+  case XTI XTC
+    sub tmp xa
+    sub tmp rc
     code
-      $LD_IMMEDIATE_B
+      $LD_IMMEDIATE_B_INDIRECT
       cvtsi2sd xTEMPA, rTEMPC
       cmpsd xTEMPA, $A, $VPREDCOMPLEMENT
-      movq rTEMPA, xTEMPA
-      cmp rTEMPA, 0
+      movq rTEMPC, xTEMPA
+      cmp rTEMPC, 0
       jne .pass
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
-      jmp $JTARGET
-  
-  case DTFL DTCfL DTFB DTCfB
+  case DTF DTCf
+    sub tmp xa
+    sub tmp xb
+    sub tmp rc
     code
-      $LD_IMMEDIATE_B
+      $LD_IMMEDIATE_B_INDIRECT
       cvtsi2sd xTEMPA, $A
       movq xTEMPB, rTEMPC
-      movq rTEMPA, xTEMPA
-      cmp rTEMPA, 0
+      movq rTEMPC, xTEMPA
+      cmp rTEMPC, 0
       jne .pass
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
-      jmp $JTARGET
-  case FTDL CfTDL FTDB CfTDB
+  case FTD CfTD
+    sub tmp xa
+    sub tmp xb
+    sub tmp ra
     code
-      $LD_IMMEDIATE_A
+      $LD_IMMEDIATE_A_INDIRECT
       movq xTEMPA, rTEMPA
       movsd xTEMPB, $B
       movq rTEMPA, xTEMPA
       cmp rTEMPA, 0
       jne .pass
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
-      jmp $NEXT_INSTRUCTION
-      .pass:
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      pxor xTEMPA, xTEMPA
-      pxor xTEMPB, xTEMPB
-      jmp $JTARGET
 
 instruction transpose
   opt-operand
@@ -648,6 +632,8 @@ instruction transpose
   operand
     type xmmx
     $M $VALUE
+  sub tmp xa
+  sub tmp xb
   select-template
     case Fmt32X X
       code
@@ -667,8 +653,7 @@ instruction transpose
         insertps $M~2, xTEMPA,  0b10000000
         insertps $M~3, $M~1,    0b11010000
         insertps $M~1, xTEMPB,  0b01110000
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
+        $RESET_TEMP
 
 instruction dot
   opt-operand
@@ -695,19 +680,20 @@ instruction dot
   operand
     type xmmx
     $B $VALUE
+  sub tmp xa
   select-template
     case F32.4XXX XXX
       code
         movdqa xTEMPA, $A
         dpps xTEMPA, $B, 0xf1
         cvtss2sd $DEST, xTEMPA
-        pxor xTEMPA, xTEMPA
+        $RESET_TEMP
     case F32.4XIXX XIXX
       code
         movdqa xTEMPA, $A
         dpps xTEMPA, $B, 0xf1
         insertps $DEST, xTEMPA, $INS_ARG
-        pxor xTEMPA, xTEMPA
+        $RESET_TEMP
 
 instruction cross
   opt-operand
@@ -723,6 +709,8 @@ instruction cross
   operand
     type xmmx
     $B $VALUE
+  sub tmp xa
+  sub tmp xb
   select-template
     case XXX F32XXX
       code
@@ -733,5 +721,4 @@ instruction cross
         pshufd $DEST,  $A, 0b11001001
         mulps $DEST, xTEMPA
         subps $DEST, xTEMPB
-        pxor xTEMPA, xTEMPA
-        pxor xTEMPB, xTEMPB
+        $RESET_TEMP

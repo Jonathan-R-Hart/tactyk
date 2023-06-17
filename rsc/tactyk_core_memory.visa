@@ -23,6 +23,9 @@ instruction bind
     scramble rTEMPA
   select-template
     case AA
+      sub tmp a
+      sub tmp c
+      sub tmp d
       code
         mov rTEMPA, fs:[$CTX_ADDR_B + 0 + random_const_FS]
         mov rTEMPC, fs:[$CTX_ADDR_B + 8 + random_const_FS]
@@ -31,11 +34,11 @@ instruction bind
         mov fs:[$CTX_ADDR_A + 8 + random_const_FS], rTEMPC
         mov fs:[$CTX_ADDR_A + 16 + random_const_FS], rTEMPD
         mov $ADDR_REG_A, $ADDR_REG_B
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
+        $RESET_TEMP
     
     case AD
+      sub tmp a
+      sub tmp c
       code
         mov rTEMPA, $SRC
         
@@ -52,15 +55,15 @@ instruction bind
         mov fs:[$CTX_ADDR_A + random_const_FS], $ADDR_REG_A
 
         mov rTEMPC, [rTEMPA+8]
-        mov rTEMPD, [rTEMPA+16]
+        mov rTEMPA, [rTEMPA+16]
         mov fs:[$CTX_ADDR_A+8 + random_const_FS], rTEMPC
-        mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPD
+        mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPA
         
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
+        $RESET_TEMP
     
     case AM AI
+      sub tmp a
+      sub tmp c
       code
         $SC_LD_INDIRECT
         
@@ -77,13 +80,11 @@ instruction bind
         mov fs:[$CTX_ADDR_A + random_const_FS], $ADDR_REG_A
         
         mov rTEMPC, [rTEMPA+8]
-        mov rTEMPD, [rTEMPA+16]
+        mov rTEMPA, [rTEMPA+16]
         mov fs:[$CTX_ADDR_A+8 + random_const_FS], rTEMPC
-        mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPD
+        mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPA
         
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
+        $RESET_TEMP
     
     # Memblock index bounds check is handled by the compiler, so this version probably would be valid.
     # However there also does not seem much point in having this variant, as memory block binding is not expected to be a frequent
@@ -91,6 +92,9 @@ instruction bind
     # be used)
     #
     # case AM 
+    #  sub tmp a
+    #  sub tmp c
+    #  sub tmp d
     #  code
     #    $SC_LD_INDIRECT
     #
@@ -100,13 +104,11 @@ instruction bind
     #    mov fs:[$CTX_ADDR_A + random_const_FS], $ADDR_REG_A
     #    
     #    mov rTEMPC, [rTEMPA+8]
-    #    mov rTEMPD, [rTEMPA+16]
+    #    mov rTEMPA, [rTEMPA+16]
     #    mov fs:[$CTX_ADDR_A+8 + random_const_FS], rTEMPC
-    #    mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPD
+    #    mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPA
     #    
-    #    xor rTEMPA, rTEMPA
-    #    xor rTEMPC, rTEMPC
-    #    xor rTEMPD, rTEMPD
+    #    $RESET_TEMP
 
 instruction unbind
   operand
@@ -144,6 +146,7 @@ instruction load
     $LD_OFFSET_IMMEDIATE $SC_LD_INDIRECT
   select-template
     case QDAD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
@@ -157,8 +160,10 @@ instruction load
         lfence
         
         mov $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case QDAI QDAC
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         
@@ -172,9 +177,9 @@ instruction load
         lfence
         
         mov $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        $RESET_TEMP
     case DDAD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 3
@@ -186,8 +191,10 @@ instruction load
         erroreq STATUS_UNBOUND_MEMORY
         
         mov %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+$OFFSET]
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case DDAI DDAC
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         
@@ -203,9 +210,9 @@ instruction load
         lfence
         
         mov %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+rTEMPC]
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        $RESET_TEMP
     case WDAD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         dec rTEMPA_32
@@ -219,8 +226,10 @@ instruction load
         lfence
         
         movzx $DEST__DATA_REG, word [$ADDRESS_REGISTER+$OFFSET]
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case WDAI WDAC
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
 
@@ -236,9 +245,9 @@ instruction load
         lfence
         
         movzx $DEST__DATA_REG, word [$ADDRESS_REGISTER+rTEMPC]
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        $RESET_TEMP
     case BDAD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         cmp $OFFSET, rTEMPA
@@ -251,8 +260,10 @@ instruction load
         lfence
         
         movzx $DEST__DATA_REG, byte [$ADDRESS_REGISTER+$OFFSET]
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case BDAI BDAC
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         
@@ -267,8 +278,7 @@ instruction load
         lfence
         
         movzx $DEST__DATA_REG, byte [$ADDRESS_REGISTER+rTEMPC]
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        $RESET_TEMP
 
 instruction store
   operand
@@ -288,6 +298,7 @@ instruction store
     $LD_SRC_IMMEDIATE $SC_LD_INDIRECT
   select-template
     case QADD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 7
@@ -299,8 +310,10 @@ instruction store
         erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov [$ADDRESS_REGISTER+$OFFSET], $SRC
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case QAID QACD
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -313,10 +326,10 @@ instruction store
         erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov [$ADDRESS_REGISTER+rTEMPC], $SRC
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        $RESET_TEMP
     
     case DADD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA_32, 3
@@ -328,8 +341,10 @@ instruction store
         erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov dword [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_32
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case DAID DACD
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -342,10 +357,10 @@ instruction store
         erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov dword [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_32
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        $RESET_TEMP
     
     case WADD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         dec rTEMPA_32
@@ -357,8 +372,10 @@ instruction store
         erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov word [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_16
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case WAID WACD
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -371,10 +388,10 @@ instruction store
         erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov word [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_16
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        $RESET_TEMP
     
     case BADD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         cmp $OFFSET, rTEMPA
@@ -385,8 +402,10 @@ instruction store
         erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov byte [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_8
-        xor rTEMPA, rTEMPA
+        $RESET_TEMP
     case BAID BACD
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -398,8 +417,7 @@ instruction store
         erroreq STATUS_UNBOUND_MEMORY
         lfence
         mov byte [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_8
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        $RESET_TEMP
 
 instruction pop
   operand
@@ -463,6 +481,7 @@ extend instruction assign select-template
       mov $ADDRESS_REGISTER, $B
       add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS + random_const_FS]
   case OI OC
+    sub tmp a
     code
       $LD_B_IMMEDIATE_INDIRECT
       cmp rTEMPA_32, dword fs:[$CTX_ADDRESS_BOUND + random_const_FS]
@@ -472,7 +491,7 @@ extend instruction assign select-template
       lfence
       mov $ADDRESS_REGISTER, rTEMPA
       add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS + random_const_FS]
-      xor rTEMPA, rTEMPA
+      $RESET_TEMP
   case DO
     code
       mov $A, $ADDRESS_REGISTER
@@ -480,18 +499,20 @@ extend instruction assign select-template
 
 extend instruction swap select-template
   case AA
+    sub tmp a
     code
       mov rTEMPA, fs:[$CTX_ADDR_A + 0 + random_const_FS]
-      mov rTEMPC, fs:[$CTX_ADDR_A + 8 + random_const_FS]
-      mov rTEMPD, fs:[$CTX_ADDR_A + 16 + random_const_FS]
       xchg rTEMPA, fs:[$CTX_ADDR_B + 0 + random_const_FS]
-      xchg rTEMPC, fs:[$CTX_ADDR_B + 8 + random_const_FS]
-      xchg rTEMPD, fs:[$CTX_ADDR_B + 16 + random_const_FS]
       mov fs:[$CTX_ADDR_A + 0 + random_const_FS], rTEMPA
-      mov fs:[$CTX_ADDR_A + 8 + random_const_FS], rTEMPC
-      mov fs:[$CTX_ADDR_A + 16 + random_const_FS], rTEMPD
+
+      mov rTEMPA, fs:[$CTX_ADDR_A + 8 + random_const_FS]
+      xchg rTEMPA, fs:[$CTX_ADDR_B + 8 + random_const_FS]
+      mov fs:[$CTX_ADDR_A + 8 + random_const_FS], rTEMPA
+      
+      mov rTEMPA, fs:[$CTX_ADDR_A + 16 + random_const_FS]
+      xchg rTEMPA, fs:[$CTX_ADDR_B + 16 + random_const_FS]
+      mov fs:[$CTX_ADDR_A + 16 + random_const_FS], rTEMPA
+      
       xchg $ADDR_REG_A, $ADDR_REG_B
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      xor rTEMPD, rTEMPD
+      $RESET_TEMP
 

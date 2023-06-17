@@ -70,7 +70,10 @@ MINITABLE__INIT.$T:
     add rA 16
     goto MINITABLE__INIT.zero.$T
   assign rA 1
-  store qword $T s_MINITABLE.size rA
+  assign rB s_MINITABLE_size
+  assign rC s_MINITABLE.id
+  assign rD addr2.element_bound
+  store qword $T s_MINITABLE.id rA
   lwreturn
 
 MINITABLE__GET.$T:

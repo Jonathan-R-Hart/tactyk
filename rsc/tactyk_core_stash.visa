@@ -315,6 +315,8 @@ instruction block-stash
           $TEMP $SRC
           $SRC $DEST
           $DEST $TEMP
+      sub tmp xa
+      sub tmp xb
       vcode $QTY
         1 movdqu xTEMPA, gs:[ (microcontext.$SRC+0  )%microcontext_size + random_const_GS]
         2 movdqu xTEMPB, gs:[ (microcontext.$SRC+16 )%microcontext_size + random_const_GS]
@@ -358,8 +360,7 @@ instruction block-stash
         14 movdqu gs:[ (microcontext.$SRC+208)%microcontext_size + random_const_GS], $DEST~13
         13 movdqa $DEST~12, xTEMPA
         14 movdqa $DEST~13, xTEMPB
-        1 pxor xTEMPA, xTEMPA
-        1 pxor xTEMPB, xTEMPB
+        1 $RESET_TEMP
 
 instruction stash
   composite 16 permute-code no-duplicates
@@ -393,11 +394,13 @@ instruction stash
         code
           movdqu $DEST, gs:[microcontext.$SRC+random_const_GS]
       case SiSi
+        sub tmp xa
         code
           movdqu xTEMPA, gs:[microcontext.$SRC+random_const_GS]
           movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case SilSil SilSih SihSil SihSih SilSi SihSi SiSil SiSih
+        sub tmp ra
         code
           mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
           mov gs:[microcontext.$DEST+random_const_GS], rTEMPA
@@ -409,30 +412,36 @@ instruction stash
         code
           xchg $DEST, gs:[microcontext.$SRC+random_const_GS]
       case WSilX WSihX
+        sub tmp xa
         code
           movq xTEMPA, $SRC
           movq $SRC, gs:[microcontext.$DEST+random_const_GS]
           movq gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case WXSil WXSih
+        sub tmp xa
         code
           movq xTEMPA, $DEST
           movq $DEST, gs:[microcontext.$SRC+random_const_GS]
           movq gs:[microcontext.$SRC+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case WSiX
+        sub tmp xa
         code
           movdqu xTEMPA, $SRC
           movdqu $SRC, gs:[microcontext.$DEST+random_const_GS]
           movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case WXSi
+        sub tmp xa
         code
           movdqu xTEMPA, $DEST
           movdqu $DEST, gs:[microcontext.$SRC+random_const_GS]
           movdqu gs:[microcontext.$SRC+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case WSiSi
+        sub tmp xa
+        sub tmp xb
         code
           movdqu xTEMPA, gs:[microcontext.$SRC+random_const_GS]
           movdqu xTEMPB, gs:[microcontext.$DEST+random_const_GS]
@@ -441,6 +450,7 @@ instruction stash
           pxor xTEMPA, xTEMPA
           pxor xTEMPB, xTEMPB
       case WSilSil WSilSih WSihSil WSihSih WSilSi WSihSi WSiSil WSiSih
+        sub tmp ra
         code
           mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
           xchg rTEMPA, gs:[microcontext.$DEST+random_const_GS]
@@ -473,8 +483,11 @@ instruction stash
       #    xor rTEMPA, rTEMPA
       #    xor rTEMPC, rTEMPC
       #    xor rTEMPD, rTEMPD
+  code
+    $RESET_TEMP
 
 instruction mctxpush
+  sub tmp ra
   code
     cmp rMCSI, 65535
     errorge STATUS_STACK_OVERFLOW
@@ -484,9 +497,10 @@ instruction mctxpush
     add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
     sub rTEMPA, random_const_GS
     wrgsbase rTEMPA
-    xor rTEMPA, rTEMPA
+    $RESET_TEMP
 
 instruction mctxpop
+  sub tmp ra
   code
     cmp rMCSI_16, word fs:[context.microcontext_floor + random_const_FS]
     errorle STATUS_STACK_UNDERFLOW
@@ -496,7 +510,7 @@ instruction mctxpop
     add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
     sub rTEMPA, random_const_GS
     wrgsbase rTEMPA
-    xor rTEMPA, rTEMPA
+    $RESET_TEMP
 
 instruction mctxjump
   operand
@@ -506,6 +520,8 @@ instruction mctxjump
     $LD_IMMEDIATE_TARGET $SC_LD_INDIRECT
   select-template
     case D
+      sub tmp a
+      sub tmp c
       code
         mov rTEMPA, $TARGET
         mov rTEMPC_32, dword fs:[context.microcontext_floor + random_const_FS]
@@ -520,8 +536,10 @@ instruction mctxjump
         sub rTEMPA, random_const_GS
         wrgsbase rTEMPA
         xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        $RESET_TEMP
     case I C
+      sub tmp a
+      sub tmp c
       code
         $LD_IMMEDIATE_TARGET
         mov rTEMPC_32, dword fs:[context.microcontext_floor + random_const_FS]
@@ -536,4 +554,4 @@ instruction mctxjump
         sub rTEMPA, random_const_GS
         wrgsbase rTEMPA
         xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
+        $RESET_TEMP

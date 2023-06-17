@@ -75,6 +75,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__put(ctx->operator_table, "flags", tactyk_emit__Flags);
 
     tactyk_dblock__put(ctx->operator_table, "case", tactyk_emit__Case);
+    tactyk_dblock__put(ctx->operator_table, "default", tactyk_emit__Default);
     tactyk_dblock__put(ctx->operator_table, "contains", tactyk_emit__Contains);
 
     tactyk_dblock__put(ctx->operator_table, "pick", tactyk_emit__Pick);
@@ -106,6 +107,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     ctx->use_executable_layout_randomization = true;
     ctx->use_extra_permutations = true;
     ctx->use_exopointers = true;
+    ctx->use_temp_register_autoreset = true;
     
     return ctx;
 }
@@ -576,6 +578,11 @@ bool tactyk_emit__Case(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
         case_token = case_token->next;
     }
     return false;
+}
+
+bool tactyk_emit__Default(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    tactyk_emit__ExecSubroutine(ctx, data);
+    return true;
 }
 
 bool tactyk_emit__Pick(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
@@ -1147,6 +1154,13 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     else {
         fprintf(asm_file, "%%define random_const_FS %u\n", 0);
         fprintf(asm_file, "%%define random_const_GS %u\n", 0);
+    }
+    
+    if (ctx->use_temp_register_autoreset) {
+        tactyk_dblock__put(ctx->global_vars, "$USE_AUTO_RESET_TEMP", "1");
+    }
+    else {
+        tactyk_dblock__put(ctx->global_vars, "$USE_AUTO_RESET_TEMP", "0");
     }
     
     fprintf(asm_file, "%s\n", ctx->asm_header);

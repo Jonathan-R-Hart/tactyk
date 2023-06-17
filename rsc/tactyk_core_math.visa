@@ -412,19 +412,23 @@ instruction compute
         fstp qword fs:[context.fpu_a + random_const_FS]
         movq $DEST, fs:[context.fpu_a + random_const_FS]
         ffree st0
+        $RESET_TEMP
     case Si
       code $FOOTER
         fstp tword gs:[microcontext.$DEST+random_const_GS]
         ffree st0
+        $RESET_TEMP
     case Sil Sih
       code $FOOTER
         fstp qword gs:[microcontext.$DEST+random_const_GS]
         ffree st0
+        $RESET_TEMP
     case D
       code $FOOTER
         fisttp qword fs:[context.fpu_a + random_const_FS]
         mov $DEST, fs:[context.fpu_a + random_const_FS]
         ffree st0
+        $RESET_TEMP
   
   composite 16
     operand
@@ -454,12 +458,14 @@ instruction compute
           fild qword fs:[context.fpu_a + random_const_FS]
           $COMPUTE_OP
       case I C
+        sub tmp $TGT
         code
           $LD_B_IMMEDIATE
           mov qword fs:[context.fpu_a + random_const_FS], $TGT
           fild qword fs:[context.fpu_a + random_const_FS]
           $COMPUTE_OP
       case F Cf
+        sub tmp $TGT
         code
           $LD_B_IMMEDIATE
           mov qword fs:[context.fpu_a + random_const_FS], rTEMPC

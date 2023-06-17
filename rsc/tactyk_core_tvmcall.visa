@@ -11,6 +11,12 @@ instruction tvmpush
     $FUNC_HANDLE $VALUE
     scramble rTEMPA
     $LD_IMMEDIATE_FUNC_HANDLE $SC_LD_INDIRECT
+  
+  sub tmp ra
+  sub tmp rc
+  sub tmp rd
+  sub tmp rmap
+  
   select-template
     case DD
       code
@@ -75,10 +81,7 @@ instruction tvmpush
         mov rTEMPA, [rTEMPD + program_dec.memblocks_count]
         mov [rTEMPC + tvmstackentry.target_memblocks_count], rTEMPA
         
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        xor rMAPPER, rMAPPER
+        $RESET_TEMP
         ; the only thing missing here is the return index (not avaialble until the actual jump).
     
     case II IC CI CC
@@ -144,10 +147,7 @@ instruction tvmpush
         mov rTEMPA, [rTEMPD + program_dec.memblocks_count]
         mov [rTEMPC + tvmstackentry.target_memblocks_count], rTEMPA
         
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        xor rMAPPER, rMAPPER
+        $RESET_TEMP
         ; the only thing missing here is the return index (not avaialble until the actual jump).
     
     case DI DC
@@ -213,10 +213,7 @@ instruction tvmpush
         mov rTEMPA, [rTEMPD + program_dec.memblocks_count]
         mov [rTEMPC + tvmstackentry.target_memblocks_count], rTEMPA
         
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        xor rMAPPER, rMAPPER
+        $RESET_TEMP
         ; the only thing missing here is the return index (not avaialble until the actual jump).
     
     case ID CD
@@ -282,10 +279,7 @@ instruction tvmpush
         mov rTEMPA, [rTEMPD + program_dec.memblocks_count]
         mov [rTEMPC + tvmstackentry.target_memblocks_count], rTEMPA
         
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        xor rMAPPER, rMAPPER
+        $RESET_TEMP
         
         ; the only thing missing here is the return index (not avaialble until the actual jump).
 instruction tvmjump
@@ -293,6 +287,10 @@ instruction tvmjump
   $KW dword
   scramble rTEMPA $COMMAND_INDEX_NEXT
   $LD_CMDNEXT_IMMEDIATE $SC_LD_INDIRECT
+  
+  sub tmp ra
+  sub tmp rc
+  
   code
     mov dword fs:[context.lwcall_floor + random_const_FS], rLWCSI_32
     mov dword fs:[context.microcontext_floor + random_const_FS], rMCSI_32
@@ -331,12 +329,16 @@ instruction tvmjump
     add rMAPPER, [rTEMPC + tvmstackentry.target_function_jumptable]
     
     ; go!
-    xor rTEMPA, rTEMPA
-    xor rTEMPC, rTEMPC
+    $RESET_TEMP
     jmp [rMAPPER]
 
 instruction tvmreturn
   terminal
+  
+  sub tmp ra
+  sub tmp rc
+  sub tmp rd
+   
   code
     mov rTEMPC, fs:[context.stack + random_const_FS]
     mov rTEMPA, [rTEMPC + tactyk_stack.stack_lock]
@@ -382,7 +384,5 @@ instruction tvmreturn
     ; mov qword [rTEMPC + tvmstackentry.target_function_jumptable], 0
     ; mov qword [rTEMPC + tvmstackentry.target_exec_position], 0
     
-    xor rTEMPA, rTEMPA
-    xor rTEMPC, rTEMPC
-    xor rTEMPD, rTEMPD
+    $RESET_TEMP
     jmp [rMAPPER]

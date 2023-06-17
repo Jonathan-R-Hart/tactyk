@@ -176,7 +176,8 @@ MINISTRING__TOKENIZE.$T:
   if rB >= rC MINISTRING__TOKENIZE.ret.$T
   lwcall MINISTRING__READ.$T
   xassign xN xA
-  if rB >= rC MINISTRING__TOKENIZE.ret.$T
+  goto MINISTRING__TOKENIZE.ret.$T
+
 MINISTRING__TOKENIZE.next.$T:
   assign rA rF
   lwcall SEEK_CHAR.$T
@@ -189,38 +190,47 @@ MINISTRING__TOKENIZE.ret.$T:
   lwreturn
 
 MINISTRING__PRINT_TOKENS.$T:
+  if xA == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xa
   tcall print-space
+  if xB == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xb
   tcall print-space
+  if xC == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xc
   tcall print-space
+  if xD == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xd
   tcall print-space
+  if xE == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xe
   tcall print-space
+  if xF == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xf
   tcall print-space
+  if xG == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xg
   tcall print-space
+  if xH == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xh
   tcall print-space
+  if xI == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xi
   tcall print-space
+  if xJ == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xj
   tcall print-space
+  if xK == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xk
   tcall print-space
+  if xL == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xl
   tcall print-space
+  if xM == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xm
   tcall print-space
+  if xN == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xn
   tcall print-space
-  tcall print-newline
+  MINISTRING__PRINT_TOKENS.end.$T:
   lwreturn
-
-
-
-
-
