@@ -1115,10 +1115,16 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     FILE *asm_file =  fopen( fname_assembly_code, "w" );
     fprintf(asm_file, "BITS 64\n");
     fprintf(asm_file, "[map symbols %s]\n", fname_symbols);
-
-    fprintf(asm_file, "%%define random_const_FS %ju\n", ctx->random_const_fs);
-    fprintf(asm_file, "%%define random_const_GS %ju\n", ctx->random_const_gs);
-
+    
+    if (ctx->use_exopointers) {
+        fprintf(asm_file, "%%define random_const_FS %ju\n", ctx->random_const_fs);
+        fprintf(asm_file, "%%define random_const_GS %ju\n", ctx->random_const_gs);
+    }
+    else {
+        fprintf(asm_file, "%%define random_const_FS %u\n", 0);
+        fprintf(asm_file, "%%define random_const_GS %u\n", 0);
+    }
+    
     fprintf(asm_file, "%s\n", ctx->asm_header);
 
     for (uint64_t i = 0; i < program_size; i++) {
