@@ -1,6 +1,13 @@
 17 Jun 2023
-tactyk-emit - New operator:  reset-template-selector
-  This resets the tokens selected with "pick" opertor (and is intended to allow selecting and contatenating two or more templates)
+tactyk-emit
+  New operator:  reset-template-selector
+    This resets the tokens selected with "pick" opertor (and is intended to allow selecting and contatenating two or more templates)
+  Subroutine arguments
+    When explicitly invoking a subroutine ( "sub <subroutine-name>" ), any trailing tokens will be resolved (against local & global variables)
+    and assigned to a set of local variables (format:  $arg.#)
+    There is no concept of scope or stack within tactyk-visa/emit
+      The variables will persist until either another subroutine is invoked (and will be replaced by a new set of arguments) or until the
+      evaluation of the currnet instruction is complete.
 
 tactyk-core - restructured if
   Transferred the conditional jump operator into the "test" subroutine.

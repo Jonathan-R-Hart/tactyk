@@ -236,6 +236,23 @@ bool tactyk_emit__DoSub(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
     if (spec == NULL) {
         tactyk_emit__error(ctx, "referenced subroutine is undefined", NULL);
     }
+    
+    // place subroutine arguments in local namespace
+    //  A stack-based solution would yield more senbible results, but this is much simpler.
+    char buf[8];
+    while (ctx->subarg_count > 0) {
+        ctx->subarg_count -= 1;
+        snprintf(buf, 8, "$arg.%ju", ctx->subarg_count);
+        tactyk_dblock__delete(ctx->local_vars, buf);
+    }
+    struct tactyk_dblock__DBlock *token = data->token->next->next;
+    while (token != NULL) {
+        snprintf(buf, 8, "$arg.%ju", ctx->subarg_count);
+        struct tactyk_dblock__DBlock *resolved = tactyk_emit__fetch_var(ctx, buf, token);
+        token = token->next;
+        ctx->subarg_count += 1;
+    }
+    
     spec->func(ctx, spec->vopcfg);
     return true;
 }
@@ -245,6 +262,7 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     struct tactyk_emit__script_command *cmd = ctx->active_command;
     tactyk_dblock__reset_table(ctx->local_vars, true);
     tactyk_dblock__clear(ctx->code_template);
+    ctx->subarg_count = 0;
     ctx->is_terminal = false;
     ctx->valid_parse_result = false;
 

@@ -120,7 +120,8 @@ struct tactyk_emit__Context {
 
     struct tactyk_dblock__DBlock *local_vars;
     struct tactyk_dblock__DBlock *global_vars;
-
+    uint64_t subarg_count;
+    
     struct tactyk_dblock__DBlock *symbol_tables;
     struct tactyk_dblock__DBlock *const_table;
     struct tactyk_dblock__DBlock *fconst_table;
