@@ -228,6 +228,7 @@ bool tactyk_emit__Match(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
 bool tactyk_emit__True(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__False(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Pick(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+bool tactyk_emit__ClearTemplate(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 //bool tactyk_emit__Assign(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__OptionalOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);

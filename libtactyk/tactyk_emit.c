@@ -78,6 +78,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__put(ctx->operator_table, "contains", tactyk_emit__Contains);
 
     tactyk_dblock__put(ctx->operator_table, "pick", tactyk_emit__Pick);
+    tactyk_dblock__put(ctx->operator_table, "reset-template-selector", tactyk_emit__ClearTemplate);
     tactyk_dblock__put(ctx->operator_table, "operand", tactyk_emit__Operand);
     tactyk_dblock__put(ctx->operator_table, "opt-operand", tactyk_emit__OptionalOperand);
     tactyk_dblock__put(ctx->operator_table, "composite", tactyk_emit__Composite);
@@ -602,6 +603,11 @@ bool tactyk_emit__Operand__impl(struct tactyk_emit__Context *ctx, struct tactyk_
     //    tactyk_dblock__print_structure_simple(data);
     //    error("EMIT -- failed to handle operand", data);
     //}
+    return true;
+}
+
+bool tactyk_emit__ClearTemplate(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    tactyk_dblock__clear(ctx->code_template);
     return true;
 }
 
