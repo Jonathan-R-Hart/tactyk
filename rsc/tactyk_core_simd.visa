@@ -43,7 +43,10 @@ instruction xassign
   operand
     type xmmx data const fconst integer float
     $SRC $VALUE
-    scramble rTEMPA $LD_A_IMMEDIATE
+    scramble rTEMPA
+    $TGT_A $SC_TARGET
+    $LD_A_IMMEDIATE $SC_LD
+    $LD_A_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
   opt-operand
     type simd-format-discriminator
     sub simd-format-pick
@@ -56,15 +59,24 @@ instruction xassign
   opt-operand
     type xmmx data const fconst integer float
     $SRC_2 $VALUE
-    scramble rTEMPA $LD_B_IMMEDIATE
+    scramble rTEMPA
+    $TGT_B $SC_TARGET
+    $LD_B_IMMEDIATE $SC_LD
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
   opt-operand
     type xmmx data const fconst integer float
     $SRC_3 $VALUE
-    scramble rTEMPA $LD_C_IMMEDIATE
+    scramble rTEMPA
+    $TGT_C $SC_TARGET
+    $LD_C_IMMEDIATE $SC_LD
+    $LD_C_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
   opt-operand
     type xmmx data const fconst integer float
     $SRC_4 $VALUE
-    scramble rTEMPA $LD_D_IMMEDIATE
+    scramble rTEMPA
+    $TGT_D $SC_TARGET
+    $LD_D_IMMEDIATE $SC_LD
+    $LD_D_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
   select-template
     case XF32X
       sub sse-insps-arg--Szero
@@ -107,7 +119,7 @@ instruction xassign
     case XF32I XF32C
       sub sse-insps-arg--Szero
       code
-        $LD_A_IMMEDIATE
+        $LD_A_IMMEDIATE_INDIRECT
         cvtsi2ss xTEMPA, rTEMPA_32
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
         pxor xTEMPA, xTEMPA
@@ -116,7 +128,7 @@ instruction xassign
     case XF32F XF32Cf
       sub sse-insps-arg--Szero
       code
-        $LD_A_IMMEDIATE
+        $LD_A_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
         cvtsd2ss xTEMPA, xTEMPA
         insertps $DEST~$DAUG, xTEMPA, $INSPS_arg
@@ -168,7 +180,7 @@ instruction xassign
     case XF64I XF64C
       sub sse-qword-put
       code
-        $LD_A_IMMEDIATE
+        $LD_A_IMMEDIATE_INDIRECT
         cvtsi2sd xTEMPA, rTEMPA
         $QPUTOP $DEST~$DAUG, xTEMPA
         pxor xTEMPA, xTEMPA
@@ -186,7 +198,7 @@ instruction xassign
     case XF64F XF64Cf
       sub sse-qword-put
       code
-        $LD_A_IMMEDIATE
+        $LD_A_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
         $QPUTOP $DEST~$DAUG, xTEMPA
         pxor xTEMPA, xTEMPA
@@ -227,7 +239,7 @@ instruction xassign
         jmp $NEXT_INSTRUCTION
     case XI XC
       code
-        $LD_A_IMMEDIATE
+        $LD_A_IMMEDIATE_INDIRECT
         pxor $DEST, $DEST
         cvtsi2sd $DEST, rTEMPA
         xor rTEMPA, rTEMPA
@@ -235,7 +247,7 @@ instruction xassign
     case XF XCf
       sub sse-qword-put
       code
-        $LD_A_IMMEDIATE
+        $LD_A_IMMEDIATE_INDIRECT
         movq $DEST~$DAUG, rTEMPA
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
@@ -282,14 +294,14 @@ instruction xassign
         jmp $NEXT_INSTRUCTION
     case XI8C XI16C XI32C XI64C  XI8I XI16I XI32I XI64I
       code
-        $LD_A_IMMEDIATE
+        $LD_A_IMMEDIATE_INDIRECT
         pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     case XI8F XI16F XI32F XI64F XI8Cf XI16Cf XI32Cf XI64Cf
       sub sse-qword-put
       code
-        $LD_A_IMMEDIATE
+        $LD_A_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
         cvttsd2si rTEMPA, xTEMPA
         pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
@@ -322,7 +334,7 @@ instruction xassign
     case DI DC DS
       code 
         $LD_A_IMMEDIATE
-        mov $DEST, rTEMPA
+        mov $DEST, $TGT_A
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     case DX
@@ -332,7 +344,7 @@ instruction xassign
     case DF DCf
       sub sse-qword-put
       code
-        $LD_A_IMMEDIATE
+        $LD_A_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
         cvttsd2si $DEST, xTEMPA
         pxor xTEMPA, xTEMPA
@@ -340,26 +352,26 @@ instruction xassign
         jmp $NEXT_INSTRUCTION
     case XFF XFCf XCfF XCfCf  XII XIC XCI XCC
       code
-        $LD_A_IMMEDIATE
+        $LD_A_IMMEDIATE_INDIRECT
         movq $DEST, rTEMPA
-        $LD_B_IMMEDIATE
+        $LD_B_IMMEDIATE_INDIRECT
         pinsrq $DEST, rTEMPA, 1
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
     case XFFFF XFFFCf XFFCfF XFFCfCf  XFCfFF XFCfFCf XFCfCfF XFCfCfCf  XCfFFF XCfFFCf XCfFCfF XCfFCfCf  XCfCfFF XCfCfFCf XCfCfCfF XCfCfCfCf
       code
-        $LD_A_IMMEDIATE
+        $LD_A_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
         cvtsd2ss xTEMPB, xTEMPA
-        $LD_B_IMMEDIATE
+        $LD_B_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
         cvtsd2ss xTEMPA, xTEMPA
         insertps xTEMPB, xTEMPA, 0b00010000
-        $LD_C_IMMEDIATE
+        $LD_C_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
         cvtsd2ss xTEMPA, xTEMPA
         insertps xTEMPB, xTEMPA, 0b00100000
-        $LD_D_IMMEDIATE
+        $LD_D_IMMEDIATE_INDIRECT
         movq xTEMPA, rTEMPA
         cvtsd2ss xTEMPA, xTEMPA
         insertps xTEMPB, xTEMPA, 0b00110000
@@ -370,13 +382,13 @@ instruction xassign
         jmp $NEXT_INSTRUCTION
     case XIIII XIIIC XIICI XIICC  XICII XICIC XICCI XICCC  XCIII XCIIC XCICI XCICC  XCCII XCCIC XCCCI XCCCC
       code
-        $LD_A_IMMEDIATE
+        $LD_A_IMMEDIATE_INDIRECT
         movq $DEST, rTEMPA
-        $LD_B_IMMEDIATE
+        $LD_B_IMMEDIATE_INDIRECT
         pinsrd $DEST, rTEMPA_32, 1
-        $LD_C_IMMEDIATE
+        $LD_C_IMMEDIATE_INDIRECT
         pinsrd $DEST, rTEMPA_32, 2
-        $LD_D_IMMEDIATE
+        $LD_D_IMMEDIATE_INDIRECT
         pinsrd $DEST, rTEMPA_32, 3
         xor rTEMPA, rTEMPA
         jmp $NEXT_INSTRUCTION
@@ -549,7 +561,8 @@ subroutine x-binary-op
   operand
     type ssimd-xvector xmmx data integer float const fconst
     $B $VALUE
-    scramble rTEMPA $LD_A_IMMEDIATE
+    scramble rTEMPA
+    $LD_A_IMMEDIATE $SC_LD_INDIRECT
   opt-operand
     type simd-format-discriminator
     sub simd-format-sse-params
@@ -1723,7 +1736,8 @@ instruction xcompute
     operand
       type xcompute-op xmmf32 xmmf64 xmmx data float fconst integer const
       $B $VALUE
-      scramble rTEMPC $LD_B_IMMEDIATE
+      scramble rTEMPC
+      $LD_B_IMMEDIATE $SC_LD_INDIRECT
     select $XCMODE
       case norm
         select-template

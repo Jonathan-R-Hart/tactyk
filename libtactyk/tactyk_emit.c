@@ -211,7 +211,6 @@ bool tactyk_emit__ExecSubroutine(struct tactyk_emit__Context *ctx, struct tactyk
         else {
             struct tactyk_dblock__DBlock *varname = name;
             if (tactyk_dblock__getchar(varname, 0) == '$') {
-
                 struct tactyk_dblock__DBlock *varvalue_raw = varname->next;
                 if (varvalue_raw != NULL) {
                     struct tactyk_dblock__DBlock *varvalue_resolved = tactyk_emit__fetch_var(ctx, varname, varvalue_raw);
@@ -293,7 +292,6 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     }
     ctx->pl_operand_raw = NULL;
     ctx->pl_operand_resolved = NULL;
-
     return result;
 }
 
@@ -776,8 +774,6 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     struct tactyk_dblock__DBlock *token = data->token->next;
     struct tactyk_dblock__DBlock *sc_dest_register = tactyk_emit__fetch_var(ctx, NULL, token);
     token = token->next;
-    struct tactyk_dblock__DBlock *sc_code_name = token;
-    token = token->next;
     struct tactyk_dblock__DBlock *sc_input;
 
     if (token == NULL) {
@@ -798,54 +794,39 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     int64_t raw_val;
 
 
-    // if no integer input, cancel and output a dummy value as "de-scrambling" code.
-    //      This looseness is a hack to allow operands to resolve to non-integer tokens without having to make the type specification subroutines
-    //      aware either of other type specifiers or of the target variables that their outputs are to be stored in.
-    //      If the selected assembly template does not reference the de-scrambling code, this should not break anything.
-    //      If assembly template erroneously references it (or if the wrong values are used for makign the selection), then the dummy value
-    //      becomes an obvious and obnoxious assembly-language comment.
+    // if no integer input, cancel and return (in theory, something else is supposed to take over if no valid integer.
     if (!tactyk_dblock__try_parseint(&raw_val, sc_input)) {
-        struct tactyk_dblock__DBlock *error_indicator = tactyk_dblock__from_c_string("; ---- OMITTED DE-SCRAMBLE OP (no value) ---- ;");
-        tactyk_dblock__put(ctx->local_vars, sc_code_name, error_indicator);
         return true;
     }
-    tactyk_dblock__dispose(sc_input);
     
     uint64_t rand_val = tactyk__rand_uint64();
     uint64_t diff_val = (uint64_t)raw_val ^ rand_val;
-    //bool is_qword = false;
 
-    if (raw_val < 0) {
-        //is_qword = true;
-    }
-    else if (raw_val <= 0xff) {
-        rand_val &= 0xff;
-        diff_val &= 0xff;
-    }
-    else if (raw_val <= 0xffff) {
-        rand_val &= 0xffff;
-        diff_val &= 0xffff;
-    }
-    else if (raw_val <= 0xffffffff) {
-        rand_val &= 0xffffffff;
-        diff_val &= 0xffffffff;
-    }
-    else {
-        //is_qword = true;
+    if (raw_val >= 0) {
+        if (raw_val <= 0xff) {
+            rand_val &= 0xff;
+            diff_val &= 0xff;
+        }
+        else if (raw_val <= 0xffff) {
+            rand_val &= 0xffff;
+            diff_val &= 0xffff;
+        }
+        else if (raw_val <= 0xffffffff) {
+            rand_val &= 0xffffffff;
+            diff_val &= 0xffffffff;
+        }
     }
 
     struct tactyk_dblock__DBlock *sc_rand = tactyk_dblock__from_uint(rand_val);
     struct tactyk_dblock__DBlock *sc_diff = tactyk_dblock__from_uint(diff_val);
+    struct tactyk_dblock__DBlock *sc_val = tactyk_dblock__from_uint(raw_val);
     tactyk_dblock__put(ctx->local_vars, "$SC_RAND", sc_rand);
     tactyk_dblock__put(ctx->local_vars, "$SC_DIFF", sc_diff);
     tactyk_dblock__put(ctx->local_vars, "$SC_DEST", sc_dest_register);
-
-    tactyk_dblock__delete(ctx->local_vars, "$SC");
+    tactyk_dblock__put(ctx->local_vars, "$SC_VALUE", sc_val);
+    
     struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->subroutine_table, "scramble");
-    if (sub->func(ctx, sub->vopcfg)) {
-        struct tactyk_dblock__DBlock *code = tactyk_dblock__get(ctx->local_vars, "$SC");
-        tactyk_dblock__put(ctx->local_vars, sc_code_name, code);
-    }
+    sub->func(ctx, sub->vopcfg);
     return true;
 }
 
@@ -871,7 +852,7 @@ bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
             }
         }
     }
-
+    
     struct tactyk_dblock__DBlock *code_template = data->child;
     while (code_template != NULL) {
         struct tactyk_dblock__DBlock *code_rewritten = tactyk_emit__fetch_var(ctx, NULL, code_template);
@@ -1064,6 +1045,14 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
 }
 
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
+    // indicate to the scramble subroutine what it should do
+    //      FINALLY!  A use for V-ISA global variables!
+    if (ctx->use_immediate_scrambling) {
+        tactyk_dblock__put(ctx->global_vars, "$USE_SCRAMBLE", tactyk_dblock__from_safe_c_string("true"));
+    }
+    else {
+        tactyk_dblock__put(ctx->global_vars, "$USE_SCRAMBLE", tactyk_dblock__from_safe_c_string("false"));
+    }
     for (uint64_t i = 0; i < ctx->script_commands->element_count; i += 1) {
         struct tactyk_emit__script_command *cmd = tactyk_dblock__index(ctx->script_commands, i);
         tactyk_report__reset();

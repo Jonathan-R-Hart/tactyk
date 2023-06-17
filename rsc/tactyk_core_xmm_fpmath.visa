@@ -290,7 +290,7 @@ extend instruction assign select-template
       cvttsd2si $A, $B
   case DF DCf
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPA, rTEMPA
       cvttsd2si $A, xTEMPA
       xor rTEMPA, rTEMPA
@@ -303,20 +303,20 @@ extend instruction assign select-template
       cvtsi2sd $A, $B
   case XI XC
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       cvtsi2sd $A, rTEMPA
       xor rTEMPA, rTEMPA
   case XS
     code
-      $LD_B_IMMEDIATE
-      $LD_B_HIGHBITS_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
+      $LD_B_HIGHBITS_IMMEDIATE_INDIRECT
       movq $A, rTEMPA
       pinsrq $A, rTEMPC, 3
       xor rTEMPA, rTEMPA
       xor rTEMPC, rTEMPC
   case XF XCf
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       movq $A, rTEMPA
       xor rTEMPA, rTEMPA
 
@@ -351,7 +351,7 @@ extend subroutine binary_instruction select-template
       pxor xTEMPA, xTEMPA
   case DF DCf
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPB, rTEMPC
       cvtsi2sd xTEMPA, $A
       %[$INSTRUCTION]sd xTEMPA, xTEMPB
@@ -369,14 +369,14 @@ extend subroutine binary_instruction select-template
       pxor xTEMPA, xTEMPA
   case XI XC
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       cvtsi2sd xTEMPA, rTEMPC
       %[$INSTRUCTION]sd $A, xTEMPA
       xor rTEMPC, rTEMPC
       pxor xTEMPA, xTEMPA
   case XCf XF
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPA, rTEMPC
       %[$INSTRUCTION]sd $A, xTEMPA
       xor rTEMPC, rTEMPC
@@ -411,7 +411,7 @@ extend instruction mul select-template
       pxor xTEMPA, xTEMPA
   case DF DCf
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPB, rTEMPC
       cvtsi2sd xTEMPA, $A
       mulsd xTEMPA, xTEMPB
@@ -429,14 +429,14 @@ extend instruction mul select-template
       pxor xTEMPA, xTEMPA
   case XI XC
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       cvtsi2sd xTEMPA, rTEMPC
       mulsd $A, xTEMPA
       xor rTEMPC, rTEMPC
       pxor xTEMPA, xTEMPA
   case XCf XF
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPA, rTEMPC
       mulsd $A, xTEMPA
       xor rTEMPA, rTEMPA
@@ -451,7 +451,7 @@ extend instruction div select-template
       pxor xTEMPA, xTEMPA
   case DFN DCfN
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPB, rTEMPC
       cvtsi2sd xTEMPA, $A
       divsd xTEMPA, xTEMPB
@@ -470,14 +470,14 @@ extend instruction div select-template
       pxor xTEMPA, xTEMPA
   case XIN XCN
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       cvtsi2sd xTEMPA, rTEMPC
       divsd $A, xTEMPA
       xor rTEMPA, rTEMPA
       pxor xTEMPA, xTEMPA
   case XCfN XFN
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPA, rTEMPC
       divsd $A, xTEMPA
       xor rTEMPA, rTEMPA

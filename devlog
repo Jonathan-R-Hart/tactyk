@@ -16,8 +16,30 @@ tactyk-emit
     The automatically generated branch targets attached to each instruction are retained.
       (it is simpler that way, and they are still needed to enable some of the more advanced forms of control flow.  They also are not known to take up any extra space in the executable.)
   
+  Make immediate operand scrambling optional
+    Responsibility for injecting scrambling code into the output is now exclusively on V-ISA subroutines
+      Specificially, the emit "scramble" operator now only provides the scrambled data thorugh variables and invokes the V-ISA scramble subroutine
+      It is up to the scramble subroutine to reset its code and the operand subroutine to select and rename the scramble subroutine outputs,
+      and the code template to accept the renamed outputs.
+    All aspects of tactyk-core which either have formal test coverage or are used by new scripts have been reworded to use the newer, more flexible
+      immediate operand handling.
+    When immediate operand scrambling is enabled, it works the way it did previously
+      (a random value and a difference are derived by the emit interface, and the scramble function accepts the derviced values and generates
+       code which loads them onto a pair of temp registers and combines them with an xor instruction)
+    When immediate operand scrambling is disabled, there are two schemes at play:
+      In the simple case (when only an 8-32 bit value is needed as a proper immediate), it bypasses the temp register and places it directly
+      in the x86 instruction as an immediate
+      In the complex case (when eithe the immediate is a 64-bit value or when it simply needs to be on a temp register), then the value
+        is loaded onto a temp register (the smae one that it would with scrambling).
+
   TACTYK has been steadilly gaining interesting features and qualities in other aspects
   It is starting to seem appropriate to think of tactyk as a general experiment in low-level scripting, and perhaps even as an alternative to Assembly Language.
+
+tactyk-dblock - fixed a subtle table corruption error
+  A random error was occuring in one of the tests - a named field wasn't getting picked up by the string interpolator, but changing a single char
+  caused it to pick up the string (and pass the test).  Several hours later (after much tracing), an out-of-spec operation was found in the 
+  table lookup function - specfically, it was an inappropriate check for "PSEUDO_NULL" (causing a retired table entry to be treated as an 
+  empty entry, which causes rare data-dependent table lookup failures [would be a bit more common with denser tables]).
 
 15 Jun 2023
 tactyk-extras - table

@@ -85,6 +85,10 @@ struct tactyk_test__Status {
     double max_age;
     uint64_t test_result;
     bool ran;
+    bool use_immediate_scrambling;
+    bool use_executable_layout_randomization;
+    bool use_extra_permutations;
+    bool use_exopointers;
     char dump_context_expectation[TACTYK_TEST__DUMP_BUFSIZE];
     char dump_stack_expectation[TACTYK_TEST__DUMP_BUFSIZE];
     char dump_context_observed[TACTYK_TEST__DUMP_BUFSIZE];

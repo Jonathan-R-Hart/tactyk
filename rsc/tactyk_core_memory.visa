@@ -20,7 +20,7 @@ instruction bind
     $CTX_ADDR_B $CTX_ADDR
     $SRC $VALUE
     $KWSRC $KW
-    scramble rTEMPA $LD_SRC_IMMEDIATE
+    scramble rTEMPA
   select-template
     case AA
       code
@@ -62,7 +62,7 @@ instruction bind
     
     case AM AI
       code
-        $LD_SRC_IMMEDIATE
+        $SC_LD_INDIRECT
         
         cmp rTEMPA, 0
         errorlt STATUS_ROGUE_POINTER
@@ -92,7 +92,7 @@ instruction bind
     #
     # case AM 
     #  code
-    #    $LD_SRC_IMMEDIATE
+    #    $SC_LD_INDIRECT
     #
     #    imul rTEMPA, 24
     #    add rTEMPA, fs:[context.memblocks + random_const_FS]
@@ -140,7 +140,8 @@ instruction load
   operand
     type data const integer
     $OFFSET $VALUE
-    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+    scramble rTEMPC
+    $LD_OFFSET_IMMEDIATE $SC_LD_INDIRECT
   select-template
     case QDAD
       code
@@ -268,6 +269,7 @@ instruction load
         movzx $DEST__DATA_REG, byte [$ADDRESS_REGISTER+rTEMPC]
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
+
 instruction store
   operand
     type word
@@ -277,11 +279,13 @@ instruction store
   operand
     type data const integer
     $OFFSET $VALUE
-    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+    scramble rTEMPC
+    $LD_OFFSET_IMMEDIATE $SC_LD_INDIRECT
   operand
     type data xmmx
     $SRC $VALUE
-    scramble rTEMPA $LD_SRC_IMMEDIATE
+    scramble rTEMPA
+    $LD_SRC_IMMEDIATE $SC_LD_INDIRECT
   select-template
     case QADD
       code
@@ -397,7 +401,6 @@ instruction store
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
 
-
 instruction pop
   operand
     type data
@@ -422,7 +425,9 @@ instruction push
   operand
     type data integer const
     $SRC__DATA_REGISTER $VALUE
-    scramble rTEMPC $LD_SRC_IMMEDIATE
+    scramble rTEMPC
+    $LD_SRC_IMMEDIATE $SC_LD
+    $TGT $SC_TARGET
   select-template
     case AD
       code
@@ -442,7 +447,7 @@ instruction push
         add rTEMPA, 8
         cmp rTEMPA, fs:[$CTX_ARRAY_BOUND + random_const_FS]
         errorge STATUS_MEMORY_OVERFLOW
-        mov [$ADDRESS_REGISTER], rTEMPC
+        mov qword [$ADDRESS_REGISTER], $TGT
         add $ADDRESS_REGISTER, 8
         xor rTEMPA, rTEMPA
 
@@ -459,7 +464,7 @@ extend instruction assign select-template
       add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS + random_const_FS]
   case OI OC
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       cmp rTEMPA_32, dword fs:[$CTX_ADDRESS_BOUND + random_const_FS]
       errorge STATUS_ROGUE_POINTER
       cmp rTEMPA_32, 0

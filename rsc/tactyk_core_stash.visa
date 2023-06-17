@@ -502,7 +502,8 @@ instruction mctxjump
   operand
     type data const integer
     $TARGET $VALUE
-    scramble rTEMPA $LD_IMMEDIATE_TARGET
+    scramble rTEMPA
+    $LD_IMMEDIATE_TARGET $SC_LD_INDIRECT
   select-template
     case D
       code

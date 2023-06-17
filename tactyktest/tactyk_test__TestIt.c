@@ -165,7 +165,10 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     emitctx = tactyk_emit__init();
 
     tactyk_visa__init_emit(emitctx);
-
+    emitctx->use_executable_layout_randomization = test_state->use_executable_layout_randomization;
+    emitctx->use_exopointers = test_state->use_exopointers;
+    emitctx->use_extra_permutations = test_state->use_extra_permutations;
+    emitctx->use_immediate_scrambling = test_state->use_immediate_scrambling;
     vm = tactyk_asmvm__new_vm();
     vmctx = tactyk_asmvm__new_context(vm);
     shadow_vmctx = calloc(1, sizeof(struct tactyk_asmvm__Context));

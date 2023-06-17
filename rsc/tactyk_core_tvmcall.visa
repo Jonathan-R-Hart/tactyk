@@ -4,11 +4,13 @@ instruction tvmpush
   operand
     type data const integer
     $PROG_HANDLE $VALUE
-    scramble rMAPPER $LD_IMMEDIATE_PROG_HANDLE
+    scramble rMAPPER
+    $LD_IMMEDIATE_PROG_HANDLE $SC_LD_INDIRECT
   operand
     type data const integer
     $FUNC_HANDLE $VALUE
-    scramble rTEMPA $LD_IMMEDIATE_FUNC_HANDLE
+    scramble rTEMPA
+    $LD_IMMEDIATE_FUNC_HANDLE $SC_LD_INDIRECT
   select-template
     case DD
       code
@@ -289,7 +291,8 @@ instruction tvmpush
 instruction tvmjump
   terminal
   $KW dword
-  scramble rTEMPA $LD_CMDNEXT_IMMEDIATE $COMMAND_INDEX_NEXT
+  scramble rTEMPA $COMMAND_INDEX_NEXT
+  $LD_CMDNEXT_IMMEDIATE $SC_LD_INDIRECT
   code
     mov dword fs:[context.lwcall_floor + random_const_FS], rLWCSI_32
     mov dword fs:[context.microcontext_floor + random_const_FS], rMCSI_32

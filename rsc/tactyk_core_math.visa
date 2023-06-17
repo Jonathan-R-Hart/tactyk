@@ -430,7 +430,10 @@ instruction compute
     operand
       type compute-op xmmx data  stash-item stash-item-low stash-item-high  float fconst integer const
       $SRC $VALUE
-      scramble rTEMPC $LD_B_IMMEDIATE
+      scramble rTEMPC
+      $TGT $SC_TARGET
+      $LD_B_IMMEDIATE $SC_LD
+      $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
     select-template
       case X
         code
@@ -453,13 +456,13 @@ instruction compute
       case I C
         code
           $LD_B_IMMEDIATE
-          mov fs:[context.fpu_a + random_const_FS], rTEMPC
+          mov qword fs:[context.fpu_a + random_const_FS], $TGT
           fild qword fs:[context.fpu_a + random_const_FS]
           $COMPUTE_OP
       case F Cf
         code
           $LD_B_IMMEDIATE
-          mov fs:[context.fpu_a + random_const_FS], rTEMPC
+          mov qword fs:[context.fpu_a + random_const_FS], rTEMPC
           fld qword fs:[context.fpu_a + random_const_FS]
           $COMPUTE_OP
       case .

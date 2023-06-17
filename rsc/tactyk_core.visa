@@ -45,34 +45,46 @@ subroutine next-instruction
 # unscrambled when accessed.
 # 
 subroutine scramble
-  select-kw2
-    case byte word
-      code $SC
-        mov $SC_DEST, $SC_RAND
-        xor $SC_DEST, $SC_DIFF
-    case dword
-      code $SC
-        mov $SC_DEST, $SC_RAND
-        xor %[$SC_DEST]_32, $SC_DIFF
-    case qword
-      code $SC
-        mov $SC_DEST, $SC_RAND
-        mov rTEMPD, $SC_DIFF
-        xor $SC_DEST, rTEMPD
-        xor rTEMPD, rTEMPD
-        # mov $SC_DEST, $SC_RAND_HIGH
-        # xor %[$SC_DEST]_32, $SC_DIFF_HIGH
-        # shl $SC_DEST, 32
-        # xor %[$SC_DEST]_32, $SC_RAND_LOW
-        # xor %[$SC_DEST]_32, $SC_DIFF_LOW
+  #code new $SC_LD_INDIRECT
+  select $USE_SCRAMBLE
+    case true
+      $SC_TARGET $SC_DEST
+      select-kw2
+        case byte word
+          code new $SC_LD
+            mov $SC_DEST, $SC_RAND
+            xor $SC_DEST, $SC_DIFF
+        case dword
+          code new $SC_LD
+            mov $SC_DEST, $SC_RAND
+            xor %[$SC_DEST]_32, $SC_DIFF
+        case qword
+          code new $SC_LD
+            mov $SC_DEST, $SC_RAND
+            mov rTEMPD, $SC_DIFF
+            xor $SC_DEST, rTEMPD
+            xor rTEMPD, rTEMPD
+      $SC_LD_INDIRECT $SC_LD
+    case false
+      code new $SC_LD_INDIRECT
+        mov $SC_DEST, $SC_VALUE
+      select-kw2
+        case byte word dword
+          $SC_TARGET $SC_VALUE
+          code new $SC_LD
+            ;
+        case qword
+          $SC_TARGET $SC_DEST
+          code new $SC_LD
+            mov $SC_DEST, $SC_VALUE
 
 instruction exit
   terminal
   $KW dword
-  scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX
+  scramble rTEMPA $COMMAND_INDEX
   code
-    $LD_IPTR_IMMEDIATE
-    mov fs:[context.instruction_index + random_const_FS], rTEMPA
+    $SC_LD
+    mov qword fs:[context.instruction_index + random_const_FS], $SC_TARGET
     xor rTEMPA, rTEMPA
     mov fs:[context.status + random_const_FS], dword STATUS_HALT
     store_context
@@ -87,10 +99,10 @@ instruction exit
 instruction break
   terminal
   $KW dword
-  scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
+  scramble rTEMPA $COMMAND_INDEX_NEXT
   code
-    $LD_IPTR_IMMEDIATE
-    mov fs:[context.instruction_index + random_const_FS], rTEMPA
+    $SC_LD
+    mov qword fs:[context.instruction_index + random_const_FS], $SC_TARGET
     xor rTEMPA, rTEMPA
     mov fs:[context.status + random_const_FS], dword STATUS_SUSPEND
     store_context
@@ -132,15 +144,15 @@ subroutine simple_binary_instruction
   operand
     type data const integer xmmx
     $B $VALUE
-    scramble rTEMPA $LD_B_IMMEDIATE
+    scramble rTEMPA
   select-template
     case DD
       code 
         $INSTRUCTION $A, $B
     case DI DC
       code 
-        $LD_B_IMMEDIATE
-        $INSTRUCTION $A, rTEMPA
+        $SC_LD
+        $INSTRUCTION $A, $SC_TARGET
         xor rTEMPA, rTEMPA
 
 subroutine binary_instruction
@@ -150,7 +162,10 @@ subroutine binary_instruction
   operand
     type data xmmx const fconst integer float
     $B $VALUE
-    scramble rTEMPC $LD_B_IMMEDIATE
+    scramble rTEMPC
+    $LD_B_IMMEDIATE $SC_LD
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_B $SC_TARGET
   select-template
     case DD
       code
@@ -158,7 +173,7 @@ subroutine binary_instruction
     case DI DC
       code
         $LD_B_IMMEDIATE
-        $INSTRUCTION $A, rTEMPC
+        $INSTRUCTION $A, $TGT_B
         xor rTEMPC, rTEMPC
 
 instruction add
@@ -188,8 +203,12 @@ instruction assign
   operand
     type data xmmx stackreg const branch-index fconst address-offset context-property integer float string
     $B $VALUE
-    scramble rTEMPA $LD_B_IMMEDIATE
-    scramble rTEMPC $LD_B_HIGHBITS_IMMEDIATE $VALUE_UPPER
+    scramble rTEMPA
+    $LD_B_IMMEDIATE $SC_LD
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_B $SC_TARGET
+    scramble rTEMPC $VALUE_UPPER
+    $LD_B_HIGHBITS_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
   select-template
     case DD
       code 
@@ -201,7 +220,7 @@ instruction assign
     case DI DC DS DLi
       code 
         $LD_B_IMMEDIATE
-        mov $A, rTEMPA
+        mov $A, $TGT_B
         xor rTEMPA, rTEMPA
     case DCtx
       select-kw
@@ -216,7 +235,10 @@ instruction mul
   operand
     type data xmmx const fconst integer float
     $B $VALUE
-    scramble rTEMPC $LD_B_IMMEDIATE
+    scramble rTEMPC
+    $LD_B_IMMEDIATE $SC_LD
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_B $SC_TARGET
   select-template
     case DD
       code
@@ -226,7 +248,7 @@ instruction mul
         xor rTEMPA, rTEMPA
     case DI DC
       code
-        $LD_B_IMMEDIATE
+        $LD_B_IMMEDIATE_INDIRECT
         mov rTEMPA, $A
         imul rTEMPC
         mov $A, rTEMPA
@@ -240,7 +262,10 @@ instruction div
   operand
     type data xmmx const fconst integer float
     $B $VALUE
-    scramble rTEMPC $LD_B_IMMEDIATE
+    scramble rTEMPC
+    $LD_B_IMMEDIATE $SC_LD
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_B $SC_TARGET
   operand
     type branch none
     $DIVZ_TARGET $VALUE
@@ -257,7 +282,7 @@ instruction div
         xor rTEMPD, rTEMPD
     case DIN DCN
       code
-        $LD_B_IMMEDIATE
+        $LD_B_IMMEDIATE_INDIRECT
         cmp rTEMPC, 0
         erroreq STATUS_DIVISION_BY_ZERO
         mov rTEMPA, $A
@@ -279,7 +304,7 @@ instruction div
         xor rTEMPD, rTEMPD
     case DIL DCL
       code
-        $LD_B_IMMEDIATE
+        $LD_B_IMMEDIATE_INDIRECT
         cmp rTEMPC, 0
         je $DIVZ_TARGET
         mov rTEMPA, $A
@@ -297,7 +322,8 @@ subroutine shift
   operand
     type data integer const
     $B $VALUE
-    scramble rTEMPC $LD_B_IMMEDIATE
+    scramble rTEMPC
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
   select-template
     case DD
       code 
@@ -306,7 +332,7 @@ subroutine shift
         xor rcx, rcx
     case DI DC
       code 
-        $LD_B_IMMEDIATE
+        $LD_B_IMMEDIATE_INDIRECT
         $INSTRUCTION $A, cl
         xor rTEMPC, rTEMPC
 
@@ -347,7 +373,8 @@ instruction goto
   operand
     type branch data const integer
     $JTARGET $VALUE
-    scramble rMAPPER $LD_IMMEDIATE_SOFTREF_BRANCH
+    scramble rMAPPER
+    $LD_IMMEDIATE_SOFTREF_BRANCH $SC_LD_INDIRECT
   select-template
     case L
       code
@@ -379,14 +406,20 @@ subroutine test
   operand
     type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed  data integer const fconst float
     $A $VALUE
-    scramble rTEMPA $LD_IMMEDIATE_A
+    scramble rTEMPA
+    $LD_IMMEDIATE_A $SC_LD
+    $LD_IMMEDIATE_A_INDIRECT $SC_LD_INDIRECT
+    $TGT_A $SC_TARGET
   operand
     type comparator
     $CJUMP $VALUE
   operand
     type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed data integer const fconst float
     $B $VALUE
-    scramble rTEMPC $LD_IMMEDIATE_B
+    scramble rTEMPC
+    $LD_IMMEDIATE_B $SC_LD
+    $LD_IMMEDIATE_B_INDIRECT $SC_LD_INDIRECT
+    $TGT_B $SC_TARGET
 
 subroutine cjump
   operand
@@ -408,7 +441,7 @@ subroutine cjump
     case DTIL DTCL DTIB DTCB
       code
         $LD_IMMEDIATE_B
-        cmp $A, rTEMPC
+        cmp $A, $TGT_B
         $CJUMP .pass
         xor rTEMPC, rTEMPC
         jmp $NEXT_INSTRUCTION
@@ -417,7 +450,7 @@ subroutine cjump
         jmp $JTARGET
     case ITDL CTDL ITDB CTDB
       code
-        $LD_IMMEDIATE_A
+        $LD_IMMEDIATE_A_INDIRECT
         cmp rTEMPA, $B
         $CJUMP .pass
         xor rTEMPA, rTEMPA
@@ -436,8 +469,10 @@ instruction lwcall
   operand
     type branch data const integer
     $JTARGET $VALUE
-    scramble rMAPPER $LD_IMMEDIATE_SOFTREF_BRANCH
-    scramble rTEMPC $LD_RETURN_TARGET $COMMAND_INDEX_NEXT
+    scramble rMAPPER
+    $LD_IMMEDIATE_SOFTREF_BRANCH $SC_LD_INDIRECT
+    scramble rTEMPC $COMMAND_INDEX_NEXT
+    $LD_RETURN_TARGET $SC_LD_INDIRECT
   select-template
     case L
       code
