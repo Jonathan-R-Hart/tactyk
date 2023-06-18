@@ -121,7 +121,7 @@ MAINLOOP:
   assign a 0
   assign b 0
   sub a 1
-  stash sA a sB bz
+  stash sA a sB b
 RENDER_FRAC:
   
   SELECT_NEXT_PIXEL:
