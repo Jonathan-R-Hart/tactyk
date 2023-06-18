@@ -533,8 +533,10 @@ instruction block-assign
         13 movq $DEST~12, $A
         14 movq $DEST~13, $A
     case BqsXI BqlXI BqsXC BqlXC
+      sub tmp ra
       vcode $QTY
-        1 cvtsi2sd $DEST~0, $A
+        1 $LD_A_IMMEDIATE_INDIRECT
+        1 cvtsi2sd $DEST~0, rTEMPA
         2 movq $DEST~1, $DEST~0
         3 movq $DEST~2, $DEST~0
         4 movq $DEST~3, $DEST~0
@@ -548,6 +550,7 @@ instruction block-assign
         12 movq $DEST~11, $DEST~0
         13 movq $DEST~12, $DEST~0
         14 movq $DEST~13, $DEST~0
+        1 $RESET_TEMP
     case BqsXF BqlXF BqsXCf BqlXCf
       sub tmp ra
       vcode $QTY
