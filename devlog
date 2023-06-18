@@ -43,6 +43,15 @@ tactyk-core
     (or left temp register resets as-is where appropriate adjustment were not available)
   Adjusted vectorized instructions to use "vcode" directives exclusively
     (the original design of vcode too rigid, and was also visually ambiguous)
+  New instruction - "block-assign"
+    This loads a value or set of packed values onto every register within a register-group
+    For data register groups, it can accept an integer literal, an integer constant, an 8-char string literal, a floating point literal, 
+      a floating point constant, a data register, or an xmm register.
+    For xmm register register groups, it can accept anything a data register can, but has additional functions for accepting packed data.
+      It can accept two floating point literals, two floating point constants, two integer literals, two integer constants, two data registers, 
+        or two xmm registers and convert it to the packed 64-bit floating point format [copied onto the entire register group].
+      It can also accept four floating point literals, four floating point constants, four integer literals, four integer constants, four data
+        registers, or four xmm registers and convert it to the packed 32-bit floating point format[copied onto the entire register group].
 
 16 Jun 2023
 tactyk-extras - table
