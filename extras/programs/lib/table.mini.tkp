@@ -169,8 +169,7 @@ MINITABLE__REMOVE_NODE.$T:
   # take the last entry
   assign $T.offset rD
   block-load 2 xxA $T 0
-  xassign xC 0 0
-  xassign xD 0 0
+  block-assign 2 xC 0 0
   block-store 2 $T 0 xxC
   
   # ... and move it to the vacated position

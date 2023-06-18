@@ -166,9 +166,7 @@ MEGATABLE__REMOVE_NODE.$T:
   # take the last entry
   assign $T.offset rD
   block-load 4 xxA $T 0
-  xassign xE 0 0
-  xassign xF 0 0
-  xduplicate 2 xG xE
+  block-assign 4 xE 0 0
   block-store 4 $T 0 xxE
   
   # ... and move it to the vacated position
