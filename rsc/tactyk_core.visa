@@ -134,24 +134,6 @@ subroutine simple_unary_instruction
   code
     $INSTRUCTION $A
 
-subroutine simple_binary_instruction
-  operand 
-    type data xmmx
-    $A $VALUE
-  operand
-    type data const integer xmmx
-    $B $VALUE
-    scramble rTEMPA
-  select-template
-    case DD
-      code 
-        $INSTRUCTION $A, $B
-    case DI DC
-      code 
-        $SC_LD
-        $INSTRUCTION $A, $SC_TARGET
-        $RESET_TEMP
-
 subroutine binary_instruction
   operand
     type data xmmx
@@ -182,18 +164,6 @@ instruction add
 instruction sub
   $INSTRUCTION sub
   sub binary_instruction
-
-instruction and
-  $INSTRUCTION and
-  sub simple_binary_instruction
-
-instruction or
-  $INSTRUCTION or
-  sub simple_binary_instruction
-
-instruction xor
-  $INSTRUCTION xor
-  sub simple_binary_instruction
 
 instruction assign
   operand 
@@ -319,55 +289,12 @@ instruction div
         mov $A, rTEMPA
         $RESET_TEMP
 
-subroutine shift
-  operand 
-    type data
-    $A $VALUE
-  operand
-    type data integer const
-    $B $VALUE
-    scramble rTEMPC
-    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
-  select-template
-    case DD
-      sub tmp c
-      code 
-        mov rTEMPC, $B
-        $INSTRUCTION $A, cl
-        $RESET_TEMP
-    case DI DC
-      sub tmp c
-      code 
-        $LD_B_IMMEDIATE_INDIRECT
-        $INSTRUCTION $A, cl
-        $RESET_TEMP
-
-instruction shift-left
-  $INSTRUCTION shl
-  sub shift
-
-instruction shift-right
-  $INSTRUCTION shr
-  sub shift
-
-instruction rotate-left
-  $INSTRUCTION rol
-  sub shift
-
-instruction rotate-right
-  $INSTRUCTION ror
-  sub shift
-
 instruction inc
   $INSTRUCTION inc
   sub simple_unary_instruction
 
 instruction dec
   $INSTRUCTION dec
-  sub simple_unary_instruction
-
-instruction not
-  $INSTRUCTION not
   sub simple_unary_instruction
 
 instruction negate

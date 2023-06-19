@@ -340,31 +340,6 @@ extend instruction assign select-template
       movq $A, rTEMPA
       $RESET_TEMP
 
-extend subroutine simple_binary_instruction select-template
-  case DX
-    sub tmp ra
-    code
-      movq rTEMPA, $B
-      p$INSTRUCTION $A, rTEMPA
-      $RESET_TEMP
-  case XD
-    sub tmp xa
-    code
-      movq xTEMPA, $B
-      p$INSTRUCTION $A, xTEMPA
-      $RESET_TEMP
-  case XI XC
-    sub tmp ra
-    sub tmp xa
-    code
-      $LD_B_IMMEDIATE
-      movq xTEMPA, rTEMPA
-      p$INSTRUCTION $A, xTEMPA
-      $RESET_TEMP
-  case XX
-    code
-      p$INSTRUCTION $A, $B
-
 extend subroutine binary_instruction select-template
   case DX
     sub tmp xa

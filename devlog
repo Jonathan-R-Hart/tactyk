@@ -18,6 +18,10 @@ New tactyk module - "bits"
   New instruction:  find-bit <low/high> <destination> <source> <opt-branch>
     This returns the lowest or highest bit set on a data register
     Optionally, this also does a conditional jump (or a conditionally executes a code block) if the test value is non-zero.
+  Moved conventional bitwise operators to the "bits" module (and or xor not shift/rotate)
+  Moved the "simple_binary_instruction" subroutine to the "bits" module and merged the xmm extension into it
+    (It is not presently used for anything but bitwise operators - other instructions which previously used it got switched to a more
+     elaborate base)
 
 17 Jun 2023
 tactyk-emit

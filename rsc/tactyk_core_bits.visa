@@ -1,3 +1,102 @@
+
+subroutine shift
+  operand 
+    type data
+    $A $VALUE
+  operand
+    type data integer const
+    $B $VALUE
+    scramble rTEMPC
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+  select-template
+    case DD
+      sub tmp c
+      code 
+        mov rTEMPC, $B
+        $INSTRUCTION $A, cl
+        $RESET_TEMP
+    case DI DC
+      sub tmp c
+      code 
+        $LD_B_IMMEDIATE_INDIRECT
+        $INSTRUCTION $A, cl
+        $RESET_TEMP
+
+instruction shift-left
+  $INSTRUCTION shl
+  sub shift
+
+instruction shift-right
+  $INSTRUCTION shr
+  sub shift
+
+instruction rotate-left
+  $INSTRUCTION rol
+  sub shift
+
+instruction rotate-right
+  $INSTRUCTION ror
+  sub shift
+
+subroutine simple_binary_instruction
+  operand 
+    type data xmmx
+    $A $VALUE
+  operand
+    type data const integer xmmx
+    $B $VALUE
+    scramble rTEMPA
+  select-template
+    case DD
+      code 
+        $INSTRUCTION $A, $B
+    case DI DC
+      code 
+        $SC_LD
+        $INSTRUCTION $A, $SC_TARGET
+        $RESET_TEMP
+    case DX
+      sub tmp ra
+      code
+        movq rTEMPA, $B
+        p$INSTRUCTION $A, rTEMPA
+        $RESET_TEMP
+    case XD
+      sub tmp xa
+      code
+        movq xTEMPA, $B
+        p$INSTRUCTION $A, xTEMPA
+        $RESET_TEMP
+    case XI XC
+      sub tmp ra
+      sub tmp xa
+      code
+        $LD_B_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        p$INSTRUCTION $A, xTEMPA
+        $RESET_TEMP
+    case XX
+      code
+        p$INSTRUCTION $A, $B
+
+instruction and
+  $INSTRUCTION and
+  sub simple_binary_instruction
+
+instruction or
+  $INSTRUCTION or
+  sub simple_binary_instruction
+
+instruction xor
+  $INSTRUCTION xor
+  sub simple_binary_instruction
+
+instruction not
+  $INSTRUCTION not
+  sub simple_unary_instruction
+
+
+
 instruction find-bit
   opt-operand
     select-operand
@@ -34,9 +133,6 @@ instruction find-bit
       code
         bsr $DEST, $SRC
         jnz $JTARGET
-
-
-
 
 
 
