@@ -1,3 +1,18 @@
+19 Jun 2023
+tactyk-core - if
+  Added bitwise operators "or", "and", "nor", and "nand"
+  The "or" test combines the 'A' and 'B' arguments with a bitwise or, then evaluates to true if any result bits are set
+  The "and" test  combines the 'A' and 'B' arguments with a bitwise and, then evaluates to true if any result bits are set
+  The "nor" test combines the 'A' and 'B' arguments with a bitwise or, then evaluates to true if no result bits are set
+  The "nand" test  combines the 'A' and 'B' arguments with a bitwise and, then evaluates to true if no result bits are set
+  The bitwise opreators applies either to data registers or xmm registers [if a packed-integer type specification is provided]
+  Changed the notation for xmm "all" modifier from a prepended '&' to surrounding square brackets
+    the "all" modifier is an extra set of variants which evaluate to true only if the bitwise opreator evaluates to true for all 
+    xmm packed fields.
+  Added a collection of arithmetical comparators for packed floating point fields and another set for packed integer fields
+    (comparators < <= == ~= >= > and packed types float-32x4, float-64x2, int32x4, and int64x2)
+    The "all" modifier can be applied to these as well.
+
 17 Jun 2023
 tactyk-emit
   New operator:  reset-template-selector

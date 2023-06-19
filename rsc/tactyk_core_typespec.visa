@@ -222,36 +222,61 @@ typespec comparator
       $VPREDCOMPLEMENT 4
       pick T
 
-    case &< lt all-lt
+    case [<] lt all-lt
       value jl
       $VPRED 1
       $VPREDCOMPLEMENT 6
       pick Ta
-    case &<= le all-le
+    case [<=] le all-le
       value jle
       $VPRED 2
       $VPREDCOMPLEMENT 5
       pick Ta
-    case &== eq all-eq
+    case [==] eq all-eq
       value je
       $VPRED 0
       $VPREDCOMPLEMENT 0
       pick Ta
-    case &>= ge all-ge
+    case [>=] ge all-ge
       value jge
       $VPRED 5
       $VPREDCOMPLEMENT 2
       pick Ta
-    case &> gt all-gt
+    case [>] gt all-gt
       value jg
       $VPRED 6
       $VPREDCOMPLEMENT 1
       pick Ta
-    case &~= &!= neq all-neq
+    case [~=] [!=] neq all-neq
       value jne
       $VPRED 4
       $VPREDCOMPLEMENT 4
       pick Ta
+    
+    case & and
+      value jnz
+      pick And
+    case ~& !& ~and !and
+      value jz
+      pick And
+    case [&] [and]
+      value jnz
+      pick Anda
+    case [~&] [!&] [~and] [!and]
+      value jz
+      pick Anda
+    case | or
+      value jnz
+      pick Or
+    case ~| !| ~or !or
+      value jz
+      pick Or
+    case [|] or
+      value jnz
+      pick Ora
+    case [~|] [!|] [~or] [!or]
+      value jz
+      pick Ora
 
 typespec address-offset
   select-operand

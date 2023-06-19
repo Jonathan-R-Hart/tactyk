@@ -1983,9 +1983,55 @@ subroutine packed-test-int
         movdqa xTEMPA, $A
         pcmpgt$WORD xTEMPA, $B
 
+subroutine packed-test-and
+  select $CJUMP
+    case jnz
+      code
+        movdqa xTEMPA, $A
+        pand xTEMPA, $B
+        pxor xTEMPB, xTEMPB
+        pcmpgt$WORD xTEMPA, xTEMPB
+    case jz
+      code
+        pcmpeqd xTEMPB, xTEMPB
+        movdqa xTEMPA, $A
+        pand xTEMPA, $B
+        pxor xTEMPB, xTEMPB
+        pcmpeq$WORD xTEMPA, xTEMPB
+
+subroutine packed-test-or
+  select $CJUMP
+    case jnz
+      code
+        movdqa xTEMPA, $A
+        por xTEMPA, $B
+        pxor xTEMPB, xTEMPB
+        pcmpgt$WORD xTEMPA, xTEMPB
+    case jz
+      code
+        pcmpeqd xTEMPB, xTEMPB
+        movdqa xTEMPA, $A
+        por xTEMPA, $B
+        pxor xTEMPB, xTEMPB
+        pcmpeq$WORD xTEMPA, xTEMPB
+
+subroutine packed-test-basic
+  select $CJUMP
+    case jnz
+      code
+        movdqa xTEMPA, $A
+        pxor xTEMPB, xTEMPB
+        pcmpgt$WORD xTEMPA, xTEMPB
+    case jz
+      code
+        pcmpeqd xTEMPB, xTEMPB
+        movdqa xTEMPA, $A
+        pxor xTEMPB, xTEMPB
+        pcmpeq$WORD xTEMPA, xTEMPB
+
 subroutine packed-test-any
-  sub xa
-  sub xb
+  sub tmp xa
+  sub tmp xb
   code
     movhlps xTEMPB, xTEMPA
     por xTEMPA, xTEMPB
@@ -1994,8 +2040,8 @@ subroutine packed-test-any
     jne .pass
 
 subroutine packed-test-all
-  sub xa
-  sub xb
+  sub tmp xa
+  sub tmp xb
   code
     movhlps xTEMPB, xTEMPA
     pand xTEMPA, xTEMPB
@@ -2005,29 +2051,51 @@ subroutine packed-test-all
     je .pass
 
 extend subroutine test select-template
-  case XipTXip
+  case XipTXip XipTX XTXip
     sub packed-test-int
     sub packed-test-any
-  case XipTaXip
+  case XipTaXip XipTaX XTaXip
     sub packed-test-int
     sub packed-test-all
-  case Xf32pTXf32p
+  case Xf32pTXf32p Xf32pTX XTXf32p
     code
       movdqa xTEMPA, $A
       cmpps xTEMPA, $B, $VPRED
     sub packed-cjump-any
-  case Xf32pTaXf32p
+  case Xf32pTaXf32p Xf32pTaX XTaXf32p
     code
       movdqa xTEMPA, $A
       cmpps xTEMPA, $B, $VPRED
     sub packed-cjump-all
-  case Xf64pTXf64p
+  case Xf64pTXf64p Xf64pTX XTXf64p
     code
       movdqa xTEMPA, $A
       cmppd xTEMPA, $B, $VPRED
     sub packed-cjump-any
-  case Xf64pTaXf64p
+  case Xf64pTaXf64p Xf64pTaX XTaXf64p
     code
       movdqa xTEMPA, $A
       cmppd xTEMPA, $B, $VPRED
     sub packed-cjump-all
+  
+  case XipAndXip XipAndX XAndXip
+    sub packed-test-and
+    sub packed-test-any
+  case XipAndaXip XipAndaX XAndaXip
+    sub packed-test-and
+    sub packed-test-all
+  
+  case XipOrXip XipOrX XOrXip
+    sub packed-test-or
+    sub packed-test-any
+  case XipOraXip XipOraX XOraXip
+    sub packed-test-or
+    sub packed-test-all
+  
+  case Xip XipOr XipAnd
+    sub packed-test-basic
+    sub packed-test-any
+  csae XipOra XipAnda
+    sub packed-test-basic
+    sub packed-test-all
+  

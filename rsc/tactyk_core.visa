@@ -409,6 +409,7 @@ instruction goto
         jmp [rMAPPER]
 
 subroutine test
+  $CJUMP jnz
   operand
     type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed  data integer const fconst float string
     $A $VALUE
@@ -416,10 +417,10 @@ subroutine test
     $LD_IMMEDIATE_A $SC_LD
     $LD_IMMEDIATE_A_INDIRECT $SC_LD_INDIRECT
     $TGT_A $SC_TARGET
-  operand
+  opt-operand
     type comparator
     $CJUMP $VALUE
-  operand
+  opt-operand
     type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed data integer const fconst float string
     $B $VALUE
     scramble rTEMPC
@@ -427,7 +428,7 @@ subroutine test
     $LD_IMMEDIATE_B_INDIRECT $SC_LD_INDIRECT
     $TGT_B $SC_TARGET
   select-template
-    case DTD DTD
+    case DTD
       code
         cmp $A, $B
         $CJUMP .pass
@@ -442,6 +443,49 @@ subroutine test
       code
         $LD_IMMEDIATE_A_INDIRECT
         cmp rTEMPA, $B
+        $CJUMP .pass
+    
+    case DAndD
+      code
+        test $A, $B
+        $CJUMP .pass
+    case DAndI DAndC DAndS
+      sub tmp $TGT_B
+      code
+        $LD_IMMEDIATE_B
+        test $A, $TGT_B
+        $CJUMP .pass
+    case IAndD CAndD SAndD
+      sub tmp $TGT_B
+      code
+        $LD_IMMEDIATE_A
+        test $B, $TGT_A
+        $CJUMP .pass
+    
+    case DOrD
+      sub tmp ra
+      code
+        assign rTEMPA, $A
+        or rTEMPA, $B
+        cmp $A, 0
+        $CJUMP .pass
+    case DOrI DOrC DOrS
+      sub tmp $TGT_B
+      code
+        $LD_IMMEDIATE_B_INDIRECT
+        or tTEMPC, $A
+        cmp rTEMPC, 0
+        $CJUMP .pass
+    case IOrD COrD SOrD
+      sub tmp $TGT_A
+      code
+        $LD_IMMEDIATE_A_INDIRECT
+        or rTEMPA, $A
+        cmp rTEMPA, 0
+        $CJUMP .pass
+    case D
+      code
+        cmp $A, 0
         $CJUMP .pass
 
 subroutine cjump
