@@ -406,6 +406,9 @@ bool tactyk_emit__StringOperand(struct tactyk_emit__Context *ctx, struct tactyk_
     char buf[16];
     memset(buf, 0, 16);
     struct tactyk_dblock__DBlock *sb = ctx->pl_operand_raw;
+    if (sb == NULL) {
+        return false;
+    }
     int64_t len = sb->length;
     if (len > 0) {
         uint8_t *data = (uint8_t*) sb->data;
