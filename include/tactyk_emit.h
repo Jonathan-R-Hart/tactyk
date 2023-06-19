@@ -100,6 +100,7 @@ struct tactyk_emit__subroutine_spec {
     tactyk_emit__sub_func func;
     bool chain_in;
     bool chain_out;
+    bool skip;
 };
 
 struct tactyk_emit__Context {
@@ -159,6 +160,7 @@ struct tactyk_emit__Context {
 
     bool namechars[256];
     uint64_t iptr;
+    uint64_t target_iptr;
 
     uint64_t token_handle_count;
     bool has_visa_constants;

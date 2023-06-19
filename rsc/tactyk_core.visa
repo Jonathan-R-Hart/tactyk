@@ -576,3 +576,14 @@ subroutine tmp
             xor rMAPPER, rMAPPER
     default
       # pass
+
+instruction nop
+  code
+    nop
+
+instruction skip
+  code
+    ; pass
+
+
+

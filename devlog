@@ -13,6 +13,14 @@ tactyk-core - if
     (comparators < <= == ~= >= > and packed types float-32x4, float-64x2, int32x4, and int64x2)
     The "all" modifier can be applied to these as well.
 
+New instructions:  nop and skip
+  "nop" is just a conventional no-op
+  "skip" is a dummy instruction which is skipped over completely.
+    The skip instruction causes extra references to the next valid instruction to be inserted into the global jump table.
+    All labels prepended to a skip instruction target the next non-skip instruction
+    Any computed gotos will jump straight to the next non-skip instruction
+    This is to be used for aligning the global jump table (to help set up and switch statements / computed goto and make them equivalent)
+
 New tactyk module - "bits"
   For bitwise operations
   New instruction:  find-bit <low/high> <destination> <source> <opt-branch>

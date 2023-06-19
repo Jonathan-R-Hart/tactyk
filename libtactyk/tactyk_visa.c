@@ -176,6 +176,7 @@ bool tactyk_visa__mk_instruction(struct tactyk_emit__Context *ctx, struct tactyk
     
     bool chainin = false;
     bool chainout = false;
+    bool is_skip = false;
     
     if (tactyk_dblock__equals_c_string(name, "chain-in")) {
         name = name->next;
@@ -190,11 +191,17 @@ bool tactyk_visa__mk_instruction(struct tactyk_emit__Context *ctx, struct tactyk
         chainin = true;
         chainout = true;
     }
+    
+    if (tactyk_dblock__equals_c_string(name, "skip")) {
+        is_skip = true;
+    }
+    
     struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__new_managedobject(ctx->instruction_table, name);
     sub->func = tactyk_emit__ExecInstruction;
     sub->vopcfg = vopcfg;
     sub->chain_in = chainin;
     sub->chain_out = chainout;
+    sub->skip = is_skip;
     
     uint64_t index = ctx->token_handle_count;
     ctx->token_handle_count += 1;

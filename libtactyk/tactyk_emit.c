@@ -271,13 +271,20 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     ctx->pl_operand_raw = cmd->tokens;
     ctx->pl_operand_resolved = NULL;
 
-    struct tactyk_dblock__DBlock *cmd_idx = tactyk_dblock__from_uint(ctx->iptr);
-    struct tactyk_dblock__DBlock *cmd_idx_next = tactyk_dblock__from_uint(ctx->iptr + 1);
-    tactyk_dblock__put(ctx->local_vars, "$COMMAND_INDEX", cmd_idx);
+    struct tactyk_dblock__DBlock *cmd_idx = NULL;
+    struct tactyk_dblock__DBlock *cmd_idx_next = tactyk_dblock__from_uint(ctx->target_iptr + 1);
     tactyk_dblock__put(ctx->local_vars, "$COMMAND_INDEX_NEXT", cmd_idx_next);
-    tactyk_dblock__append(cmd->asm_code, TACTYK_EMIT__COMMAND_PREFIX);
-    tactyk_dblock__append(cmd->asm_code, cmd_idx);
-    tactyk_dblock__append(cmd->asm_code, ":\n");
+    while (ctx->iptr <= ctx->target_iptr) {
+        cmd_idx = tactyk_dblock__from_uint(ctx->iptr);
+        tactyk_dblock__append(cmd->asm_code, TACTYK_EMIT__COMMAND_PREFIX);
+        tactyk_dblock__append(cmd->asm_code, cmd_idx);
+        tactyk_dblock__append(cmd->asm_code, ":\n");
+        ctx->iptr += 1;
+    }
+    tactyk_dblock__put(ctx->local_vars, "$COMMAND_INDEX", cmd_idx);
+    //tactyk_dblock__append(cmd->asm_code, TACTYK_EMIT__COMMAND_PREFIX);
+    //tactyk_dblock__append(cmd->asm_code, cmd_idx);
+    //tactyk_dblock__append(cmd->asm_code, ":\n");
     
     if (cmd->parent.header_label != NULL) {
         tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_HEADER", cmd->parent.header_label);
@@ -1057,6 +1064,13 @@ void tactyk_emit__pop_codeblock(struct tactyk_emit__Context *ctx) {
 }
 void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *token, struct tactyk_dblock__DBlock *line) {
     struct tactyk_dblock__DBlock *name = token;
+    struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, name);
+    if (sub == NULL) {
+        tactyk_report__reset();
+        tactyk_report__dblock("Instruction not defined", line);
+        error(NULL, NULL);
+    }
+    
     uint64_t cmd_index = ctx->script_commands->element_count;
     struct tactyk_emit__script_command *cmd = tactyk_dblock__new_object(ctx->script_commands);
     cmd->name = name;
@@ -1064,18 +1078,11 @@ void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct ta
     cmd->pl_code = line;
     cmd->asm_code = tactyk_dblock__new(4096);
     cmd->labels = ctx->active_labels;
-    
     ctx->active_labels = NULL;
     ctx->active_labels_last = NULL;
     
     ctx->active_command = cmd;
     
-    struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, name);
-    if (sub == NULL) {
-        tactyk_report__reset();
-        tactyk_report__dblock("Instruction not defined", line);
-        error(NULL, NULL);
-    }
 }
 
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
@@ -1087,23 +1094,43 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     else {
         tactyk_dblock__put(ctx->global_vars, "$USE_SCRAMBLE", tactyk_dblock__from_safe_c_string("false"));
     }
+    struct tactyk_dblock__DBlock *label = NULL;
+    struct tactyk_dblock__DBlock *label_last = NULL;
+    ctx->iptr = 0;
     for (uint64_t i = 0; i < ctx->script_commands->element_count; i += 1) {
         struct tactyk_emit__script_command *cmd = tactyk_dblock__index(ctx->script_commands, i);
+        struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, cmd->name);
         tactyk_report__reset();
         tactyk_report__dblock("COMMAND", cmd->pl_code);
         tactyk_report__uint("INDEX", i);
-        ctx->iptr = i;
+        ctx->target_iptr = i;
         ctx->active_command = cmd;
-        struct tactyk_dblock__DBlock *label = cmd->labels;
-        while (label != NULL) {
-            tactyk_report__dblock("LABEL", label);
-            tactyk_dblock__append(cmd->asm_code, label);
-            tactyk_dblock__append(cmd->asm_code, ":\n");
-            label = label->next;
+        
+        if (label == NULL) {
+            label = cmd->labels;
+            label_last = label;
         }
-        struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, cmd->name);
-        sub->func(ctx, sub->vopcfg);
-        tactyk_report__dblock_full("ASM", cmd->asm_code);
+        else {
+            label_last->next = cmd->labels;
+        }
+        if (label_last != NULL) {
+            while (label_last->next != NULL) {
+                label_last = label_last->next;
+            }
+        }
+        
+        if (!sub->skip) {
+            //struct tactyk_dblock__DBlock *label = cmd->labels;
+            while (label != NULL) {
+                tactyk_report__dblock("LABEL", label);
+                tactyk_dblock__append(cmd->asm_code, label);
+                tactyk_dblock__append(cmd->asm_code, ":\n");
+                label = label->next;
+            }
+            sub->func(ctx, sub->vopcfg);
+            tactyk_report__dblock_full("ASM", cmd->asm_code);
+            label_last = NULL;
+        }
     }
     
     tactyk_report__reset();
