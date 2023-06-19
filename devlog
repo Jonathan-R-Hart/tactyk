@@ -13,6 +13,12 @@ tactyk-core - if
     (comparators < <= == ~= >= > and packed types float-32x4, float-64x2, int32x4, and int64x2)
     The "all" modifier can be applied to these as well.
 
+New tactyk module - "bits"
+  For bitwise operations
+  New instruction:  find-bit <low/high> <destination> <source> <opt-branch>
+    This returns the lowest or highest bit set on a data register
+    Optionally, this also does a conditional jump (or a conditionally executes a code block) if the test value is non-zero.
+
 17 Jun 2023
 tactyk-emit
   New operator:  reset-template-selector

@@ -1,0 +1,44 @@
+instruction find-bit
+  opt-operand
+    select-operand
+      case first low lowest
+        pick Lo
+      case last high highest
+        pick Hi
+  operand
+    type data
+    $DEST $VALUE
+  operand
+    type data
+    $SRC $VALUE
+  opt-operand
+    type branch codeblock
+    $JTARGET $VALUE
+    select $IS_CODEBLOCK
+      case true
+        $NEXT_INSTRUCTION $CODEBLOCK_CHILD_CLOSE
+        $JTARGET $CODEBLOCK_CHILD_FIRST
+      case false
+  select-template
+    case DD LoDD
+      code
+        bsf $DEST, $SRC
+    case HiDD
+      code
+        bsr $DEST, $SRC
+    case DDL LoDDL DDB LoDDB
+      code
+        bsf $DEST, $SRC
+        jnz $JTARGET
+    case HiDDL HiDDB
+      code
+        bsr $DEST, $SRC
+        jnz $JTARGET
+
+
+
+
+
+
+
+
