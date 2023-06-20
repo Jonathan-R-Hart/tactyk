@@ -1,3 +1,6 @@
+20 Jun 2023
+tactyk-runtime - catch invalid file references and report error.
+
 19 Jun 2023
 tactyk-core - if
   Added bitwise operators "or", "and", "nor", and "nand"

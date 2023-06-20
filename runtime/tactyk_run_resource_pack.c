@@ -103,6 +103,7 @@ FILE* tactyk_run__rsc__get_fileref(char *path, char *fname, char *mode) {
     snprintf(fullname, 1024, "%s/%s", path, fname);
     
     FILE *f = fopen(fullname, mode);
+    tactyk_report__string("FILENAME", fullname);
     return f;
 }
 
@@ -270,7 +271,10 @@ bool tactyk_run__rsc__load_module(struct tactyk_run__RSC *rsc, struct tactyk_dbl
     uint8_t *bytes;
     
     tactyk_report__string("Load module-file", filename_text);
-    tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes);    
+    if (!tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes)) {
+        tactyk_report__msg("Failed to open file for reading.");
+        error(NULL, NULL);
+    }
     tactyk_report__int("Loaded bytes", len);    
     struct tactyk_run__module *mod = tactyk_dblock__new_managedobject(rsc->module_table, name);
     mod->pl_src_code = tactyk_run__rsc__to_structured_text(bytes);
@@ -318,7 +322,10 @@ bool tactyk_run__rsc__load_data(struct tactyk_run__RSC *rsc, struct tactyk_dbloc
     uint8_t *bytes;
     
     tactyk_report__string("Load data-file", filename_text);
-    tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes);
+    if (!tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes)) {
+        tactyk_report__msg("Failed to open file for reading.");
+        error(NULL, NULL);
+    }
     tactyk_report__int("Loaded bytes", len);
     
     struct tactyk_dblock__DBlock *dbctn = tactyk_dblock__from_bytes(NULL, bytes, 0, len, true); 
