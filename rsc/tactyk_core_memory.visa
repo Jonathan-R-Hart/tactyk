@@ -159,7 +159,7 @@ instruction load
         
         lfence
         
-        mov $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
         $RESET_TEMP
     case QDAI QDAC
       sub tmp a
@@ -176,7 +176,7 @@ instruction load
         
         lfence
         
-        mov $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
+        $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
         $RESET_TEMP
     case DDAD
       sub tmp a
@@ -190,7 +190,7 @@ instruction load
         cmp $ADDRESS_REGISTER, 0
         erroreq STATUS_UNBOUND_MEMORY
         
-        mov %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+$OFFSET]
+        $MOV %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+$OFFSET]
         $RESET_TEMP
     case DDAI DDAC
       sub tmp a
@@ -209,7 +209,40 @@ instruction load
         
         lfence
         
-        mov %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+rTEMPC]
+        $MOV %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+rTEMPC]
+        $RESET_TEMP
+    case DsDAD
+      sub tmp a
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 3
+        cmp $OFFSET, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp $OFFSET, 0
+        errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
+        
+        $MOV $DEST__DATA_REG, dword [$ADDRESS_REGISTER+$OFFSET]
+        $RESET_TEMP
+    case DsDAI DsDAC
+      sub tmp a
+      sub tmp c
+      code
+        $LD_OFFSET_IMMEDIATE
+        
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        sub rTEMPA_32, 3
+        cmp rTEMPC, rTEMPA
+        errorge STATUS_ROGUE_POINTER
+        cmp rTEMPC, 0
+        errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
+        
+        lfence
+        
+        $MOV $DEST__DATA_REG, dword [$ADDRESS_REGISTER+rTEMPC]
         $RESET_TEMP
     case WDAD
       sub tmp a
@@ -225,7 +258,7 @@ instruction load
         
         lfence
         
-        movzx $DEST__DATA_REG, word [$ADDRESS_REGISTER+$OFFSET]
+        $MOV $DEST__DATA_REG, word [$ADDRESS_REGISTER+$OFFSET]
         $RESET_TEMP
     case WDAI WDAC
       sub tmp a
@@ -244,7 +277,7 @@ instruction load
         
         lfence
         
-        movzx $DEST__DATA_REG, word [$ADDRESS_REGISTER+rTEMPC]
+        $MOV $DEST__DATA_REG, word [$ADDRESS_REGISTER+rTEMPC]
         $RESET_TEMP
     case BDAD
       sub tmp a
@@ -259,7 +292,7 @@ instruction load
         
         lfence
         
-        movzx $DEST__DATA_REG, byte [$ADDRESS_REGISTER+$OFFSET]
+        $MOV $DEST__DATA_REG, byte [$ADDRESS_REGISTER+$OFFSET]
         $RESET_TEMP
     case BDAI BDAC
       sub tmp a
@@ -277,7 +310,7 @@ instruction load
         
         lfence
         
-        movzx $DEST__DATA_REG, byte [$ADDRESS_REGISTER+rTEMPC]
+        $MOV $DEST__DATA_REG, byte [$ADDRESS_REGISTER+rTEMPC]
         $RESET_TEMP
 
 instruction store
@@ -328,7 +361,7 @@ instruction store
         mov [$ADDRESS_REGISTER+rTEMPC], $SRC
         $RESET_TEMP
     
-    case DADD
+    case DADD DsADD
       sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -342,7 +375,7 @@ instruction store
         lfence
         mov dword [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_32
         $RESET_TEMP
-    case DAID DACD
+    case DAID DACD DsAID DsACD
       sub tmp a
       sub tmp c
       code

@@ -59,12 +59,28 @@ typespec data
 typespec word
   select-operand
     case byte i8
+      $MOV movzx
       pick B
     case word i16
+      $MOV movzx
       pick W
     case dword i32
+      $MOV mov
       pick D
     case qword i64
+      $MOV mov
+      pick Q
+    case sbyte i8
+      $MOV movsx
+      pick B
+    case sword i16
+      $MOV movsx
+      pick W
+    case sdword i32
+      $MOV movsxd
+      pick Ds
+    case sqword i64
+      $MOV mov
       pick Q
     case float float64
       pick F64

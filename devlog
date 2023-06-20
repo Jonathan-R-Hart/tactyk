@@ -1,6 +1,12 @@
 20 Jun 2023
 tactyk-runtime - catch invalid file references and report error.
 
+tactyk-core-memory - load
+  Add the ability to load signed 8-bit, 16-bit, and 32-bit words onto data registers.
+  Signed value loading is specified with keywords "sbyte", "sword", and "sdword"
+    ("sqword" has been added for completeness, but there is no technical difference between signed and unsigned 64-bit integers)
+  The implementation is a bit hackish [on account of x86-shennanigans]
+
 19 Jun 2023
 tactyk-core - if
   Added bitwise operators "or", "and", "nor", and "nand"
