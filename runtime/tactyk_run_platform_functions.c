@@ -24,11 +24,21 @@ void tactyk_run__platform__set_resource_pack(struct tactyk_run__RSC *rsc) {
 //  output:
 //      memblock1 - memory binding granting access to the data block.
 void tactyk_run__platform__get_data(struct tactyk_asmvm__Context *ctx) {
+    if (ctx->reg.rA == 0) {
+        tactyk_report__reset();
+        tactyk_report__msg("data-resource specifier is NULL (rA == 0)");
+        error(NULL, NULL);
+    }
     uint64_t data[2];
     data[0] = ctx->reg.rA;
     data[1] = 0;
     char *name = (char*)data;
     struct tactyk_dblock__DBlock *ctn = tactyk_dblock__get(tactyk_run__platform__resources->data_table, name);
+    if (ctn == NULL) {
+        tactyk_report__reset();
+        tactyk_report__string("data-resource specifier is invalid (rA)", name);
+        error(NULL, NULL);
+    }
     ctx->reg.rADDR1 = (uint64_t*) ctn->data;
     struct tactyk_asmvm__memblock_lowlevel *mref = &ctx->active_memblocks[0];
     mref->base_address = (uint8_t*)ctn->data;
@@ -67,6 +77,10 @@ void tactyk_run__platform__export(struct tactyk_asmvm__Context *ctx) {
             else {
                 // persistent datas!
                 FILE *f = tactyk_run__rsc__get_fileref(tactyk_run__platform__resources->base_path, exp->fname, "w");
+                if (f == NULL) {
+                    tactyk_report__msg("Failed to open file for writing.");
+                    error(NULL, NULL);
+                }
                 fwrite(ptr, pos+1, 1, f);
                 tactyk_report__string("Wrote to export target", exp->fname);
             }

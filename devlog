@@ -1,5 +1,7 @@
 20 Jun 2023
-tactyk-runtime - catch invalid file references and report error.
+tactyk-runtime
+  catch invalid file references and report error.
+  catch null or invalid data references and report them as errors
 
 tactyk-core-memory - load
   Add the ability to load signed 8-bit, 16-bit, and 32-bit words onto data registers.
