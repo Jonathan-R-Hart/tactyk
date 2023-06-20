@@ -16,9 +16,10 @@
 
 # This layout helps reduce the amount of unique load instructions
 struct gx_info__fillrect_fields
-  65536 general_alloc
+  2048 program_alloc
+  4096 general_alloc
   48 view_alloc
-  48 rasterizer_alloc
+  128 rasterizer_alloc
   . 8 x
   8   x2
   8   y
@@ -49,7 +50,7 @@ GX.rect.fill:
   block-store 3 addr2 gx_info__fillrect_fields.x1 rA
   
   assign rA GX.rect.fill.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 # Axis-aligned box rasterizer
@@ -112,35 +113,17 @@ GX.rect.fill.impl:
   store oword addr4 gx_pixel.a xN
   
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 
-
-
-
-
 struct gx_info__outlinerect_fields
-  32 g_normals
-  . 16 normals_ABCD
-  16 normals_EFGH
-  256 g_colors
-  > 65536 g_matrixbuf
-  
-  16 view_size
-  . 8 width
-  8 height
-  
-  16 fbuf_size
-  . 8 fb_width
-  8 fb_height
-  
-  16 world_position
-  . 8 x
-  8 y
-  
+  2048 program_alloc
+  4096 general_alloc
+  48 view_alloc
   128 rasterizer_alloc
+
   . 0 main-iterator
   8 x
   8 y
@@ -161,6 +144,10 @@ struct gx_info__outlinerect_fields
   8 output
   8 scaled-position-incr
   8 border-length
+  
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
   
 GX.rect.outline:
   # rasterizer vars
@@ -212,7 +199,7 @@ GX.rect.outline:
   block-store 2 addr2 gx_info__outlinerect_fields.inset-iterator rD
 
   assign rA GX.rect.outline.north
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 
@@ -263,7 +250,7 @@ GX.rect.outline.inset:
   block-store 3 addr2 gx_info__outlinerect_fields.uv-export xJ
   
   assign rE GX.rect.outline.north
-  store qword addr1 rF rE
+  store qword addr2 rF rE
   goto rE
 
 GX.rect.outline.north:
@@ -281,7 +268,7 @@ GX.rect.outline.north:
       # activate 'east' tracer and set target to y2
       store qword addr2 gx_info__outlinerect_fields.target rD
       assign rD GX.rect.outline.east
-      store qword addr1 rF rD
+      store qword addr2 rF rD
   
   goto GX.rect.outline.epilogue
 
@@ -300,7 +287,7 @@ GX.rect.outline.east:
       # activate 'south' tracer and set target to x1
       store qword addr2 gx_info__outlinerect_fields.target rC
       assign rD GX.rect.outline.south
-      store qword addr1 rF rD
+      store qword addr2 rF rD
   goto GX.rect.outline.epilogue
 
 GX.rect.outline.south:
@@ -318,7 +305,7 @@ GX.rect.outline.south:
       # activate 'west' tracer and set target to y1
       store qword addr2 gx_info__outlinerect_fields.target rC
       assign rD GX.rect.outline.west
-      store qword addr1 rF rD
+      store qword addr2 rF rD
   
   goto GX.rect.outline.epilogue
 
@@ -332,7 +319,7 @@ GX.rect.outline.west:
   
   if rB == rC
     assign rD GX.rect.outline.inset
-    store qword addr1 rF rD
+    store qword addr2 rF rD
   
   goto GX.rect.outline.epilogue
 
@@ -363,7 +350,7 @@ GX.rect.outline.epilogue:
   
   store oword addr4 gx_pixel.a xK
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE

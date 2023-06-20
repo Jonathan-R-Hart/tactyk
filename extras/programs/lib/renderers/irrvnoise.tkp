@@ -49,7 +49,8 @@
 # component count, feature size, and value
 
 struct gx_info__irrvnoise
-  65536 general_alloc
+  2048 program_alloc
+  4096 general_alloc
   48 view_alloc
   48 rasterizer_alloc
   2592 ptxp_alloc
@@ -67,7 +68,7 @@ struct gx_info__irrvnoise__component
 
 IRRVNOISE:
   assign rA IRRVNOISE.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 
@@ -139,9 +140,9 @@ IRRVNOISE.impl:
   compute xA xA mul sVl
   # store float32 addr3 16 xA
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 
 struct gx_info__irrvnoise__simd_components
@@ -166,7 +167,7 @@ struct gx_info__irrvnoise__simd_components
 
 IRRVNOISE.simd:
   assign rA IRRVNOISE.simd.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 
@@ -197,9 +198,9 @@ IRRVNOISE.simd.impl:
   xcompute xA xA.f32.0 add xA.f32.1
   compute xA xA mul sVl
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 
 RAND_FLOAT.simd:

@@ -28,7 +28,8 @@ struct gx_pixel
   4 blend_gnorm2
 
 struct gx_info__view
-  65536 general_alloc
+  2048 program_alloc
+  4096 general_alloc
   48 view_alloc
   
   . 16 view_size
@@ -43,7 +44,7 @@ struct gx_info__view
   . 8 x
   8 y
   
-  48 rasterizer_alloc
+  128 rasterizer_alloc
   2592 ptxp_alloc
   6400 irrv_alloc
   256 text_alloc
@@ -52,15 +53,16 @@ struct gx_info__view
 #   storage locations assigned to each top-level draw components
 # Dynamic memory allocation may be preferable, but will require a fair amount of revision
 struct gx_info
-  65536 general_alloc
+  2048 program_alloc
+  4096 general_alloc
   48 view_alloc
-  48 rasterizer_alloc
+  128 rasterizer_alloc
   2592 ptxp_alloc
   6400 irrv_alloc
   256 text_alloc
 
-struct gx_program
-  128 functions
+struct gx_info__program
+  2048 program_alloc
   . 8 f0
   8 f1
   8 f2
@@ -78,10 +80,15 @@ struct gx_program
   8 f14
   8 f15
   0 end
-  3968 data
+  4096 general_alloc
+  48 view_alloc
+  128 rasterizer_alloc
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
 
 mem m_gx_info gx_info 1
-mem m_gx_drawprogram gx_program 1
+# mem m_gx_drawprogram gx_program 1
 
 # Initialize and obtain a window from SDL
 #   At some point, if/when there is a desire to perform off-display rendering, 
@@ -240,7 +247,7 @@ GX.to_rgba:
 
 # fill a rectangular area
 GX.fill.rect:
-  bind addr1 m_gx_drawprogram
+  #bind addr1 m_gx_drawprogram
   assign rF 0
   lwcall GX.rect.fill
   lwcall GX.fills.simple
@@ -250,7 +257,7 @@ GX.fill.rect:
 
 # draw an inset outline around a rectangular area
 GX.trace.rect:
-  bind addr1 m_gx_drawprogram
+  #bind addr1 m_gx_drawprogram
   assign rF 0
   lwcall GX.rect.outline
   lwcall GX.fills.simple
@@ -263,145 +270,145 @@ GX.draw:
   if rF == 1
     lwreturn
   assign rF 0
-  load qword rE addr1 gx_program.f0
+  load qword rE addr2 gx_info__program.f0
   lwcall rE
   goto GX.draw
 
 # basic filling function
 # This performs a simple overwrite of all color channels and normals
 GX.fills.simple:
-  block-store 4 addr1 gx_program.data xxA
+  block-store 4 addr2 gx_info.general_alloc xxA
   assign rA GX.fills.simple.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 GX.fills.simple.impl:
-  block-load 4 xxA addr1 gx_program.data
+  block-load 4 xxA addr2 gx_info.general_alloc
   block-store 4 addr4 0 xxA
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 
 GX.texture:
   assign rA GX.texture.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 GX.texture.impl:
   assign xA 1.0
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 GX.transfer.ch0:
   assign rA GX.transfer.ch0.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 GX.transfer.ch0.impl:
   store float32 addr4 0 xA
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 GX.transfer.ch1:
   assign rA GX.transfer.ch1.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 GX.transfer.ch1.impl:
   store float32 addr4 4 xA
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 GX.transfer.ch2:
   assign rA GX.transfer.ch2.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 GX.transfer.ch2.impl:
   store float32 addr4 8 xA
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 GX.transfer.ch3:
   assign rA GX.transfer.ch3.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 GX.transfer.ch3.impl:
   store float32 addr4 12 xA
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 GX.transfer.ch4:
   assign rA GX.transfer.ch4.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 GX.transfer.ch4.impl:
   store float32 addr4 16 xA
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 GX.transfer.ch5:
   assign rA GX.transfer.ch5.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 GX.transfer.ch5.impl:
   store float32 addr4 20 xA
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 GX.transfer.ch6:
   assign rA GX.transfer.ch6.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 GX.transfer.ch6.impl:
   store float32 addr4 24 xA
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 GX.transfer.ch7:
   assign rA GX.transfer.ch7.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 GX.transfer.ch7.impl:
   store float32 addr4 28 xA
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
   
 
 # return from a renderer
 GX.util.exit:
   assign rA GX.util.exit.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 GX.util.exit.impl:
-  assign rF gx_program.end
+  assign rF gx_info__program.end
   lwreturn
 
 

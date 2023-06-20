@@ -1,8 +1,9 @@
 
 struct gx_info__ptpx_data
-  65536 general_alloc
+  2048 program_alloc
+  4096 general_alloc
   48 view_alloc
-  48 rasterizer_alloc
+  128 rasterizer_alloc
   
   2592 ptxp_alloc
   . 8 num_points
@@ -196,7 +197,7 @@ PTPX_SORT.distance:
 
 PTPX_FILL:
   assign rA PTPX_FILL.impl
-  store qword addr1 rF rA
+  store qword addr2 rF rA
   add rF 8
   lwreturn
 PTPX_FILL.impl:
@@ -219,9 +220,9 @@ PTPX_FILL.impl:
   block-store 8 addr4 gx_pixel.components xxA
   
   add rF 8
-  if rF == gx_program.end
+  if rF == gx_info__program.end
     lwreturn
-  load qword rE addr1 rF
+  load qword rE addr2 rF
   goto rE
 
 QSORT:
