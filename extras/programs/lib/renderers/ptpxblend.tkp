@@ -1,0 +1,300 @@
+
+struct gx_info__ptpx_data
+  65536 general_alloc
+  48 view_alloc
+  48 rasterizer_alloc
+  
+  2592 ptxp_alloc
+  . 8 num_points
+  8 distfunc
+  8 wfunc
+  8 extra
+  512 ptxp_map
+  2048 ptpx_pixel_prototypes
+  
+  6400 irrv_alloc
+  256 text_alloc
+
+
+RAND_FLOAT:
+  tcall rand
+  and rA h.7fffffffffffffff
+  compute xA rA div h.7fffffffffffffff
+  lwreturn
+
+const ATTEN 0.02
+PTXP_RANDOMIZE_PIXEL:
+  xassign xB 0.0 0.0 0.0 0.0
+  xassign xC xB
+  xduplicate 2 xD xB
+  xduplicate 4 xD xB
+    
+  # AFTER IMPLEMENTING SIGNED assignment instructions, use this version:
+  # lwcall RAND_FLOAT
+  # compute rB xA mul 2000 sub 500
+  # lwcall RAND_FLOAT
+  # compute rC xA mul 2000 sub 500
+  
+  # until then, write only signed random values:
+  lwcall RAND_FLOAT
+  compute rB xA mul 1000
+  lwcall RAND_FLOAT
+  compute rC xA mul 1000
+  pack int32.2 xF rB
+  xassign xG 0.0 0.0 0.0 0.0
+  
+  # rA,rB:  local normals, two packed float-32 vectors per set (stride of 32 bytes)
+  # rC,rD:  local color-model, two packed float-32 4x4 matrices per set (stride of 128 bytes)
+  spread rA 0 0 1024 1152
+  pack int32.4 xH rA
+  
+  xassign xI 1.0 0.0 1.0 0.0
+  block-store 8 addr2 rE xxB
+  
+  lwreturn
+
+PTXP_RANDOMIZE_CHANNELS:
+  if rE > 0
+    xassign xD 1.0 0.0 0.0 0.0
+    xassign xE 0.0 1.0 0.0 0.0
+    xassign xF 0.0 0.0 1.0 0.0
+    
+    lwcall RAND_FLOAT
+    xcompute xG float32 0 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xG float32 1 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xG float32 2 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xG float32 3 xC sub xB mul xA add xB
+    transpose xD
+
+    lwcall RAND_FLOAT
+    xcompute xH float32 0 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xH float32 1 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xH float32 2 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xH float32 3 xC sub xB mul xA add xB
+
+    lwcall RAND_FLOAT
+    xcompute xI float32 0 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xI float32 1 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xI float32 2 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xI float32 3 xC sub xB mul xA add xB
+
+    lwcall RAND_FLOAT
+    xcompute xJ float32 0 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xJ float32 1 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xJ float32 2 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xJ float32 3 xC sub xB mul xA add xB
+
+    lwcall RAND_FLOAT
+    xcompute xK float32 0 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xK float32 1 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xK float32 2 xC sub xB mul xA add xB
+    lwcall RAND_FLOAT
+    xcompute xK float32 3 xC sub xB mul xA add xB
+    transpose xH
+    
+    block-store 8 addr2 rF xxD
+    
+    sub rE 1
+    add rF 128
+    goto PTXP_RANDOMIZE_CHANNELS
+  lwreturn
+
+PTXP_MK_RANDOM_DATAPOINTS:
+  if rF > 0
+    dec rF
+    assign rE gx_pixel_size
+    mul rE rF
+    add rE gx_info__ptpx_data.ptpx_pixel_prototypes
+    assign rD rF
+    shift-left rD 4
+    add rD 8
+    add rD gx_info__ptpx_data.ptxp_map
+    store qword addr2 rD rE
+    lwcall PTXP_RANDOMIZE_PIXEL
+    goto PTXP_MK_RANDOM_DATAPOINTS
+  lwreturn
+
+PTPX_TEST:
+  stash sF rF
+  # bind addr2 m_gx_info
+  
+  spread xB -1.0 1.0
+  spread rE 2 1024
+  lwcall PTXP_RANDOMIZE_CHANNELS
+  assign rF 12
+  assign rA PTPX_SORT.distance
+  #assign rA PTPX_SORT.distance_squared
+  store qword addr2 gx_info__ptpx_data.distfunc rA
+  store qword addr2 gx_info__ptpx_data.num_points rF
+  lwcall PTXP_MK_RANDOM_DATAPOINTS
+  
+  stash rF sF
+  lwreturn
+
+PTPX_SORT_DISTANCE:
+  load oword xN addr4 gx_pixel.a
+  unpack float32.2 xB xN
+  load qword rD addr2 gx_info__ptpx_data.num_points
+  load qword rE addr2 gx_info__ptpx_data.distfunc
+  
+  ptpx_measure:
+  if rD > 0
+    # select a reference to the next data point
+    dec rD
+    assign rC rD
+    
+    # get pointer to the data point
+    shift-left rC 4
+    add rC 8
+    add rC gx_info__ptpx_data.ptxp_map
+    load qword rC addr2 rC
+    
+    # get position from data point
+    add rC gx_pixel.a
+    load dword rA addr2 rC
+    add rC 4
+    load dword rB addr2 rC
+    # distance calculation function
+    lwcall rE
+    
+    # store the calculated distance
+    assign rC rD
+    shift-left rC 4
+    add rC gx_info__ptpx_data.ptxp_map
+    store float64 addr2 rC xA
+    
+    goto ptpx_measure
+  
+  assign rA 0
+  load qword rB addr2 gx_info__ptpx_data.num_points
+  dec rB
+  lwcall QSORT
+  # tcall dump-ctx
+  lwreturn
+
+
+PTPX_SORT.distance_squared:
+  compute xA xB sub rA abs ->w load xC sub rB abs add <-w
+  lwreturn
+PTPX_SORT.distance:
+  compute xA xB sub rA mul . ->w load xC sub rB mul . add <-w
+  lwreturn
+
+PTPX_FILL:
+  assign rA PTPX_FILL.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn
+PTPX_FILL.impl:
+  load oword xN addr4 gx_pixel.a
+  lwcall PTPX_SORT_DISTANCE
+    
+  block-load 4 xxA addr2 gx_info__ptpx_data.ptxp_map
+  xadd 3 xA xvB
+  
+  compute xM 10000 sub xA div 10000 mod 1
+  compute xN 1 sub xM
+  assign rC gx_info__ptpx_data.ptxp_map
+  add rC 8
+  load qword rA addr2 rC
+  
+  block-load 8 xxA addr2 rA
+  xassign xH 0.0 0.0 1.0 0.0
+  xassign xH float32 0 xM
+  xassign xH float32 1 xN
+  block-store 8 addr4 gx_pixel.components xxA
+  
+  add rF 8
+  if rF == gx_program.end
+    lwreturn
+  load qword rE addr1 rF
+  goto rE
+
+QSORT:
+  # if ( (low >= 0) && (high >= 0) && (low < high) )
+  if rA < 0
+    lwreturn
+  if rB < 0
+    lwreturn
+  if rB <= rA
+    lwreturn
+  stash sA rA sB rB
+  # int64_t p = partition(data, low, high);
+  # cqsort(data, low, p);
+  # cqsort(data, p+1, high);
+  
+  mctxpush
+  lwcall QPART
+  mctxpop
+  
+  stash rA sA sC rC
+  assign rB rC
+  
+  mctxpush
+  lwcall QSORT
+  mctxpop
+  
+  stash rB sB rC sC
+  assign rA rC
+  inc rA
+  
+  mctxpush
+  lwcall QSORT
+  mctxpop
+  lwreturn
+
+QPART:
+  assign rC rA
+  add rC rB
+  shift-right rC 1
+  assign rD rC
+  shift-left rD 4
+  add rD gx_info__ptpx_data.ptxp_map
+  load oword xC addr2 rD
+  dec rA
+  inc rB
+  
+  QPART_SCAN_LOW:
+    inc rA
+    assign rD rA
+    shift-left rD 4
+    add rD gx_info__ptpx_data.ptxp_map
+    load oword xA addr2 rD
+    if xA < xC QPART_SCAN_LOW
+  QPART_SCAN_HIGH:
+    dec rB
+    assign rD rB
+    shift-left rD 4
+    add rD gx_info__ptpx_data.ptxp_map
+    # tcall dump-ctx
+    load oword xB addr2 rD
+    # tcall dump-ctx
+    if xB > xC QPART_SCAN_HIGH
+  if rA >= rB
+    assign rC rB
+    lwreturn
+  assign rD rA
+  shift-left rD 4
+  add rD gx_info__ptpx_data.ptxp_map
+  assign rE rB
+  shift-left rE 4
+  add rE gx_info__ptpx_data.ptxp_map
+  #tcall dump-ctx
+  store oword addr2 rD xB
+  store oword addr2 rE xA
+  #tcall dump-ctx
+  goto QPART_SCAN_LOW

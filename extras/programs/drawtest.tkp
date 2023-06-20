@@ -7,10 +7,10 @@ MAIN:
   assign rA 1200
   assign rB 800
   
-  store dword addr1 gx_info.width rA
-  store dword addr1 gx_info.height rB
+  store dword addr1 gx_info__view.width rA
+  store dword addr1 gx_info__view.height rB
     
-  block-store 2 addr1 gx_info.g_normals xxA
+  block-store 2 addr1 0 xxA
   
   # global color model
   # This sets up an RGB-like color space (RGB are the strongest components, but there are other colors mixed into each).

@@ -1,0 +1,212 @@
+# Associative arrays using TRIE structures
+#
+# This is intended to be a simple and compact associative array.
+# It does not contain any provisions for managing the memory of any mapped data (or any recognition of anything other than integer types)
+#
+# All keys are 64-bit integers
+#   These tables were also designed with the assumption that the keys are 8-char ascii values (hashing operation was selected for this case)
+#
+# Value type varies based on the size of the table
+#   nanotable: 16-bit integer valuess
+#   $TABLE: 32-bit integer valuess
+#   megatable: 64-bit integer valuess
+#
+# The simplest (and most obvious) way to interact with these table structures is the "INIT", "PUT", "GET", and "REMOVE" functions
+#
+# Register allocation:
+#   $T:   memblock, must be configured in the module import declaration
+#     memblock layout must match the expected layout (memblock with layout specified by struct s_*table)
+#   rA:   value
+#   rB:   key
+# clobbers:  rC rD rE rF $StTmp
+#
+# Internal register allocation ( other values returned from LOOKUP and used by ADD_NODE/REMOVE_NODE ):
+#   rC:   success or failure indicator
+#   rD:   trie index
+#   rE:   temp/scratch field
+#   rF:   table size
+
+$TABLE__PUT.$T:
+  stash $StTmp rA
+  lwcall $TABLE__LOOKUP.$T
+  if rC == 0
+    stash rA $StTmp
+    lwcall $TABLE__ADD_NODE.$T
+    assign rC 2
+  if rC == 1
+    stash rA $StTmp
+    store $refword $T s_$TABLE.ref rA
+  lwreturn
+
+$TABLE__REMOVE.$T:
+  lwcall $TABLE__LOOKUP.$T
+  if rC == 1
+    lwcall $TABLE__REMOVE_NODE.$T
+    assign rC 1
+  lwreturn
+
+$TABLE__INIT.$T:
+  assign $T.offset 0
+  xassign xA 0 0
+  assign rA 0
+  $TABLE__INIT.zero.$T:
+  if rA < s_$TABLE_size
+    store oword $T rA xA
+    add rA 16
+    goto $TABLE__INIT.zero.$T
+  assign rA 1
+  store $dataword $T s_$TABLE.size rA
+  lwreturn
+
+$TABLE__GET.$T:
+$TABLE__LOOKUP.$T:
+  assign $T.offset 0
+  assign rD 0
+  
+  # hash the key (to partially mitigate algorithmic bias induced by alphanumeric chars)
+  assign rC rB
+  rotate-left rC 4
+  xor rC rB
+  
+  assign rE $TABLE_iterations
+  load $dataword rF $T s_$TABLE.size
+  
+  $TABLE_LOOKUP_LOOP.$T:
+    assign rD rC
+    and rD $TABLE_kmask
+    
+    # if a null pointer, then the node doesn't exist (but the current node is the scheduled parent)
+    load $pfword rA $T rD
+    if rA == 0
+      assign rA 0
+      assign rC 0
+      lwreturn
+    shift-left rA $TABLE_scale
+    assign $T.offset rA
+    
+    dec rE
+    load $dataword rA $T s_$TABLE.id
+    
+    # if id matched, succees!
+    if rA == rB
+      load $refword rA $T s_$TABLE.ref
+      assign rC 1
+      lwreturn
+    
+    # Select the next node index
+    rotate-right rC $TABLE_krotate
+    
+    # This should never reach 0
+    if rE > 0 $TABLE_LOOKUP_LOOP.$T
+
+$TABLE__ADD_NODE.$T:
+  store $pfword $T rD rF
+  assign rC $T.offset
+
+  # ref back to parent node (enables dynamic node deletion)
+  shift-right rC $TABLE_scale
+  
+  inc rF
+  assign $T.offset 0
+  store $dataword $T s_$TABLE.size rF
+  dec rF
+  
+  shift-left rF $TABLE_scale
+  assign $T.offset rF
+  store $dataword $T s_$TABLE.id rB
+  store $refword $T s_$TABLE.ref rA
+  store $pfword $T s_$TABLE.parent rC
+  store $pfword $T s_$TABLE.prefix rD
+  lwreturn
+
+$TABLE__REMOVE_NODE.$T:
+  assign rF 1
+  $TABLE__REMOVE_NODE.recursive_entry.$T:
+  tcall dump-ctx
+  tcall break
+  load $pfword rA $T s_$TABLE.parent
+  assign rB $T.offset
+  assign rC 0
+  $TABLE_SCAN_CHILDREN.$T:
+  if rC < 2
+    load $pfword rD $T rC
+    add rC 2
+    if rD == 0 $TABLE_SCAN_CHILDREN.$T
+    goto $TABLE_PROMOTE_NODE.$T
+  
+  # follow the reference back to the parent and unlink the node (but not if the reentry point has been called)
+  if rF == 1
+    load $pfword rC $T s_$TABLE.prefix
+    shift-left rA $TABLE_scale
+    assign $T.offset rA
+    assign rA 0
+    store $pfword $T rC rA
+
+  # no children - delete node
+  # get ref to last entry (and update table size)
+  assign $T.offset 0
+  load $dataword rD $T s_$TABLE.size
+  dec rD
+  store $dataword $T s_$TABLE.size rD
+  shift-left rD $TABLE_scale
+  
+  # take the last entry
+  assign $T.offset rD
+  block-load 2 xxA $T 0
+  xassign xC 0 0
+  block-store 2 $T 0 xxC
+  
+  # ... and move it to the vacated position
+  assign $T.offset rB
+  block-store 2 $T 0 xxA
+    
+  # take the reference to the moved node and navigate to its parent
+  load $pfword rA $T s_$TABLE.parent
+  shift-left rA $TABLE_scale
+  load $pfword rC $T s_$TABLE.prefix
+  assign $T.offset rA
+  
+  # lastly, re-link the parent node to the moved node.
+  store $pfword $T rC rB
+  lwreturn
+  
+  $TABLE_PROMOTE_NODE.$T:
+  shift-left rD $TABLE_scale
+  assign $T.offset rD
+  block-load 2 xxA $T 0
+  
+  assign $T.offset rB
+  load $pfword rC $T s_$TABLE.prefix
+  block-store 2 $T 0 xxA
+  shift-right rA $TABLE_scale
+  store $pfword $T s_$TABLE.parent rA
+  load $pfword rE $T s_$TABLE.prefix
+  
+  shift-left rA $TABLE_scale
+  shift-right rB $TABLE_scale
+  assign $T.offset rA
+  assign rA 0
+  store $pfword $T rC rA
+  store $pfword $T rE rB
+  
+  assign $T.offset rD
+
+  # Remove the vacated node.
+  assign rF 0
+  goto $TABLE__REMOVE_NODE.recursive_entry.$T
+  
+  # iterate children
+  # if any non-null
+    # pick one to promote (HINT: the first non-null one)
+    # read child node data [onto xmm registers]
+    # replace child parent with current parent
+    # overwrite current node with child data
+    # delete the child node [tail-recursive]
+  # if all children null
+    # select last node in set
+    # read last node data [onto xmm registers]
+    # zero last node
+    # overwrite current node with last node data
+    # select last node parent
+    # update reference to last node 
+    # decrement node count [in root node data]

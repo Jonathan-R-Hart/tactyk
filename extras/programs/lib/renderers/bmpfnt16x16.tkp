@@ -1,0 +1,50 @@
+
+struct s_glyph
+  8 key
+  8 offset_x
+  8 offset_y
+  8 displacement
+  32 data
+
+struct gx_info__text
+  65536 general_alloc
+  48 view_alloc
+  48 rasterizer_alloc
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
+  . 4 len
+  4 position
+  4 row
+  4 pixel
+  4 x
+  4 y
+  232 text
+
+GX.text.bmp16x16.word:
+  goto GX.text.bmp16x16
+
+GX.text.bmp16x16:
+  
+  # block-store 4 addr2 gx_info__fillrect_fields.rasterizer_data rA
+  # input:
+  # x1 y1 w  h  .  .
+  
+  # x1 x2  y1  y2  .  .  
+  # swap rB rC
+  # add rB rA
+  # add rD rC
+  
+  #dec rA
+  #  x x2  y  y2  .  .
+  # block-store 3 addr2 gx_info__fillrect_fields.rasterizer_data rA
+  
+  # x1 y2  y1  y2  .  .  
+  #inc rA
+  #assign rB rD
+  #block-store 3 addr2 gx_info__fillrect_fields.x1 rA
+  
+  assign rA GX.rect.fill.impl
+  store qword addr1 rF rA
+  add rF 8
+  lwreturn

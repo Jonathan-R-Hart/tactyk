@@ -49,16 +49,15 @@
 # component count, feature size, and value
 
 struct gx_info__irrvnoise
-  65536 g_data
-  16 view_size
-  16 fbuf_size
-  16 world_position
-  128 rasterizer_data
-  65536 properties
-  . 6152 ptxp_properties
+  65536 general_alloc
+  48 view_alloc
+  48 rasterizer_alloc
+  2592 ptxp_alloc
+  6400 irrv_alloc
   . 8 num_points
   8 padding
-  6144 data
+  6400 data
+  256 text_alloc
 
 struct gx_info__irrvnoise__component
   4 x

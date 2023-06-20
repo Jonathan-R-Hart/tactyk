@@ -27,18 +27,11 @@ struct gx_pixel
   4 blend_gnorm1
   4 blend_gnorm2
 
-struct gx_info
-  32 g_normals
-  . 16 normals_ABCD
-  16 normals_EFGH
-  128 g_colors
-  . 64 cmat_1a
-  64 cmat_1b
-  64 cmat_2a
-  64 cmat_2b
-  > 65536 g_data
+struct gx_info__view
+  65536 general_alloc
+  48 view_alloc
   
-  16 view_size
+  . 16 view_size
   . 8 width
   8 height
   
@@ -50,8 +43,21 @@ struct gx_info
   . 8 x
   8 y
   
-  128 rasterizer_data
-  65536 properties
+  48 rasterizer_alloc
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
+
+# tactyk-draw memory allocation
+#   storage locations assigned to each top-level draw components
+# Dynamic memory allocation may be preferable, but will require a fair amount of revision
+struct gx_info
+  65536 general_alloc
+  48 view_alloc
+  48 rasterizer_alloc
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
 
 struct gx_program
   128 functions
@@ -82,8 +88,8 @@ mem m_gx_drawprogram gx_program 1
 #   responsibility for buffer generation and binding will have to be transferred elsewhere.
 GX.mk_window:
   bind addr2 m_gx_info
-  load qword rA addr2 gx_info.width
-  load qword rB addr2 gx_info.height
+  load qword rA addr2 gx_info__view.width
+  load qword rB addr2 gx_info__view.height
   assign rC gx_pixel_size
   assign rD 3
   tcall sdl--new
@@ -97,8 +103,8 @@ GX.bind_memblocks:
   tcall sdl--get-scratchbuffer
   bind addr4 addr1
   bind addr2 m_gx_info
-  store dword addr2 gx_info.fb_width rA
-  store dword addr2 gx_info.fb_height rB
+  store dword addr2 gx_info__view.fb_width rA
+  store dword addr2 gx_info__view.fb_height rB
   
   lwreturn
 
@@ -111,10 +117,10 @@ GX.bind_memblocks:
 # At some point, responsibility for this may be transferred to the tactyk-runtime, with the conversion ported to GLSL and used as the final stage in a deferred rendering pipeline.
 GX.to_rgba:
   # fetch dimensions
-  load qword rE addr2 gx_info.fb_width
-  load qword rC addr2 gx_info.fb_height
-  load qword rB addr2 gx_info.width
-  load qword rD addr2 gx_info.height
+  load qword rE addr2 gx_info__view.fb_width
+  load qword rC addr2 gx_info__view.fb_height
+  load qword rB addr2 gx_info__view.width
+  load qword rD addr2 gx_info__view.height
   assign rC rE
   mul rC rD
   mul rE 4
@@ -132,8 +138,6 @@ GX.to_rgba:
   
   xassign xA 0.0   0.0   0.0   0.0
   xassign xB 255.0 255.0 255.0 255.0
-  
-  # block-load 2 xxC addr2 gx_info.g_normals
   
   DRAW_ROW:
   if rA < rC
