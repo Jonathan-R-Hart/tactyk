@@ -1,5 +1,3 @@
-# BDF font extraction utility
-
 module thead lib/table.header.tkp
 
 module table1.nano lib/table.nano.tkp
