@@ -13,6 +13,7 @@ tactyk-emit
   Report an error when NASM rejects the generated assembly code.
   I would also like to capture the error output, but attempts to redirect it to an error log caused it to vanish completely 
     (both by piping to a log file and by using NASM's a -Z option), so for now, unmodified stderr in a text terminal will have to suffice.
+  Require subroutines invoked through the "sub" operator to report success
 
 19 Jun 2023
 tactyk-core - if

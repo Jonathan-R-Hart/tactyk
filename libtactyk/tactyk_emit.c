@@ -255,7 +255,10 @@ bool tactyk_emit__DoSub(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
         ctx->subarg_count += 1;
     }
     
-    spec->func(ctx, spec->vopcfg);
+    if (!spec->func(ctx, spec->vopcfg)) {
+        tactyk_report__dblock("subroutine invocation failed", data);
+        return false;
+    }
     return true;
 }
 
