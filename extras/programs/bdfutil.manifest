@@ -1,0 +1,29 @@
+# BDF font subset extractor
+# This is not a thorough or a particularly robust, but it at least is able to parse the BDF version of GNU Unifont,
+# select chars from a subset, extract them, convert them into a simplified compact binary format, and export the result
+# 
+# This was tested only with GNU Unifont ( http://unifoundry.com/unifont/ )
+# In theory, it should work with any similarly constructed bitmak font -- so long as the maximum character size is 16x16
+#   Some simple adjustments will be needed to make it work with larger bitmaps 
+#   (16x16 maximum size was selected to keep the output compact)
+#
+# To use this, place a file somewhere within the same directory as this manifest file (or subdirectory thereof),
+# and adjust and uncomment the following data import statement:
+# data font data/unifont-15.0.06.bdf
+
+text subset oneline
+  abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@#$%^&*()_+[]\;',./{}|:"<>?
+
+module thead lib/table.header.tkp
+
+module bdfutil lib/bdf-extract.tkp
+module mstr lib/ministring.tkp
+  $T addr1
+module table lib/table.mini.tkp
+  $T addr2
+  $StTmp s28h
+
+export bdfuo 16000000 export/bdfutil_output.tkf
+
+program prog thead bdfutil mstr table
+main prog BDFUTIL__EXTRACT_SUBSET

@@ -25,6 +25,7 @@ bool tactyk_run__rsc__prepare_export_target(struct tactyk_run__RSC *rsc, struct 
 bool tactyk_run__rsc__build_program(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data);
 bool tactyk_run__rsc__define_entrypoint(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data);
 bool tactyk_run__rsc__message(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data);
+bool tactyk_run__rsc__text(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data);
 
 void tactyk_run__init() {
     tactyk_run__item_handlers = tactyk_dblock__new_table(16);
@@ -40,6 +41,7 @@ void tactyk_run__init() {
     tactyk_dblock__put(tactyk_run__item_handlers, "main", tactyk_run__rsc__define_entrypoint);
     tactyk_dblock__put(tactyk_run__item_handlers, "msg", tactyk_run__rsc__message);
     tactyk_dblock__put(tactyk_run__item_handlers, "message", tactyk_run__rsc__message);
+    tactyk_dblock__put(tactyk_run__item_handlers, "text", tactyk_run__rsc__text);
 }
 
 void tactyk_run__rsc__add_item_handler(char *name, tactyk_run__rsc_item_handler handler) {
@@ -455,6 +457,25 @@ bool tactyk_run__rsc__message(struct tactyk_run__RSC *rsc, struct tactyk_dblock_
         }
         putc('\n', stdout);
     }
+}
+
+bool tactyk_run__rsc__text(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data) {
+    struct tactyk_dblock__DBlock *token = data->token->next;
+    struct tactyk_dblock__DBlock *name = token;
+    token = token->next;
+    
+    bool oneline = ((token != NULL) && tactyk_dblock__equals_c_string(token, "oneline"));
+    struct tactyk_dblock__DBlock *content = tactyk_dblock__new(64);
+    struct tactyk_dblock__DBlock *line = data->child;
+    while (line != NULL) {
+        tactyk_dblock__append(content, line);
+        if (!oneline) {
+            tactyk_dblock__append_char(content, '\n');
+        }
+        line = line->next;
+    }
+    tactyk_dblock__put(rsc->data_table, name, content);
+    
 }
 
 

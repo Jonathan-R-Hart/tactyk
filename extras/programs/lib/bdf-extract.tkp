@@ -1,11 +1,9 @@
-# A BDF-bitmap font extractorz
+# A BDF-bitmap font extractor
 #   ... or at least enough of one to get through GNU unifont.
 #
 # Partly, this was intended to help develop [and test] string and processing and associative array handling
 # and direct the development of supporting internal functionality (otherwise it would have made more sense to start
 # with a binary format), and partly, I want the bitmap font to help bootstrap the tactyk scripting environment.
-#
-# This will accept
 
 const .sp 32
 const .nl 10
@@ -42,9 +40,6 @@ mem m_funcs s_MINITABLE 1024
 
 mem m_font s_font 1
 mem m_glyphs s_glyph 65536
-
-text subset
-  abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@#$%^&*()_+[]\;',./{}|:"<>?
 
 BIND_FUNC:
   xassign rB xA int64 0
@@ -314,27 +309,19 @@ f_done:
   lwreturn
   
 
-BDFUTIL_GET_ASCII:
-  assign rA 9
-  tcall dump-dispmode
+BDFUTIL__EXTRACT_SUBSET:
   lwcall INIT
   
   assign xA 'STARTFONT
   lwcall EXEC_FUNC
   
-  assign rA 'unifont
+  assign rA 'font
   tcall get-data
   assign rF 0
   
   assign rA .sp
   assign rB .nl
   lwcall MINISTRING__INIT.addr1
-  
-  #assign xA '3F158420cc33dada
-  #lwcall PARSE_REV_HEXFIELD
-  #tcall print-int-a
-  #tcall print-newline
-  #exit
   
   assign rB 99999999999 
   BDFLP:
@@ -370,9 +357,12 @@ BDFUTIL_GET_ASCII:
     tcall print-text-xf
     tcall print-newline
   
+  assign rA 'subset
+  tcall get-data
+  bind addr2 addr1
+  
   assign rA 'bdfuo
   tcall get-data
-  bind addr2 subset
   
   assign rF addr2.element_bound
   assign rD 0
@@ -388,26 +378,26 @@ BDFUTIL_GET_ASCII:
     block-load 4 xxC addr4 0
     block-store 4 addr1 rA xxC
     assign rC 0
-    printit:
-    if rC < 32
-      assign rB rC
-      tcall print-int-c
-      tcall print-space
-      add rB s_glyph.data
-      load word rA addr4 rB
-      lwcall PRINT_BMP_LINE
-      add rC 2
-      #tcall print-int-c
-      #tcall print-space
-      goto printit
+    #printit:
+    #if rC < 32
+    #  assign rB rC
+    #  add rB s_glyph.data
+    #  load word rA addr4 rB
+    #  lwcall PRINT_BMP_LINE
+    #  add rC 2
+    #  goto printit
     inc rE
     goto BDFUTIL_EXPORT.loop
   assign rA rE
   mul rA s_glyph_size
+  
+  # data-block export searches for the last non-null byte and treats it as an end-of-file marker.
+  # This behavior interferes with simple data import functions which expect a complete word
+  # Appending an end-of-file marker forces the trailing null bytes to be included 
+  #   [and thus readable without introducing complex end-of-file behavior].
   assign xA '/T\H/E\/\/E\N/D\
   store oword addr1 rA xA
   tcall export
-  #tcall dump-ctx
   exit
 
 BDFUTIL__NEXTLINE:
