@@ -1,7 +1,6 @@
 MAIN:
   assign rA 1
   tcall dump-dispmode
-  tcall dump-ctx
   assign rA 'unifont
   tcall get-data
   lwcall BMPFNT_LD_TKPFONT
@@ -123,12 +122,44 @@ MAIN:
   lwcall GX.trace.rect
   
   
-  #assign rF 0
-  #assign rA 'Hi!
-  #lwcall GX.text.bmp16x16.8bitENC.chunk8
-  #lwcall GX.fills.simple
-  #lwcall GX.util.exit
+  assign rF 0
+  assign xA 'TheTXTingestTest
+  assign rB 200
+  assign rC 100
+  lwcall GX.text.bmp16x16.8bitENC.chunk16
+  xassign xA 1.0 0.0 0.0 0.0
+  xassign xB 0.0 0.0 0.0 0.0
+  xassign xC 0.0 0.0 0.0 0.0
+  xassign xD 0.0 0.0 0.0 0.0
+  lwcall GX.fills.simple
+  lwcall GX.util.exit
+  lwcall GX.draw
   
+  assign rF 0
+  assign xA 'TheTXTingest
+  assign rB 201
+  assign rC 101
+  lwcall GX.text.bmp16x16.8bitENC.chunk16
+  xassign xA 1.0 1.0 0.0 0.0
+  xassign xB 0.0 0.0 0.0 0.0
+  xassign xC 0.0 0.0 0.0 0.0
+  xassign xD 0.0 0.0 0.0 0.0
+  lwcall GX.fills.simple
+  lwcall GX.util.exit
+  lwcall GX.draw
+
+  assign rF 0
+  assign xA 'TheTXT
+  assign rB 202
+  assign rC 102
+  lwcall GX.text.bmp16x16.8bitENC.chunk16
+  xassign xA 1.0 1.0 1.0 0.0
+  xassign xB 0.0 0.0 0.0 0.0
+  xassign xC 0.0 0.0 0.0 0.0
+  xassign xD 0.0 0.0 0.0 0.0
+  lwcall GX.fills.simple
+  lwcall GX.util.exit
+  lwcall GX.draw
   
   lwcall GX.bind_memblocks
   # finally convert it to RGB and upload it to the display.

@@ -7,6 +7,13 @@ tactyk-extras
   Added a BDF font extractor utility
     Ostensibly, this was/is needed to support text rendering, but its *real* purpose was to guide the initial development
     of string processing and an associative array, as well as the backend functionality needed for an efficient implementation.
+  Added a bitmap font renderer
+    It is construction as a rasterizer, and thus only selects pixels and defers the production of color to other rendering opreations.
+    Bitmap format is 1-bit / 16x28 in bitwise row-major order with little-endian bit-order
+    It renders only a single line of up to 228 chars (with no corrections or accounting for bounds other than tactyk counds checking)
+    It begins drawing text at a provided starting point, and accumulates per-glyph displacement vectors to trace the path text is to be rendered along
+    Glyphs are additionally positioned in relation to the base position by an offset applied to the first row of pixels.
+    Data extracted from GNU Unifont is used by the test code [and will likely be used as the builtin font] (http://unifoundry.com/unifont/)
 
 20 Jun 2023
 tactyk-runtime
