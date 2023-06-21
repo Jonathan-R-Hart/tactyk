@@ -168,7 +168,6 @@ PRINT_BMP_LINE:
 f_endchar:
   block-load 5 rA addr3 s_font.active_glyph
   
-  add rB rD
   add rC rE
   negate rC
   
@@ -178,9 +177,8 @@ f_endchar:
   
   load qword rA addr3 s_font.gdisplacement
   store qword addr4 s_glyph.displacement rA
-  
   store qword addr4 s_glyph.key rF
-  store qword addr4 s_glyph.offset_x rB
+  store qword addr4 s_glyph.offset_x rD
   store qword addr4 s_glyph.offset_y rC
   
   block-load 2 xxC addr3 s_font.gdata
