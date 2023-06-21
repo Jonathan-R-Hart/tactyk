@@ -126,13 +126,17 @@ instruction find-bit
       code
         bsr $DEST, $SRC
     case DDL LoDDL DDB LoDDB
+      terminal
       code
         bsf $DEST, $SRC
         jnz $JTARGET
+        jmp $NEXT_INSTRUCTION
     case HiDDL HiDDB
+      terminal
       code
         bsr $DEST, $SRC
         jnz $JTARGET
+        jmp $NEXT_INSTRUCTION
 
 
 
