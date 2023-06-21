@@ -1,6 +1,10 @@
 MAIN:
   assign rA 1
   tcall dump-dispmode
+  tcall dump-ctx
+  assign rA 'unifont
+  tcall get-data
+  lwcall BMPFNT_LD_TKPFONT
   
   bind addr1 m_gx_info
   
@@ -10,7 +14,7 @@ MAIN:
   store dword addr1 gx_info__view.width rA
   store dword addr1 gx_info__view.height rB
     
-  block-store 2 addr1 0 xxA
+  block-store 2 addr1 gx_info.general_alloc xxA
   
   # global color model
   # This sets up an RGB-like color space (RGB are the strongest components, but there are other colors mixed into each).
@@ -68,7 +72,7 @@ MAIN:
   xassign xC 0.0 0.0 0.0 0.0
   xassign xD 0.0 0.0 0.0 0.0
   
-  bind addr1 m_gx_drawprogram
+  # bind addr1 m_gx_drawprogram
   assign rA 5
   spread xA 0.0 0.0 1200.0 800.0 250.0 0.00075
   
@@ -117,6 +121,14 @@ MAIN:
   
   spread rA 25 25 1150 750 4
   lwcall GX.trace.rect
+  
+  
+  #assign rF 0
+  #assign rA 'Hi!
+  #lwcall GX.text.bmp16x16.8bitENC.chunk8
+  #lwcall GX.fills.simple
+  #lwcall GX.util.exit
+  
   
   lwcall GX.bind_memblocks
   # finally convert it to RGB and upload it to the display.

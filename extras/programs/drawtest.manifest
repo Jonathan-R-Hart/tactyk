@@ -1,10 +1,16 @@
 # GUI test/development program
 
+data unifont data/unifont_basic_chars.tkf
+
+module bmpf lib/renderers/bmpfnt16x16.tkp
 module draw lib/tactyk_draw.tkp
 module rect-renderers lib/renderers/rect.tkp
 module matrix lib/matrix-simd.tkp
 module main drawtest.tkp
 module irrvn lib/renderers/irrvnoise.tkp
+module table lib/table.mini.tkp
+  $T addr3
+  $StTmp s28h
 
-program prog main matrix rect-renderers draw irrvn
+program prog main matrix rect-renderers draw irrvn bmpf
 main prog MAIN

@@ -52,7 +52,7 @@ struct tactyk_assembly* tactyk_assemble(char *asm_fname, char *obj_name, char *s
     FILE *tf = fopen( obj_name, "rb" );
 
     if (tf == NULL) {
-        printf("FAILED TO LOAD '%s'\n", obj_name);
+        return NULL;
     }
     else {
         fseek(tf, 0, SEEK_END);

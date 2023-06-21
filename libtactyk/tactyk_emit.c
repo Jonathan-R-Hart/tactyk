@@ -1208,7 +1208,12 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     fclose(asm_file);
 
     struct tactyk_assembly *assembly = tactyk_assemble(fname_assembly_code, fname_object, fname_symbols);
-
+    
+    if (assembly == NULL) {
+        tactyk_report__msg("Assembled program rejected.");
+        error(NULL, NULL);
+    }
+    
     assembly->name = "Tactyk (should) Affix Captions To Your Kitten: Mix - o - Bits, The Very Technical";
     //printf("assembled %ju bytes, name=%s\n", assembly->length, assembly->name);
 

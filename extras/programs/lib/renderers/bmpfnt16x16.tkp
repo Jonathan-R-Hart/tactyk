@@ -1,3 +1,19 @@
+struct gx_info__text
+  2048 program_alloc
+  4096 general_alloc
+  48 view_alloc
+  128 rasterizer_alloc
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
+  . 4 len
+  4 position
+  4 row
+  4 x
+  4 y
+  2 fragment
+  2 value
+  234 text
 
 struct s_glyph
   8 key
@@ -6,45 +22,226 @@ struct s_glyph
   8 displacement
   32 data
 
-struct gx_info__text
-  65536 general_alloc
-  48 view_alloc
-  48 rasterizer_alloc
-  2592 ptxp_alloc
-  6400 irrv_alloc
-  256 text_alloc
-  . 4 len
-  4 position
-  4 row
-  4 pixel
-  4 x
-  4 y
-  232 text
+# A bitmap "sprite"
+# Each sprite uses 64 bytes of memory, with 8 reserved for properties and 56 reserved for pixels
+# The pixel memory is a a 16x28 patch of 1-bit pixels laid out in row-major order.
+# Pixels within a rows are in bitwise little endian order (the least significant bit is the left-most pixel)
+#   and may be iterated with bitwise right-shift
+# Properties:
+#   next - a reference to another entry within a sprite sheet (to suypport the use of multiple bitmap components to render a sprite)
+#   offset - signed pixel offset from base position to the left-most pixel in the first row
+#   displacement - signed pixel offset to apply to the base position after a sprite is rendered (context-dependent interpretation)
+#   rows - number of pixel rows to draw (ideally, this is a measurement of the number of non-empty rows in the bitmap)
+#   value - lookup table index (also intended to help with chain-rendering)
+struct s_bmp_16x28
+  2 next
+  1 offset_x
+  1 offset_y
+  1 displacement_x
+  1 displacement_y
+  1 rows
+  1 value
+  56 data
 
-GX.text.bmp16x16.word:
+mem m_bmp_16x28 s_bmp_16x28 65536
+
+# Load a memblock with data extracted from Unifont, arrange it in memory, and reformat it
+BMPFNT_LD_TKPFONT:
+  bind addr2 m_bmp_16x28
+  assign rA 0
+  tcall dump-ctx
+  assign rF addr1.element_bound
+  sub rF 16
+  
+  assign xA 'Bound:
+  tcall print-text-xa
+  tcall print-space
+  tcall print-int-f
+  tcall print-newline
+  
+  BMPFNT_LD_UNIFONT.lp:
+    if rA >= rF BMPFNT_LD_UNIFONT.ret
+    
+    # fetch the batch of of fields
+    block-load 4 rB addr1 rA
+    
+    # select position in bitmap data block
+    and rB h.ffff
+    mul rB s_bmp_16x28_size
+    assign addr2.offset rB
+    
+    store byte addr2 s_bmp_16x28.offset_x rC
+    store byte addr2 s_bmp_16x28.offset_y rD
+    store byte addr2 s_bmp_16x28.displacement_x rE
+    
+    # set a few defaults (recognized by the renderer for flexibility, but not handled or provided by the bdf extracter)
+    spread rB 0 16 1
+    store dword addr2 s_bmp_16x28.next rB
+    store byte addr2 s_bmp_16x28.displacement_y rB
+    store byte addr2 s_bmp_16x28.rows rC
+    store byte addr2 s_bmp_16x28.value rD
+    
+    # copy the bitmap
+    # The bdf extractor only yields a 16x16 block
+    #   A 16x12 segment will be left empty
+    add rA 16
+    block-load 2 xxA addr1 rA
+    block-store 2 addr2 s_bmp_16x28.data xxA
+    add rA 16
+
+    goto BMPFNT_LD_UNIFONT.lp
+  BMPFNT_LD_UNIFONT.ret:
+  lwreturn
+
+GX.text.bmp16x16.8bitENC.chunk8:
+  stash sAl rF
+  assign rD rA
+  assign rE gx_info__text.text
+  assign rF 0
+  GX.text.bmp16x16.8bitENC.chunk8.lp:
+  if rD == 0 GX.text.bmp16x16.8bitENC.prologuez
+  inc rF
+  store dword addr2 rE rD
+  shift-right rD 8
+  add rE 2
+  goto GX.text.bmp16x16.8bitENC.chunk8.lp
+
+GX.text.bmp16x16.8bitENC.chunk16:
+  stash sAl rF
+  xassign rD xA int64 0
+  assign rE gx_info__text.text
+  assign rF 0
+  
+  GX.text.bmp16x16.8bitENC.chunk16.lp1:
+  if rD == 0 GX.text.bmp16x16.8bitENC.chunk16.2
+  inc rF
+  store dword addr2 rE rD
+  shift-right rD 8
+  add rE 2
+  
+  GX.text.bmp16x16.8bitENC.chunk16.2:
+  xassign rD xA int64 1
+  
+  GX.text.bmp16x16.8bitENC.chunk16.lp2:
+  if rD == 0 GX.text.bmp16x16.8bitENC.prologue
+  inc rF
+  store dword addr2 rE rD
+  shift-right rD 8
+  add rE 2
+  
+  goto GX.text.bmp16x16.8bitENC.chunk16.lp2
+
+GX.text.bmp16x16.8bitENC.prologue:
+  assign rA rF
+  stash rF sAl
   goto GX.text.bmp16x16
 
 GX.text.bmp16x16:
+  store dword addr2 gx_info__text.len rA
+  store dword addr2 gx_info__text.x rB
+  store dword addr2 gx_info__text.y rC
+  assign rD 0
+  store dword addr2 gx_info__text.position rD
+  store dword addr2 gx_info__text.row rD
+  # store dword addr2 gx_info__text.value rD
   
-  # block-store 4 addr2 gx_info__fillrect_fields.rasterizer_data rA
-  # input:
-  # x1 y1 w  h  .  .
+  load word rB addr2 gx_info__text.text
+  mul rB s_bmp_16x28_size
+  assign addr1.offset rB
+  load word rA addr1 s_bmp_16x28.data
+  store word addr2 gx_info__text.fragment rA
+  load word rA addr2 gx_info__text.value
+  store word addr2 gx_info__text.value rA
   
-  # x1 x2  y1  y2  .  .  
-  # swap rB rC
-  # add rB rA
-  # add rD rC
-  
-  #dec rA
-  #  x x2  y  y2  .  .
-  # block-store 3 addr2 gx_info__fillrect_fields.rasterizer_data rA
-  
-  # x1 y2  y1  y2  .  .  
-  #inc rA
-  #assign rB rD
-  #block-store 3 addr2 gx_info__fillrect_fields.x1 rA
-  
-  assign rA GX.rect.fill.impl
-  store qword addr1 rF rA
+  assign rA GX.text.bmp16x16.impl
+  store qword addr2 rF rA
   add rF 8
   lwreturn
+
+#struct gx_info__text
+#  2048 program_alloc
+#  4096 general_alloc
+#  48 view_alloc
+#  128 rasterizer_alloc
+#  2592 ptxp_alloc
+#  6400 irrv_alloc
+#  256 text_alloc
+#  . 4 len
+#  4 position
+#  4 row
+#  4 x
+#  4 y
+#  2 fragment
+#  2 value
+#  232 text
+
+GX.text.bmp16x16.impl:
+  load word rA addr2 gx_info__text.fragment
+  load word rE addr2 gx_info__text.value
+  load dword rC addr2 gx_info__text.x
+  load dword rD addr2 gx_info__text.y
+  
+  # if bit availble
+  GX.text.bmp16x16.scan:
+  find-bit rB rA
+    inc rB
+    shift-right rA rB
+    add rC rB
+    store word addr2 gx_info__text.fragment rA
+    
+    # pixel index
+    load qword rB addr2 gx_info__view.fb_width
+    mul rB rD
+    add rB rC
+    
+    # bind pixel
+    shift-left rB 7
+    assign addr4.offset rB
+    
+    # in theory, it might be correct to emit something for texture coordinate here
+    #load qword rA addr2 gx_info__view.x
+    #load qword rB addr2 gx_info__view.y
+    #add rA rC
+    #add rB rD
+    #spread rC 0 0
+    #
+    #pack float32.4 xN rA
+    #store oword addr4 gx_pixel.a xN
+    
+    load byte rA addr1 s_bmp_16x28.value
+    
+    add rF 8
+    if rF == gx_info__program.end
+      lwreturn
+    load qword rE addr2 rF
+    goto rE
+  
+  # next row
+  load dword rA addr2 gx_info__text.row
+  load dword rE addr1 s_bmp_16x28.rows
+  inc rA
+  
+  # if done, next char
+  if rA >= rE
+    lwreturn
+  store dword addr2 gx_info__text.row rA
+  
+  # fetch the next row of pixels
+  mul rA 2
+  add rA s_bmp_16x28.data
+  load word rA addr1 rA
+  store word addr2 gx_info__text.fragment rA
+  goto GX.text.bmp16x16.scan
+  
+  exit
+
+
+
+
+
+
+
+
+
+
+

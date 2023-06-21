@@ -9,6 +9,11 @@ tactyk-core-memory - load
     ("sqword" has been added for completeness, but there is no technical difference between signed and unsigned 64-bit integers)
   The implementation is a bit hackish [on account of x86-shennanigans]
 
+tactyk-emit
+  Report an error when NASM rejects the generated assembly code.
+  I would also like to capture the error output, but attempts to redirect it to an error log caused it to vanish completely 
+    (both by piping to a log file and by using NASM's a -Z option), so for now, unmodified stderr in a text terminal will have to suffice.
+
 19 Jun 2023
 tactyk-core - if
   Added bitwise operators "or", "and", "nor", and "nand"
