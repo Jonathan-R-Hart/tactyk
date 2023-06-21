@@ -295,7 +295,6 @@ instruction xassign
         pinsr$DSW $DEST~$DAUG, rTEMPA$DRXT, $DIDX
         $RESET_TEMP
     case XI8F XI16F XI32F XI64F XI8Cf XI16Cf XI32Cf XI64Cf
-      sub sse-qword-put
       sub tmp xa
       sub tmp ra
       code
