@@ -189,6 +189,80 @@ MINISTRING__TOKENIZE.ret.$T:
   stash xA sA
   lwreturn
 
+MINISTRING__EXTRACT_UTF8:
+  lwcall MINISTRING__EXTRACT_UTF8.nextbyte
+  assign rA rF
+  # b.0xxxxxxx: ASCII char
+  if rA ~& b.10000000
+    lwreturn
+  
+  # b.10xxxxxx: unexpected continuation byte
+  if rA ~& b.01000000
+    assign rA -1
+    lwreturn
+  
+  # b.110xxxxx: 11-bit char
+  if rA ~& b.00100000
+    and rA b.00011111
+    lwcall MINISTRING__EXTRACT_UTF8.append6bits
+    lwreturn
+  
+  # b.1110xxxx: 16-bit char
+  if rA ~& b.00010000
+    and rA b.00001111
+    lwcall MINISTRING__EXTRACT_UTF8.append6bits
+    lwcall MINISTRING__EXTRACT_UTF8.append6bits
+    lwreturn
+  
+  # b.11110xxx: 21-bit char
+  if rA ~& b.00001000
+    and rA b.00000111
+    lwcall MINISTRING__EXTRACT_UTF8.append6bits
+    lwcall MINISTRING__EXTRACT_UTF8.append6bits
+    lwcall MINISTRING__EXTRACT_UTF8.append6bits
+    lwreturn
+  
+  # b.11111xxx: invalid byte
+  assign rA -1
+  lwreturn
+
+MINISTRING__EXTRACT_UTF8.append6bits:
+  lwcall MINISTRING__EXTRACT_UTF8.nextbyte
+  assign rB rE
+  and rB b.11000000
+  
+  #continuation byte
+  if rB == b.10000000
+    and rE b.00111111
+    shift-left rA 6
+    or rA rE
+    lwreturn
+  assign rA -1
+  lwreturn
+
+MINISTRING__EXTRACT_UTF8.nextbyte:
+  xassign rB xA int64 0
+  xassign rC xA int64 1
+  assign rE rB
+  and rE 255
+  
+  assign rD rC
+  and rD 255
+  shift-left rD 56
+  shift-right rB 8
+  shift-right rC 8
+  or rB rD
+  xassign xA int64 0 rB
+  xassign xA int64 1 rC
+  
+  if rF == 1
+    or rB rC
+    if rB == 0
+      xduplicate 13 xA xB
+      xassign xN 0 0
+  lwreturn
+
+
 MINISTRING__PRINT_TOKENS.$T:
   if xA == 0 MINISTRING__PRINT_TOKENS.end.$T
   tcall print-text-xa
