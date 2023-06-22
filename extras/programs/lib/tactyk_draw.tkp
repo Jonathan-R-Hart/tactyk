@@ -11,8 +11,8 @@ struct gx_pixel
   4 c
   4 d
   4 e
-  4 f
   4 depth
+  4 stencil
   4 id
   # positions of global normal and color tables
   16 gdata_indices
