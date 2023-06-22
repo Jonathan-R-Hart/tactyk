@@ -8,6 +8,15 @@ tactyk-extras - bdf-extract / bmpfnt16x16
   It is intended that the new converter should clip leading and trailing emoty lines form bitmaps.  The clipping if leading empty lines works,
     but the code for clipping trailing empty lines fails and clips off the 16th line if it is present, and so has been disabled.
 
+BACKTRACK NOTICE
+Performance testing of tactyk-draw yielded the predictabley bad results (it at least would likely do alright if spread across many cores).
+The results were expected (due to use of complex per-pixel calculations), though the unexpected result was that the "--perf" option did not 
+significantly improve performance (though I still expect it to make a difference when handling large amounts of code).  I'm planning on setting aside the 
+complex portions of the rendering pipeline and instead operating on RGBA pixels directly with integer/bitwise opretors (possibly also with a bit of SIMD).
+I do plan on keeping most fo the rendering pipeline (in particular, the "rasterization" fucntions), as I have little reason at present to blame it for anything.
+
+NOTE:  If/when I get around to implementing 3D rendering interface, that complex rendering pipeline is likely to come back in the form of shader and geometric primitive management (where it actually belongs).
+
 21 Jun 2023
 tactyk-runtime
   Added a "text" data-block directive - this places the contained text into a named datablock

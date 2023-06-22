@@ -287,8 +287,8 @@ GX.ztest.fixed:
   lwreturn
 GX.ztest.fixed.impl:
   load dword rB addr2 gx_info__view.z
-  load dword rE addr4 gx_pixel.z
-  if rE >= rB
+  load dword rD addr4 gx_pixel.z
+  if rD >= rB
     add rF 8
     if rF == gx_info__program.end
       lwreturn
@@ -303,9 +303,9 @@ GX.stenciltest:
   add rF 8
   lwreturn
 GX.stenciltest.fixed.impl:
-  load dword rB addr2 gx_info__view.stencil
+  load dword rC addr2 gx_info__view.stencil
   load dword rE addr4 gx_pixel.stencil
-  if rE == rB
+  if rE == rC
     add rF 8
     if rF == gx_info__program.end
       lwreturn
@@ -337,6 +337,46 @@ GX.stencil.OR.ztest.fixed.impl:
     load qword rE addr2 rF
     lwreturn
   assign rF 1
+  lwreturn
+
+GX.zwrite:
+  assign rA GX.zwrite.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.zwrite.impl:
+  store dword addr4 gx_pixel.z rB
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  lwreturn
+
+GX.stencilwrite:
+  assign rA GX.stencilwrite.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.stencilwrite.impl:
+  store dword addr4 gx_pixel.stencil rC
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  lwreturn
+
+GX.stencilwrite.AND.zwrite:
+  assign rA GX.zwrite.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.stencilwrite.AND.zwrite.impl:
+  store dword addr4 gx_pixel.z rB
+  store dword addr4 gx_pixel.stencil rC
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
   lwreturn
 
 # basic filling function
