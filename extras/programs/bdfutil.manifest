@@ -25,7 +25,7 @@ module table lib/table.mini.tkp
   $T addr2
   $StTmp s28h
 
-export bdfuo 16000000 export/bdfutil_output.tkf
+export bdfuo 16000000 data/unifont_basic_chars.tkf
 
 program prog thead bdfutil mstr mstr-rd table
 main prog BDFUTIL__EXTRACT_SUBSET

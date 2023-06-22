@@ -33,13 +33,24 @@ struct s_glyph
   8 displacement
   32 data
 
+struct s_bmp_16x28
+  2 key
+  2 next
+  1 offset_x
+  1 offset_y
+  1 displacement_x
+  1 displacement_y
+  1 rows
+  1 value
+  56 data
+
 struct s_out
   16000000 data
 
 mem m_funcs s_MINITABLE 1024
 
 mem m_font s_font 1
-mem m_glyphs s_glyph 65536
+mem m_glyphs s_bmp_16x28 65536
 
 BIND_FUNC:
   xassign rB xA int64 0
@@ -167,22 +178,60 @@ PRINT_BMP_LINE:
 
 f_endchar:
   block-load 5 rA addr3 s_font.active_glyph
-  
   add rC rE
   negate rC
-  
   assign rF rA
-  mul rA s_glyph_size
+  mul rA s_bmp_16x28_size
   assign addr4.offset rA
-  
   load qword rA addr3 s_font.gdisplacement
-  store qword addr4 s_glyph.displacement rA
-  store qword addr4 s_glyph.key rF
-  store qword addr4 s_glyph.offset_x rD
-  store qword addr4 s_glyph.offset_y rC
+  store word addr4 s_bmp_16x28.key rF
+  store byte addr4 s_bmp_16x28.displacement_x rA
+  store byte addr4 s_bmp_16x28.offset_x rD
   
-  block-load 2 xxC addr3 s_font.gdata
-  block-store 2 addr4 s_glyph.data xxC
+  # defaults [Not part of BDF, but are planned tacty-draw bitmap rendering features]
+  assign rF 0
+  store byte addr4 s_bmp_16x28.displacement_y rF
+  store byte addr4 s_bmp_16x28.value rF
+  store word addr3 s_bmp_16x28.next rF
+  
+  assign rA -1
+
+  f_endchar.find_row0:
+    inc rA
+    assign rB rA
+    mul rB 2
+    add rB s_font.gdata
+    load word rB addr3 rB
+    if rA == 16 f_endchar.export
+    if rB == 0 f_endchar.find_row0
+  assign rF rA
+  add rC rA
+  assign rE s_bmp_16x28.data
+  
+  f_endchar.transfer:
+    store word addr4 rE rB
+    if rA >= 16 f_endchar.export
+    add rE 2
+    inc rA
+    assign rB rA
+    mul rB 2
+    add rB s_font.gdata
+    load word rB addr3 rB
+    goto f_endchar.transfer
+  
+  #f_endchar.lastrow_scan:
+  #  if rB != 0 f_endchar.export
+  #  dec rA
+  #  sub rE 2
+  #  assign rB rA
+  #  mul rB 2
+  #  add rB s_font.gdata
+  #  load word rB addr3 rB
+  #  goto f_endchar.lastrow_scan
+  
+  f_endchar.export:
+  store byte addr4 s_bmp_16x28.offset_y rC
+  store byte addr4 s_bmp_16x28.rows rA
   
   lwreturn
 
@@ -369,25 +418,20 @@ BDFUTIL__EXTRACT_SUBSET:
   if rD < rF
     lwcall GET_UTF8_VALUE
     assign rB rA
-    mul rB s_glyph_size
+    mul rB s_bmp_16x28_size
     assign addr4.offset rB
     assign rA rE
-    mul rA s_glyph_size
-    block-load 4 xxC addr4 0
+    mul rA s_bmp_16x28_size
+    load word rC addr4 s_bmp_16x28.key
+    store word addr1 rA rC
+    add rA 2
+    block-load 4 xxC addr4 s_bmp_16x28.next
     block-store 4 addr1 rA xxC
     assign rC 0
-    #printit:
-    #if rC < 32
-    #  assign rB rC
-    #  add rB s_glyph.data
-    #  load word rA addr4 rB
-    #  lwcall PRINT_BMP_LINE
-    #  add rC 2
-    #  goto printit
     inc rE
     goto BDFUTIL_EXPORT.loop
   assign rA rE
-  mul rA s_glyph_size
+  mul rA s_bmp_16x28_size
   
   # data-block export searches for the last non-null byte and treats it as an end-of-file marker.
   # This behavior interferes with simple data import functions which expect a complete word

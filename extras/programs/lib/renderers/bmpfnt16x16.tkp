@@ -19,18 +19,13 @@ struct gx_info__text
   4 position
   4 row
   4 col
-  4 x
-  4 y
+  2 x
+  2 y
+  2 offset_x
+  2 offset_y
   2 fragment
   2 value
   228 text
-
-struct s_glyph
-  8 key
-  8 offset_x
-  8 offset_y
-  8 displacement
-  32 data
 
 # A bitmap "sprite"
 # Each sprite uses 64 bytes of memory, with 8 reserved for properties and 56 reserved for pixels
@@ -62,44 +57,23 @@ BMPFNT_LD_TKPFONT:
   assign rF addr1.element_bound
   sub rF 16
   
-  assign xA 'Bound:
-  tcall print-text-xa
-  tcall print-space
-  tcall print-int-f
-  tcall print-newline
-  
   BMPFNT_LD_UNIFONT.lp:
     if rA >= rF BMPFNT_LD_UNIFONT.ret
     
-    # fetch the batch of of fields
-    block-load 4 rB addr1 rA
+    # get the code-point
+    load word rB addr1 rA
     
-    # As a side-effect of the bitmap iteration, relative positions are offset one pixel to the right, so it needs to be corrected for consistent positioning
-    sub rC 1
+    # select the bitmap position for code-point
+    assign rC rB
+    mul rC s_bmp_16x28_size
+    assign addr2.offset rC
     
-    # select position in bitmap data block
-    and rB h.ffff
-    mul rB s_bmp_16x28_size
-    assign addr2.offset rB
-    store byte addr2 s_bmp_16x28.offset_x rC
-    store byte addr2 s_bmp_16x28.offset_y rD
-    store byte addr2 s_bmp_16x28.displacement_x rE
+    # Copy bitmap data
+    add rA 2
+    block-load 4 xxA addr1 rA
+    block-store 4 addr2 0 xxA
     
-    # set a few defaults (recognized by the renderer for flexibility, but not handled or provided by the bdf extracter)
-    spread rB 0 16 1
-    store word addr2 s_bmp_16x28.next rB
-    store byte addr2 s_bmp_16x28.displacement_y rB
-    store byte addr2 s_bmp_16x28.rows rC
-    store byte addr2 s_bmp_16x28.value rD
-    
-    # copy the bitmap
-    # The bdf extractor only yields a 16x16 block
-    #   A 16x12 segment will be left empty
-    add rA 32
-    block-load 2 xxA addr1 rA
-    block-store 2 addr2 s_bmp_16x28.data xxA
-    add rA 32
-
+    add rA 64
     goto BMPFNT_LD_UNIFONT.lp
   BMPFNT_LD_UNIFONT.ret:
   lwreturn
@@ -170,7 +144,6 @@ GX.text.bmp16x16.utf8ENC.txtbank:
 GX.text.bmp16x16.utf8ENC.epilogue:
   sub rF gx_info__text.text
   shift-right rF 1
-  tcall dump-ctx
   # goto GX.text.bmp16x16.8bitENC.epilogue
 GX.text.bmp16x16.8bitENC.epilogue:
   assign rA rF
@@ -186,13 +159,14 @@ GX.text.bmp16x16:
   assign addr1.offset rB
   load sbyte rD addr1 s_bmp_16x28.offset_x
   load sbyte rE addr1 s_bmp_16x28.offset_y
-  
   stash rB sAh rC sBl
-  add rB rD
-  add rC rE
+  #add rB rD
+  #add rC rE
   store dword addr2 gx_info__text.len rA
-  store dword addr2 gx_info__text.x rB
-  store dword addr2 gx_info__text.y rC
+  store word addr2 gx_info__text.x rB
+  store word addr2 gx_info__text.y rC
+  store word addr2 gx_info__text.offset_x rD
+  store word addr2 gx_info__text.offset_y rE
   assign rD 0
   store dword addr2 gx_info__text.position rD
   store dword addr2 gx_info__text.row rD
@@ -212,9 +186,13 @@ GX.text.bmp16x16:
 # text renderer
 GX.text.bmp16x16.impl:
   load word rA addr2 gx_info__text.fragment
-  load dword rC addr2 gx_info__text.x
-  load dword rD addr2 gx_info__text.y
+  load word rC addr2 gx_info__text.x
+  load word rD addr2 gx_info__text.y
   load dword rE addr2 gx_info__text.row
+  add rD rE
+  load sword rE addr2 gx_info__text.offset_x
+  add rC rE
+  load sword rE addr2 gx_info__text.offset_y
   add rD rE
   load dword rE addr2 gx_info__text.col
   
@@ -274,10 +252,16 @@ GX.text.bmp16x16.impl:
     mul rA s_bmp_16x28_size
     assign addr1.offset rA
     
+    load sbyte rD addr1 s_bmp_16x28.offset_x
+    load sbyte rE addr1 s_bmp_16x28.offset_y
+    store word addr2 gx_info__text.offset_x rD
+    store word addr2 gx_info__text.offset_y rE
+    
     # fetch the immediately required data for the next iteration and store it in the main renderer properties
     load word rA addr1 s_bmp_16x28.data
     store word addr2 gx_info__text.fragment rA
-    load dword rB addr2 gx_info__text.y
+    load word rC addr2 gx_info__text.x
+    load word rB addr2 gx_info__text.y
     
     # apply displacement to obtain the offset of the first row
     load sbyte rE addr1 s_bmp_16x28.displacement_x

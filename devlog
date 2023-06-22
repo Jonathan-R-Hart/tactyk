@@ -1,3 +1,13 @@
+22 Jun 2023
+tactyk-extras - bdf-extract / bmpfnt16x16
+  Convert the interchange bitmap format to the format the renderer uses.
+  The renderer was implemented after the extracter, so the requirements were not fully worked out at the time.
+  The renderer format makes better use of space, supports a few additional features, and is intended to be extended at some point for used for 
+    non-text bitmap rendering.
+  The intermediate data storage format had to be expanded to include the code-point.
+  It is intended that the new converter should clip leading and trailing emoty lines form bitmaps.  The clipping if leading empty lines works,
+    but the code for clipping trailing empty lines fails and clips off the 16th line if it is present, and so has been disabled.
+
 21 Jun 2023
 tactyk-runtime
   Added a "text" data-block directive - this places the contained text into a named datablock
@@ -14,8 +24,9 @@ tactyk-extras
     It begins drawing text at a provided starting point, and accumulates per-glyph displacement vectors to trace the path text is to be rendered along
     Glyphs are additionally positioned in relation to the base position by an offset applied to the first row of pixels.
     Data extracted from GNU Unifont is used by the test code [and will likely be used as the builtin font] (http://unifoundry.com/unifont/)
-  Split ministring into a string reader component and a string handler
-  Add a function for extracting unicode codepoints from a string
+  minstring
+    Split ministring into a string reader component and a string handler
+    Add a function for extracting unicode codepoints from a string
 20 Jun 2023
 tactyk-runtime
   catch invalid file references and report error.
