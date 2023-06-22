@@ -13,7 +13,7 @@ struct gx_pixel
   4 e
   4 f
   4 depth
-  4 ui_interact
+  4 id
   # positions of global normal and color tables
   16 gdata_indices
   . 4 index_gnorm1
@@ -303,6 +303,234 @@ GX.texture.impl:
     lwreturn
   load qword rE addr2 rF
   goto rE
+
+GX.add.ch0:
+  assign rA GX.add.ch0.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.add.ch0.impl:
+  load float32 xN addr4 0
+  add xN xA
+  store float32 addr4 0 xN
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.add.ch1:
+  assign rA GX.add.ch1.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.add.ch1.impl:
+  load float32 xN addr4 4
+  add xN xA
+  store float32 addr4 4 xN
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.add.ch2:
+  assign rA GX.add.ch2.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.add.ch2.impl:
+  load float32 xN addr4 8
+  add xN xA
+  store float32 addr4 8 xN
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.add.ch3:
+  assign rA GX.add.ch0.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.add.ch3.impl:
+  load float32 xN addr4 12
+  add xN xA
+  store float32 addr4 12 xN
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.add.ch4:
+  assign rA GX.add.ch4.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.add.ch4.impl:
+  load float32 xN addr4 16
+  add xN xA
+  store float32 addr4 16 xN
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.add.ch5:
+  assign rA GX.add.ch5.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.add.ch5.impl:
+  load float32 xN addr4 20
+  add xN xA
+  store float32 addr4 20 xN
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.add.ch6:
+  assign rA GX.add.ch6.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.add.ch6.impl:
+  load float32 xN addr4 24
+  add xN xA
+  store float32 addr4 24 xN
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.add.ch7:
+  assign rA GX.add.ch7.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.add.ch7.impl:
+  load float32 xN addr4 28
+  add xN xA
+  store float32 addr4 28 xN
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+
+
+GX.sub.ch0:
+  assign rA GX.sub.ch0.impl
+  store qword addr2 rF rA
+  sub rF 8
+  lwreturn
+GX.sub.ch0.impl:
+  load float32 xN addr4 0
+  sub xN xA
+  store float32 addr4 0 xN
+  sub rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.sub.ch1:
+  assign rA GX.sub.ch1.impl
+  store qword addr2 rF rA
+  sub rF 8
+  lwreturn
+GX.sub.ch1.impl:
+  load float32 xN addr4 4
+  sub xN xA
+  store float32 addr4 4 xN
+  sub rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.sub.ch2:
+  assign rA GX.sub.ch2.impl
+  store qword addr2 rF rA
+  sub rF 8
+  lwreturn
+GX.sub.ch2.impl:
+  load float32 xN addr4 8
+  sub xN xA
+  store float32 addr4 8 xN
+  sub rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.sub.ch3:
+  assign rA GX.sub.ch0.impl
+  store qword addr2 rF rA
+  sub rF 8
+  lwreturn
+GX.sub.ch3.impl:
+  load float32 xN addr4 12
+  sub xN xA
+  store float32 addr4 12 xN
+  sub rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.sub.ch4:
+  assign rA GX.sub.ch4.impl
+  store qword addr2 rF rA
+  sub rF 8
+  lwreturn
+GX.sub.ch4.impl:
+  load float32 xN addr4 16
+  sub xN xA
+  store float32 addr4 16 xN
+  sub rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.sub.ch5:
+  assign rA GX.sub.ch5.impl
+  store qword addr2 rF rA
+  sub rF 8
+  lwreturn
+GX.sub.ch5.impl:
+  load float32 xN addr4 20
+  sub xN xA
+  store float32 addr4 20 xN
+  sub rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.sub.ch6:
+  assign rA GX.sub.ch6.impl
+  store qword addr2 rF rA
+  sub rF 8
+  lwreturn
+GX.sub.ch6.impl:
+  load float32 xN addr4 24
+  sub xN xA
+  store float32 addr4 24 xN
+  sub rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+GX.sub.ch7:
+  assign rA GX.sub.ch7.impl
+  store qword addr2 rF rA
+  sub rF 8
+  lwreturn
+GX.sub.ch7.impl:
+  load float32 xN addr4 28
+  sub xN xA
+  store float32 addr4 28 xN
+  sub rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+
 GX.transfer.ch0:
   assign rA GX.transfer.ch0.impl
   store qword addr2 rF rA
