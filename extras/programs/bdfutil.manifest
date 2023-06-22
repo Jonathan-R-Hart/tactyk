@@ -9,15 +9,17 @@
 #
 # To use this, place a file somewhere within the same directory as this manifest file (or subdirectory thereof),
 # and adjust and uncomment the following data import statement:
-# data font data/unifont-15.0.06.bdf
+data font data/unifont-15.0.06.bdf
 
 text subset oneline
   abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@#$%^&*()_+[]\;',./{}|:"<>?
+  ▀▁▂▃▄▅▆▇█▉▊▋▌▍▎▏▐░▒▓▔▕▖▗▘▙▚▛▜▝▞▟
 
 module thead lib/table.header.tkp
 
 module bdfutil lib/bdf-extract.tkp
 module mstr lib/ministring.tkp
+module mstr-rd lib/ministring.reader.tkp
   $T addr1
 module table lib/table.mini.tkp
   $T addr2
@@ -25,5 +27,5 @@ module table lib/table.mini.tkp
 
 export bdfuo 16000000 export/bdfutil_output.tkf
 
-program prog thead bdfutil mstr table
+program prog thead bdfutil mstr mstr-rd table
 main prog BDFUTIL__EXTRACT_SUBSET

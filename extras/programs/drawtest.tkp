@@ -160,6 +160,23 @@ MAIN:
   lwcall GX.fills.simple
   lwcall GX.util.exit
   lwcall GX.draw
+
+  assign rF 0
+  assign xA 'MoreThan
+  assign xB '_16_chars_
+  assign xC 'alsothis:░▒
+  assign xD '▓▃▄▅▆
+  assign xE '...WhatVeryText!
+  assign rB 202
+  assign rC 118
+  lwcall GX.text.bmp16x16.utf8ENC.txtbank
+  xassign xA 0.0 1.0 1.0 0.0
+  xassign xB 0.0 0.0 0.0 0.0
+  xassign xC 0.0 0.0 0.0 0.0
+  xassign xD 0.0 0.0 0.0 0.0
+  lwcall GX.fills.simple
+  lwcall GX.util.exit
+  lwcall GX.draw
   
   lwcall GX.bind_memblocks
   # finally convert it to RGB and upload it to the display.

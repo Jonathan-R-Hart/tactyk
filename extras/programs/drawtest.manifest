@@ -2,6 +2,7 @@
 
 data unifont data/unifont_basic_chars.tkf
 
+module ministring lib/ministring.tkp
 module bmpf lib/renderers/bmpfnt16x16.tkp
 module draw lib/tactyk_draw.tkp
 module rect-renderers lib/renderers/rect.tkp
@@ -12,5 +13,5 @@ module table lib/table.mini.tkp
   $T addr3
   $StTmp s28h
 
-program prog main matrix rect-renderers draw irrvn bmpf
+program prog main matrix rect-renderers draw irrvn bmpf ministring
 main prog MAIN
