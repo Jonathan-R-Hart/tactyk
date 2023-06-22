@@ -11,8 +11,8 @@ struct gx_pixel
   4 c
   4 d
   4 e
-  4 depth
   4 stencil
+  4 z
   4 id
   # positions of global normal and color tables
   16 gdata_indices
@@ -30,7 +30,7 @@ struct gx_pixel
 struct gx_info__view
   2048 program_alloc
   4096 general_alloc
-  48 view_alloc
+  64 properties_alloc
   
   . 16 view_size
   . 8 width
@@ -44,6 +44,12 @@ struct gx_info__view
   . 8 x
   8 y
   
+  16 fixed_properties
+  4 id
+  4 stencil
+  4 z
+  4 unused
+  
   128 rasterizer_alloc
   2592 ptxp_alloc
   6400 irrv_alloc
@@ -55,7 +61,7 @@ struct gx_info__view
 struct gx_info
   2048 program_alloc
   4096 general_alloc
-  48 view_alloc
+  64 properties_alloc
   128 rasterizer_alloc
   2592 ptxp_alloc
   6400 irrv_alloc
@@ -81,7 +87,7 @@ struct gx_info__program
   8 f15
   0 end
   4096 general_alloc
-  48 view_alloc
+  64 properties_alloc
   128 rasterizer_alloc
   2592 ptxp_alloc
   6400 irrv_alloc
@@ -273,6 +279,65 @@ GX.draw:
   load qword rE addr2 gx_info__program.f0
   lwcall rE
   goto GX.draw
+
+GX.ztest.fixed:
+  assign rA GX.ztest.fixed.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.ztest.fixed.impl:
+  load dword rB addr2 gx_info__view.z
+  load dword rE addr4 gx_pixel.z
+  if rE >= rB
+    add rF 8
+    if rF == gx_info__program.end
+      lwreturn
+    load qword rE addr2 rF
+    lwreturn
+  assign rF 1
+  lwreturn
+
+GX.stenciltest:
+  assign rA GX.stenciltest.fixed.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.stenciltest.fixed.impl:
+  load dword rB addr2 gx_info__view.stencil
+  load dword rE addr4 gx_pixel.stencil
+  if rE == rB
+    add rF 8
+    if rF == gx_info__program.end
+      lwreturn
+    load qword rE addr2 rF
+    lwreturn
+  assign rF 1
+  lwreturn
+
+GX.stencil.OR.ztest.fixed:
+  assign rA GX.stencil.OR.ztest.fixed.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.stencil.OR.ztest.fixed.impl:
+  load dword rB addr2 gx_info__view.z
+  load dword rC addr2 gx_info__view.stencil
+  load dword rD addr4 gx_pixel.z
+  load dword rE addr4 gx_pixel.stencil
+  if rE == rC
+    add rF 8
+    if rF == gx_info__program.end
+      lwreturn
+    load qword rE addr2 rF
+    lwreturn
+  if rD >= rB
+    add rF 8
+    if rF == gx_info__program.end
+      lwreturn
+    load qword rE addr2 rF
+    lwreturn
+  assign rF 1
+  lwreturn
 
 # basic filling function
 # This performs a simple overwrite of all color channels and normals

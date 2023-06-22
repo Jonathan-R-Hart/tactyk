@@ -2,7 +2,7 @@
 struct gx_info__ptpx_data
   2048 program_alloc
   4096 general_alloc
-  48 view_alloc
+  64 properties_alloc
   128 rasterizer_alloc
   
   2592 ptxp_alloc

@@ -51,7 +51,7 @@
 struct gx_info__irrvnoise
   2048 program_alloc
   4096 general_alloc
-  48 view_alloc
+  64 properties_alloc
   48 rasterizer_alloc
   2592 ptxp_alloc
   6400 irrv_alloc
@@ -144,26 +144,6 @@ IRRVNOISE.impl:
     lwreturn
   load qword rE addr2 rF
   goto rE
-
-struct gx_info__irrvnoise__simd_components
-  16 size
-  . 4 sz_1
-  4 sz_2
-  4 sz_unused1
-  4 sz_unused2
-  16 value
-  . 4 val_1
-  4 val_2
-  4 val_unused1
-  4 val_unused2
-  160 components
-  . 4 cmp1_x
-  4 cmp1_y
-  4 cmp2_x
-  4 cmp2_y
-  4 cmp3_x
-  4 cmp3_y
-  # ...
 
 IRRVNOISE.simd:
   assign rA IRRVNOISE.simd.impl

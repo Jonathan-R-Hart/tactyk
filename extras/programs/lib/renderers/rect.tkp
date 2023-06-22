@@ -18,7 +18,7 @@
 struct gx_info__fillrect_fields
   2048 program_alloc
   4096 general_alloc
-  48 view_alloc
+  64 properties_alloc
   128 rasterizer_alloc
   . 8 x
   8   x2
@@ -121,7 +121,7 @@ GX.rect.fill.impl:
 struct gx_info__outlinerect_fields
   2048 program_alloc
   4096 general_alloc
-  48 view_alloc
+  64 properties_alloc
   128 rasterizer_alloc
 
   . 0 main-iterator
