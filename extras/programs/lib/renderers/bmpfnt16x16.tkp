@@ -111,7 +111,7 @@ GX.text.bmp16x16.8bitENC.chunk8:
   assign rE gx_info__text.text
   assign rF 0
   GX.text.bmp16x16.8bitENC.chunk8.lp:
-  if rD == 0 GX.text.bmp16x16.8bitENC.prologue
+  if rD == 0 GX.text.bmp16x16.8bitENC.epilogue
   inc rF
   store byte addr2 rE rD
   shift-right rD 8
@@ -137,7 +137,7 @@ GX.text.bmp16x16.8bitENC.chunk16:
   xassign rD xA int64 1
   
   GX.text.bmp16x16.8bitENC.chunk16.lp2:
-  if rD == 0 GX.text.bmp16x16.8bitENC.prologue
+  if rD == 0 GX.text.bmp16x16.8bitENC.epilogue
   inc rF
   store byte addr2 rE rD
   shift-right rD 8
@@ -145,7 +145,34 @@ GX.text.bmp16x16.8bitENC.chunk16:
   
   goto GX.text.bmp16x16.8bitENC.chunk16.lp2
 
-GX.text.bmp16x16.8bitENC.prologue:
+GX.text.bmp16x16.utf8ENC:
+  stash sAl rF sAh rB sBl rC
+  assign rE 0
+  assign rF gx_info__text.text
+  GX.text.bmp16x16.utf8ENC.lp:
+  lwcall MINISTRING__EXTRACT_UTF8
+  if rA == 0 GX.text.bmp16x16.utf8ENC.epilogue
+  store word addr2 rF rA
+  add rF 2
+  goto GX.text.bmp16x16.utf8ENC.lp
+
+GX.text.bmp16x16.utf8ENC.txtbank:
+  stash sAl rF sAh rB sBl rC
+  assign rE 1
+  assign rF gx_info__text.text
+  GX.text.bmp16x16.utf8ENC.txtbank.lp:
+  lwcall MINISTRING__EXTRACT_UTF8
+  if rA == 0 GX.text.bmp16x16.utf8ENC.epilogue
+  store word addr2 rF rA
+  add rF 2
+  goto GX.text.bmp16x16.utf8ENC.txtbank.lp
+
+GX.text.bmp16x16.utf8ENC.epilogue:
+  sub rF gx_info__text.text
+  shift-right rF 1
+  tcall dump-ctx
+  # goto GX.text.bmp16x16.8bitENC.epilogue
+GX.text.bmp16x16.8bitENC.epilogue:
   assign rA rF
   stash rF sAl
   goto GX.text.bmp16x16
