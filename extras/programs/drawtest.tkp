@@ -3,7 +3,7 @@ MAIN:
   tcall dump-dispmode
   assign rA 'unifont
   tcall get-data
-  lwcall BMPFNT_LD_TKPFONT
+  lwcall BMP_16x28_LD_TKF
   
   bind addr1 m_gx_info
   
