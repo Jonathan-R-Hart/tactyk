@@ -26,13 +26,6 @@ struct s_font
   8 gdisplacement
   32 gdata
 
-struct s_glyph
-  8 key
-  8 offset_x
-  8 offset_y
-  8 displacement
-  32 data
-
 struct s_bmp_16x28
   2 key
   2 next
@@ -189,10 +182,10 @@ f_endchar:
   store byte addr4 s_bmp_16x28.offset_x rD
   
   # defaults [Not part of BDF, but are planned tacty-draw bitmap rendering features]
-  assign rF 0
-  store byte addr4 s_bmp_16x28.displacement_y rF
+  spread rE 0 1
+  store byte addr4 s_bmp_16x28.displacement_y rE
   store byte addr4 s_bmp_16x28.value rF
-  store word addr3 s_bmp_16x28.next rF
+  store word addr3 s_bmp_16x28.next rE
   
   assign rA -1
 
