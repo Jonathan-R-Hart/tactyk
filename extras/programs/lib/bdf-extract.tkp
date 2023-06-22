@@ -60,7 +60,7 @@ EXEC_FUNC:
     tcall print-text-xn
     tcall print-space
     lwcall MINISTRING__CONTEXT_ENTER.addr1
-    lwcall MINISTRING__PRINT_TOKENS.addr1
+    lwcall MINISTRING__PRINT_TOKENS
     lwcall MINISTRING__CONTEXT_EXIT.addr1
     tcall print-newline
     lwreturn
@@ -405,7 +405,7 @@ BDFUTIL__NEXTLINE:
   lwcall MINISTRING__CONTEXT_EXIT.addr1
   lwcall EXEC_FUNC
   lwcall MINISTRING__CONTEXT_ENTER.addr1
-  #lwcall MINISTRING__PRINT_TOKENS.addr1
+  #lwcall MINISTRING__PRINT_TOKENS
   lwcall MINISTRING__NEXTLINE.addr1
   lwcall MINISTRING__CONTEXT_EXIT.addr1
   lwreturn
@@ -508,7 +508,7 @@ GET_UTF8_VALUE:
     lwreturn
   
   # b.110xxxxx: 11-bit char
-  if rA & b.00100000
+  if rA ~& b.00100000
     and rA b.00011111
     lwcall GET_UTF8_VALUE.append6bits
     lwreturn
