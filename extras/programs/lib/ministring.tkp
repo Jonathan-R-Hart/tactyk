@@ -12,7 +12,7 @@
 #
 # Inputs:
 #   xA - utf-8 string to read (max 16 bytes)
-#   rF - string bank flag - if value is 1 and xA is zeroed after extracting any byte, all entries in supplemental string storage will be shifted one space to the left
+#   rE - string bank flag - if value is 1 and xA is zeroed after extracting any byte, all entries in supplemental string storage will be shifted one space to the left
 #   [OPT] xB-xN: supplemental string storage
 #                (if rF is not equal to 1, then this is ignored and not treated as supplemental string storage)
 # Output:
@@ -20,9 +20,10 @@
 #   xA - string with one less char (or next string if using supplemental storage and xA was zeroed)
 # clobbers:
 #   rB-rD
+
 MINISTRING__EXTRACT_UTF8:
   lwcall MINISTRING__EXTRACT_UTF8.nextbyte
-  assign rA rE
+  assign rA rD
   # b.0xxxxxxx: ASCII char
   if rA ~& b.10000000
     lwreturn
@@ -59,42 +60,46 @@ MINISTRING__EXTRACT_UTF8:
 
 MINISTRING__EXTRACT_UTF8.append6bits:
   lwcall MINISTRING__EXTRACT_UTF8.nextbyte
-  assign rB rE
+  assign rB rD
   and rB b.11000000
   
   #continuation byte
   if rB == b.10000000
-    and rE b.00111111
+    and rD b.00111111
     shift-left rA 6
-    or rA rE
+    or rA rD
     lwreturn
   
   assign rA 0
   lwreturn
 
 MINISTRING__EXTRACT_UTF8.nextbyte:
-  xassign rB xA int64 0
-  xassign rC xA int64 1
-  assign rE rB
-  and rE 255
-  
-  assign rD rC
-  and rD 255
-  shift-left rD 56
+  # destructively extract low byte from upper qword
+  xassign rB xA int64 1
+  assign rC rB
   shift-right rB 8
-  shift-right rC 8
-  or rB rD
-  xassign xA int64 0 rB
-  xassign xA int64 1 rC
+  xassign xA int64 1 rB
   
-  if rF == 1
+  # destructively extract low byte from lower qword
+  xassign rB xA int64 0
+  assign rD rB
+  and rD 255
+  
+  # transfer byte taken from upper qword to lower qword
+  shift-right rB 8
+  and rC 255
+  shift-left rC 56
+  or rB rC
+  xassign xA int64 0 rB
+  
+  # if xmm-based supplemental string storage is enabled, and the input string has been consumed, shift supplemental storage one slot left
+  if rE == 1
     or rB rC
     if rB == 0
       xduplicate 7 xA xB
       xduplicate 6 xH xI
       xassign xN 0 0
   lwreturn
-
 
 MINISTRING__PRINT_TOKENS:
   if xA == 0 MINISTRING__PRINT_TOKENS.end
