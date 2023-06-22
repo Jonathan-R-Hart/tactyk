@@ -14,7 +14,8 @@ tactyk-extras
     It begins drawing text at a provided starting point, and accumulates per-glyph displacement vectors to trace the path text is to be rendered along
     Glyphs are additionally positioned in relation to the base position by an offset applied to the first row of pixels.
     Data extracted from GNU Unifont is used by the test code [and will likely be used as the builtin font] (http://unifoundry.com/unifont/)
-
+  Split ministring into a string reader component and a string handler
+  Add a function for extracting unicode codepoints from a string
 20 Jun 2023
 tactyk-runtime
   catch invalid file references and report error.
