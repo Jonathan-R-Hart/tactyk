@@ -138,6 +138,274 @@ instruction find-bit
         jnz $JTARGET
         jmp $NEXT_INSTRUCTION
 
+# apply a piecewise lookup table transform to a register
+#   Register value is logically split into a series of chunks (sequence of adjacent bits)
+#   Each chunk within the register (up tot he specified word size) is read and used to index a lookup table.
+#   The values taken from the lookup table are combined (with the specified combiner function) to generate the transformed result.
+#   This is intended to support things like interleaving bits, de-interleaving bits, and indexed color
+instruction lut-transform
+  $OP add
+  operand
+    type word
+  operand
+    select-template
+      case Q
+        $TWORD_SCALE 3
+        select-operand
+          case 1 bit
+            $STEPS 64
+            $STEP 1
+            $MINTBLEBOUND 1024
+            $CHKSZ 16
+            $MASK 1
+            #pick Bt
+          case 2 half-nibble
+            $STEPS 32
+            $STEP 2
+            $MINTBLEBOUND 1024
+            $CHKSZ 32
+            $MASK 3
+            #pick Nh
+          case 4 nibble
+            $STEPS 16
+            $STEP 4
+            $MINTBLEBOUND 2048
+            $CHKSZ 128
+            $MASK 15
+            #pick N
+          case 8 byte
+            $STEPS 8
+            $STEP 8
+            $MINTBLEBOUND 16384
+            $CHKSZ 2048
+            $MASK 255
+            #pick B
+          case 16 word
+            $STEPS 4
+            $STEP 16
+            $MINTBLEBOUND 2097152
+            $CHKSZ 524288
+            $MASK 65535
+            #pick W
+      case D
+        $TWORD_SCALE 2
+        select-operand
+          case 1 bit
+            $STEPS 32
+            $STEP 1
+            $MINTBLEBOUND 256
+            $CHKSZ 8
+            $MASK 1
+            #pick Bt
+          case 2 half-nibble
+            $STEPS 16
+            $STEP 2
+            $MINTBLEBOUND 256
+            $CHKSZ 16
+            $MASK 3
+            #pick Nh
+          case 4 nibble
+            $STEPS 8
+            $STEP 4
+            $MINTBLEBOUND 512
+            $CHKSZ 64
+            $MASK 15
+            #pick N
+          case 8 byte
+            $STEPS 4
+            $STEP 8
+            $MINTBLEBOUND 4096
+            $CHKSZ 1024
+            $MASK 255
+            #pick B
+          case 16 word
+            $STEPS 2
+            $STEP 16
+            $MINTBLEBOUND 1048576
+            $CHKSZ 524288
+            $MASK 65535
+            #pick W
+      case W
+        $TWORD_SCALE 1
+        select-operand
+          case 1 bit
+            $STEPS 16
+            $STEP 1
+            $MINTBLEBOUND 64
+            $CHKSZ 4
+            $MASK 1
+            #pick Bt
+          case 2 half-nibble
+            $STEPS 8
+            $STEP 2
+            $MINTBLEBOUND 64
+            $CHKSZ 8
+            $MASK 3
+            #pick Nh
+          case 4 nibble
+            $STEPS 4
+            $STEP 4
+            $MINTBLEBOUND 128
+            $CHKSZ 32
+            $MASK 15
+            #pick N
+          case 8 byte
+            $STEPS 2
+            $STEP 8
+            $MINTBLEBOUND 1024
+            $CHKSZ 512
+            $MASK 255
+            #pick B
+          case 16 word
+            $STEPS 1
+            $STEP 16
+            $MINTBLEBOUND 524288
+            $CHKSZ 524288
+            $MASK 65535
+            #pick W
+      case B
+        $TWORD_SCALE 0
+        select-operand
+          case 1 bit
+            $STEPS 8
+            $STEP 1
+            $MINTBLEBOUND 16
+            $CHKSZ 2
+            $MASK 1
+            #pick Bt
+          case 2 half-nibble
+            $STEPS 4
+            $STEP 2
+            $MINTBLEBOUND 16
+            $CHKSZ 4
+            $MASK 3
+            #pick Nh
+          case 4 nibble
+            $STEPS 2
+            $STEP 4
+            $MINTBLEBOUND 32
+            $CHKSZ 16
+            $MASK 15
+            #pick N
+          case 8 byte
+            $STEPS 1
+            $STEP 8
+            $MINTBLEBOUND 256
+            $CHKSZ 256
+            $MASK 255
+            #pick B
+  opt-operand
+    select-operand
+      case add
+        $INIT_VALUE 0
+        $OP add
+      case and
+        $INIT_VALUE -1
+        $OP and
+      case or
+        $INIT_VALUE 0
+        $OP or
+      case xor
+        $INIT_VALUE 0
+        $OP xor
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  operand
+    type data
+    $DEST $VALUE
+  operand
+    type data
+    $SRC $VALUE
+  sub tmp ra
+  sub tmp rc
+  sub tmp rd
+  code
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    cmp rTEMPA, $MINTBLEBOUND
+    errorlt STATUS_ROGUE_POINTER
+    lfence
+    ; $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+    mov rTEMPA, $SRC
+    xor rTEMPD, rTEMPD
+    mov $DEST, $INIT_VALUE
+    mov rTEMPA, $SRC
+  select-template
+    case QADD QsADD
+      repeat $STEPS
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          $OP $DEST, qword [$ADDRESS_REGISTER+rTEMPC]
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+    case DADD
+      repeat $STEPS
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          $OP %[$DEST]_32, dword [$ADDRESS_REGISTER+rTEMPC]
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+    case DsADD
+      repeat $STEPS
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          $MOV %[rTEMPC]_32, dword [$ADDRESS_REGISTER+rTEMPC]
+          $OP $DEST, rTEMPC
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+    case WADD
+      repeat $STEPS
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          mov rF, rTEMPC
+          $OP %[$DEST]_16, word [$ADDRESS_REGISTER+rTEMPC]
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+    case WsADD
+      repeat $STEPS
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          $MOV %[rTEMPC]_16, word [$ADDRESS_REGISTER+rTEMPC]
+          $OP $DEST, rTEMPC
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+    case BADD BsADD
+      repeat $STEPS
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          $MOV rTEMPC, byte [$ADDRESS_REGISTER+rTEMPC]
+          $OP $DEST, rTEMPC
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+  code
+    $RESET_TEMP
+
+
+
+
+
+
+
+
+
 
 
 

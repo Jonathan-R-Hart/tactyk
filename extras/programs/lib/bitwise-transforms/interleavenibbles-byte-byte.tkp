@@ -1,0 +1,22 @@
+
+flat m_interleavenibbles_byte_byte byte
+  h.00 h.01 h.02 h.03 h.04 h.05 h.06 h.07 h.08 h.09 h.0a h.0b h.0c h.0d h.0e h.0f
+  h.10 h.11 h.12 h.13 h.14 h.15 h.16 h.17 h.18 h.19 h.1a h.1b h.1c h.1d h.1e h.1f
+  h.20 h.21 h.22 h.23 h.24 h.25 h.26 h.27 h.28 h.29 h.2a h.2b h.2c h.2d h.2e h.2f
+  h.30 h.31 h.32 h.33 h.34 h.35 h.36 h.37 h.38 h.39 h.3a h.3b h.3c h.3d h.3e h.3f
+  h.40 h.41 h.42 h.43 h.44 h.45 h.46 h.47 h.48 h.49 h.4a h.4b h.4c h.4d h.4e h.4f
+  h.50 h.51 h.52 h.53 h.54 h.55 h.56 h.57 h.58 h.59 h.5a h.5b h.5c h.5d h.5e h.5f
+  h.60 h.61 h.62 h.63 h.64 h.65 h.66 h.67 h.68 h.69 h.6a h.6b h.6c h.6d h.6e h.6f
+  h.70 h.71 h.72 h.73 h.74 h.75 h.76 h.77 h.78 h.79 h.7a h.7b h.7c h.7d h.7e h.7f
+  h.80 h.81 h.82 h.83 h.84 h.85 h.86 h.87 h.88 h.89 h.8a h.8b h.8c h.8d h.8e h.8f
+  h.90 h.91 h.92 h.93 h.94 h.95 h.96 h.97 h.98 h.99 h.9a h.9b h.9c h.9d h.9e h.9f
+  h.a0 h.a1 h.a2 h.a3 h.a4 h.a5 h.a6 h.a7 h.a8 h.a9 h.aa h.ab h.ac h.ad h.ae h.af
+  h.b0 h.b1 h.b2 h.b3 h.b4 h.b5 h.b6 h.b7 h.b8 h.b9 h.ba h.bb h.bc h.bd h.be h.bf
+  h.c0 h.c1 h.c2 h.c3 h.c4 h.c5 h.c6 h.c7 h.c8 h.c9 h.ca h.cb h.cc h.cd h.ce h.cf
+  h.d0 h.d1 h.d2 h.d3 h.d4 h.d5 h.d6 h.d7 h.d8 h.d9 h.da h.db h.dc h.dd h.de h.df
+  h.e0 h.e1 h.e2 h.e3 h.e4 h.e5 h.e6 h.e7 h.e8 h.e9 h.ea h.eb h.ec h.ed h.ee h.ef
+  h.f0 h.f1 h.f2 h.f3 h.f4 h.f5 h.f6 h.f7 h.f8 h.f9 h.fa h.fb h.fc h.fd h.fe h.ff
+
+
+# bind addr1 m_interleavenibbles_byte_byte
+# lut-transform byte byte add addr1 rB rA

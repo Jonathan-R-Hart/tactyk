@@ -77,6 +77,7 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__put(ctx->operator_table, "case", tactyk_emit__Case);
     tactyk_dblock__put(ctx->operator_table, "default", tactyk_emit__Default);
     tactyk_dblock__put(ctx->operator_table, "contains", tactyk_emit__Contains);
+    tactyk_dblock__put(ctx->operator_table, "repeat", tactyk_emit__Repeat);
 
     tactyk_dblock__put(ctx->operator_table, "pick", tactyk_emit__Pick);
     tactyk_dblock__put(ctx->operator_table, "reset-template-selector", tactyk_emit__ClearTemplate);
@@ -580,6 +581,30 @@ bool tactyk_emit__Contains(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
         case_token = case_token->next;
     }
     return false;
+}
+bool tactyk_emit__Repeat(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    struct tactyk_dblock__DBlock *rpt_token = data->token->next;
+    if (rpt_token == NULL) {
+        tactyk_report__msg("REPEAT - no quantity specified");
+        return false;
+    }
+    struct tactyk_dblock__DBlock *rpt_resolved = tactyk_emit__fetch_var(ctx, NULL, rpt_token);
+    if (rpt_resolved == NULL) {
+        tactyk_report__dblock("REPEAT - invalid quantity", rpt_token);
+        return false;
+    }
+    uint64_t amount = 0;
+    if (!tactyk_dblock__try_parseuint(&amount, rpt_resolved)) {
+        tactyk_report__dblock("REPEAT - invalid quantity", rpt_token);
+        return false;
+    }
+    for (uint64_t i = 0; i < amount; i++) {
+        if (!tactyk_emit__ExecSubroutine(ctx, data)) {
+            return false;
+        }
+    }
+    return true;
+    
 }
 bool tactyk_emit__Case(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     struct tactyk_dblock__DBlock *case_token = data->token->next;

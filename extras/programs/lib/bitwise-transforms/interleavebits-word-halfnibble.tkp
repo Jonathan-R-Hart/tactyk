@@ -1,0 +1,13 @@
+
+flat m_interleavebits_word_halfnibble word
+  h.0000 h.0001 h.0004 h.0005
+  h.0000 h.0010 h.0040 h.0050
+  h.0000 h.0100 h.0400 h.0500
+  h.0000 h.1000 h.4000 h.5000
+  h.0000 h.0002 h.0008 h.000a
+  h.0000 h.0020 h.0080 h.00a0
+  h.0000 h.0200 h.0800 h.0a00
+  h.0000 h.2000 h.8000 h.a000
+
+# bind addr1 m_interleavebits_word_halfnibble
+# lut-transform word half-nibble add addr1 rB rA

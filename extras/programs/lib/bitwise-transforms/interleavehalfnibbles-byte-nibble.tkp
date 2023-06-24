@@ -1,0 +1,11 @@
+
+flat m_interleavehalfnibbles_byte_nibble byte
+  h.00 h.01 h.02 h.03 h.10 h.11 h.12 h.13
+  h.20 h.21 h.22 h.23 h.30 h.31 h.32 h.33
+  h.00 h.04 h.08 h.0c h.40 h.44 h.48 h.4c
+  h.80 h.84 h.88 h.8c h.c0 h.c4 h.c8 h.cc
+
+
+
+# bind addr1 m_interleavehalfnibbles_byte_nibble
+# lut-transform byte nibble add addr1 rB rA

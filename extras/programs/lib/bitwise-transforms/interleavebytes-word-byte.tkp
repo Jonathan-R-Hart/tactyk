@@ -1,0 +1,37 @@
+
+flat m_interleavebytes_word_byte word
+  h.00 h.01 h.02 h.03 h.04 h.05 h.06 h.07 h.08 h.09 h.0a h.0b h.0c h.0d h.0e h.0f
+  h.10 h.11 h.12 h.13 h.14 h.15 h.16 h.17 h.18 h.19 h.1a h.1b h.1c h.1d h.1e h.1f
+  h.20 h.21 h.22 h.23 h.24 h.25 h.26 h.27 h.28 h.29 h.2a h.2b h.2c h.2d h.2e h.2f
+  h.30 h.31 h.32 h.33 h.34 h.35 h.36 h.37 h.38 h.39 h.3a h.3b h.3c h.3d h.3e h.3f
+  h.40 h.41 h.42 h.43 h.44 h.45 h.46 h.47 h.48 h.49 h.4a h.4b h.4c h.4d h.4e h.4f
+  h.50 h.51 h.52 h.53 h.54 h.55 h.56 h.57 h.58 h.59 h.5a h.5b h.5c h.5d h.5e h.5f
+  h.60 h.61 h.62 h.63 h.64 h.65 h.66 h.67 h.68 h.69 h.6a h.6b h.6c h.6d h.6e h.6f
+  h.70 h.71 h.72 h.73 h.74 h.75 h.76 h.77 h.78 h.79 h.7a h.7b h.7c h.7d h.7e h.7f
+  h.80 h.81 h.82 h.83 h.84 h.85 h.86 h.87 h.88 h.89 h.8a h.8b h.8c h.8d h.8e h.8f
+  h.90 h.91 h.92 h.93 h.94 h.95 h.96 h.97 h.98 h.99 h.9a h.9b h.9c h.9d h.9e h.9f
+  h.a0 h.a1 h.a2 h.a3 h.a4 h.a5 h.a6 h.a7 h.a8 h.a9 h.aa h.ab h.ac h.ad h.ae h.af
+  h.b0 h.b1 h.b2 h.b3 h.b4 h.b5 h.b6 h.b7 h.b8 h.b9 h.ba h.bb h.bc h.bd h.be h.bf
+  h.c0 h.c1 h.c2 h.c3 h.c4 h.c5 h.c6 h.c7 h.c8 h.c9 h.ca h.cb h.cc h.cd h.ce h.cf
+  h.d0 h.d1 h.d2 h.d3 h.d4 h.d5 h.d6 h.d7 h.d8 h.d9 h.da h.db h.dc h.dd h.de h.df
+  h.e0 h.e1 h.e2 h.e3 h.e4 h.e5 h.e6 h.e7 h.e8 h.e9 h.ea h.eb h.ec h.ed h.ee h.ef
+  h.f0 h.f1 h.f2 h.f3 h.f4 h.f5 h.f6 h.f7 h.f8 h.f9 h.fa h.fb h.fc h.fd h.fe h.ff
+  h.0000 h.0100 h.0200 h.0300 h.0400 h.0500 h.0600 h.0700 h.0800 h.0900 h.0a00 h.0b00 h.0c00 h.0d00 h.0e00 h.0f00
+  h.1000 h.1100 h.1200 h.1300 h.1400 h.1500 h.1600 h.1700 h.1800 h.1900 h.1a00 h.1b00 h.1c00 h.1d00 h.1e00 h.1f00
+  h.2000 h.2100 h.2200 h.2300 h.2400 h.2500 h.2600 h.2700 h.2800 h.2900 h.2a00 h.2b00 h.2c00 h.2d00 h.2e00 h.2f00
+  h.3000 h.3100 h.3200 h.3300 h.3400 h.3500 h.3600 h.3700 h.3800 h.3900 h.3a00 h.3b00 h.3c00 h.3d00 h.3e00 h.3f00
+  h.4000 h.4100 h.4200 h.4300 h.4400 h.4500 h.4600 h.4700 h.4800 h.4900 h.4a00 h.4b00 h.4c00 h.4d00 h.4e00 h.4f00
+  h.5000 h.5100 h.5200 h.5300 h.5400 h.5500 h.5600 h.5700 h.5800 h.5900 h.5a00 h.5b00 h.5c00 h.5d00 h.5e00 h.5f00
+  h.6000 h.6100 h.6200 h.6300 h.6400 h.6500 h.6600 h.6700 h.6800 h.6900 h.6a00 h.6b00 h.6c00 h.6d00 h.6e00 h.6f00
+  h.7000 h.7100 h.7200 h.7300 h.7400 h.7500 h.7600 h.7700 h.7800 h.7900 h.7a00 h.7b00 h.7c00 h.7d00 h.7e00 h.7f00
+  h.8000 h.8100 h.8200 h.8300 h.8400 h.8500 h.8600 h.8700 h.8800 h.8900 h.8a00 h.8b00 h.8c00 h.8d00 h.8e00 h.8f00
+  h.9000 h.9100 h.9200 h.9300 h.9400 h.9500 h.9600 h.9700 h.9800 h.9900 h.9a00 h.9b00 h.9c00 h.9d00 h.9e00 h.9f00
+  h.a000 h.a100 h.a200 h.a300 h.a400 h.a500 h.a600 h.a700 h.a800 h.a900 h.aa00 h.ab00 h.ac00 h.ad00 h.ae00 h.af00
+  h.b000 h.b100 h.b200 h.b300 h.b400 h.b500 h.b600 h.b700 h.b800 h.b900 h.ba00 h.bb00 h.bc00 h.bd00 h.be00 h.bf00
+  h.c000 h.c100 h.c200 h.c300 h.c400 h.c500 h.c600 h.c700 h.c800 h.c900 h.ca00 h.cb00 h.cc00 h.cd00 h.ce00 h.cf00
+  h.d000 h.d100 h.d200 h.d300 h.d400 h.d500 h.d600 h.d700 h.d800 h.d900 h.da00 h.db00 h.dc00 h.dd00 h.de00 h.df00
+  h.e000 h.e100 h.e200 h.e300 h.e400 h.e500 h.e600 h.e700 h.e800 h.e900 h.ea00 h.eb00 h.ec00 h.ed00 h.ee00 h.ef00
+  h.f000 h.f100 h.f200 h.f300 h.f400 h.f500 h.f600 h.f700 h.f800 h.f900 h.fa00 h.fb00 h.fc00 h.fd00 h.fe00 h.ff00
+
+# bind addr1 m_interleavebytes_word_byte
+# lut-transform word byte add addr1 rB rA

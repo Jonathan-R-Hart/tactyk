@@ -1,0 +1,37 @@
+
+flat m_interleavenibbles_word_byte word
+  h.0000 h.0001 h.0002 h.0003 h.0004 h.0005 h.0006 h.0007 h.0008 h.0009 h.000a h.000b h.000c h.000d h.000e h.000f
+  h.0100 h.0101 h.0102 h.0103 h.0104 h.0105 h.0106 h.0107 h.0108 h.0109 h.010a h.010b h.010c h.010d h.010e h.010f
+  h.0200 h.0201 h.0202 h.0203 h.0204 h.0205 h.0206 h.0207 h.0208 h.0209 h.020a h.020b h.020c h.020d h.020e h.020f
+  h.0300 h.0301 h.0302 h.0303 h.0304 h.0305 h.0306 h.0307 h.0308 h.0309 h.030a h.030b h.030c h.030d h.030e h.030f
+  h.0400 h.0401 h.0402 h.0403 h.0404 h.0405 h.0406 h.0407 h.0408 h.0409 h.040a h.040b h.040c h.040d h.040e h.040f
+  h.0500 h.0501 h.0502 h.0503 h.0504 h.0505 h.0506 h.0507 h.0508 h.0509 h.050a h.050b h.050c h.050d h.050e h.050f
+  h.0600 h.0601 h.0602 h.0603 h.0604 h.0605 h.0606 h.0607 h.0608 h.0609 h.060a h.060b h.060c h.060d h.060e h.060f
+  h.0700 h.0701 h.0702 h.0703 h.0704 h.0705 h.0706 h.0707 h.0708 h.0709 h.070a h.070b h.070c h.070d h.070e h.070f
+  h.0800 h.0801 h.0802 h.0803 h.0804 h.0805 h.0806 h.0807 h.0808 h.0809 h.080a h.080b h.080c h.080d h.080e h.080f
+  h.0900 h.0901 h.0902 h.0903 h.0904 h.0905 h.0906 h.0907 h.0908 h.0909 h.090a h.090b h.090c h.090d h.090e h.090f
+  h.0a00 h.0a01 h.0a02 h.0a03 h.0a04 h.0a05 h.0a06 h.0a07 h.0a08 h.0a09 h.0a0a h.0a0b h.0a0c h.0a0d h.0a0e h.0a0f
+  h.0b00 h.0b01 h.0b02 h.0b03 h.0b04 h.0b05 h.0b06 h.0b07 h.0b08 h.0b09 h.0b0a h.0b0b h.0b0c h.0b0d h.0b0e h.0b0f
+  h.0c00 h.0c01 h.0c02 h.0c03 h.0c04 h.0c05 h.0c06 h.0c07 h.0c08 h.0c09 h.0c0a h.0c0b h.0c0c h.0c0d h.0c0e h.0c0f
+  h.0d00 h.0d01 h.0d02 h.0d03 h.0d04 h.0d05 h.0d06 h.0d07 h.0d08 h.0d09 h.0d0a h.0d0b h.0d0c h.0d0d h.0d0e h.0d0f
+  h.0e00 h.0e01 h.0e02 h.0e03 h.0e04 h.0e05 h.0e06 h.0e07 h.0e08 h.0e09 h.0e0a h.0e0b h.0e0c h.0e0d h.0e0e h.0e0f
+  h.0f00 h.0f01 h.0f02 h.0f03 h.0f04 h.0f05 h.0f06 h.0f07 h.0f08 h.0f09 h.0f0a h.0f0b h.0f0c h.0f0d h.0f0e h.0f0f
+  h.0000 h.0010 h.0020 h.0030 h.0040 h.0050 h.0060 h.0070 h.0080 h.0090 h.00a0 h.00b0 h.00c0 h.00d0 h.00e0 h.00f0
+  h.1000 h.1010 h.1020 h.1030 h.1040 h.1050 h.1060 h.1070 h.1080 h.1090 h.10a0 h.10b0 h.10c0 h.10d0 h.10e0 h.10f0
+  h.2000 h.2010 h.2020 h.2030 h.2040 h.2050 h.2060 h.2070 h.2080 h.2090 h.20a0 h.20b0 h.20c0 h.20d0 h.20e0 h.20f0
+  h.3000 h.3010 h.3020 h.3030 h.3040 h.3050 h.3060 h.3070 h.3080 h.3090 h.30a0 h.30b0 h.30c0 h.30d0 h.30e0 h.30f0
+  h.4000 h.4010 h.4020 h.4030 h.4040 h.4050 h.4060 h.4070 h.4080 h.4090 h.40a0 h.40b0 h.40c0 h.40d0 h.40e0 h.40f0
+  h.5000 h.5010 h.5020 h.5030 h.5040 h.5050 h.5060 h.5070 h.5080 h.5090 h.50a0 h.50b0 h.50c0 h.50d0 h.50e0 h.50f0
+  h.6000 h.6010 h.6020 h.6030 h.6040 h.6050 h.6060 h.6070 h.6080 h.6090 h.60a0 h.60b0 h.60c0 h.60d0 h.60e0 h.60f0
+  h.7000 h.7010 h.7020 h.7030 h.7040 h.7050 h.7060 h.7070 h.7080 h.7090 h.70a0 h.70b0 h.70c0 h.70d0 h.70e0 h.70f0
+  h.8000 h.8010 h.8020 h.8030 h.8040 h.8050 h.8060 h.8070 h.8080 h.8090 h.80a0 h.80b0 h.80c0 h.80d0 h.80e0 h.80f0
+  h.9000 h.9010 h.9020 h.9030 h.9040 h.9050 h.9060 h.9070 h.9080 h.9090 h.90a0 h.90b0 h.90c0 h.90d0 h.90e0 h.90f0
+  h.a000 h.a010 h.a020 h.a030 h.a040 h.a050 h.a060 h.a070 h.a080 h.a090 h.a0a0 h.a0b0 h.a0c0 h.a0d0 h.a0e0 h.a0f0
+  h.b000 h.b010 h.b020 h.b030 h.b040 h.b050 h.b060 h.b070 h.b080 h.b090 h.b0a0 h.b0b0 h.b0c0 h.b0d0 h.b0e0 h.b0f0
+  h.c000 h.c010 h.c020 h.c030 h.c040 h.c050 h.c060 h.c070 h.c080 h.c090 h.c0a0 h.c0b0 h.c0c0 h.c0d0 h.c0e0 h.c0f0
+  h.d000 h.d010 h.d020 h.d030 h.d040 h.d050 h.d060 h.d070 h.d080 h.d090 h.d0a0 h.d0b0 h.d0c0 h.d0d0 h.d0e0 h.d0f0
+  h.e000 h.e010 h.e020 h.e030 h.e040 h.e050 h.e060 h.e070 h.e080 h.e090 h.e0a0 h.e0b0 h.e0c0 h.e0d0 h.e0e0 h.e0f0
+  h.f000 h.f010 h.f020 h.f030 h.f040 h.f050 h.f060 h.f070 h.f080 h.f090 h.f0a0 h.f0b0 h.f0c0 h.f0d0 h.f0e0 h.f0f0
+
+# bind addr1 m_interleavenibbles_word_byte
+# lut-transform word byte add addr1 rB rA

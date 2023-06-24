@@ -523,6 +523,7 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
     struct tactyk_dblock__DBlock *name = dblock->token->next;
     struct tactyk_dblock__DBlock *type = dblock->token->next->next;
 
+    printf("....\n");
     uint64_t nbytes = 0;
     bool isfloat = false;
     if (type == NULL) {
@@ -565,7 +566,7 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
     tactyk_report__uint("items", item_count);
     tactyk_report__uint("size(bytes)", item_count*nbytes);
     tactyk_report__ptr("ref", data);
-
+    
     uint64_t wbytes = nbytes;
     if (wbytes > 8) {
         wbytes = 8;
