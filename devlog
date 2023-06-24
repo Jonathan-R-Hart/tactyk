@@ -13,6 +13,18 @@ tactyk-bits - new instruction: lut-transform
   Bounds checking is performed only once within the instruction (the memblock bounds must be large enough to contain a complete set of lookup tables)
   The memblock must also be offset to the location of the first lookup table within the set
   The main use of this is expected to be bitwise interleaving & de-interleaving and operations involving binary representations of color
+  ADDENDUM:
+    As an afterthought, an extra variant which operates on xmm registers has been added.
+    This uses [64-bit] data & temp registers for control, but targets an an xmm register.
+    Be default, this simply replicates the behavior of a data register destination/target
+    BUT, if the xmm register operand is prepended with optional operand "x2", the width of the operation will be doubled
+      the control register will use the same word sizes, but the values applied to the xmm register will be twice as wide as the control words
+      (and the lookup tables will also need to be twice as large)
+    For the time being, it has not been tested in any way.
+    Known discrepencies:
+      Due to limitations od sse (and no desire to insert extra steps to detect integer overflow and convert it to a carry) the "add" operator uses 64-bit integer addition. 
+      128-bit addition would be somewhat preferable (for consistancy)
+      
 
 tactyk-extras
   Added a collection of bitwise interleaving transforms (extras/lib/bitwise-transforms/*)
