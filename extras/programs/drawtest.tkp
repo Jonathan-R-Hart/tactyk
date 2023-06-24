@@ -15,6 +15,9 @@ MAIN:
   tcall get-data
   lwcall BMP_16x28_LD_TKF
   
+  assign xA 'DrawTest
+  lwcall UI__INIT
+  
   bind addr1 m_gx_info
   
   assign rA 1200
@@ -29,103 +32,86 @@ MAIN:
   assign rB 800
   lwcall GX.mk_window
   
-  goto DO_TESTGUI
-
-  DISPLAY_IT:
-    #tcall sdl--upload-framebuffer
-    #tcall sdl--render
-    goto DELAY_AND_RETRY
-  DELAY_AND_RETRY:
-    assign rA 10
-    tcall sleep
+  bind addr1 m_ui_control
+  assign rA 1
+  store byte addr1 s_ui_control.needs_redraw rA
+  
   MAINLOOP:
-    tcall sdl--get-eventview
-    tcall sdl--update_ui
-    load qword rA addr1 sdl_state.key
-    if rA == 20 CLOSE_AND_EXIT
-    if rA == 41 CLOSE_AND_EXIT
-    load qword a addr1 sdl_state.mousemoved
-    if rA == 0 DO_TESTGUI
-    load qword b addr1 sdl_state.mpos_x
-    load qword c addr1 sdl_state.mpos_y
-    load byte a addr1 sdl_state.closing
-    if rA == 1 CLOSE_AND_EXIT
-  DO_TESTGUI:
-    lwcall GX.bind_memblocks
-    
-    assign rF 0
-    spread rA 30 30 1140 740 5
-    lwcall GX.rect.outline
-    assign rB h.ffffffff
-    lwcall GX.fills.simple
-    lwcall GX.util.exit
-    assign rF 0
-    lwcall GX.draw
-    
-    assign rF 0
-    spread rA 25 25 1150 750 5
-    lwcall GX.rect.outline
-    assign rB h.ffa0a0ff
-    lwcall GX.fills.simple
-    lwcall GX.util.exit
-    assign rF 0
-    lwcall GX.draw
-    
-    assign rF 0
-    assign xA 'TheTXTingestTest
-    assign rB 200
-    assign rC 100
-    lwcall GX.text.bmp16x16.8bitENC.chunk16
-    assign rB h.ff0000ff
-    lwcall GX.fills.simple
-    lwcall GX.util.exit
-    lwcall GX.draw
-    
-    assign rF 0
-    assign xA 'TheTXTingest
-    assign rB 201
-    assign rC 101
-    lwcall GX.text.bmp16x16.8bitENC.chunk16
-    assign rB h.ff0080ff
-    lwcall GX.fills.simple
-    lwcall GX.util.exit
-    lwcall GX.draw
-    
-    assign rF 0
-    assign xA 'TheTXT
-    assign rB 202
-    assign rC 102
-    lwcall GX.text.bmp16x16.8bitENC.chunk16
-    assign rB h.ff00ffff
-    lwcall GX.fills.simple
-    lwcall GX.util.exit
-    lwcall GX.draw
-    
-    assign rF 0
-    assign xA 'MoreThan
-    assign xB '_16_chars_
-    assign xC 'alsothis:░▒
-    assign xD '▓▃▄▅▆
-    assign xE '...WhatVeryText!
-    assign rB 202
-    assign rC 118
-    lwcall GX.text.bmp16x16.utf8ENC.txtbank
-    assign rB h.ffffb000
-    lwcall GX.fills.simple
-    lwcall GX.util.exit
-    lwcall GX.draw
-    
-    tcall sdl--upload-framebuffer
-    tcall sdl--render
-    
-    lwcall GX.bind_memblocks
-    # finally convert it to RGB and upload it to the display.
-    # goto DISPLAY_IT
-
-CLOSE_AND_EXIT:
-  # show for 5 seconds, then exit
-  assign rA 5000
-  tcall sleep
-  tcall sdl--release
-  tcall sdl--quit
-  exit
+  
+    lwcall UI__UPDATE
+    load byte rA addr4 s_ui_control.needs_redraw
+    if rA != 0
+      assign rA 0
+      store byte addr4 s_ui_control.needs_redraw rA
+      
+      lwcall GX.bind_memblocks
+      
+      assign rF 0
+      spread rA 30 30 1140 740 5
+      lwcall GX.rect.outline
+      assign rB h.ffffffff
+      lwcall GX.fills.simple
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 25 25 1150 750 5
+      lwcall GX.rect.outline
+      assign rB h.ffa0a0ff
+      lwcall GX.fills.simple
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      assign xA 'TheTXTingestTest
+      assign rB 200
+      assign rC 100
+      lwcall GX.text.bmp16x16.8bitENC.chunk16
+      assign rB h.ff0000ff
+      lwcall GX.fills.simple
+      lwcall GX.util.exit
+      lwcall GX.draw
+      
+      assign rF 0
+      assign xA 'TheTXTingest
+      assign rB 201
+      assign rC 101
+      lwcall GX.text.bmp16x16.8bitENC.chunk16
+      assign rB h.ff0080ff
+      lwcall GX.fills.simple
+      lwcall GX.util.exit
+      lwcall GX.draw
+      
+      assign rF 0
+      assign xA 'TheTXT
+      assign rB 202
+      assign rC 102
+      lwcall GX.text.bmp16x16.8bitENC.chunk16
+      assign rB h.ff00ffff
+      lwcall GX.fills.simple
+      lwcall GX.util.exit
+      lwcall GX.draw
+      
+      assign rF 0
+      assign xA 'MoreThan
+      assign xB '_16_chars_
+      assign xC 'alsothis:░▒
+      assign xD '▓▃▄▅▆
+      assign xE '...WhatVeryText!
+      assign rB 202
+      assign rC 118
+      lwcall GX.text.bmp16x16.utf8ENC.txtbank
+      assign rB h.ffffb000
+      lwcall GX.fills.simple
+      lwcall GX.util.exit
+      lwcall GX.draw
+      
+      tcall sdl--upload-framebuffer
+      tcall sdl--render
+      
+      lwcall GX.bind_memblocks
+    assign rA 100
+    tcall sleep
+  goto MAINLOOP

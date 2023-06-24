@@ -1,46 +1,46 @@
 24 Jun 2023
-tactyk-emit - repeat operator
-  This runs evaluates a subroutine an arbitrary number of times (specified with a V-ISA parameter)
+  tactyk-emit - repeat operator
+    This runs evaluates a subroutine an arbitrary number of times (specified with a V-ISA parameter)
 
-tactyk-bits - new instruction: lut-transform
-  This instruction breaks up an input value into a set of chunks (1, 2, 4, 8, or 16 bits wide), performs a series of lookups using each chunk as an
-    index into a lookup table, and combines values obtained from the lookup tables with a combiner function (add, and, or, xor), yielding the output
-  Both the word-size of the chunk and the word-size of the lookup table entries must be specified 
-    typically the chunk word size will be small, and the table entry wors size will be the maximum size (qword)
-  A different table is used for each chunk
-  The lookup tables must be a contiguous memblock [in little-endian chunk-order]
-  Tables are indexed directly with chunk values
-  Bounds checking is performed only once within the instruction (the memblock bounds must be large enough to contain a complete set of lookup tables)
-  The memblock must also be offset to the location of the first lookup table within the set
-  The main use of this is expected to be bitwise interleaving & de-interleaving and operations involving binary representations of color
-  ADDENDUM:
-    As an afterthought, an extra variant which operates on xmm registers has been added.
-    This uses [64-bit] data & temp registers for control, but targets an an xmm register.
-    Be default, this simply replicates the behavior of a data register destination/target
-    BUT, if the xmm register operand is prepended with optional operand "x2", the width of the operation will be doubled
-      the control register will use the same word sizes, but the values applied to the xmm register will be twice as wide as the control words
-      (and the lookup tables will also need to be twice as large)
-    For the time being, it has not been tested in any way.
-    Known discrepencies:
-      Due to limitations od sse (and no desire to insert extra steps to detect integer overflow and convert it to a carry) the "add" operator uses 64-bit integer addition. 
-      128-bit addition would be somewhat preferable (for consistancy)
-  
-tactyk-draw
-  Initial revision of tactyk rendering to directly output 32-bit integer pixels (ABGR).
-    removed the scratch buffer (it may be re-introduced strictly as one or more script-controlled buffers to be used in compositing operations)
-    Removed the blend function.
-    Remove value transfer functions (only meaningful in the context of said blend function)
-    Everything else was handled by retargetting everything at the pixel buffer
-    Remove other functions for supporting a complex rendering pipeline
-    - Will probably pick a stash allocation and use that for data interchange between rendering components
+  tactyk-bits - new instruction: lut-transform
+    This instruction breaks up an input value into a set of chunks (1, 2, 4, 8, or 16 bits wide), performs a series of lookups using each chunk as an
+      index into a lookup table, and combines values obtained from the lookup tables with a combiner function (add, and, or, xor), yielding the output
+    Both the word-size of the chunk and the word-size of the lookup table entries must be specified 
+      typically the chunk word size will be small, and the table entry wors size will be the maximum size (qword)
+    A different table is used for each chunk
+    The lookup tables must be a contiguous memblock [in little-endian chunk-order]
+    Tables are indexed directly with chunk values
+    Bounds checking is performed only once within the instruction (the memblock bounds must be large enough to contain a complete set of lookup tables)
+    The memblock must also be offset to the location of the first lookup table within the set
+    The main use of this is expected to be bitwise interleaving & de-interleaving and operations involving binary representations of color
+    ADDENDUM:
+      As an afterthought, an extra variant which operates on xmm registers has been added.
+      This uses [64-bit] data & temp registers for control, but targets an an xmm register.
+      Be default, this simply replicates the behavior of a data register destination/target
+      BUT, if the xmm register operand is prepended with optional operand "x2", the width of the operation will be doubled
+        the control register will use the same word sizes, but the values applied to the xmm register will be twice as wide as the control words
+        (and the lookup tables will also need to be twice as large)
+      For the time being, it has not been tested in any way.
+      Known discrepencies:
+        Due to limitations od sse (and no desire to insert extra steps to detect integer overflow and convert it to a carry) the "add" operator uses 64-bit integer addition. 
+        128-bit addition would be somewhat preferable (for consistancy)
     
+  tactyk-draw
+    Initial revision of tactyk rendering to directly output 32-bit integer pixels (ABGR).
+      removed the scratch buffer (it may be re-introduced strictly as one or more script-controlled buffers to be used in compositing operations)
+      Removed the blend function.
+      Remove value transfer functions (only meaningful in the context of said blend function)
+      Everything else was handled by retargetting everything at the pixel buffer
+      Remove other functions for supporting a complex rendering pipeline
+      - Will probably pick a stash allocation and use that for data interchange between rendering components
 
-tactyk-extras
-  Added a collection of bitwise interleaving transforms (extras/lib/bitwise-transforms/*)
-  Each of these is a module which sets up a named memblock containing a series of lookup tables
-  Each of these also contain a pair of comments demonstrating how to apply it.
-  NOTE:  Testing of this data set and of the underlying lookup table transform was very limited 
-         (typically only one transform from each module - and many of them using similar inputs)
+  tactyk-extras
+    Added a collection of bitwise interleaving transforms (extras/lib/bitwise-transforms/*)
+    Each of these is a module which sets up a named memblock containing a series of lookup tables
+    Each of these also contain a pair of comments demonstrating how to apply it.
+    NOTE:  Testing of this data set and of the underlying lookup table transform was very limited 
+           (typically only one transform from each module - and many of them using similar inputs)
+    Added a new module for handling basic user-interface components
 
 22 Jun 2023
 tactyk-extras - bdf-extract / bmpfnt16x16

@@ -1,0 +1,156 @@
+struct s_gui_element
+  8 name
+  4 state
+  4 render
+  4 hit_test
+  4 on_pointer_enter
+  4 on_pointer_exit
+  4 on_pointer_press
+  4 on_pointer_release
+  512 data
+
+struct s_kui_element
+  8 name
+  4 is_active
+  4 on_key_press
+  4 on_key_rekease
+
+struct s_ui_control
+  16 program_name
+  4 pointer_x
+  4 pointer_y
+  4 needs_redraw
+  4 is_closing
+  8 mouse_buttons_down
+  256 keyboard_buttons_down
+
+const GUI_ELEMENT_STATE_INACTIVE 0
+const GUI_ELEMENT_STATE_ACTIVE 1
+const GUI_ELEMENT_STATE_HOVER 2
+const GUI_ELEMENT_STATE_PRESSED 3
+
+mem m_gui_elements s_gui_element 1024
+mem m_kui_elements s_kui_element 16
+mem m_ui_control s_ui_control 1
+mem m_gui_table s_MINITABLE 1
+mem m_kui_table s_MINITABLE 1
+
+UI__INIT:
+  if xA == 0
+    assign xA 'Default-PrgName
+  bind addr4 m_ui_control
+  store oword addr4 s_ui_control.program_name xA
+
+UI__NEW_GUI_ELEMENT:
+  if rA == 0
+    assign rA -1
+    lwreturn
+  bind addr1 m_gui_table
+  bind addr2 m_gui_elements
+  
+  assign addr1.offset 0
+  load qword rB addr1 s_MINITABLE.size
+  
+  mul rB s_gui_element_size
+  assign addr2.offset rB
+  
+  store qword addr2 s_gui_element.name rA
+  swap rA rB
+  lwcall MINITABLE__PUT.addr1
+  
+  lwreturn
+
+UI__NEW_KUI_ELEMENT:
+  if rA == 0
+    assign rA -1
+    lwreturn
+  bind addr1 m_kui_table
+  bind addr2 m_kui_elements
+  
+  assign addr1.offset 0
+  load qword rB addr1 s_MINITABLE.size
+  
+  mul rB s_kui_element_size
+  assign addr2.offset rB
+  
+  store qword addr2 s_kui_element.name rA
+  swap rA rB
+  lwcall MINITABLE__PUT.addr1
+  lwreturn
+
+UI__UPDATE.resume:
+  bind addr4 m_ui_control
+  bind addr2 m_gui_elements
+  bind addr3 m_kui_elements
+  lwreturn
+UI__UPDATE:
+  lwcall UI__UPDATE.resume
+  load byte rA addr4 s_ui_control.is_closing  
+  if rA == 1 UI__CLOSE
+  
+  tcall sdl--get-eventview
+  tcall sdl--update_ui
+  load qword rA addr1 sdl_state.key
+  if rA == 20
+    lwcall UI__SCHEDULE_CLOSE
+  if rA == 41
+    lwcall UI__SCHEDULE_CLOSE
+  load qword a addr1 sdl_state.mousemoved
+  # if rA == 0 do_domething?
+    
+  load qword b addr1 sdl_state.mpos_x
+  load qword c addr1 sdl_state.mpos_y
+  load byte a addr1 sdl_state.closing
+  if rA == 1
+    lwcall UI__SCHEDULE_CLOSE
+  
+  # Do something visible!
+  # assign rA '.
+  # tcall print-text-a
+  # tcall print-space
+  
+  # get mouse position and button state
+  # iterate GUI elements
+  # if element active
+  #   hit test
+  #   if hit test pass
+  #     if mousedown and not state pressed
+  #       press
+  #       return
+  #     if mouseup and state pressed
+  #       release
+  #       continue
+  #     if state active
+  #       hover
+  #       continue
+  #   if hit test fail
+  #     if state hover
+  #       active
+  #       continue
+  #   exit
+  
+  # If anything more sophisticated is needed, write custom polling code and call it at some point during the main loop
+  
+  lwreturn
+
+UI__SCHEDULE_CLOSE:
+  assign rA 1
+  store byte addr4 s_ui_control.is_closing rA
+  lwreturn
+  
+UI__CLOSE:
+  assign rA 500
+  tcall sleep
+  load oword xA addr4 s_ui_control.program_name
+  assign xB ':
+  assign xC 'EXIT
+  tcall print-text-xa
+  tcall print-text-xb
+  tcall print-space
+  tcall print-text-xc
+  tcall print-newline
+  tcall sdl--release
+  tcall sdl--quit
+  exit
+
+
