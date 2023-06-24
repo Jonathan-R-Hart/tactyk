@@ -33,11 +33,6 @@ struct aux_sdl__Context {
     uint8_t *framebuffer;
     struct aux_sdl__State *ui_state;
     
-    // an optional buffer for scripted renderers.  
-    // has room to represent each framebuffer pixel in an arbitrary format
-    uint64_t srcatchbufscale;
-    uint8_t *scratchbuffer;
-    
     uint64_t fmt_flags;
 };
 
@@ -47,11 +42,9 @@ uint64_t aux_sdl__max_window_width;
 uint64_t aux_sdl__max_window_height;
 
 #define FRAMEBUFFER_FORMAT__ELEMENTS 0x1
-#define SCRATCHBUFFER_FORMAT__ELEMENTS 0x2
 
 void aux_sdl__configure(struct tactyk_emit__Context *emit_context, uint64_t max_window_width, uint64_t max_window_height) {
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--get-framebuffer", aux_sdl__get_framebuffer);
-    tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--get-scratchbuffer", aux_sdl__get_scratchbuffer);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--get-eventview", aux_sdl__get_event_view);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--new", aux_sdl__new);
     tactyk_emit__add_tactyk_apifunc(emit_context, "sdl--upload-framebuffer", aux_sdl__upload_framebuffer);
@@ -99,9 +92,6 @@ void aux_sdl__new(struct tactyk_asmvm__Context *asmvm_ctx) {
     sdlctx->bufsize = sdlctx->texw * sdlctx->texh * sizeof(uint32_t);
     sdlctx->framebuffer = calloc(sdlctx->bufsize, 1);
     sdlctx->ui_state = calloc(1, sizeof(struct aux_sdl__State));
-    
-    uint64_t scratchbuf_scale = asmvm_ctx->reg.rC;
-    sdlctx->srcatchbufscale = scratchbuf_scale;
 }
 
 void aux_sdl__get_framebuffer(struct tactyk_asmvm__Context *asmvm_ctx) {
@@ -121,29 +111,6 @@ void aux_sdl__get_framebuffer(struct tactyk_asmvm__Context *asmvm_ctx) {
     else {
         mem_ll_ctx->array_bound = sdlctx->bufsize - sdlctx->texscale + 1;
         mem_ll_ctx->element_bound = sdlctx->texscale;
-    }
-}
-
-void aux_sdl__get_scratchbuffer(struct tactyk_asmvm__Context *asmvm_ctx) {
-    
-    if ( (sdlctx->scratchbuffer == NULL) && (sdlctx->srcatchbufscale > 0) ) {
-        sdlctx->scratchbuffer = calloc(sdlctx->srcatchbufscale, sdlctx->texw * sdlctx->texh);
-    }
-    
-    struct tactyk_asmvm__memblock_lowlevel *mem_ll_ctx = &asmvm_ctx->active_memblocks[0];
-    
-    mem_ll_ctx->base_address = (uint8_t*) sdlctx->scratchbuffer;
-    mem_ll_ctx->offset = 0;
-    mem_ll_ctx->memblock_index = 0xffffffff;
-    asmvm_ctx->reg.rADDR1 = (uint64_t*) sdlctx->scratchbuffer;
-    
-    if ((sdlctx->fmt_flags & SCRATCHBUFFER_FORMAT__ELEMENTS) == 0) {
-        mem_ll_ctx->array_bound = 1;
-        mem_ll_ctx->element_bound = sdlctx->srcatchbufscale * sdlctx->texw * sdlctx->texh;
-    }
-    else {
-        mem_ll_ctx->array_bound = sdlctx->srcatchbufscale * sdlctx->texw * sdlctx->texh - sdlctx->srcatchbufscale + 1;
-        mem_ll_ctx->element_bound = sdlctx->srcatchbufscale;
     }
 }
 

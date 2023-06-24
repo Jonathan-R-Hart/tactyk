@@ -24,7 +24,16 @@ tactyk-bits - new instruction: lut-transform
     Known discrepencies:
       Due to limitations od sse (and no desire to insert extra steps to detect integer overflow and convert it to a carry) the "add" operator uses 64-bit integer addition. 
       128-bit addition would be somewhat preferable (for consistancy)
-      
+  
+tactyk-draw
+  Initial revision of tactyk rendering to directly output 32-bit integer pixels (ABGR).
+    removed the scratch buffer (it may be re-introduced strictly as one or more script-controlled buffers to be used in compositing operations)
+    Removed the blend function.
+    Remove value transfer functions (only meaningful in the context of said blend function)
+    Everything else was handled by retargetting everything at the pixel buffer
+    Remove other functions for supporting a complex rendering pipeline
+    - Will probably pick a stash allocation and use that for data interchange between rendering components
+    
 
 tactyk-extras
   Added a collection of bitwise interleaving transforms (extras/lib/bitwise-transforms/*)

@@ -161,10 +161,12 @@ GX.text.bmp16x16.impl:
     mul rB rD
     add rB rE
     add rB rC
-    shift-left rB 7
     
     # bind pixel
-    assign addr4.offset rB
+    shift-left rB 2
+    assign addr3.offset rB
+    # shift-left rB 7
+    # assign addr4.offset rB
     
     load byte rA addr1 s_bmp_16x28.value
     

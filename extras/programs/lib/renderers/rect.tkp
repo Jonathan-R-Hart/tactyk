@@ -83,34 +83,34 @@ GX.rect.fill.impl:
   add rB rA
   
   # should consider generating binary-log2 constants for struct sizes which are powers of two
-  #shift-left rB 2
-  #assign addr3.offset rB
+  shift-left rB 2
+  assign addr3.offset rB
   #shift-left rB 5
   #assign addr4.offset rB
-  shift-left rB 7
-  assign addr4.offset rB
+  #shift-left rB 7
+  #assign addr4.offset rB
   
   # rA: x  (u)
   # rB: x         (absolute x)
   # rC: y  (v)
   # rD: y         (absolute y)
   
-  swap rA rB
-  swap rB rD
-  swap rC rD
+  #swap rA rB
+  #swap rB rD
+  #swap rC rD
   
   # rA: x         (absolute x)
   # rB: y         (absolute y)
   # rC: x  (u)
   # rD: y  (v)
 
-  load qword rA addr2 gx_info__view.x
-  load qword rB addr2 gx_info__view.y
-  add rA rC
-  add rB rD
+  #load qword rA addr2 gx_info__view.x
+  #load qword rB addr2 gx_info__view.y
+  #add rA rC
+  #add rB rD
   
-  pack float32.4 xN rA
-  store oword addr4 gx_pixel.a xN
+  #pack float32.4 xN rA
+  #store oword addr4 gx_pixel.a xN
   
   add rF 8
   if rF == gx_info__program.end
@@ -332,23 +332,26 @@ GX.rect.outline.epilogue:
   load qword rE addr2 gx_info__view.fb_width
   mul rE rD
   add rE rC
-  shift-left rE 7
-  assign addr4.offset rE
+  #shift-left rE 7
+  #assign addr4.offset rE
+  shift-left rE 2
+  assign addr3.offset rE
   
-  block-load 2 xJ addr2 gx_info__outlinerect_fields.uv-export
+  
+  #block-load 2 xJ addr2 gx_info__outlinerect_fields.uv-export
   # xJ (j): relative position [NEEDS UPDATE]
   # xK (k): output
   # xL (l): relative incr
-  xassign xK float32 0 rC
-  xassign xK float32 1 rD
+  #xassign xK float32 0 rC
+  #xassign xK float32 1 rD
   #pack float32.2 xK rA
   
   # u
-  add xJ xL
-  xassign xK float32 2 xJ
-  block-store 2 addr2 gx_info__outlinerect_fields.uv-export xJ
+  #add xJ xL
+  #xassign xK float32 2 xJ
+  #block-store 2 addr2 gx_info__outlinerect_fields.uv-export xJ
   
-  store oword addr4 gx_pixel.a xK
+  #store oword addr4 gx_pixel.a xK
   add rF 8
   if rF == gx_info__program.end
     lwreturn

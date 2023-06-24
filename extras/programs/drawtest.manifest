@@ -9,10 +9,11 @@ module draw lib/tactyk_draw.tkp
 module rect-renderers lib/renderers/rect.tkp
 module matrix lib/matrix-simd.tkp
 module main drawtest.tkp
-module irrvn lib/renderers/irrvnoise.tkp
+#module irrvn lib/renderers/irrvnoise.tkp
 module table lib/table.mini.tkp
   $T addr3
   $StTmp s28h
 
-program prog main matrix rect-renderers draw irrvn bmp16x28 bmpf ministring
+#program prog main matrix rect-renderers draw irrvn bmp16x28 bmpf ministring
+program prog main matrix rect-renderers draw bmp16x28 bmpf ministring
 main prog MAIN

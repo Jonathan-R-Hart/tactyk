@@ -25,26 +25,6 @@ MAIN:
     
   block-store 2 addr1 gx_info.general_alloc xxA
   
-  # global color model
-  # This sets up an RGB-like color space (RGB are the strongest components, but there are other colors mixed into each).
-  #   NOTE:  An actual RGB color space is just an identity matrix
-  xassign xE 1.0    0.25  0.125 0.0
-  xassign xF 0.125  1.0   0.25  0.0
-  xassign xG 0.25   0.125 1.0   0.0
-  xassign xH 0.0    0.0   0.0   1.0
-  transpose float32 xE
-  
-  # a subtractive color space (use negative values)
-  #  (this demo does not draw any pixels with non-zero components which interact with this matrix, so it has no effect.)
-  xassign xI 1.0  1.0   0.25  1.0
-  xassign xJ 1.0  0.25  1.0   1.0
-  xassign xK 0.25 1.0   1.0   1.0
-  xassign xL 1.0  1.0   1.0   1.0
-  transpose float32 xI
-  
-  block-store 4 addr1 1024 xxE
-  block-store 4 addr1 1088 xxI
-  
   assign rA 1200
   assign rB 800
   lwcall GX.mk_window
@@ -72,95 +52,31 @@ MAIN:
     if rA == 1 CLOSE_AND_EXIT
   DO_TESTGUI:
     lwcall GX.bind_memblocks
-    # Initialize all pixels with a common color space, normals, and blending factors
-    spread xA 1.0 0.0 1.0 0.0
-    spread rB 0 16 1024 1152
-    assign rA 0
-    assign rF addr4.array_bound
-    sub rF gx_pixel_size
-    adjust_pixels:
-    if rA < rF
-      add rA gx_pixel_size
-      assign addr4.offset rA
-      store dword addr4 gx_pixel.index_gnorm1 rB
-      store dword addr4 gx_pixel.index_gnorm2 rB
-      store dword addr4 gx_pixel.index_gcolors1 rD
-      store dword addr4 gx_pixel.index_gcolors2 rE
-      store float32 addr4 gx_pixel.blend_gcolors1 xA
-      store float32 addr4 gx_pixel.blend_gcolors2 xB
-      store float32 addr4 gx_pixel.blend_gnorm1 xC
-      store float32 addr4 gx_pixel.blend_gnorm2 xD
-      goto adjust_pixels
-    assign addr4.offset 0
     
-    # Color to draw with
-    xassign xA 0.5 1.0 0.25 0.0
-    xassign xB 0.0 0.0 0.0 0.0
-    
-    # normal values to draw with
-    #   (note:  global normals are all 0, so a normal value of 0.9 attenuates the green-ish color component)
-    xassign xC 0.0 0.0 0.0 0.0
-    xassign xD 0.0 0.0 0.0 0.0
-    
-    # bind addr1 m_gx_drawprogram
-    assign rA 5
-    spread xA 0.0 0.0 1200.0 800.0 250.0 0.00075
-    
-    lwcall IRRVNOISE_RANDOMIZE.simd
     assign rF 0
-    spread rA 0 0 1200 800
-    xassign xA 0.0 0.0 0.15 0.0
-    xassign xB 0.0 0.0 0.0 0.0
-    xassign xC 0.0 0.0 0.0 0.0
-    xassign xD 0.0 0.0 0.0 0.0
-    lwcall GX.rect.fill
-    #lwcall PTPX_TEST
-    #bind addr1 m_gx_drawprogram
-    #lwcall PTPX_FILL
+    spread rA 30 30 1140 740 5
+    lwcall GX.rect.outline
+    assign rB h.ffffffff
     lwcall GX.fills.simple
-    lwcall GX.texture
-    lwcall IRRVNOISE.simd
-    lwcall GX.transfer.ch6
     lwcall GX.util.exit
     assign rF 0
     lwcall GX.draw
     
-    xassign xA 1.0 0.0 0.0 0.0
-    xassign xB 1.0 0.0 0.0 0.0
-    xassign xC 0.0 0.0 0.0 0.0
-    xassign xD 0.0 0.0 0.0 0.0
-
-    # Adjust the drawing normals and draw an outline
-    spread rA 30 30 1140 740 5
-    xassign xC 0.8 0.2 0.0 0.0
-    lwcall GX.trace.rect
-
-    xassign xA 1.0 0.0 0.0 0.0
-    xassign xB 1.0 0.0 0.0 0.0
-    xassign xC 0.0 0.0 0.0 0.0
-    xassign xD 0.0 0.0 0.0 0.0
-
-    # draw this rectangle (position 125,310 size 200,75)
-    #spread rA 25 25 1150 750
-    #lwcall GX.fill.rect
-    
-    xassign xA 0.3 0.0 0.0 0.0
-    xassign xB 0.0 0.0 0.0 0.0
-    xassign xC 0.0 0.0 0.0 0.0
-    xassign xD 0.0 0.0 0.0 0.0
-    
-    spread rA 25 25 1150 750 4
-    lwcall GX.trace.rect
+    assign rF 0
+    spread rA 25 25 1150 750 5
+    lwcall GX.rect.outline
+    assign rB h.ffa0a0ff
+    lwcall GX.fills.simple
+    lwcall GX.util.exit
+    assign rF 0
+    lwcall GX.draw
     
     assign rF 0
     assign xA 'TheTXTingestTest
     assign rB 200
     assign rC 100
     lwcall GX.text.bmp16x16.8bitENC.chunk16
-    xassign xA 1.0 0.0 0.0 0.0
-    xassign xB 0.0 0.0 0.0 0.0
-    xassign xC 0.0 0.0 0.0 0.0
-    xassign xD 0.0 0.0 0.0 0.0
+    assign rB h.ff0000ff
     lwcall GX.fills.simple
     lwcall GX.util.exit
     lwcall GX.draw
@@ -170,23 +86,17 @@ MAIN:
     assign rB 201
     assign rC 101
     lwcall GX.text.bmp16x16.8bitENC.chunk16
-    xassign xA 1.0 1.0 0.0 0.0
-    xassign xB 0.0 0.0 0.0 0.0
-    xassign xC 0.0 0.0 0.0 0.0
-    xassign xD 0.0 0.0 0.0 0.0
+    assign rB h.ff0080ff
     lwcall GX.fills.simple
     lwcall GX.util.exit
     lwcall GX.draw
-
+    
     assign rF 0
     assign xA 'TheTXT
     assign rB 202
     assign rC 102
     lwcall GX.text.bmp16x16.8bitENC.chunk16
-    xassign xA 1.0 1.0 1.0 0.0
-    xassign xB 0.0 0.0 0.0 0.0
-    xassign xC 0.0 0.0 0.0 0.0
-    xassign xD 0.0 0.0 0.0 0.0
+    assign rB h.ff00ffff
     lwcall GX.fills.simple
     lwcall GX.util.exit
     lwcall GX.draw
@@ -200,24 +110,22 @@ MAIN:
     assign rB 202
     assign rC 118
     lwcall GX.text.bmp16x16.utf8ENC.txtbank
-    xassign xA 0.0 1.0 1.0 0.0
-    xassign xB 0.0 0.0 0.0 0.0
-    xassign xC 0.0 0.0 0.0 0.0
-    xassign xD 0.0 0.0 0.0 0.0
+    assign rB h.ffffb000
     lwcall GX.fills.simple
     lwcall GX.util.exit
     lwcall GX.draw
     
+    tcall sdl--upload-framebuffer
+    tcall sdl--render
+    
     lwcall GX.bind_memblocks
     # finally convert it to RGB and upload it to the display.
-    lwcall GX.to_rgba
-    goto DISPLAY_IT
+    # goto DISPLAY_IT
 
 CLOSE_AND_EXIT:
+  # show for 5 seconds, then exit
+  assign rA 5000
+  tcall sleep
   tcall sdl--release
   tcall sdl--quit
-
-  # show for 5 seconds, then exit
-  #assign rA 5000
-  #tcall sleep
   exit
