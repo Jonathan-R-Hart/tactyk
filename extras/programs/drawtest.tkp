@@ -1,13 +1,4 @@
 
-struct sdl_state
-  8 mpos_x
-  8 mpos_y
-  8 key
-  1 closing
-  1 mousemoved
-  6 unused
-  8 padding
-
 MAIN:
   assign rA 1
   tcall dump-dispmode
@@ -17,6 +8,9 @@ MAIN:
   
   assign xA 'DrawTest
   lwcall UI__INIT
+
+  store byte addr4 s_ui_control.needs_redraw rA
+  
   
   bind addr1 m_gx_info
   
@@ -32,18 +26,75 @@ MAIN:
   assign rB 800
   lwcall GX.mk_window
   
-  bind addr1 m_ui_control
-  assign rA 1
-  store byte addr1 s_ui_control.needs_redraw rA
+  
+  assign rA 'thebtn
+  lwcall BASIC_UI__NEW_COMPONENT
+  assign rA 50
+  store dword addr1 s_basic_gui_element.x rA
+  assign rA 300
+  store dword addr1 s_basic_gui_element.y rA
+  assign rA 121
+  store dword addr1 s_basic_gui_element.width rA
+  assign rA 23
+  store dword addr1 s_basic_gui_element.height rA
+  assign rA VERY_BUTTON_PRESS
+  store dword addr1 s_basic_gui_element.press_func rA
+  assign rA VERY_BUTTON_RELEASE
+  store dword addr1 s_basic_gui_element.release_func rA
+
+  spread rA h.ffff0000 4 15
+  assign xA 'haiaiamaBUTTON
+  lwcall BASIC_UI__TEXT
+  spread rA h.ffff8000 4 16
+  assign xA 'haiaiamaBUTTON
+  lwcall BASIC_UI__TEXT
+  spread rA h.ff40ff00 4 17
+  assign xA 'haiaiamaBUTTON
+  lwcall BASIC_UI__TEXT
+  # load dword rF addr1 s_gui_element.on_pointer_exit
+  
+  assign rA 'exitbtn
+  lwcall BASIC_UI__NEW_COMPONENT
+  assign rA 5
+  store dword addr1 s_basic_gui_element.x rA
+  assign rA 5
+  store dword addr1 s_basic_gui_element.y rA
+  assign rA 60
+  store dword addr1 s_basic_gui_element.width rA
+  assign rA 23
+  store dword addr1 s_basic_gui_element.height rA
+  assign rA DRAWTEST__EXIT
+  store dword addr1 s_basic_gui_element.release_func rA
+
+  spread rA h.ff00306f 5 15
+  assign xA 'Exit
+  lwcall BASIC_UI__TEXT
+  spread rA h.ff0000ff 4 17
+  assign xA 'E
+  lwcall BASIC_UI__TEXT
+  spread rA h.ff00ffff 12 17
+  assign xA 'x
+  lwcall BASIC_UI__TEXT
+  spread rA h.ff0000ff 20 17
+  assign xA 'i
+  lwcall BASIC_UI__TEXT
+  spread rA h.ff00ffff 28 17
+  assign xA 't
+  lwcall BASIC_UI__TEXT
+
+  lwcall GX.bind_memblocks
+  bind addr1 m_gui_elements
+  
+  lwcall BASIC_UI__RENDER_ELEMENT
+  assign addr1.offset s_gui_element_size
+  lwcall BASIC_UI__RENDER_ELEMENT
+  
+  bind addr4 m_ui_control
   
   MAINLOOP:
-  
     lwcall UI__UPDATE
-    load byte rA addr4 s_ui_control.needs_redraw
+    load word rA addr4 s_ui_control.needs_redraw
     if rA != 0
-      assign rA 0
-      store byte addr4 s_ui_control.needs_redraw rA
-      
       lwcall GX.bind_memblocks
       
       assign rF 0
@@ -107,11 +158,26 @@ MAIN:
       lwcall GX.fills.simple
       lwcall GX.util.exit
       lwcall GX.draw
-      
+    load dword rA addr4 s_ui_control.needs_framebuffer_upload
+    if rA != 0
+      assign rA 0
+      store dword addr4 s_ui_control.needs_framebuffer_upload rA
       tcall sdl--upload-framebuffer
       tcall sdl--render
-      
       lwcall GX.bind_memblocks
     assign rA 100
     tcall sleep
   goto MAINLOOP
+
+VERY_BUTTON_PRESS:
+  assign xA 'Button-pressed!
+  tcall print-text-xa
+  tcall print-newline
+  lwreturn
+VERY_BUTTON_RELEASE:
+  assign xA 'Button-released!
+  tcall print-text-xa
+  tcall print-newline
+  lwreturn
+DRAWTEST__EXIT:
+  exit

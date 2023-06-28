@@ -12,13 +12,16 @@
 #include "aux_sdl.h"
 
 struct aux_sdl__State {
-    uint64_t mpos_x;
-    uint64_t mpos_y;
-    uint64_t key;
+    uint32_t mpos_x;
+    uint32_t mpos_y;
+    uint32_t key_pressed__sdlcode;
+    uint32_t key_released__sdlcode;
+    uint32_t key_pressed;
+    uint32_t key_released;
     uint8_t closing;
-    uint8_t mousemoved;
-    uint8_t unused[6];
-    uint64_t padding;
+    uint8_t mouse_moved;
+    uint8_t mouse_button_pressed;
+    uint8_t mouse_button_released;
 };
 
 struct aux_sdl__Context {
@@ -162,16 +165,28 @@ void aux_sdl__release(struct tactyk_asmvm__Context *asmvm_ctx) {
 
 void aux_sdl__consume_events(struct tactyk_asmvm__Context *asmvm_ctx) {
     SDL_Event event;
-    sdlctx->ui_state->key = 0;
+    sdlctx->ui_state->key_pressed__sdlcode = 0;
+    sdlctx->ui_state->key_released__sdlcode = 0;
+    sdlctx->ui_state->key_pressed = 0;
+    sdlctx->ui_state->key_released = 0;
     sdlctx->ui_state->closing = 0;
-    sdlctx->ui_state->mousemoved = 0;
+    sdlctx->ui_state->mouse_moved = 0;
+    sdlctx->ui_state->mouse_button_pressed = 0;
+    sdlctx->ui_state->mouse_button_released = 0;
 
     while (SDL_PollEvent(&event)) {
         switch(event.type) {
             case SDL_KEYDOWN: {
-                sdlctx->ui_state->key = event.key.keysym.scancode;
+                sdlctx->ui_state->key_pressed__sdlcode = event.key.keysym.scancode;
+                sdlctx->ui_state->key_pressed = event.key.keysym.sym;
                 break;
             }
+            case SDL_KEYUP: {
+                sdlctx->ui_state->key_released__sdlcode = event.key.keysym.scancode;
+                sdlctx->ui_state->key_released = event.key.keysym.sym;
+                break;
+            }
+            
             case SDL_WINDOWEVENT: {
                 switch(event.window.event) {
                     case SDL_WINDOWEVENT_CLOSE: {
@@ -181,10 +196,19 @@ void aux_sdl__consume_events(struct tactyk_asmvm__Context *asmvm_ctx) {
                 }
                 break;
             }
+            
             case SDL_MOUSEMOTION: {
                 sdlctx->ui_state->mpos_x = event.motion.x;
                 sdlctx->ui_state->mpos_y = event.motion.y;
-                sdlctx->ui_state->mousemoved = 1;
+                sdlctx->ui_state->mouse_moved = 1;
+                break;
+            }
+            case SDL_MOUSEBUTTONDOWN: {
+                sdlctx->ui_state->mouse_button_pressed = event.button.button;
+                break;
+            }
+            case SDL_MOUSEBUTTONUP: {
+                sdlctx->ui_state->mouse_button_released = event.button.button;
                 break;
             }
         }

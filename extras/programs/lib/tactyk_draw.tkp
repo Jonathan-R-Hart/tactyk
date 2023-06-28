@@ -130,7 +130,6 @@ GX.fill.rect:
 
 # draw an inset outline around a rectangular area
 GX.trace.rect:
-  #bind addr1 m_gx_drawprogram
   assign rF 0
   lwcall GX.rect.outline
   lwcall GX.fills.simple
@@ -150,15 +149,12 @@ GX.draw:
 # basic filling function
 # This performs a simple overwrite of all color channels and normals
 GX.fills.simple:
-  #block-store 4 addr2 gx_info.general_alloc xxA
   assign rA GX.fills.simple.impl
   store qword addr2 rF rA
   stash sOl rB
   add rF 8
   lwreturn
 GX.fills.simple.impl:
-  #block-load 4 xxA addr2 gx_info.general_alloc
-  #block-store 4 addr4 0 xxA
   stash rA sOl
   store dword addr3 0 rA
   add rF 8

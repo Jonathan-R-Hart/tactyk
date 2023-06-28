@@ -1,3 +1,24 @@
+26-28 Jun 2023
+  tactyk-ui - A simple framework for setting up Graphical User Interface components.
+    It tracks mouse activity and sends mouse-in, mouse-out, mouse-button-down, and mouse-button-up events to abstract components
+    Components are generated and configured by calling the constructor, then writing data to the returned memblock
+    based on the result of an abstract hit-test function
+    There is no notion of layering or bubbling - all components which respond to the hit-test will receive the provoking mouse event.
+  tactyk-basic-ui - Graphical User Interface components
+    This is a basic implementation of tactyk-ui
+    If provides a generic GUI component rendering function and constructor.
+    basic-components are instantiated in the same way as the underlying components (actually just an extention of it)
+    The generated componnet has a border color, border width, and background color (which may be defined per-state), and up to 50 text snippets.
+    Each text snippet is independently positioned and colored, and can contain up to 64 aschii chars (or 64 bytes of unicode text).
+    GUI components are drawn directly onto the framebuffer, and there is no notion of layering or depth (apart from draw order).
+    A GUI components are also immediately redrawn when its internal state is changed (and will "pop" to the front if nothing else is drawn over before submitting the frame to SDL)
+    All mouse events are captured and used to update the state.
+      If a mouse-out event occurs, it will cancel the "pressed" state (and thus anything that responds to the mouse button release).
+  
+  aux-sdl - revise the "sdl_state" data structure
+    Send both press and release events
+    Transfer unicode value of pressed keyboard buttons
+    
 24 Jun 2023
   tactyk-emit - repeat operator
     This runs evaluates a subroutine an arbitrary number of times (specified with a V-ISA parameter)

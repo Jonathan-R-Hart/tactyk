@@ -1,0 +1,243 @@
+struct s_basic_gui_element
+  8 name
+  4 state
+  4 render
+  4 hit_test
+  4 on_pointer_enter
+  4 on_pointer_exit
+  4 on_pointer_press
+  4 on_pointer_release
+  # 4096 data
+  4 press_func
+  4 release_func
+  4 x
+  4 y
+  4 width
+  4 height
+  4 border_width
+  4 text_color__inactive
+  4 background_color__inactive
+  4 border_color__inactive
+  4 text_color__active
+  4 background_color__active
+  4 border_color__active
+  4 text_color__hover
+  4 background_color__hover
+  4 border_color__hover
+  4 text_color__pressed
+  4 background_color__pressed
+  4 border_color__pressed
+  4 tchunk_count
+  4016 text
+
+struct s_text_chunk
+  2 x
+  2 y
+  4 color
+  8 padding
+  64 text
+
+const DEFAULT_BORDER_WIDTH 2
+const DEFAULT_TEXTCOLOR h.ffffffff
+const DEFAULT_BGCOLOR__INACTIVE h.ff000000
+const DEFAULT_BORDERCOLOR__INACTIVE h.ff404040
+const DEFAULT_BGCOLOR__ACTIVE h.ff000000
+const DEFAULT_BORDERCOLOR__ACTIVE h.ffc0c0c0
+const DEFAULT_BGCOLOR__HOVER h.ff800000
+const DEFAULT_BORDERCOLOR__HOVER h.ffffffff
+const DEFAULT_BGCOLOR__PRESSED h.ffff8000
+const DEFAULT_BORDERCOLOR__PRESSED h.ff000000
+
+
+BASIC_UI__NEW_COMPONENT:
+  lwcall UI__NEW_GUI_ELEMENT
+  
+  assign rA DEFAULT_BGCOLOR__INACTIVE
+  store dword addr1 s_basic_gui_element.background_color__inactive rA
+  assign rA DEFAULT_BORDERCOLOR__INACTIVE
+  store dword addr1 s_basic_gui_element.border_color__inactive rA
+  assign rA DEFAULT_BGCOLOR__ACTIVE
+  store dword addr1 s_basic_gui_element.background_color__active rA
+  assign rA DEFAULT_BORDERCOLOR__ACTIVE
+  store dword addr1 s_basic_gui_element.border_color__active rA
+  assign rA DEFAULT_BGCOLOR__HOVER
+  store dword addr1 s_basic_gui_element.background_color__hover rA
+  assign rA DEFAULT_BORDERCOLOR__HOVER
+  store dword addr1 s_basic_gui_element.border_color__hover rA
+  assign rA DEFAULT_BGCOLOR__PRESSED
+  store dword addr1 s_basic_gui_element.background_color__pressed rA
+  assign rA DEFAULT_BORDERCOLOR__PRESSED
+  store dword addr1 s_basic_gui_element.border_color__pressed rA
+  assign rA DEFAULT_BORDER_WIDTH
+  store dword addr1 s_basic_gui_element.border_width rA
+  
+  
+  assign rA BASIC_UI__RENDER_ELEMENT
+  store dword addr1 s_basic_gui_element.render rA    
+  assign rA BASIC_UI__HIT_TEST
+  store dword addr1 s_basic_gui_element.hit_test rA
+  assign rA BASIC_UI__ON_ENTER
+  store dword addr1 s_basic_gui_element.on_pointer_enter rA
+  assign rA BASIC_UI__ON_EXIT
+  store dword addr1 s_basic_gui_element.on_pointer_exit rA
+  assign rA BASIC_UI__ON_MBTN_PRESS
+  store dword addr1 s_basic_gui_element.on_pointer_press rA
+  assign rA BASIC_UI__ON_MBTN_RELEASE
+  store dword addr1 s_basic_gui_element.on_pointer_release rA
+  lwreturn
+
+BASIC_UI__HIT_TEST:
+  load dword rC addr1 s_basic_gui_element.x
+  load dword rD addr1 s_basic_gui_element.y
+  sub rA rC
+  sub rB rD
+  if rA < 0
+    assign rA 0
+    lwreturn
+  if rB < 0
+    assign rA 0
+    lwreturn
+  load dword rC addr1 s_basic_gui_element.width
+  load dword rD addr1 s_basic_gui_element.height
+  if rA > rC
+    assign rA 0
+    lwreturn
+  if rB > rD
+    assign rA 0
+    lwreturn
+  assign rA 1
+  lwreturn
+
+BASIC_UI__TEXT:
+  load dword rE addr1 s_basic_gui_element.tchunk_count
+  assign rF rE
+  inc rF
+  store dword addr1 s_basic_gui_element.tchunk_count rF
+  mul rE s_text_chunk_size
+  add rE s_basic_gui_element.text
+  store word addr1 rE rB
+  add rE 2
+  store word addr1 rE rC
+  add rE 2
+  store dword addr1 rE rA
+  add rE 12
+  block-store 4 addr1 rE xxA
+  lwreturn
+
+BASIC_UI__RENDER_ELEMENT:
+  assign rA 1
+  store word addr4 s_ui_control.needs_framebuffer_upload rA
+  assign rF 0
+  
+  load dword rE addr1 s_basic_gui_element.state
+  if rE == GUI_ELEMENT_STATE_INACTIVE
+    load dword rA addr1 s_basic_gui_element.background_color__inactive
+    load dword rB addr1 s_basic_gui_element.border_color__inactive
+    stash sDl rA sDh rB
+    goto BASIC_UI__RENDER_ELEMENT.cont
+  if rE == GUI_ELEMENT_STATE_ACTIVE
+    load dword rA addr1 s_basic_gui_element.background_color__active
+    load dword rB addr1 s_basic_gui_element.border_color__active
+    stash sDl rA sDh rB
+    goto BASIC_UI__RENDER_ELEMENT.cont
+  if rE == GUI_ELEMENT_STATE_HOVER
+    load dword rA addr1 s_basic_gui_element.background_color__hover
+    load dword rB addr1 s_basic_gui_element.border_color__hover
+    stash sDl rA sDh rB
+    goto BASIC_UI__RENDER_ELEMENT.cont
+  if rE == GUI_ELEMENT_STATE_PRESSED
+    load dword rA addr1 s_basic_gui_element.background_color__pressed
+    load dword rB addr1 s_basic_gui_element.border_color__pressed
+    stash sDl rA sDh rB
+  
+  BASIC_UI__RENDER_ELEMENT.cont:
+  load dword rA addr1 s_basic_gui_element.x
+  load dword rB addr1 s_basic_gui_element.y
+  load dword rC addr1 s_basic_gui_element.width
+  load dword rD addr1 s_basic_gui_element.height
+  lwcall GX.rect.fill
+  stash rB sDl
+  lwcall GX.fills.simple
+  lwcall GX.util.exit
+  assign rF 0
+  lwcall GX.draw
+
+  assign rF 0
+  
+  load dword rA addr1 s_basic_gui_element.x
+  load dword rB addr1 s_basic_gui_element.y
+  load dword rC addr1 s_basic_gui_element.width
+  load dword rD addr1 s_basic_gui_element.height
+  load dword rE addr1 s_basic_gui_element.border_width
+  # add rC rA
+  # add rD rB
+
+  lwcall GX.rect.outline
+  # load dword rB addr1 s_basic_gui_element.border_color
+  stash rB sDh
+  lwcall GX.fills.simple
+  lwcall GX.util.exit
+  assign rF 0
+  lwcall GX.draw
+  
+  assign rE 0
+  load dword rB addr1 s_basic_gui_element.x
+  load dword rC addr1 s_basic_gui_element.y
+  load dword rF addr1 s_basic_gui_element.tchunk_count
+  assign rA addr1.offset
+  stash sDl rA sDh rB sEl rC sEh rE sFl rF
+  
+  BASIC_UI__RENDER_ELEMENT.text:
+  
+  stash rA sDl rB sDh rC sEl rE sEh rF sFl
+  bind addr1 m_gui_elements
+  assign addr1.offset rA
+  inc rE
+  stash sEh rE
+  dec rE
+  if rE < rF
+    mul rE s_text_chunk_size
+    add rE s_basic_gui_element.text
+    load sword rA addr1 rE
+    add rB rA
+    add rE 2
+    load sword rA addr1 rE
+    add rC rA
+    add rE 2
+    load dword rA addr1 rE
+    # assign rA h.ff0000ff
+    stash sFh rA
+    add rE 12
+    block-load 4 xxA addr1 rE
+    assign rF 0
+    assign rA 1
+    xassign xB 0 0
+    lwcall GX.text.bmp16x16.utf8ENC.txtbank    
+    stash rB sFh
+    lwcall GX.fills.simple
+    lwcall GX.util.exit
+    assign rF 0
+    lwcall GX.draw
+    goto BASIC_UI__RENDER_ELEMENT.text
+  lwreturn
+
+BASIC_UI__ON_ENTER:
+  lwcall BASIC_UI__RENDER_ELEMENT
+  lwreturn
+BASIC_UI__ON_EXIT:
+  lwcall BASIC_UI__RENDER_ELEMENT
+  lwreturn
+BASIC_UI__ON_MBTN_PRESS:
+  lwcall BASIC_UI__RENDER_ELEMENT
+  load dword rA addr1 s_basic_gui_element.press_func
+  if rA != 0
+    lwcall rA
+  lwreturn
+BASIC_UI__ON_MBTN_RELEASE:
+  lwcall BASIC_UI__RENDER_ELEMENT
+  load dword rA addr1 s_basic_gui_element.release_func
+  if rA != 0
+    lwcall rA
+  lwreturn
+
+

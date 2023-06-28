@@ -11,10 +11,11 @@ module matrix lib/matrix-simd.tkp
 module main drawtest.tkp
 module irrvn lib/renderers/irrvnoise.tkp
 module thead lib/table.header.tkp
-module table.addr1 lib/table.mini.tkp
-  $T addr1
+module table.addr4  lib/table.mini.tkp
+  $T addr4
   $StTmp s28h
 module ui lib/ui.tkp
+module basic-ui lib/basic-ui.tkp
 
-program prog thead table.addr1 ui main matrix rect-renderers draw bmp16x28 bmpf ministring
+program prog thead table.addr4 ui basic-ui main matrix rect-renderers draw bmp16x28 bmpf ministring
 main prog MAIN
