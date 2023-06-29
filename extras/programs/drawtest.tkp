@@ -17,6 +17,12 @@ MAIN:
   
   lwcall GX.mk_window 1200 800
   
+  lwcall BASIC_UI__BOX 'thebox h.ff404040
+  store dword addr1 s_basic_gui_element.x 80
+  store dword addr1 s_basic_gui_element.y 80
+  store dword addr1 s_basic_gui_element.width 500
+  store dword addr1 s_basic_gui_element.height 500
+  
   lwcall BASIC_UI__BUTTON 'thebtn
   store dword addr1 s_basic_gui_element.x 50
   store dword addr1 s_basic_gui_element.y 300

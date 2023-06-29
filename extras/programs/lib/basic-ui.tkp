@@ -99,12 +99,25 @@ BASIC_UI__LABEL:
   store dword addr1 s_basic_gui_element.background_color__hover rA
   store dword addr1 s_basic_gui_element.background_color__pressed rA
   
+  store dword addr1 s_basic_gui_element.render BASIC_UI__RENDER_ELEMENT
+  store dword addr1 s_basic_gui_element.hit_test BASIC_UI__NONINTERACTIVE
   
-  assign rA BASIC_UI__RENDER_ELEMENT
-  store dword addr1 s_basic_gui_element.render rA
-  assign rA BASIC_UI__HIT_TEST
-  store dword addr1 s_basic_gui_element.hit_test rA
-  
+  lwreturn
+
+BASIC_UI__BOX:
+  stash sAl rB
+  lwcall UI__NEW_GUI_ELEMENT
+  stash rA sAl
+  store dword addr1 s_basic_gui_element.background_color__inactive rA
+  store dword addr1 s_basic_gui_element.background_color__active rA
+  store dword addr1 s_basic_gui_element.background_color__hover rA
+  store dword addr1 s_basic_gui_element.background_color__pressed rA
+  store dword addr1 s_basic_gui_element.render BASIC_UI__RENDER_ELEMENT
+  store dword addr1 s_basic_gui_element.hit_test BASIC_UI__NONINTERACTIVE
+  lwreturn
+
+BASIC_UI__NONINTERACTIVE:
+  assign rA 0
   lwreturn
 
 BASIC_UI__HIT_TEST:
@@ -190,11 +203,8 @@ BASIC_UI__RENDER_ELEMENT:
   load dword rC addr1 s_basic_gui_element.width
   load dword rD addr1 s_basic_gui_element.height
   load dword rE addr1 s_basic_gui_element.border_width
-  # add rC rA
-  # add rD rB
 
   lwcall GX.rect.outline
-  # load dword rB addr1 s_basic_gui_element.border_color
   stash rB sDh
   lwcall GX.fills.simple
   lwcall GX.util.exit
