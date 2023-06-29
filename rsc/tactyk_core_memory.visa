@@ -553,7 +553,7 @@ instruction store
         mov byte [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_8
         $RESET_TEMP
     
-    case BADD
+    case BADI
       sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -567,7 +567,7 @@ instruction store
         $LD_SRC_IMMEDIATE_INDIRECT
         mov byte [$ADDRESS_REGISTER+$OFFSET], rTEMPA_8
         $RESET_TEMP
-    case BAID BACD
+    case BAII BACI
       sub tmp a
       sub tmp c
       code
