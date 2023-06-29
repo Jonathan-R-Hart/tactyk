@@ -308,7 +308,10 @@ instruction goto
     $JTARGET $VALUE
     scramble rMAPPER
     $LD_IMMEDIATE_SOFTREF_BRANCH $SC_LD_INDIRECT
-  select-template
+  $SEL $TEMPLATE_SELECTOR
+  reset-template-selector
+  sub const-assign
+  select $SEL
     case L
       code
         jmp $JTARGET
@@ -437,6 +440,102 @@ instruction if
   reset-template-selector
   sub cjump
 
+subroutine const-assign
+  pick .
+  opt-operand
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_0 $SC_TARGET
+    $LD_IMMEDIATE_0 $SC_LD
+    $LD_IMMEDIATE_0_INDIRECT $SC_LD_INDIRECT
+  opt-operand
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_1 $SC_TARGET
+    $LD_IMMEDIATE_1 $SC_LD
+    $LD_IMMEDIATE_1_INDIRECT $SC_LD_INDIRECT
+  opt-operand
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_2 $SC_TARGET
+    $LD_IMMEDIATE_2 $SC_LD
+    $LD_IMMEDIATE_2_INDIRECT $SC_LD_INDIRECT
+  opt-operand
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_3 $SC_TARGET
+    $LD_IMMEDIATE_3 $SC_LD
+    $LD_IMMEDIATE_3_INDIRECT $SC_LD_INDIRECT
+  opt-operand
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_4 $SC_TARGET
+    $LD_IMMEDIATE_4 $SC_LD
+    $LD_IMMEDIATE_4_INDIRECT $SC_LD_INDIRECT
+  opt-operand
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_5 $SC_TARGET
+    $LD_IMMEDIATE_5 $SC_LD
+    $LD_IMMEDIATE_5_INDIRECT $SC_LD_INDIRECT
+  select-template
+    case .
+      # pass
+    case .I
+      code
+        $LD_IMMEDIATE_0
+        mov rA, $TGT_0
+    case .II
+      code
+        $LD_IMMEDIATE_0
+        mov rA, $TGT_0
+        $LD_IMMEDIATE_1
+        mov rB, $TGT_1
+    case .III
+      code
+        $LD_IMMEDIATE_0
+        mov rA, $TGT_0
+        $LD_IMMEDIATE_1
+        mov rB, $TGT_1
+        $LD_IMMEDIATE_2
+        mov rC, $TGT_2
+    case .IIII
+      code
+        $LD_IMMEDIATE_0
+        mov rA, $TGT_0
+        $LD_IMMEDIATE_1
+        mov rB, $TGT_1
+        $LD_IMMEDIATE_2
+        mov rC, $TGT_2
+        $LD_IMMEDIATE_3
+        mov rD, $TGT_3
+    case .IIIII
+      code
+        $LD_IMMEDIATE_0
+        mov rA, $TGT_0
+        $LD_IMMEDIATE_1
+        mov rB, $TGT_1
+        $LD_IMMEDIATE_2
+        mov rC, $TGT_2
+        $LD_IMMEDIATE_3
+        mov rD, $TGT_3
+        $LD_IMMEDIATE_4
+        mov rD, $TGT_4
+    case .IIIIII
+      code
+        $LD_IMMEDIATE_0
+        mov rA, $TGT_0
+        $LD_IMMEDIATE_1
+        mov rB, $TGT_1
+        $LD_IMMEDIATE_2
+        mov rC, $TGT_2
+        $LD_IMMEDIATE_3
+        mov rD, $TGT_3
+        $LD_IMMEDIATE_4
+        mov rD, $TGT_4
+        $LD_IMMEDIATE_5
+        mov rD, $TGT_5
+
 instruction lwcall
   terminal
   operand
@@ -446,7 +545,10 @@ instruction lwcall
     $LD_IMMEDIATE_SOFTREF_BRANCH $SC_LD_INDIRECT
     scramble rTEMPC $COMMAND_INDEX_NEXT
     $LD_RETURN_TARGET $SC_LD_INDIRECT
-  select-template
+  $SEL $TEMPLATE_SELECTOR
+  reset-template-selector
+  sub const-assign
+  select $SEL
     case L
       sub tmp a
       sub tmp c

@@ -7,10 +7,15 @@
     clip button/label text againts component boundary
 
   bitmap-font renderer - fix incorrect transition to next bitmap row
+  tactyk-emit
+    bind the template selector (combined product of pick operators) to a local variable named "$TEMPLATE_SELECTOR"
   
   tactyk-core
     Add alternative typespecs which allow integers, integer constants, labels, and strings to be treated as the same type
     Make spread, block-assign, and xassign instructions more flexible about what types are accepted (and consolidate template selectors a bit)
+    goto, lwcall, tcall, and ccall - augmented these flow-control instructions to optionally write constant-integer-type data to data registers prior to the flow-control transfer
+      It is equivalent to prepending the flow-control instruction with "spread rA ...".
+      This is intended to simplify a common pattern.
 
 26-28 Jun 2023
   tactyk-ui - A simple framework for setting up Graphical User Interface components.

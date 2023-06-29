@@ -268,6 +268,7 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     struct tactyk_emit__script_command *cmd = ctx->active_command;
     tactyk_dblock__reset_table(ctx->local_vars, true);
     tactyk_dblock__clear(ctx->code_template);
+    tactyk_dblock__put(ctx->local_vars, "$TEMPLATE_SELECTOR", ctx->code_template);
     ctx->subarg_count = 0;
     ctx->is_terminal = false;
     ctx->valid_parse_result = false;

@@ -2,11 +2,14 @@ instruction ccall
   operand
     type data capi
     $A $VALUE
-  operand
-    type capi none
+  opt-operand
+    type capi
     $B $VALUE
-  select-template
-    case CfuncN
+  $SEL $TEMPLATE_SELECTOR
+  reset-template-selector
+  sub const-assign
+  select $SEL
+    case Cfunc
       code
         store_context
         
@@ -59,13 +62,13 @@ instruction ccall
         load_context r14
         
         mov $A, rTEMPD
-    case CfuncCfunc DN
-      error
 
 instruction tcall
   operand
     type tapi
     $A $VALUE
+  reset-template-selector
+  sub const-assign
   code
     store_context    
     
