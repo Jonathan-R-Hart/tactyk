@@ -5,6 +5,7 @@
     
   tactyk-ui [basic]
     clip button/label text againts component boundary
+    draw-all function
 
   bitmap-font renderer - fix incorrect transition to next bitmap row
   tactyk-emit

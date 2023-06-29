@@ -123,21 +123,6 @@ UI__UPDATE:
   if rA == 1
     lwcall UI__SCHEDULE_CLOSE
   
-  
-  #load byte rA addr1 sdl_state.key_pressed
-  #if rA != 0
-  #  tcall print-text-a
-  #  tcall print-space
-  #  tcall print-int-b
-  #  tcall print-space
-  #  tcall print-int-c
-  #  tcall print-newline
-  
-  # Do something visible!
-  # assign rA '.
-  # tcall print-text-a
-  # tcall print-space
-  
   # combine all mouse-event indicators into one easilly tested variable
   load byte rA addr1 sdl_state.mouse_moved
   load byte rC addr1 sdl_state.mouse_btn_pressed
@@ -248,6 +233,31 @@ UI__UPDATE:
   UI__UPDATE.done:
   unbind addr1
   lwreturn
+
+UI__DRAW_ALL:
+  bind addr1 m_gui_elements
+  assign rA 0
+  assign rB addr1.array_bound
+  dec rB
+  
+  block-stash 2 sI rA
+  goto UI__DRAW_ALL.do_element
+  
+  UI__DRAW_ALL.do_elements:
+    block-stash 2 rA sI
+    if rA >= rB
+      lwreturn
+    add rA s_gui_element_size
+    stash sIl rA
+    
+    UI__DRAW_ALL.do_element:
+    assign addr1.offset rA
+    load qword rA addr1 s_gui_element.name
+    if rA != 0
+      load dword rA addr1 s_gui_element.render
+      if rA != 0
+        lwcall rA
+    goto UI__DRAW_ALL.do_elements
 
 UI__SCHEDULE_CLOSE:
   assign rA 1

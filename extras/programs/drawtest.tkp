@@ -74,20 +74,9 @@ MAIN:
 
   lwcall GX.bind_memblocks
   bind addr1 m_gui_elements
-  
-  lwcall BASIC_UI__RENDER_ELEMENT
-  assign addr1.offset s_gui_element_size
-  lwcall BASIC_UI__RENDER_ELEMENT
-  assign rA s_gui_element_size
-  mul rA 2
-  assign addr1.offset rA
-  lwcall BASIC_UI__RENDER_ELEMENT
-  assign rA s_gui_element_size
-  mul rA 3
-  assign addr1.offset rA
-  lwcall BASIC_UI__RENDER_ELEMENT
-  
   bind addr4 m_ui_control
+  
+  lwcall UI__DRAW_ALL
   
   MAINLOOP:
     lwcall UI__UPDATE
