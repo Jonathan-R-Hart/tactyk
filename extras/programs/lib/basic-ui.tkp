@@ -14,6 +14,8 @@ struct s_basic_gui_element
   4 y
   4 width
   4 height
+  4 interior_x
+  4 interior_y
   4 border_width
   4 text_color__inactive
   4 background_color__inactive
@@ -28,7 +30,7 @@ struct s_basic_gui_element
   4 background_color__pressed
   4 border_color__pressed
   4 tchunk_count
-  4016 text
+  4008 text
 
 struct s_text_chunk
   2 x
@@ -151,8 +153,8 @@ BASIC_UI__RENDER_ELEMENT:
     stash sDl rA sDh rB
   
   BASIC_UI__RENDER_ELEMENT.cont:
-  load dword rA addr1 s_basic_gui_element.x
-  load dword rB addr1 s_basic_gui_element.y
+  load sdword rA addr1 s_basic_gui_element.x
+  load sdword rB addr1 s_basic_gui_element.y
   load dword rC addr1 s_basic_gui_element.width
   load dword rD addr1 s_basic_gui_element.height
   lwcall GX.rect.fill
@@ -164,8 +166,8 @@ BASIC_UI__RENDER_ELEMENT:
 
   assign rF 0
   
-  load dword rA addr1 s_basic_gui_element.x
-  load dword rB addr1 s_basic_gui_element.y
+  load sdword rA addr1 s_basic_gui_element.x
+  load sdword rB addr1 s_basic_gui_element.y
   load dword rC addr1 s_basic_gui_element.width
   load dword rD addr1 s_basic_gui_element.height
   load dword rE addr1 s_basic_gui_element.border_width
@@ -181,11 +183,20 @@ BASIC_UI__RENDER_ELEMENT:
   lwcall GX.draw
   
   assign rE 0
-  load dword rB addr1 s_basic_gui_element.x
-  load dword rC addr1 s_basic_gui_element.y
+  load sdword rB addr1 s_basic_gui_element.interior_x
+  load sdword rC addr1 s_basic_gui_element.interior_y
   load dword rF addr1 s_basic_gui_element.tchunk_count
+  negate rB
+  negate rC
   assign rA addr1.offset
   stash sDl rA sDh rB sEl rC sEh rE sFl rF
+  load sdword rB addr1 s_basic_gui_element.x
+  load sdword rC addr1 s_basic_gui_element.y
+  load dword rD addr1 s_basic_gui_element.width
+  load dword rE addr1 s_basic_gui_element.height
+  add rD rB
+  add rE rC
+  stash sGl rB sGh rC sHl rD sHh rE
   
   BASIC_UI__RENDER_ELEMENT.text:
   
@@ -198,12 +209,28 @@ BASIC_UI__RENDER_ELEMENT:
   if rE < rF
     mul rE s_text_chunk_size
     add rE s_basic_gui_element.text
+    
+    # [rB,rC]:  negated interior offset
+    
+    # obtain relative component position
     load sword rA addr1 rE
     add rB rA
     add rE 2
     load sword rA addr1 rE
     add rC rA
     add rE 2
+    
+    # clip text
+    #   if x > width or x+width is negative or y < 0 or y > height, skip to next iteration
+    #   if x is negative, scan the text for the first char which is inside the box and clip anythign prior
+    #   if x+text-size > width, scan for the last char in the box and clip anything after
+    
+    # add component offset
+    stash rA sGl
+    add rB rA
+    stash rA sGh
+    add rC rA
+    
     load dword rA addr1 rE
     # assign rA h.ff0000ff
     stash sFh rA
@@ -212,7 +239,9 @@ BASIC_UI__RENDER_ELEMENT:
     assign rF 0
     assign rA 1
     xassign xB 0 0
-    lwcall GX.text.bmp16x16.utf8ENC.txtbank    
+    lwcall GX.text.bmp16x16.utf8ENC.txtbank
+    stash rA sGl rB sGh rC sHl rD sHh
+    lwcall GX.clip
     stash rB sFh
     lwcall GX.fills.simple
     lwcall GX.util.exit

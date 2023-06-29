@@ -1,3 +1,13 @@
+29 Jun 2023
+  tactyk-draw
+    use registers rA and rB as absolute x and y coordinate outputs for rasterizer stage renderers
+    add a function for clipping pixels outside of a specified rectangle
+    
+  tactyk-ui [basic]
+    clip button/label text againts component boundary
+
+  bitmap-font renderer - fix incorrect transition to next bitmap row
+  
 26-28 Jun 2023
   tactyk-ui - A simple framework for setting up Graphical User Interface components.
     It tracks mouse activity and sends mouse-in, mouse-out, mouse-button-down, and mouse-button-up events to abstract components

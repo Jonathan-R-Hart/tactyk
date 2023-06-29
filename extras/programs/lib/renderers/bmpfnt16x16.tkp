@@ -135,8 +135,8 @@ GX.text.bmp16x16:
 # text renderer
 GX.text.bmp16x16.impl:
   load word rA addr2 gx_info__text.fragment
-  load word rC addr2 gx_info__text.x
-  load word rD addr2 gx_info__text.y
+  load sword rC addr2 gx_info__text.x
+  load sword rD addr2 gx_info__text.y
   load dword rE addr2 gx_info__text.row
   add rD rE
   load sword rE addr2 gx_info__text.offset_x
@@ -167,8 +167,10 @@ GX.text.bmp16x16.impl:
     assign addr3.offset rB
     # shift-left rB 7
     # assign addr4.offset rB
-    
-    load byte rA addr1 s_bmp_16x28.value
+    assign rA rE
+    assign rB rD
+    add rA rC
+    load byte rC addr1 s_bmp_16x28.value
     
     # proceed to the next renderer operation
     add rF 8
@@ -211,8 +213,8 @@ GX.text.bmp16x16.impl:
     # fetch the immediately required data for the next iteration and store it in the main renderer properties
     load word rA addr1 s_bmp_16x28.data
     store word addr2 gx_info__text.fragment rA
-    load word rC addr2 gx_info__text.x
-    load word rB addr2 gx_info__text.y
+    load sword rC addr2 gx_info__text.x
+    load sword rB addr2 gx_info__text.y
     
     # apply displacement to obtain the offset of the first row
     load sbyte rE addr1 s_bmp_16x28.displacement_x
@@ -227,6 +229,7 @@ GX.text.bmp16x16.impl:
     store dword addr2 gx_info__text.row rE
     store dword addr2 gx_info__text.col rE
     
+
     # proceed to the next renderer operation
     # (for the pixel which was selected above by "GX.text.bmp16x16.scan", not the newly staged pixel)
     add rF 8

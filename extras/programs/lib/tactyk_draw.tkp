@@ -163,6 +163,31 @@ GX.fills.simple.impl:
   load qword rE addr2 rF
   goto rE
 
+GX.clip:
+  block-stash 4 sM rA
+  assign rA GX.clip.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.clip.impl:
+  # load and clip against the low bound
+  block-stash 2 rD sM
+  if rA < rD GX.clip.impl.exit
+  if rB < rE GX.clip.impl.exit
+  # load and clip against the high bound
+  block-stash 2 rD sN
+  if rA > rD GX.clip.impl.exit
+  if rB > rE GX.clip.impl.exit
+  # if pass, proceed to the next operation
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+# if clipped, cancel the renderer
+GX.clip.impl.exit:
+  lwreturn
+
 
 # return from a renderer
 GX.util.exit:

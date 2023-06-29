@@ -53,6 +53,7 @@ MAIN:
   lwcall BASIC_UI__TEXT
   # load dword rF addr1 s_gui_element.on_pointer_exit
   
+  
   assign rA 'exitbtn
   lwcall BASIC_UI__NEW_COMPONENT
   assign rA 5
@@ -82,12 +83,39 @@ MAIN:
   assign xA 't
   lwcall BASIC_UI__TEXT
 
+  
+  assign rA 'a.label
+  lwcall BASIC_UI__NEW_COMPONENT
+  assign rA 300
+  store dword addr1 s_basic_gui_element.x rA
+  assign rA 300
+  store dword addr1 s_basic_gui_element.y rA
+  assign rA 150
+  store dword addr1 s_basic_gui_element.width rA
+  assign rA 23
+  store dword addr1 s_basic_gui_element.height rA
+
+  assign xA 'CLIPPED.CONTENT
+  spread rA h.ffffff00 -40 6
+  lwcall BASIC_UI__TEXT
+  spread rA h.ffff00ff 90 6
+  lwcall BASIC_UI__TEXT
+  spread rA h.ff00ffff -40 28
+  lwcall BASIC_UI__TEXT
+  spread rA h.ffffffff 90 28
+  lwcall BASIC_UI__TEXT
+
   lwcall GX.bind_memblocks
   bind addr1 m_gui_elements
   
   lwcall BASIC_UI__RENDER_ELEMENT
   assign addr1.offset s_gui_element_size
   lwcall BASIC_UI__RENDER_ELEMENT
+  assign rA s_gui_element_size
+  mul rA 2
+  assign addr1.offset rA
+  lwcall BASIC_UI__RENDER_ELEMENT
+  
   
   bind addr4 m_ui_control
   
