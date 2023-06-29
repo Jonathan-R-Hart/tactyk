@@ -59,6 +59,14 @@ UI__INIT:
   store oword addr4 s_ui_control.program_name xA
   lwreturn
 
+UI__GET:
+  assign rB rA
+  bind addr1 m_gui_elements
+  bind addr4 m_gui_table
+  lwcall MINITABLE__GET.addr4
+  assign addr1.offset rA
+  lwreturn
+
 UI__NEW_GUI_ELEMENT:
   if rA == 0
     assign rA -1

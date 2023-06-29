@@ -49,9 +49,9 @@ const DEFAULT_BGCOLOR__HOVER h.ff800000
 const DEFAULT_BORDERCOLOR__HOVER h.ffffffff
 const DEFAULT_BGCOLOR__PRESSED h.ffff8000
 const DEFAULT_BORDERCOLOR__PRESSED h.ff000000
+const DEFAULT_BGCOLOR__LABEL h.ff000000
 
-
-BASIC_UI__NEW_COMPONENT:
+BASIC_UI__BUTTON:
   lwcall UI__NEW_GUI_ELEMENT
   
   assign rA DEFAULT_BGCOLOR__INACTIVE
@@ -86,6 +86,25 @@ BASIC_UI__NEW_COMPONENT:
   store dword addr1 s_basic_gui_element.on_pointer_press rA
   assign rA BASIC_UI__ON_MBTN_RELEASE
   store dword addr1 s_basic_gui_element.on_pointer_release rA
+  lwreturn
+
+BASIC_UI__LABEL:
+  lwcall UI__NEW_GUI_ELEMENT
+  
+  assign rA 0  
+  store dword addr1 s_basic_gui_element.border_width rA
+  assign rA DEFAULT_BGCOLOR__LABEL
+  store dword addr1 s_basic_gui_element.background_color__inactive rA
+  store dword addr1 s_basic_gui_element.background_color__active rA
+  store dword addr1 s_basic_gui_element.background_color__hover rA
+  store dword addr1 s_basic_gui_element.background_color__pressed rA
+  
+  
+  assign rA BASIC_UI__RENDER_ELEMENT
+  store dword addr1 s_basic_gui_element.render rA
+  assign rA BASIC_UI__HIT_TEST
+  store dword addr1 s_basic_gui_element.hit_test rA
+  
   lwreturn
 
 BASIC_UI__HIT_TEST:
