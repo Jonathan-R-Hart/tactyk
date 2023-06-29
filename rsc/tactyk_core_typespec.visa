@@ -105,8 +105,24 @@ typespec integer
   int-operand
   pick I
 
+typespec *const
+  symbol const
+  pick I
+
+typespec *string
+  string-operand
+  pick I
+
+typespec *branch-index
+  symbol label-index
+  pick I
+
 typespec float
   float-operand
+  pick F
+
+typespec *fconst
+  symbol fconst
   pick F
 
 # symbolic fields are handled by looking them up in symbol tables.

@@ -522,8 +522,7 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
     
     struct tactyk_dblock__DBlock *name = dblock->token->next;
     struct tactyk_dblock__DBlock *type = dblock->token->next->next;
-
-    printf("....\n");
+    
     uint64_t nbytes = 0;
     bool isfloat = false;
     if (type == NULL) {

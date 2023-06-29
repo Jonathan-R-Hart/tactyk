@@ -8,6 +8,10 @@
 
   bitmap-font renderer - fix incorrect transition to next bitmap row
   
+  tactyk-core
+    Add alternative typespecs which allow integers, integer constants, labels, and strings to be treated as the same type
+    Make spread, block-assign, and xassign instructions more flexible about what types are accepted (and consolidate template selectors a bit)
+
 26-28 Jun 2023
   tactyk-ui - A simple framework for setting up Graphical User Interface components.
     It tracks mouse activity and sends mouse-in, mouse-out, mouse-button-down, and mouse-button-up events to abstract components

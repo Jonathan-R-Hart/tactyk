@@ -42,7 +42,7 @@ instruction xassign
     $DRXT $SSE_REG_EXT
     $SSE_WORD X
   operand
-    type xmmx data const fconst integer float
+    type xmmx data *const *fconst integer float *string *branch-index
     $SRC $VALUE
     scramble rTEMPA
     $TGT_A $SC_TARGET
@@ -58,21 +58,21 @@ instruction xassign
     $SSW $SSE_WORD
     $SRXT $SSE_REG_EXT
   opt-operand
-    type xmmx data const fconst integer float
+    type xmmx data *const *fconst integer float *string *branch-index
     $SRC_2 $VALUE
     scramble rTEMPA
     $TGT_B $SC_TARGET
     $LD_B_IMMEDIATE $SC_LD
     $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type xmmx data const fconst integer float
+    type xmmx data *const *fconst integer float *string *branch-index
     $SRC_3 $VALUE
     scramble rTEMPA
     $TGT_C $SC_TARGET
     $LD_C_IMMEDIATE $SC_LD
     $LD_C_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type xmmx data const fconst integer float
+    type xmmx data *const *fconst integer float *string *branch-index
     $SRC_4 $VALUE
     scramble rTEMPA
     $TGT_D $SC_TARGET
@@ -342,7 +342,7 @@ instruction xassign
         movq xTEMPA, rTEMPA
         cvttsd2si $DEST, xTEMPA
         $RESET_TEMP
-    case XFF XFCf XCfF XCfCf  XII XIC XCI XCC
+    case XFF XII
       sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT
@@ -350,7 +350,7 @@ instruction xassign
         $LD_B_IMMEDIATE_INDIRECT
         pinsrq $DEST, rTEMPA, 1
         $RESET_TEMP
-    case XFFFF XFFFCf XFFCfF XFFCfCf  XFCfFF XFCfFCf XFCfCfF XFCfCfCf  XCfFFF XCfFFCf XCfFCfF XCfFCfCf  XCfCfFF XCfCfFCf XCfCfCfF XCfCfCfCf
+    case XFFFF
       sub tmp xa
       sub tmp xb
       sub tmp ra
@@ -372,7 +372,7 @@ instruction xassign
         insertps xTEMPB, xTEMPA, 0b00110000
         movdqa $DEST, xTEMPB
         $RESET_TEMP
-    case XIIII XIIIC XIICI XIICC  XICII XICIC XICCI XICCC  XCIII XCIIC XCICI XCICC  XCCII XCCIC XCCCI XCCCC
+    case XIIII
       sub tmp ra
       code
         $LD_A_IMMEDIATE_INDIRECT

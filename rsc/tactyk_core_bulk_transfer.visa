@@ -430,7 +430,7 @@ instruction block-assign
     type data xmmx
     $DEST $VALUE
   operand
-    type xmmx data const fconst integer float string
+    type xmmx data *const *fconst integer float string *branch-index
     $A $VALUE
     scramble rTEMPA
     $LD_A_IMMEDIATE $SC_LD
@@ -439,21 +439,21 @@ instruction block-assign
     scramble rTEMPC $VALUE_UPPER
     $LD_A_HIGHBITS_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type xmmx data const fconst integer float
+    type xmmx data *const *fconst integer float *string *branch-index
     $B $VALUE
     scramble rTEMPA
     $LD_B_IMMEDIATE $SC_LD
     $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
     $TGT_B $SC_TARGET
   opt-operand
-    type xmmx data const fconst integer float
+    type xmmx data *const *fconst integer float *string *branch-index
     $C $VALUE
     scramble rTEMPA
     $LD_C_IMMEDIATE $SC_LD
     $LD_C_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
     $TGT_D $SC_TARGET
   opt-operand
-    type xmmx data const fconst integer float
+    type xmmx data *const *fconst integer float *string *branch-index
     $D $VALUE
     scramble rTEMPA
     $LD_D_IMMEDIATE $SC_LD
@@ -677,7 +677,7 @@ instruction block-assign
         13 movdqa $DEST~12, $DEST~0
         14 movdqa $DEST~13, $DEST~0
         1 $RESET_TEMP
-    case BqsXII BqlXII BqsXCC BqlXCC BqsXCI BqlXCI BqsXIC BqlXIC
+    case BqsXII BqlXII BqsXSI BqlXSI
       sub tmp ra
       sub tmp xa
       vcode $QTY
@@ -700,7 +700,7 @@ instruction block-assign
         13 movdqa $DEST~12, $DEST~0
         14 movdqa $DEST~13, $DEST~0
         1 $RESET_TEMP
-    case BqsXIIII BqlXIIII BqsXCCCC BqlXCCCC
+    case BqsXIIII BqlXIIII BqsXSIII BqlXSIII
       sub tmp ra
       sub tmp xa
       vcode $QTY
@@ -729,7 +729,7 @@ instruction block-assign
         13 movdqa $DEST~12, $DEST~0
         14 movdqa $DEST~13, $DEST~0
         1 $RESET_TEMP
-    case BqsXFF BqlXFF BqsXCfF BqlXCfF BqsXFCf BqlXFCf BqsXCfCf BqlXCfCf
+    case BqsXFF BqlXFF
       sub tmp xa
       vcode $QTY
         1 $LD_A_IMMEDIATE_INDIRECT
@@ -750,7 +750,7 @@ instruction block-assign
         13 movdqa $DEST~12, $DEST~0
         14 movdqa $DEST~13, $DEST~0
         1 $RESET_TEMP
-    case BqsXFFFF BqlXFFFF BqsXCfCfCfCf BqlXCfCfCfCf
+    case BqsXFFFF BqlXFFFF
       sub tmp ra
       sub tmp xa
       vcode $QTY
@@ -789,91 +789,91 @@ instruction spread
     type data xmmx
     $TARGET $VALUE
   operand
-    type integer float
+    type integer *const *branch-index *string float *fconst
     scramble rTEMPA
     $TGT_0 $SC_TARGET
     $LD_IMMEDIATE_0 $SC_LD
     $LD_IMMEDIATE_0_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type integer float
+    type integer *const *branch-index *string float *fconst
     scramble rTEMPA
     $TGT_1 $SC_TARGET
     $LD_IMMEDIATE_1 $SC_LD
     $LD_IMMEDIATE_1_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type integer float
+    type integer *const *branch-index *string float *fconst
     scramble rTEMPA
     $TGT_2 $SC_TARGET
     $LD_IMMEDIATE_2 $SC_LD
     $LD_IMMEDIATE_2_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type integer float
+    type integer *const *branch-index *string float *fconst
     scramble rTEMPA
     $TGT_3 $SC_TARGET
     $LD_IMMEDIATE_3 $SC_LD
     $LD_IMMEDIATE_3_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type integer float
+    type integer *const *branch-index *string float *fconst
     scramble rTEMPA
     $TGT_4 $SC_TARGET
     $LD_IMMEDIATE_4 $SC_LD
     $LD_IMMEDIATE_4_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type integer float
+    type integer *const *branch-index *string float *fconst
     scramble rTEMPA
     $TGT_5 $SC_TARGET
     $LD_IMMEDIATE_5 $SC_LD
     $LD_IMMEDIATE_5_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
+    type float *fconst
     scramble rTEMPA
     $TGT_6 $SC_TARGET
     $LD_IMMEDIATE_6 $SC_LD
     $LD_IMMEDIATE_6_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
+    type float *fconst
     scramble rTEMPA
     $TGT_7 $SC_TARGET
     $LD_IMMEDIATE_7 $SC_LD
     $LD_IMMEDIATE_7_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
+    type float *fconst
     scramble rTEMPA
     $TGT_8 $SC_TARGET
     $LD_IMMEDIATE_8 $SC_LD
     $LD_IMMEDIATE_8_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
+    type float *fconst
     scramble rTEMPA
     $TGT_9 $SC_TARGET
     $LD_IMMEDIATE_9 $SC_LD
     $LD_IMMEDIATE_9_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
+    type float *fconst
     scramble rTEMPA
     $TGT_10 $SC_TARGET
     $LD_IMMEDIATE_10 $SC_LD
     $LD_IMMEDIATE_10_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
+    type float *fconst
     scramble rTEMPA
     $TGT_11 $SC_TARGET
     $LD_IMMEDIATE_11 $SC_LD
     $LD_IMMEDIATE_11_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
+    type float *fconst
     scramble rTEMPA
     $TGT_12 $SC_TARGET
     $LD_IMMEDIATE_12 $SC_LD
     $LD_IMMEDIATE_12_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
+    type float *fconst
     scramble rTEMPA
     $TGT_13 $SC_TARGET
     $LD_IMMEDIATE_13 $SC_LD
     $LD_IMMEDIATE_13_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
+    type float *fconst
     scramble rTEMPA
     $TGT_14 $SC_TARGET
     $LD_IMMEDIATE_14 $SC_LD
