@@ -229,14 +229,7 @@ GX.text.bmp16x16.impl:
     store dword addr2 gx_info__text.row rE
     store dword addr2 gx_info__text.col rE
     
-
-    # proceed to the next renderer operation
-    # (for the pixel which was selected above by "GX.text.bmp16x16.scan", not the newly staged pixel)
-    add rF 8
-    if rF == gx_info__program.end
-      lwreturn
-    load qword rE addr2 rF
-    goto rE
+    goto GX.text.bmp16x16.impl
   
   # if more rows to draw
   # reset column position and proceed to the next row
