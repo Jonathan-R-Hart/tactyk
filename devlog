@@ -16,7 +16,8 @@
     goto, lwcall, tcall, and ccall - augmented these flow-control instructions to optionally write constant-integer-type data to data registers prior to the flow-control transfer
       It is equivalent to prepending the flow-control instruction with "spread rA ...".
       This is intended to simplify a common pattern.
-
+    store - allow direct storage of integer literals, integer constants, and strings to 8,16,32, and 64 bit memory locations, as well as floating point constants and literals to 32 or 64 bit memory locations
+      Similarly motivated to do this in order to simplify common patterns (and to reduce register pressure)
 26-28 Jun 2023
   tactyk-ui - A simple framework for setting up Graphical User Interface components.
     It tracks mouse activity and sends mouse-in, mouse-out, mouse-button-down, and mouse-button-up events to abstract components

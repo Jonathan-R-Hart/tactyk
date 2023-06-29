@@ -264,6 +264,39 @@ extend instruction store select-template
       lfence
       movq [$ADDRESS_REGISTER+rTEMPC], $SRC
       $RESET_TEMP
+
+  case F64ADF
+    sub tmp ra
+    code
+      mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+      sub rTEMPA_32, 7
+      cmp $OFFSET, rTEMPA
+      errorge STATUS_ROGUE_POINTER
+      cmp $OFFSET, 0
+      errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
+      lfence
+      $LD_SRC_IMMEDIATE_INDIRECT
+      movq [$ADDRESS_REGISTER+$OFFSET], rTEMPA
+      $RESET_TEMP
+  case F64AIF F64ACF
+    sub tmp ra
+    sub tmp rc
+    code
+      $LD_OFFSET_IMMEDIATE
+      mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+      sub rTEMPA_32, 7
+      cmp rTEMPC, rTEMPA
+      errorge STATUS_ROGUE_POINTER
+      cmp rTEMPC, 0
+      errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
+      lfence
+      $LD_SRC_IMMEDIATE_INDIRECT
+      movq [$ADDRESS_REGISTER+rTEMPC], rTEMPA
+      $RESET_TEMP
   
   case F32ADX
     sub tmp ra
@@ -297,6 +330,45 @@ extend instruction store select-template
       erroreq STATUS_UNBOUND_MEMORY
       lfence
       cvtsd2ss xTEMPA, $SRC
+      movd [$ADDRESS_REGISTER+rTEMPC], xTEMPA
+      $RESET_TEMP
+  
+  case F32ADX
+    sub tmp ra
+    sub tmp xa
+    code
+      mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+      sub rTEMPA_32, 3
+      cmp $OFFSET, rTEMPA
+      errorge STATUS_ROGUE_POINTER
+      cmp $OFFSET, 0
+      errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
+      lfence
+      $LD_SRC_IMMEDIATE_INDIRECT
+      movq rTEMPA, xTEMPA
+      cvtsd2ss xTEMPA, xTEMPA
+      movd [$ADDRESS_REGISTER+$OFFSET], xTEMPA
+      $RESET_TEMP
+  case F32AIX F32ACX
+    sub tmp ra
+    sub tmp rc
+    sub tmp xa
+    code
+      $LD_OFFSET_IMMEDIATE
+      mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+      sub rTEMPA_32, 3
+      cmp rTEMPC, rTEMPA
+      errorge STATUS_ROGUE_POINTER
+      cmp rTEMPC, 0
+      errorlt STATUS_ROGUE_POINTER
+      cmp $ADDRESS_REGISTER, 0
+      erroreq STATUS_UNBOUND_MEMORY
+      lfence
+      $LD_SRC_IMMEDIATE_INDIRECT
+      movq rTEMPA, xTEMPA
+      cvtsd2ss xTEMPA, xTEMPA
       movd [$ADDRESS_REGISTER+rTEMPC], xTEMPA
       $RESET_TEMP
 
