@@ -49,7 +49,7 @@ const DEFAULT_BGCOLOR__HOVER h.ff800000
 const DEFAULT_BORDERCOLOR__HOVER h.ffffffff
 const DEFAULT_BGCOLOR__PRESSED h.ffff8000
 const DEFAULT_BORDERCOLOR__PRESSED h.ff000000
-const DEFAULT_BGCOLOR__LABEL h.ff000000
+const DEFAULT_BGCOLOR__LABEL h.00000ff0
 
 BASIC_UI__BUTTON:
   lwcall UI__NEW_GUI_ELEMENT
@@ -185,31 +185,35 @@ BASIC_UI__RENDER_ELEMENT:
     stash sDl rA sDh rB
   
   BASIC_UI__RENDER_ELEMENT.cont:
-  load sdword rA addr1 s_basic_gui_element.x
-  load sdword rB addr1 s_basic_gui_element.y
-  load dword rC addr1 s_basic_gui_element.width
-  load dword rD addr1 s_basic_gui_element.height
-  lwcall GX.rect.fill
-  stash rB sDl
-  lwcall GX.fills.simple
-  lwcall GX.util.exit
-  assign rF 0
-  lwcall GX.draw
+  stash rE sDl
+  if rE & h.ff000000
+    load sdword rA addr1 s_basic_gui_element.x
+    load sdword rB addr1 s_basic_gui_element.y
+    load dword rC addr1 s_basic_gui_element.width
+    load dword rD addr1 s_basic_gui_element.height
+    lwcall GX.rect.fill
+    assign rB rE
+    lwcall GX.fills.simple
+    lwcall GX.util.exit
+    assign rF 0
+    lwcall GX.draw
 
-  assign rF 0
   
-  load sdword rA addr1 s_basic_gui_element.x
-  load sdword rB addr1 s_basic_gui_element.y
-  load dword rC addr1 s_basic_gui_element.width
-  load dword rD addr1 s_basic_gui_element.height
-  load dword rE addr1 s_basic_gui_element.border_width
+  stash rE sDh
+  if rE & h.ff000000
+    load sdword rA addr1 s_basic_gui_element.x
+    load sdword rB addr1 s_basic_gui_element.y
+    load dword rC addr1 s_basic_gui_element.width
+    load dword rD addr1 s_basic_gui_element.height
+    load dword rE addr1 s_basic_gui_element.border_width
 
-  lwcall GX.rect.outline
-  stash rB sDh
-  lwcall GX.fills.simple
-  lwcall GX.util.exit
-  assign rF 0
-  lwcall GX.draw
+    assign rF 0
+    lwcall GX.rect.outline
+    stash rB sDh
+    lwcall GX.fills.simple
+    lwcall GX.util.exit
+    assign rF 0
+    lwcall GX.draw
   
   assign rE 0
   load sdword rB addr1 s_basic_gui_element.interior_x
