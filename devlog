@@ -1,3 +1,7 @@
+30 Jun 2023
+  tactyk-core-bits - new instruction:  reverse-bytes
+    Accepts a word size and input data register, transforms it by reversing byte order.
+
 29 Jun 2023
   tactyk-draw
     use registers rA and rB as absolute x and y coordinate outputs for rasterizer stage renderers

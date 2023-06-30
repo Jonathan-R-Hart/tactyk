@@ -95,7 +95,45 @@ instruction not
   $INSTRUCTION not
   sub simple_unary_instruction
 
-
+instruction reverse-bytes
+  operand
+    type word
+  operand
+    type data
+    $DEST $VALUE
+  opt-operand
+    type data
+    $SRC $VALUE
+  select-template
+    case QD
+      code
+        bswap $DEST
+    case QDD
+      code
+        mov $DEST, $SRC
+        bswap $DEST
+    case DD
+      code
+        bswap %[$DEST]_32
+    case DDD
+      code
+        mov $DEST, $SRC
+        bswap %[$DEST]_32
+    case WD
+      code
+        bswap $DEST
+        shr $DEST, 48
+    case WDD
+      code
+        mov $DEST, $SRC
+        bswap $DEST
+        shr $DEST, 48
+    case BD
+      code
+        ; pass
+    case BDD
+      code
+        mov $DEST, $SRC
 
 instruction find-bit
   opt-operand
