@@ -139,7 +139,7 @@ subroutine binary_instruction
     type data xmmx
     $A $VALUE
   operand
-    type data xmmx const fconst integer float string
+    type data xmmx const fconst integer float string branch-index
     $B $VALUE
     scramble rTEMPC
     $LD_B_IMMEDIATE $SC_LD
@@ -149,7 +149,7 @@ subroutine binary_instruction
     case DD
       code
         $INSTRUCTION $A, $B
-    case DI DC DS
+    case DI DC DS DLi
       sub tmp a
       sub tmp $TGT_B
       code
