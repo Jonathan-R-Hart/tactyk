@@ -1,3 +1,6 @@
+4 Jul 2023
+  tactyk-core-bits - new instruction:  bitcount
+
 30 Jun 2023
   tactyk-core-bits - new instruction:  reverse-bytes
     Accepts a word size and input data register, transforms it by reversing byte order.

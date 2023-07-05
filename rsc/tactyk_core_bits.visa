@@ -95,6 +95,48 @@ instruction not
   $INSTRUCTION not
   sub simple_unary_instruction
 
+instruction bitcount
+  operand
+    type word
+  operand
+    type data
+    $DEST $VALUE
+  opt-operand
+    type data
+    $SRC $VALUE
+  select-template
+    case QD QsD
+      code
+        popcnt $DEST, $DEST
+    case QDD QsDD
+      code
+        popcnt $DEST, $SRC
+    case DD DsD
+      code
+        popcnt %[$DEST]_32, %[$DEST]_32
+    case DDD DsDD
+      code
+        popcnt %[$DEST]_32, %[$SRC]_32
+    case WD WsD
+      code
+        # I want popcnt, not [and 0xffffffffffff0000 + popcnt].
+        and $DEST, 0xffff
+        popcnt %[$DEST]_16, %[$DEST]_16
+    case WDD WsDD
+      code
+        mov $DEST, $SRC
+        and $DEST, 0xffff
+        popcnt %[$DEST]_16, %[$SRC]_16
+    case BD BsD
+      code
+        and $DEST, 255
+        popcnt $DEST, $DEST
+    case BDD BsDD
+      code
+        mov $DEST, $SRC
+        and $DEST, 255
+        popcnt $DEST, $DEST
+
 instruction reverse-bytes
   operand
     type word
