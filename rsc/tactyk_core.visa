@@ -403,7 +403,7 @@ subroutine test
       sub tmp $TGT_B
       code
         $LD_IMMEDIATE_B_INDIRECT
-        or tTEMPC, $A
+        or rTEMPC, $A
         cmp rTEMPC, 0
         $CJUMP .pass
     case IOrD COrD SOrD
