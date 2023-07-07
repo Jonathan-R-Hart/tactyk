@@ -20,6 +20,6 @@ module tabletest.mega tabletest.mega.tkp
 
 # program prog thead table1.nano tabletest.nano
 program prog thead table1.mini tabletest.mini
-#program prog thead table1.mega tabletest.mega
+# program prog thead table1.mega tabletest.mega
 
 main prog TABLE__TEST

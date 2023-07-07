@@ -69,11 +69,11 @@ MINITABLE__INIT.$T:
     store oword $T rA xA
     add rA 16
     goto MINITABLE__INIT.zero.$T
-  assign rA 1
+  assign rA 2
   assign rB s_MINITABLE_size
   assign rC s_MINITABLE.id
   assign rD addr2.element_bound
-  store qword $T s_MINITABLE.id rA
+  store dword $T s_TABLE_HEADER.table_length rA
   lwreturn
 
 MINITABLE__GET.$T:
@@ -87,7 +87,9 @@ MINITABLE__LOOKUP.$T:
   xor rC rB
   
   assign rE MINITABLE_iterations
-  load qword rF $T s_MINITABLE.size
+  load dword rF $T s_TABLE_HEADER.table_length
+
+  assign $T.offset s_MINITABLE_size
   
   MINITABLE_LOOKUP_LOOP.$T:
     assign rD rC
@@ -126,7 +128,7 @@ MINITABLE__ADD_NODE.$T:
   
   inc rF
   assign $T.offset 0
-  store qword $T s_MINITABLE.size rF
+  store dword $T s_TABLE_HEADER.table_length rF
   dec rF
   
   shift-left rF MINITABLE_scale
@@ -161,9 +163,9 @@ MINITABLE__REMOVE_NODE.$T:
   # no children - delete node
   # get ref to last entry (and update table size)
   assign $T.offset 0
-  load qword rD $T s_MINITABLE.size
+  load qword rD $T s_TABLE_HEADER.table_length
   dec rD
-  store qword $T s_MINITABLE.size rD
+  store qword $T s_TABLE_HEADER.table_length rD
   shift-left rD MINITABLE_scale
   
   # take the last entry

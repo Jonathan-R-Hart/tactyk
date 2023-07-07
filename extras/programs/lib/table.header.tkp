@@ -1,3 +1,15 @@
+# table header format
+#   The header occupies "slot zero"
+#   The header performs double-duty as a container format specifier, should the table data structure be dumped directly to a file.
+#   The format indicator should provide a hint about which table format is used (MEGATABLE, MINITABLE, or NANOTABLE)
+#     (though it may be implicit if there is a preference for a spcific type of table)
+#   The supplemental_length and supplmenetal position fields define a segment of the file which contains supplemental data (typically things the table "ref" fields point to)
+#     (these may be either literal values or scaled values)
+struct s_TABLE_HEADER
+  4 format_indicator
+  4 table_length
+  4 supplemental_position
+  4 supplemental_length
 
 const MEGATABLE_kmask 28
 const MEGATABLE_krotate 12
@@ -13,7 +25,6 @@ struct s_MEGATABLE
   4 g
   4 h
   8 id
-  . 8 size
   4 parent
   4 prefix
   8 ref
@@ -33,7 +44,6 @@ struct s_MINITABLE
   2 g
   2 h
   8 id
-  . 8 size
   2 parent
   2 prefix
   4 ref
@@ -51,4 +61,3 @@ struct s_NANOTABLE
   1 prefix
   2 ref
   8 id
-  . 8 size

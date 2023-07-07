@@ -70,7 +70,7 @@ NANOTABLE__INIT.$T:
     add rA 16
     goto NANOTABLE__INIT.zero.$T
   assign rA 1
-  store qword $T s_NANOTABLE.size rA
+  store dword $T s_TABLE_HEADER.table_length rA
   lwreturn
 
 NANOTABLE__GET.$T:
@@ -84,7 +84,8 @@ NANOTABLE__LOOKUP.$T:
   xor rC rB
   
   assign rE NANOTABLE_iterations
-  load qword rF $T s_NANOTABLE.size
+  load dword rF $T s_TABLE_HEADER.table_length
+  assign $T.offset s_NANOTABLE_size
   
   NANOTABLE_LOOKUP_LOOP.$T:
     assign rD rC
@@ -123,7 +124,8 @@ NANOTABLE__ADD_NODE.$T:
   
   inc rF
   assign $T.offset 0
-  store qword $T s_NANOTABLE.size rF
+  store dword $T s_TABLE_HEADER.table_length rF
+
   dec rF
   
   shift-left rF NANOTABLE_scale
@@ -158,9 +160,9 @@ NANOTABLE__REMOVE_NODE.$T:
   # no children - delete node
   # get ref to last entry (and update table size)
   assign $T.offset 0
-  load qword rD $T s_NANOTABLE.size
+  load dword rD $T s_TABLE_HEADER.table_length
   dec rD
-  store qword $T s_NANOTABLE.size rD
+  store dword $T s_TABLE_HEADER.table_length rD
   shift-left rD NANOTABLE_scale
   
   # take the last entry

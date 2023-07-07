@@ -70,7 +70,7 @@ MEGATABLE__INIT.$T:
     add rA 16
     goto MEGATABLE__INIT.zero.$T
   assign rA 1
-  store qword $T s_MEGATABLE.size rA
+  store dword $T s_TABLE_HEADER.table_length rA
   lwreturn
 
 MEGATABLE__GET.$T:
@@ -84,8 +84,9 @@ MEGATABLE__LOOKUP.$T:
   xor rC rB
   
   assign rE MEGATABLE_iterations
-  load qword rF $T s_MEGATABLE.size
+  load dword rF $T s_TABLE_HEADER.table_length
   
+  assign $T.offset s_MEGATABLE_size
   MEGATABLE_LOOKUP_LOOP.$T:
     assign rD rC
     and rD MEGATABLE_kmask
@@ -123,7 +124,7 @@ MEGATABLE__ADD_NODE.$T:
   
   inc rF
   assign $T.offset 0
-  store qword $T s_MEGATABLE.size rF
+  store dword $T s_TABLE_HEADER.table_length rF
   dec rF
   
   shift-left rF MEGATABLE_scale
@@ -158,9 +159,9 @@ MEGATABLE__REMOVE_NODE.$T:
   # no children - delete node
   # get ref to last entry (and update table size)
   assign $T.offset 0
-  load qword rD $T s_MEGATABLE.size
+  load dword rD $T s_TABLE_HEADER.table_length
   dec rD
-  store qword $T s_MEGATABLE.size rD
+  store dword $T s_TABLE_HEADER.table_length rD
   shift-left rD MEGATABLE_scale
   
   # take the last entry

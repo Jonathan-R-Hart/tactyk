@@ -1,3 +1,8 @@
+6 Jul 2023
+  tactyk-extras - table
+    Make the table data structures passable as a generic container format
+    (move the table header to the 2nd entry use the first entry for a file header which indicates file type and specifies an optioanl supplemental data block)
+
 4 Jul 2023
   tactyk-core-bits - new instruction:  bitcount
 
