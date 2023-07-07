@@ -8,7 +8,7 @@
 struct s_TABLE_HEADER
   4 format_indicator
   4 table_length
-  4 supplemental_position
+  4 table_maxlength
   4 supplemental_length
 
 const MEGATABLE_kmask 28

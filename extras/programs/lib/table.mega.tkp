@@ -69,8 +69,8 @@ MEGATABLE__INIT.$T:
     store oword $T rA xA
     add rA 16
     goto MEGATABLE__INIT.zero.$T
-  assign rA 1
-  store dword $T s_TABLE_HEADER.table_length rA
+  store dword $T s_TABLE_HEADER.table_length 2
+  store dword $T s_TABLE_HEADER.table_maxlength -1
   lwreturn
 
 MEGATABLE__GET.$T:
