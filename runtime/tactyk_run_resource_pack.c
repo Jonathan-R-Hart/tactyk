@@ -109,14 +109,14 @@ FILE* tactyk_run__rsc__get_fileref(char *path, char *fname, char *mode) {
     return f;
 }
 
-bool tactyk_run__rsc__load_file(char *path, char *fname, int64_t *len, uint8_t **data) {    
+bool tactyk_run__rsc__load_file(char *path, char *fname, int64_t *len, uint8_t **data, uint64_t padding) {    
     FILE *f = tactyk_run__rsc__get_fileref(path, fname, "r");
     if (f == NULL) {
         return false;
     }
     fseek(f, 0, SEEK_END);
     *len = ftell(f);
-    *data = calloc(*len+1, sizeof(uint8_t));
+    *data = calloc(*len+padding+1, sizeof(uint8_t));
     fseek(f,0, SEEK_SET);
     fread(*data, *len, 1, f);
     fclose(f);
@@ -199,10 +199,10 @@ void tactyk_run__rsc__load_manifest(struct tactyk_run__RSC *rsc, char *filename)
     int64_t mlen = 0;
     uint8_t *mdata = NULL;
     
-    if (!tactyk_run__rsc__load_file(rsc->base_path, rsc->manifest_name, &mlen, &mdata)) {
+    if (!tactyk_run__rsc__load_file(rsc->base_path, rsc->manifest_name, &mlen, &mdata, 0)) {
         char fname_alt[256];
         snprintf(fname_alt, 256, "%s.manifest", rsc->manifest_name);
-        if (!tactyk_run__rsc__load_file(rsc->base_path, fname_alt, &mlen, &mdata)) {
+        if (!tactyk_run__rsc__load_file(rsc->base_path, fname_alt, &mlen, &mdata, 0)) {
             tactyk_report__string("Manifest file not found", filename);
             error(NULL, NULL);
         }
@@ -273,7 +273,7 @@ bool tactyk_run__rsc__load_module(struct tactyk_run__RSC *rsc, struct tactyk_dbl
     uint8_t *bytes;
     
     tactyk_report__string("Load module-file", filename_text);
-    if (!tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes)) {
+    if (!tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes, 0)) {
         tactyk_report__msg("Failed to open file for reading.");
         error(NULL, NULL);
     }
@@ -305,12 +305,13 @@ bool tactyk_run__rsc__load_data(struct tactyk_run__RSC *rsc, struct tactyk_dbloc
         tactyk_report__msg("Data directive parameters are missing");
         error(NULL, NULL);
     }
-    filename = token->next;
+    token = token->next;
+    filename = token;
     if (filename == NULL) {
         tactyk_report__msg("Data directive filename parameter is missing");
         error(NULL, NULL);
     }
-    
+    token = token->next;
     
     char filename_text[256];
     tactyk_dblock__export_cstring(filename_text, 256, filename);
@@ -321,16 +322,27 @@ bool tactyk_run__rsc__load_data(struct tactyk_run__RSC *rsc, struct tactyk_dbloc
     }
     
     int64_t len = 0;
+    uint64_t padding = 0;
     uint8_t *bytes;
     
+    if (tactyk_dblock__equals_c_string(token, "pad")) {
+        token = token->next;
+        if ( (token != NULL) && tactyk_dblock__try_parseuint(&padding, token) ) {
+            token = token->next;
+        }
+        else {
+            padding = 1024;
+        }
+    }
+    
     tactyk_report__string("Load data-file", filename_text);
-    if (!tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes)) {
+    if (!tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes, padding)) {
         tactyk_report__msg("Failed to open file for reading.");
         error(NULL, NULL);
     }
     tactyk_report__int("Loaded bytes", len);
     
-    struct tactyk_dblock__DBlock *dbctn = tactyk_dblock__from_bytes(NULL, bytes, 0, len, true); 
+    struct tactyk_dblock__DBlock *dbctn = tactyk_dblock__from_bytes(NULL, bytes, 0, len+padding, true);
     
     tactyk_dblock__put(rsc->data_table, name, dbctn);
     
