@@ -137,6 +137,119 @@ instruction bitcount
         and $DEST, 255
         popcnt $DEST, $DEST
 
+instruction reverse-bits
+  operand
+    type data
+    $DEST $VALUE
+  opt-operand
+    type data integer *const
+    $PARAM $VALUE
+    scramble rTEMPC
+    $LD_IMMEDIATE_INDIRECT_PARAM $SC_LD_INDIRECT
+    $TGT_PARAM $SC_TARGET
+  select-template
+    case D
+      sub tmp ra
+      sub tmp rd
+      code
+        mov rTEMPA, 0x5555555555555555
+        mov rTEMPD, $DEST
+        and $DEST, rTEMPA
+        shl rTEMPA, 1
+        and rTEMPD, rTEMPA
+        shr rTEMPD, 1
+        shl $DEST, 1
+        or $DEST, rTEMPD
+        mov rTEMPA, 0x3333333333333333
+        mov rTEMPD, $DEST
+        and $DEST, rTEMPA
+        shl rTEMPA, 2
+        and rTEMPD, rTEMPA
+        shr rTEMPD, 2
+        shl $DEST, 2
+        or $DEST, rTEMPD
+        mov rTEMPA, 0x0f0f0f0f0f0f0f0f
+        mov rTEMPD, $DEST
+        and $DEST, rTEMPA
+        shl rTEMPA, 4
+        and rTEMPD, rTEMPA
+        shr rTEMPD, 4
+        shl $DEST, 4
+        or $DEST, rTEMPD
+        bswap $DEST
+        $RESET_TEMP
+    case DD
+      sub tmp ra
+      sub tmp rC
+      sub tmp rd
+      code
+        mov rTEMPC, $DEST
+        mov rTEMPA, 0x5555555555555555
+        mov rTEMPD, $DEST
+        and $DEST, rTEMPA
+        shl rTEMPA, 1
+        and rTEMPD, rTEMPA
+        shr rTEMPD, 1
+        shl $DEST, 1
+        or $DEST, rTEMPD
+        mov rTEMPA, 0x3333333333333333
+        mov rTEMPD, $DEST
+        and $DEST, rTEMPA
+        shl rTEMPA, 2
+        and rTEMPD, rTEMPA
+        shr rTEMPD, 2
+        shl $DEST, 2
+        or $DEST, rTEMPD
+        mov rTEMPA, 0x0f0f0f0f0f0f0f0f
+        mov rTEMPD, $DEST
+        and $DEST, rTEMPA
+        shl rTEMPA, 4
+        and rTEMPD, rTEMPA
+        shr rTEMPD, 4
+        shl $DEST, 4
+        or $DEST, rTEMPD
+        bswap $DEST
+        mov rTEMPC, $PARAM
+        not rTEMPC
+        inc rTEMPC
+        shr $DEST, rTEMPC_8
+        $RESET_TEMP
+    case DI
+      sub tmp ra
+      sub tmp rc
+      sub tmp rd
+      code
+        mov rTEMPC, $DEST
+        mov rTEMPA, 0x5555555555555555
+        mov rTEMPD, $DEST
+        and $DEST, rTEMPA
+        shl rTEMPA, 1
+        and rTEMPD, rTEMPA
+        shr rTEMPD, 1
+        shl $DEST, 1
+        or $DEST, rTEMPD
+        mov rTEMPA, 0x3333333333333333
+        mov rTEMPD, $DEST
+        and $DEST, rTEMPA
+        shl rTEMPA, 2
+        and rTEMPD, rTEMPA
+        shr rTEMPD, 2
+        shl $DEST, 2
+        or $DEST, rTEMPD
+        mov rTEMPA, 0x0f0f0f0f0f0f0f0f
+        mov rTEMPD, $DEST
+        and $DEST, rTEMPA
+        shl rTEMPA, 4
+        and rTEMPD, rTEMPA
+        shr rTEMPD, 4
+        shl $DEST, 4
+        or $DEST, rTEMPD
+        bswap $DEST
+        $LD_IMMEDIATE_INDIRECT_PARAM
+        not rTEMPC
+        inc rTEMPC
+        shr $DEST, rTEMPC_8
+        $RESET_TEMP
 instruction reverse-bytes
   operand
     type word
