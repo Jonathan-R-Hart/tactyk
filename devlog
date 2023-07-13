@@ -7,9 +7,11 @@
       and passes the sampled color to the next stage.
     Added a PNG image loader
       (and a DEFLATE de-compressor ... and a binary code evaluator, and mechanisms to configure it to recognize Canonical Huffman Code)
-      It is quite incomplete (presently only loads 1-bit grayscale images), but more will be added soon.
       It does not perform any sort of error checking and will produce grabage data (if anything) or induce a crash if the input is corrupt or unrecognized.
       And, most significantly:  It is implemented completely inside the TACTYK sandbox.
+      Currently supported formats:
+        1-bit greyscale
+        2-bit grayscale
       
 12 Jul 2023
   tactyk-core-bits - new instruction:  reverse-bits

@@ -1,18 +1,25 @@
-struct s_texture_16x16
-  10240 data
+struct s_textures
+  16777216 data
 
-mem m_texture_data s_texture_16x16 256
+mem m_texture_data s_textures 1
 
 MAIN:
   lwcall PNG__INIT
   tcall get-data 'basn0g01
-  # tcall get-data 'TESTPNG
   bind addr2 addr1
   assign rA 0
   lwcall PNG__READ
   
   bind addr1 m_texture_data
   assign rA 0
+  lwcall PNG__GET
+
+  tcall get-data 'basn0g02
+  bind addr2 addr1
+  assign rA 0
+  lwcall PNG__READ
+  bind addr1 m_texture_data
+  assign rA 4096
   lwcall PNG__GET
   
   tcall dump-dispmode 1
@@ -223,6 +230,18 @@ MAIN:
       assign rB 32
       lwcall GX.pixmap.raw
       lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 700 140 32 32
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 1024
+      assign rB 32
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
       lwcall GX.draw
       
     load dword rA addr4 s_ui_control.needs_framebuffer_upload

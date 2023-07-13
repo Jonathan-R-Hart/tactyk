@@ -119,15 +119,14 @@ PNG__READ:
 
 PNG__GET:
   bind addr2 m_data_chunk
-  assign rC rA
-  stash sKh rA
+  stash sMh rA sKh rA
   stash rA sIl rB sIh
   stash rD sHl rE sHh
   add rD 8
   mul rE rD
   stash sMl rE
-  assign rF 0
-  stash rD sLl sMh rF
+  assign rF rC
+  stash rD sLl
   stash sAl rD sBl rD sCl rD
   if rA == 1
     shift-left rD 3
@@ -137,6 +136,8 @@ PNG__GET:
     assign rA PNG__EXTRACT.1bit
     goto PNG__GET.pickmode
   if rA == 2
+    shift-left rD 2
+    assign rC 4
     assign rA PNG__EXTRACT.2bit
     assign rE h.555555
     stash sNl rE
@@ -203,6 +204,26 @@ PNG__EXTRACT.1bit:
   lwreturn
 
 PNG__EXTRACT.2bit:
+  assign rE rC
+  stash rF sMl
+  if rE == rF PNG__GET.epilogue
+  if rE == rD
+    add rC 4
+    assign rE rC
+    stash rF sLl
+    shift-left rF 2
+    add rD rF
+  shift-right rE 2
+  load byte rF addr2 rE
+  assign rE rC
+  and rE h.03
+  negate rE
+  add rE 3
+  shift-left rE 1
+  shift-right rF rE
+  and rF 3
+  inc rC
+  goto rB
   lwreturn
 
 PNG__EXTRACT.4bit:

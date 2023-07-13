@@ -30,9 +30,6 @@ GX.pixmap.raw.impl:
   shift-left rB 2
   load dword rA addr1 rB
   store dword addr3 0 rA
-  #tcall dump-ctx
-  #tcall break
-  #assign rA h.ffffffff
   add rF 8
   if rF == gx_info__program.end
     lwreturn

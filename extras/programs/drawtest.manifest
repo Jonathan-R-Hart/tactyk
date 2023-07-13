@@ -1,8 +1,8 @@
 # GUI test/development program
 
-data TESTPNG data/.testpng/smile.happy.png pad
-data basi0g01 data/testpng/basi0g01.png pad
-data basn0g01 data/testpng/basn0g01.png pad
+data basi0g01 data/testpng/basi0g01.png
+data basn0g01 data/testpng/basn0g01.png
+data basn0g02 data/testpng/basn0g02.png
 data unifont data/unifont_basic_chars.tkf
 
 module ministring lib/ministring.tkp
