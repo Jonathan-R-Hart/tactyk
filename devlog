@@ -1,3 +1,12 @@
+14 Jul 2023
+  tactyk-core
+    new instructions:  sign
+      returns -1 if the register value is less than zero, returns 1 if the value is equal to or greater than zero
+      Implmeneted in single-operand and two-operand form (the single-operand form transforms a value, the two-operand form preserves the value and assigns to anothe register)
+    new isntruction: abs
+      returns the absolute value of the value on a register
+      Implmeneted in single-operand and two-operand form (the single-operand form transforms a value, the two-operand form preserves the value and assigns to anothe register)
+
 3-13 Jul 2023
   tactyk-extras - pixmap handling
     Revise the "GX.rect.fill" rasterizaer to leave more sensible values on the registers.
@@ -12,6 +21,7 @@
       Currently supported formats:
         1-bit greyscale
         2-bit grayscale
+        4-bit greyscale
       
 12 Jul 2023
   tactyk-core-bits - new instruction:  reverse-bits

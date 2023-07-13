@@ -157,6 +157,49 @@ subroutine binary_instruction
         $INSTRUCTION $A, $TGT_B
         $RESET_TEMP
 
+instruction sign
+  operand
+    type data
+    $DEST $VALUE
+  opt-operand
+    type data
+    $SRC $VALUE
+  select-template
+    case DD
+      code
+        mov $DEST, $SRC
+        not $DEST
+        shr $DEST, 63
+        shl $DEST, 1
+        dec $DEST
+    case D
+      code
+        not $DEST
+        shr $DEST, 63
+        shl $DEST, 1
+        dec $DEST
+
+instruction abs
+  operand
+    type data
+    $DEST $VALUE
+  opt-operand
+    type data
+    $SRC $VALUE
+  select-template
+    case DD
+      code
+        mov $DEST, $SRC
+        neg $DEST
+        cmovl $DEST, $SRC
+    case D
+      sub tmp ra
+      code
+        mov rTEMPA, $DEST
+        neg rTEMPA
+        cmovg $DEST, rTEMPA
+        $RESET_TEMP
+
 instruction add
   $INSTRUCTION add
   sub binary_instruction
