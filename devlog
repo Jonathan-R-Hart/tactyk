@@ -22,6 +22,7 @@
         1-bit greyscale
         2-bit grayscale
         4-bit greyscale
+        8-bit grAyscale
       
 12 Jul 2023
   tactyk-core-bits - new instruction:  reverse-bits
