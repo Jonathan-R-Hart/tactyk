@@ -20,7 +20,6 @@ GX.pixmap.raw:
   add rF 8
   lwreturn
 GX.pixmap.raw.impl:
-  # store dword addr3 0 rA
   load dword rA addr2 gx_info__texture.offset
   load dword rB addr2 gx_info__texture.vstride
   # compute pixel position (using data left on registers by a rasterizer)

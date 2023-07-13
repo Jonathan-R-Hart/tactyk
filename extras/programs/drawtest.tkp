@@ -3,24 +3,29 @@ struct s_textures
 
 mem m_texture_data s_textures 1
 
+LOAD__PNG:
+  stash sZl rB
+  bind addr2 addr1
+  assign rA 0
+  lwcall PNG__READ
+  bind addr1 m_texture_data
+  stash rA sZl
+  lwcall PNG__GET
+  lwreturn
+
 MAIN:
   lwcall PNG__INIT
-  tcall get-data 'basn0g01
-  bind addr2 addr1
   assign rA 0
-  lwcall PNG__READ
+  assign rB 0
   
-  bind addr1 m_texture_data
-  assign rA 0
-  lwcall PNG__GET
-
+  tcall get-data 'basn0g01
+  lwcall LOAD__PNG
   tcall get-data 'basn0g02
-  bind addr2 addr1
-  assign rA 0
-  lwcall PNG__READ
-  bind addr1 m_texture_data
-  assign rA 4096
-  lwcall PNG__GET
+  lwcall LOAD__PNG
+  tcall get-data 'basn0g04
+  lwcall LOAD__PNG
+
+  mctxpush
   
   tcall dump-dispmode 1
   tcall get-data 'unifont
@@ -101,7 +106,7 @@ MAIN:
   assign xA 'Justalabel
   lwcall BASIC_UI__TEXT h.ffffbbbb 5 17
   
-  lwcall BASIC_UI__BOX 'pngarea h.ff201000
+  lwcall BASIC_UI__BOX 'pngarea h.ff401000
   # store oword addr1 s_basic_gui_element.text xA
   store dword addr1 s_basic_gui_element.x 650
   store dword addr1 s_basic_gui_element.y 100
@@ -238,6 +243,17 @@ MAIN:
       lwcall GX.rect.fill
       bind addr1 m_texture_data
       assign rA 1024
+      assign rB 32
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+
+      assign rF 0
+      spread rA 740 140 32 32
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 2048
       assign rB 32
       lwcall GX.pixmap.raw
       lwcall GX.util.exit

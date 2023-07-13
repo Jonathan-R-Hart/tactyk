@@ -143,11 +143,14 @@ PNG__GET:
     stash sNl rE
     goto PNG__GET.pickmode
   if rA == 4
+    shift-left rD 1
+    assign rC 2
     assign rA PNG__EXTRACT.4bit
     assign rE h.111111
     stash sNl rE
     goto PNG__GET.pickmode
   if rA == 8
+    assign rC 1
     assign rA PNG__EXTRACT.8bit
     assign rE h.010101
     stash sNl rE
@@ -177,8 +180,13 @@ PNG__GET:
   exit
 
 PNG__GET.epilogue:
+  stash rA sKh rB sMh rC sHl rD sHh
+  
+  # calculate where the end index is supposed to be [instead of trusting the pixel emitter to leave a correct index behind]
   assign rB rC
-  stash rA sKh rC sHl rD sHh
+  mul rB rD
+  mul rB 4
+  add rB rA
   lwreturn
 
 PNG__EXTRACT.1bit:
@@ -227,6 +235,25 @@ PNG__EXTRACT.2bit:
   lwreturn
 
 PNG__EXTRACT.4bit:
+  assign rE rC
+  stash rF sMl
+  if rE == rF PNG__GET.epilogue
+  if rE == rD
+    add rC 2
+    assign rE rC
+    stash rF sLl
+    shift-left rF 1
+    add rD rF
+  shift-right rE 1
+  load byte rF addr2 rE
+  assign rE rC
+  and rE h.01
+  xor rE 1
+  shift-left rE 2
+  shift-right rF rE
+  and rF 15
+  inc rC
+  goto rB
   lwreturn
 
 PNG__EXTRACT.8bit:
@@ -241,6 +268,8 @@ PNG__CONVERT.indexed:
 
 PNG__GET.write:
   stash rE sMh
+  # tcall print-int-e
+  # tcall print-space
   store dword addr1 rE rF
   # store dword addr1 rE h.ffff00ff
   add rE 4
