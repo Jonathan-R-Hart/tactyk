@@ -119,7 +119,7 @@ DEFLATE__INIT:
   lwcall CODEBOOK_CH__PUT.deflate
   assign rD h.001b0277
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.001e0277
+  assign rD h.001f0277
   lwcall CODEBOOK_CH__PUT.deflate
   assign rD h.00230377
   lwcall CODEBOOK_CH__PUT.deflate
@@ -624,18 +624,11 @@ DEFLATE__HUFFMAN.backref:
   
   assign addr3.offset 0
   
-  # get backref-distance params
-  # rF:  bitcount of additive
-  # rE:  offset
-  #shift-left rE 2
-  #load word rF addr4 rE
-  #add rE 2
-  #load word rE addr4 rE
-  
   stash rF sBh rC sCl rE sBl
   
   negate rB
   add rB rF
+  
   if rB > 0
     DEFLATE__HUFFMAN.backref.copy:
     if rC > 0
@@ -645,6 +638,5 @@ DEFLATE__HUFFMAN.backref:
       add rB 1
       add rF 1
       goto DEFLATE__HUFFMAN.backref.copy
-  
   stash rE sBl
   goto DECODE.deflate
