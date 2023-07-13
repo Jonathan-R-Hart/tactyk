@@ -75,7 +75,7 @@ UI__NEW_GUI_ELEMENT:
   bind addr4 m_gui_table
   
   assign addr4.offset 0
-  load qword rB addr4 s_MINITABLE.size
+  load dword rB addr4 s_TABLE_HEADER.table_length
   dec rB
   
   mul rB s_gui_element_size
@@ -97,7 +97,7 @@ UI__NEW_KUI_ELEMENT:
   bind addr4 m_kui_table
   
   assign addr4.offset 0
-  load qword rB addr4 s_MINITABLE.size
+  load dword rB addr4 s_TABLE_HEADER.table_length
   
   mul rB s_kui_element_size
   assign addr1.offset rB

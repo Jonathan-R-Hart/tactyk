@@ -1,3 +1,22 @@
+3-13 Jul 2023
+  tactyk-extras - pixmap handling
+    Revise the "GX.rect.fill" rasterizaer to leave more sensible values on the registers.
+      (and more importantly, to leave relative X and Y coordinates on the registers)
+    Added a "pixmap" sampler (nearest-neighbor only)
+      This takes relative X and Y coordinates from a rasterizer and samples a pixmap (2D image with a 32-bit RGBA pixel format)
+      and passes the sampled color to the next stage.
+    Added a PNG image loader
+      (and a DEFLATE de-compressor ... and a binary code evaluator, and mechanisms to configure it to recognize Canonical Huffman Code)
+      It is quite incomplete (presently only loads 1-bit grayscale images), but more will be added soon.
+      It does not perform any sort of error checking and will produce grabage data (if anything) or induce a crash if the input is corrupt or unrecognized.
+      And, most significantly:  It is implemented completely inside the TACTYK sandbox.
+      
+12 Jul 2023
+  tactyk-core-bits - new instruction:  reverse-bits
+    reverse bit order with bitwise opreators and bswap. 
+    The second [optional] parameter specifies the size of the bitfield.
+      (if specified, this reverses the least signfiicant bits and discards any out-of-bounds bits)
+
 8 Jul 2023
   tactyk-runtime
     Add an option to append padding bytes to loaded files.

@@ -1,5 +1,8 @@
 # GUI test/development program
 
+data TESTPNG data/.testpng/smile.happy.png pad
+data basi0g01 data/testpng/basi0g01.png pad
+data basn0g01 data/testpng/basn0g01.png pad
 data unifont data/unifont_basic_chars.tkf
 
 module ministring lib/ministring.tkp
@@ -7,6 +10,7 @@ module bmp16x28 lib/bitmap16x28.tkp
 module bmpf lib/renderers/bmpfnt16x16.tkp
 module draw lib/tactyk_draw.tkp
 module rect-renderers lib/renderers/rect.tkp
+module pixmap lib/renderers/pixmap.tkp
 module matrix lib/matrix-simd.tkp
 module main drawtest.tkp
 module irrvn lib/renderers/irrvnoise.tkp
@@ -17,5 +21,30 @@ module table.addr4  lib/table.mini.tkp
 module ui lib/ui.tkp
 module basic-ui lib/basic-ui.tkp
 
-program prog thead table.addr4 ui basic-ui main matrix rect-renderers draw bmp16x28 bmpf ministring
+module deflate lib/deflate.tkp
+module png lib/png.tkp
+module code lib/code.tkp
+  $NAME deflate
+  $CODEWORDMASK h.01ff
+  $CODEWORDBITS 9
+  $CODEWORDSCALE 3
+  $CODEVALUESIZE dword
+  $CONSUMPTIONBITS 4
+  $CONSUMPTIONMASK h.000f
+  $CONSUMPTIONCONST 0
+  $HANDLERMASK h.07
+  $HANDLERBITS 4
+  $HANDLERBASE DEFLATE__HUFFMAN.val
+  $HANDLERALIGNMENT 2
+
+module bitstream lib/bitstream.tkp
+  $NAME decoder
+  $rBITCOUNT rD
+  $rPOSITION rE
+  $rEND rF
+  $rBITS rA
+  $rOUT rB
+  $rDATA addr2
+
+program prog thead table.addr4 bitstream deflate png code ui basic-ui main matrix rect-renderers draw bmp16x28 bmpf ministring pixmap
 main prog MAIN

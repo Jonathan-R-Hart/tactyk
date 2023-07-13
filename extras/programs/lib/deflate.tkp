@@ -1,0 +1,650 @@
+
+# DEFLATE stream de-compressor
+# This is incomplete, mostly untested.
+# It was developed as part of a PNG image loader, and possibly may be overly integrated with it.
+#   (it has mostly been separated, but still avoids portions of the stash used by PNG handling)
+# 
+# Anyway, this makes extensive use of dynamic programming to decode data -- control tables are built
+#   which map all combinations of bits [within a preset limit] onto sets of control parameters 
+#     (function reference, bitstream bits to 'consume', and symbol or back-ref parameters).
+# Two distinct tables are used to account the distinction between "literal/length" symbols and distance symbols.
+# 
+# Known gaps:  
+#     Uncompressed blocks have not been implemented
+#     There is no error checking 
+#         (it relies on TACTYK memory restrictions to avoid getting out of hand, 
+#          and will either yield garbage or crash if the stream is corrupt)
+#
+# The matter of decoding Huffman data is deferred to a generic decoding utility (code.tkp)
+# 
+
+struct s_codebook
+  8192 data
+
+# codebook encoding:  
+#   bits 0-3:   number of bits to advance [in the input bitstream]
+#   bits 4-7:   function to invoke
+#   bits 8-15:  argument
+
+mem m_deflate_codebook_fixed s_codebook 2
+mem m_deflate_codebook_"DYNAMIC" s_codebook 2
+mem m_codelen_codebook s_codebook 1
+
+flat m_codelen_order byte
+  16 17 18 0 8 7 9 6 10 5 11 4 12 3 13 2 14 1 15
+
+struct s_defl_misc
+  2048 data
+mem m_defl_misc s_defl_misc 2
+
+DEFLATE__UNCOMPRESS_RAW:
+  lwcall BITSTREAM__INIT.decoder
+  assign xA 'INIT.state:
+  lwcall BITSTREAM__READ_3.decoder
+  if rB == 3
+    bind addr3 m_deflate_codebook_fixed
+    lwreturn
+  if rB == 5
+    lwcall DEFLATE__MK_"DYNAMIC"_TABLE
+    bind addr3 m_deflate_codebook_"DYNAMIC"
+    lwreturn
+  
+  assign xA 'todo:DflBlkType
+  tcall print-text-xa
+  tcall print-space
+  tcall print-int-b
+  tcall print-newline
+  tcall dump-ctx
+  exit
+
+# Setup the control table used for unpacking DEFLATE blocks which use the fixed Huffman table
+#
+# The control table is an array of 32-bit entries specifying what the symbols are and how the decoder should respond to them:
+#     bits 0-3:  number of bits from the bitstream to consume
+#     bits 4-5:  function to invoke       (most significant bits of jump-table offset from tactyk function "DEFLATE__HUFFMAN.val")
+#                   00: literal value
+#                   01: lwreturn          (for when the decoder is invoked directly)
+#                   10: end of DEFLATE block
+#                   11: back-reference
+#     bit 7:     unused
+#     
+#     bits 8-31: varies based on symbol type:
+#       Literal Symbols:  bits 8-15:  value, bits 16-31:  unused
+#       block-end:        bits 8-31:  unused
+#       backref-length:   bits 8-15:  additive bit count ("extra bits"), bits 16-31:  base length of back-reference
+#       backref-offset:   bits 8-15:  additive bit count ("extra bits"), bits 16-31:  base offset of back-reference
+DEFLATE__INIT:
+  bind addr3 m_deflate_codebook_fixed
+  assign addr3.offset 0
+  lwcall CODEBOOK_CH__INIT.deflate
+  
+  # start with 7-bit codes
+  lwcall CODEBOOK_CH__NEXTBIT.deflate
+  lwcall CODEBOOK_CH__NEXTBIT.deflate
+  lwcall CODEBOOK_CH__NEXTBIT.deflate
+  lwcall CODEBOOK_CH__NEXTBIT.deflate
+  lwcall CODEBOOK_CH__NEXTBIT.deflate
+  lwcall CODEBOOK_CH__NEXTBIT.deflate
+  
+  assign rD h.0027
+  lwcall CODEBOOK_CH__PUT.deflate
+      
+  assign rD h.00030077
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00040077
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00050077
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00060077
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00070077
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00080077
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00090077
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.000a0077
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.000b0177
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.000d0177
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.000f0177
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00110177
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00130277
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00170277
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.001b0277
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.001e0277
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00230377
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.002b0377
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00330377
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.003b0377
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00430477
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00530477
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00630477
+  lwcall CODEBOOK_CH__PUT.deflate
+  
+  # switch to 8-bit codes
+  lwcall CODEBOOK_CH__NEXTBIT.deflate
+  
+  # ltierals 0-143
+  assign rD h.0008
+  DEFLATE__MK_FIXED_TABLE.literals.low:
+  if rD < h.9008
+    lwcall CODEBOOK_CH__PUT.deflate
+    add rD h.0100
+    goto DEFLATE__MK_FIXED_TABLE.literals.low
+  
+  assign rD h.00730478
+  lwcall CODEBOOK_CH__PUT.deflate  
+  assign rD h.00830578
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00a30578
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00c30578
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00e30578
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.01020078
+  lwcall CODEBOOK_CH__PUT.deflate
+  
+  assign rD h.ffff0078
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.ffff0078
+  lwcall CODEBOOK_CH__PUT.deflate
+  
+  lwcall CODEBOOK_CH__NEXTBIT.deflate
+  assign rD h.9009
+  
+  DEFLATE__MK_FIXED_TABLE.literals.high:
+  if rD <= h.ff09
+    lwcall CODEBOOK_CH__PUT.deflate
+    add rD h.0100
+    goto DEFLATE__MK_FIXED_TABLE.literals.high  
+  
+  #bind addr3 m_deflate_codebook_fixed
+  assign addr3.offset s_codebook_size
+  
+  lwcall CODEBOOK_CH__INIT.deflate
+  
+  # 5-bit codes
+  lwcall CODEBOOK_CH__NEXTBIT.deflate
+  lwcall CODEBOOK_CH__NEXTBIT.deflate
+  lwcall CODEBOOK_CH__NEXTBIT.deflate
+  lwcall CODEBOOK_CH__NEXTBIT.deflate
+  
+  # distance codes for offsets 1-4 (no extra bits)
+  assign rD h.00010015
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00020015
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00030015
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00040015
+  lwcall CODEBOOK_CH__PUT.deflate
+  
+  # distance codes for base offsets 5-24577 (++1 extra bit every other entry)
+  assign rD h.00050115
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00070115
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00090215
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.000d0215
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00110315
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00190315
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00210415
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00310415
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00410515
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00610515
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00810615
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.00c10615
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.01010715
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.01810715
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.02010815
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.03010815
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.04010915
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.06010915
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.08010a15
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.0c010a15
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.10010b15
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.18010b15
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.20010c15
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.30010c15
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.40010d15
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.60010d15
+  lwcall CODEBOOK_CH__PUT.deflate
+  
+  # dummy entries for invalid distnace codes 30 and 31
+  assign rD h.ffff0015
+  lwcall CODEBOOK_CH__PUT.deflate
+  assign rD h.ffff0015
+  lwcall CODEBOOK_CH__PUT.deflate
+  
+  lwreturn
+
+DEFLATE__MK_"DYNAMIC"_TABLE:
+  bind addr4 m_defl_misc
+  
+  assign rC 0
+  DEFLATE__MK_"DYNAMIC"_TABLE.reset:
+  if rC < 19
+    store byte addr4 rC 0
+    inc rC
+    goto DEFLATE__MK_"DYNAMIC"_TABLE.reset
+  
+  # set up a control table for handling the stupid codelen code.
+  #  It's a compression scheme for a shockingly small amount of data...
+  
+  # first read the base length values
+  assign rB rA
+  and rB 31
+  add rB 257
+  shift-right rA 5
+  assign rC rA
+  and rC 31
+  add rC 1
+  shift-right rA 5
+  stash sB rB sC rC sF rF sE rE
+  
+  assign rC rA
+  shift-right rA 4
+  and rC 15
+  stash sA rB
+  sub rD 14
+  
+  add rC 4
+  assign rE 0
+  
+  # read codelen-code lengths
+  lwcall BITSTREAM__PREFETCH.decoder
+  bind addr3 m_codelen_order
+  DEFLATE__MK_"DYNAMIC"_TABLE.read_codelenlen:
+  if rC > 0
+    stash swap sE rE
+    lwcall BITSTREAM__PREFETCH.decoder
+    lwcall BITSTREAM__READ_3.decoder
+    stash swap sE rE
+    load byte rF addr3 rE
+    store byte addr4 rF rB
+    dec rC
+    inc rE
+    goto DEFLATE__MK_"DYNAMIC"_TABLE.read_codelenlen
+  
+  stash sD rD sA rA
+  bind addr3 m_codelen_codebook
+  
+  stash swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+  lwcall CODEBOOK_CH__INIT.deflate
+  stash swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+  
+  assign rB 1
+  DEFLATE__MK_"DYNAMIC"_TABLE.mk_codelencodebook:
+  if rB < 11
+    assign rC 0
+    DEFLATE__MK_"DYNAMIC"_TABLE.mk_codelencodebook.stratum:
+    if rC < 19
+      load byte rF addr4 rC
+      if rF == rB
+        assign rD rC
+        shift-left rD 8
+        or rD rB
+        if rC < 16
+          or rD h.30    # codelen-code literal
+        if rC == 16
+          or rD h.40    # codelen-code copy
+        if rC == 17
+          or rD h.50    # codelen-code zeros
+        if rC == 18
+          or rD h.60    # codelen-code zeros2
+        stash swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+        assign xA 'CODEWORD:
+        lwcall CODEBOOK_CH__PUT.deflate
+        stash swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+      inc rC
+      goto DEFLATE__MK_"DYNAMIC"_TABLE.mk_codelencodebook.stratum
+    stash swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+    lwcall CODEBOOK_CH__NEXTBIT.deflate
+    stash swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+    inc rB
+    goto DEFLATE__MK_"DYNAMIC"_TABLE.mk_codelencodebook
+  
+  stash rA sA rD sDl rE sEl
+  bind addr3 m_codelen_codebook
+  bind addr4 m_defl_misc
+  stash rF sB
+  stash rC sC
+  add rF rC
+  assign rC 0
+  stash sCh rC
+  
+  DEFLATE__MK_"DYNAMIC"_TABLE.mk_literalscodebook:
+  if rC < rF
+    # can't goto here because the "copy" subroutine needs to be able to call the "symbol" subroutine multiple times
+    lwcall DECODE.deflate
+    goto DEFLATE__MK_"DYNAMIC"_TABLE.mk_literalscodebook
+  
+  stash sAl rA sDl rD sEl rE
+  
+  stash rF sB
+  assign rB 0
+  assign rE 1
+  assign rC 0
+  
+  bind addr3 m_deflate_codebook_"DYNAMIC"
+  assign addr3.offset 0
+  
+  stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+  lwcall CODEBOOK_CH__INIT.deflate
+  stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+  
+  DEFLATE__MK_"DYNAMIC"_TABLE.mk_literal_table:
+  if rE < 12
+    # get codeword length
+    if rC < rF
+      load byte rD addr4 rC
+    
+    # if all codewords for the stratum are handled, move to the next
+    if rC >= rF
+      inc rE
+      assign rC 0
+      stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+      lwcall CODEBOOK_CH__NEXTBIT.deflate
+      stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+      goto DEFLATE__MK_"DYNAMIC"_TABLE.mk_literal_table
+    
+    # check codeword length - if the codeword does not belong to the current stratum, skip it
+    #   (could also sort the data and record indices, but that's an extra complication)
+    if rD == rE
+      if rC == 285
+        assign rD 258
+        goto DEFLATE__MK_"DYNAMIC"_TABLE.mk_literal_table.len.len
+      if rC < 256
+        assign rD rC
+        shift-left rD 8
+        # or rD h.00        # literal function
+      if rC >= 257
+        assign rD rC
+        sub rD 254
+        if rC > 265
+          assign rA rC
+          sub rA 265
+          mul rA 8
+          add rD rA
+        if rC > 269
+          assign rA rC
+          sub rA 269
+          mul rA 16
+          add rD rA
+        if rC > 273
+          assign rA rC
+          sub rA 273
+          mul rA 32
+          add rD rA
+        if rC > 277
+          assign rA rC
+          sub rA 277
+          mul rA 64
+          add rD rA
+        
+        DEFLATE__MK_"DYNAMIC"_TABLE.mk_literal_table.len.len:
+        shift-left rD 8
+        if rC <= 284
+          if rC >= 261
+            assign rA rC
+            sub rA 261        # backref base length
+            shift-right rA 2
+            or rD rA
+        shift-left rD 8
+        or rD h.70          # backref function
+        
+      if rC == 256
+        assign rD h.20      # end of DEFLATE block function
+      
+      or rD rE              # codeword length
+      
+      # add the code to the codebook
+      stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+      lwcall CODEBOOK_CH__PUT.deflate
+      stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+    inc rC
+    goto DEFLATE__MK_"DYNAMIC"_TABLE.mk_literal_table
+    
+  stash rC sB
+  stash rF sC
+  add rF rC
+  assign rE 1
+  assign rA 0
+  assign rB 0
+  bind addr3 m_deflate_codebook_"DYNAMIC"
+  assign addr3.offset s_codebook_size
+  
+  stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+  lwcall CODEBOOK_CH__INIT.deflate
+  stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+  
+  DEFLATE__MK_"DYNAMIC"_TABLE.mk_distance_table:
+  if rE < 12
+    
+    if rB >= 4
+      assign rD 1
+      shift-left rD rA
+      add rB rD
+      if rC ~& 1
+        inc rA
+    if rB < 4
+      inc rB
+    
+    # get codeword length
+    if rC < rF
+      load byte rD addr4 rC
+    
+    # if all codewords for the stratum are handled, move to the next
+    if rC >= rF
+      inc rE
+      assign rA 0
+      assign rB 0
+      stash rC sB
+      stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+      lwcall CODEBOOK_CH__NEXTBIT.deflate
+      stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+      goto DEFLATE__MK_"DYNAMIC"_TABLE.mk_distance_table
+    
+    # check codeword length - if the codeword does not belong to the current stratum, skip it
+    #   (could also sort the data and record indices, but that's an extra complication)
+    if rD == rE
+      assign rD rB          # offset parameter
+      shift-left rD 8
+      or rD rA            # bit count of offset additive
+      shift-left rD 8
+      or rD h.10            # continue-backref function
+      or rD rE              # codeword length
+      
+      # add the code to the codebook
+      stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+      lwcall CODEBOOK_CH__PUT.deflate
+      stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
+    inc rC
+    
+    goto DEFLATE__MK_"DYNAMIC"_TABLE.mk_distance_table
+  
+  stash rA sAl rD sDl rE sEl rF sFl
+  lwreturn
+
+DEFLATE__MK_CODELENCODEBOOK.symbol:
+  stash rC sCh
+  store byte addr4 rC rB
+  inc rC
+  stash sCh rC
+  lwreturn
+  
+DEFLATE__MK_CODELENCODEBOOK.copy:
+  stash rC sCh
+  DEFLATE__MK_CODELENCODEBOOK.copy.lp:
+  if rB > 0
+    store byte addr4 rC rF
+    inc rC
+    dec rB
+    goto DEFLATE__MK_CODELENCODEBOOK.copy.lp
+  stash sCh rC
+  lwreturn
+DEFLATE__MK_CODELENCODEBOOK.zeros:
+  lwcall BITSTREAM__READ_3.decoder
+  add rB 3
+  stash rC sCh
+  DEFLATE__MK_CODELENCODEBOOK.zeros.lp:
+  if rB > 0
+    store byte addr4 rC 0
+    inc rC
+    dec rB
+    goto DEFLATE__MK_CODELENCODEBOOK.zeros.lp
+  stash sCh rC
+  lwreturn
+DEFLATE__MK_CODELENCODEBOOK.zeros2:
+  assign xA 'ZEROS2
+  lwcall BITSTREAM__READ_7.decoder
+  add rB 11
+  stash rC sCh
+  goto DEFLATE__MK_CODELENCODEBOOK.zeros.lp
+
+DEFLATE__HUFFMAN.val:
+  store byte addr1 rF rB
+  inc rF
+  goto DECODE.deflate
+  skip
+
+DEFLATE__HUFFMAN.distref.ret:
+  goto DEFLATE__HUFFMAN.backref.resume
+  skip
+  skip
+  skip
+
+DEFLATE__HUFFMAN.exit:
+  lwreturn
+  skip
+  skip
+  skip
+
+DEFLATE__MK_CODELENCODE.symbol:
+  goto DEFLATE__MK_CODELENCODEBOOK.symbol
+  skip
+  skip
+  skip
+DEFLATE__MK_CODELENCODE.copy:
+  goto DEFLATE__MK_CODELENCODEBOOK.copy
+  skip
+  skip
+  skip
+DEFLATE__MK_CODELENCODE.zeros:
+  goto DEFLATE__MK_CODELENCODEBOOK.zeros
+  skip
+  skip
+  skip
+DEFLATE__MK_CODELENCODE.zeros2:
+  goto DEFLATE__MK_CODELENCODEBOOK.zeros2
+  skip
+  skip
+  skip
+
+DEFLATE__HUFFMAN.backref:
+  # relieve register pressure
+  stash sBl rE
+  
+  assign rC rB
+  shift-right rC 8
+  and rB h.ff
+  
+  # get backref-length params
+  #  rC:  offset
+  #  rB:  bitcount of additive
+  #shift-left rB 2
+  #load word rC addr4 rB
+  #add rB 2
+  #load word rB addr4 rB
+  
+  # read length additive from bitstream and apply it
+  sub rD rB
+  assign rE rA
+  shift-right rA rB
+  shift-left rA rB
+  xor rE rA
+  shift-right rA rB
+  add rC rE
+  stash sCl rC rE sBl
+  assign addr3.offset s_codebook_size
+  goto DECODE.deflate
+  
+  DEFLATE__HUFFMAN.backref.resume:
+  stash sBl rE sBh rF
+  assign rC rB
+  and rC h.ff
+  shift-right rB 8
+  assign rE rA
+  shift-right rA rC
+  shift-left rA rC
+  xor rE rA
+  shift-right rA rC
+  sub rD rC
+  assign rF 0
+  add rB rE
+  
+  assign addr3.offset 0
+  
+  # get backref-distance params
+  # rF:  bitcount of additive
+  # rE:  offset
+  #shift-left rE 2
+  #load word rF addr4 rE
+  #add rE 2
+  #load word rE addr4 rE
+  
+  stash rF sBh rC sCl rE sBl
+  
+  negate rB
+  add rB rF
+  if rB > 0
+    DEFLATE__HUFFMAN.backref.copy:
+    if rC > 0
+      load byte rE addr1 rB
+      store byte addr1 rF rE
+      sub rC 1
+      add rB 1
+      add rF 1
+      goto DEFLATE__HUFFMAN.backref.copy
+  
+  stash rE sBl
+  goto DECODE.deflate

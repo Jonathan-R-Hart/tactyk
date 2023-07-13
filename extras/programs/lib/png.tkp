@@ -1,0 +1,518 @@
+# stash allocation
+#
+# This gets a little complicated -- you probably should wrap any calls into this with "mctxpush ... mctxpop".
+#
+#   sA-sF:  shadow-registers
+#   sH-sN:  PNG control
+#   s28-s31:  table
+#   sHl - width
+#   sHh - height
+#   sIl - bit-depth
+#   sIh - color type
+#   sJl - compression
+#   sJh - filter
+#   sKl - interlace
+#   sU-sZ:  more shadow-registers
+#   
+
+# register allocation
+#   addr1 - output texture
+#   addr2 - input png data
+#   addr3 - *varies
+#   addr4 - *varies
+
+struct s_texture
+  4 width
+  4 height
+  # data [any amount]
+
+struct s_data_chunk
+  16777216 data
+
+mem m_png_palette s_data_chunk 1
+mem m_data_chunk s_data_chunk 1
+mem m_png_control s_MINITABLE 65536
+
+
+PNG__INIT:
+  bind addr4 m_png_control
+  lwcall MINITABLE__INIT.addr4
+  lwcall MINITABLE__PUT.addr4 PNG__IHDR 'IHDR
+  lwcall MINITABLE__PUT.addr4 PNG__PLTE 'PLTE
+  lwcall MINITABLE__PUT.addr4 PNG__tRNS 'tRNS
+  lwcall MINITABLE__PUT.addr4 PNG__IDAT 'IDAT
+  lwcall MINITABLE__PUT.addr4 PNG__IEND 'IEND
+  
+  # build the static huffman decoder table (for DEFLATE)
+  assign rD 0
+  stash sAl rD
+  lwcall DEFLATE__INIT
+  
+  # build a parallel of the Huffman decoder table with a variant literal-value handler (to capture the distance field in back-references)
+  lwreturn
+
+PNG__READ:
+  stash sBl rA
+  bind addr1 m_data_chunk
+  load qword rA addr2 0
+  if rA != h.0a1a0a0d474e5089
+    assign xA 'ThatsNOTaPNG:
+    tcall print-text-xa
+    tcall print-space
+    tcall print-int-a
+    tcall print-newline
+    exit
+    
+  assign rE 8
+  assign rF addr2.element_bound
+  PNG__READ.scan:
+  if rE < rF
+    load dword rD addr2 rE
+    reverse-bytes dword rD
+    add rE 4
+    load dword rB addr2 rE
+    add rE 4
+    
+    block-stash 6 sK rA
+    bind addr4 m_png_control    
+    lwcall MINITABLE__GET.addr4
+    stash rD sLh
+    stash rE sMl
+    
+    # if the handler for the PNG chunk is defined, invoke it
+    if rC == 1
+      goto rA
+    
+    # if the handler for the PNG chunk is undefined, fuss about it on the System Console.
+    if rC == 0
+      assign xA 'Unimplemented
+      if rB & h.20
+        assign xB 'Ancillary-chunk:
+      if rB ~& h.20
+        assign xB 'Critical--chunk:
+      tcall print-text-xa
+      tcall print-space
+      tcall print-text-xb
+      tcall print-space
+      tcall print-text-b
+      tcall print-space
+      tcall print-int-d
+      tcall print-newline
+    
+    PNG__READ.next:
+    block-stash 6 rA sK
+    
+    add rE rD
+    
+    # CRC ... dont care - If you want validation, load your PNGs in an image editor and have at it.
+    #load dword rD addr2 rE
+    #reverse-bytes dword rD
+    
+    add rE 4
+    
+    goto PNG__READ.scan
+  assign xA 'ERR.missing.IEND
+  tcall print-text-xa
+  tcall print-newline
+  assign rA 0
+  lwreturn
+
+PNG__GET:
+  bind addr2 m_data_chunk
+  assign rC rA
+  stash sKh rA
+  stash rA sIl rB sIh
+  stash rD sHl rE sHh
+  add rD 8
+  mul rE rD
+  stash sMl rE
+  assign rF 0
+  stash rD sLl sMh rF
+  stash sAl rD sBl rD sCl rD
+  if rA == 1
+    shift-left rD 3
+    assign rC 8
+    assign rE h.ffffff
+    stash sNl rE
+    assign rA PNG__EXTRACT.1bit
+    goto PNG__GET.pickmode
+  if rA == 2
+    assign rA PNG__EXTRACT.2bit
+    assign rE h.555555
+    stash sNl rE
+    goto PNG__GET.pickmode
+  if rA == 4
+    assign rA PNG__EXTRACT.4bit
+    assign rE h.111111
+    stash sNl rE
+    goto PNG__GET.pickmode
+  if rA == 8
+    assign rA PNG__EXTRACT.8bit
+    assign rE h.010101
+    stash sNl rE
+    goto PNG__GET.pickmode
+
+  assign xA 'todo-bitrate:
+  tcall print-text-xa
+  tcall print-space
+  tcall print-int-a
+  tcall print-newline
+  exit
+  
+  PNG__GET.pickmode:
+  if rB == 0
+    assign rB PNG__CONVERT.grayscale
+    goto rA
+  #if rB == 3 
+  #  assign rB PNG__CONVERT.indexed
+  #  goto rA
+  
+  assign xA 'todo-colormode:
+  tcall print-text-xa
+  tcall print-space
+  tcall print-int-a
+  tcall print-newline
+  
+  exit
+
+PNG__GET.epilogue:
+  assign rB rC
+  stash rA sKh rC sHl rD sHh
+  lwreturn
+
+PNG__EXTRACT.1bit:
+  assign rE rC
+  stash rF sMl
+  if rE == rF PNG__GET.epilogue
+  if rE == rD
+    add rC 8
+    assign rE rC
+    stash rF sLl
+    shift-left rF 3
+    add rD rF
+  shift-right rE 3
+  load byte rF addr2 rE
+  assign rE rC
+  and rE h.07
+  negate rE
+  add rE 7
+  shift-right rF rE
+  and rF 1
+  inc rC
+  goto rB
+  lwreturn
+
+PNG__EXTRACT.2bit:
+  lwreturn
+
+PNG__EXTRACT.4bit:
+  lwreturn
+
+PNG__EXTRACT.8bit:
+  lwreturn
+
+PNG__CONVERT.grayscale:
+  stash rE sNl
+  mul rF rE
+  goto PNG__GET.write
+PNG__CONVERT.indexed:
+  goto PNG__GET.epilogue
+
+PNG__GET.write:
+  stash rE sMh
+  store dword addr1 rE rF
+  # store dword addr1 rE h.ffff00ff
+  add rE 4
+  stash sMh rE
+  goto rA
+
+#PNG__GET.indexed:
+#  bind addr3 m_png_palette
+#  stash rD sLl
+#  stash rD sIl
+#  if rD == 2
+#    PNG__GET.indexed.lp.halfnibble.outer:
+#      stash rD sLl
+#      inc rF
+#      PNG__GET.indexed.lp.halfnibble:
+#      dec rD
+#      if rF < rE
+#        if rD == 0  PNG__GET.indexed.lp.halfnibble.outer
+#        load byte rA addr2 rF
+#        
+#        assign rB rA
+#        shift-right rA 2
+#        and rB 3
+#        mul rB 4
+#        load dword rB addr3 rB
+#        store dword addr1 rC rB
+#        add rC 4
+#        
+#        assign rB rA
+#        shift-right rA 2
+#        and rB 3
+#        mul rB 4
+#        load dword rB addr3 rB
+#        store dword addr1 rC rB
+#        add rC 4
+#        
+#        assign rB rA
+#        shift-right rA 2
+#        and rB 3
+#        mul rB 4
+#        load dword rB addr3 rB
+#        store dword addr1 rC rB
+#        add rC 4
+#        
+#        assign rB rA
+#        shift-right rA 2
+#        and rB 3
+#        mul rB 4
+#        load dword rB addr3 rB
+#        store dword addr1 rC rB
+#        add rC 4
+#        
+#        inc rF
+#        goto PNG__GET.indexed.lp.halfnibble
+  
+  if rD == 8
+    PNG__GET.indexed.lp.byte:
+    if rF < rE
+      load byte rA addr2 rF
+      mul rA 3
+      #load dword rA addr3 rA
+      #or rA h.ff000000
+      store dword addr1 rC rA
+      inc rF
+      add rC 4
+      goto PNG__GET.indexed.lp.byte
+  goto PNG__GET.epilogue
+
+
+PNG__IHDR:
+  assign rF rE
+  
+  load dword rA addr2 rF
+  reverse-bytes dword rA
+  add rF 4
+  load dword rB addr2 rF
+  reverse-bytes dword rB
+  add rF 4
+  block-stash 2 sH rA
+  
+  # bit-depth, color-type, compression, filter, and interlace fields
+  load byte rA addr2 rF
+  inc rF
+  load byte rB addr2 rF
+  inc rF
+  load byte rC addr2 rF
+  inc rF
+  load byte rD addr2 rF
+  inc rF
+  load byte rE addr2 rF
+  
+  block-stash 5 sI rA
+  
+  goto PNG__READ.next
+
+PNG__PLTE:
+  bind addr4 m_png_palette
+  assign rF rE
+  add rE rD
+  assign rD 0
+  PNG__PLTE.scan:
+  if rF >= rE PNG__READ.next
+    load byte rA addr2 rF
+    inc rF
+    load byte rB addr2 rF
+    inc rF
+    load byte rC addr2 rF
+    inc rF
+    store byte addr4 rD rA
+    inc rD
+    store byte addr4 rD rB
+    inc rD
+    store byte addr4 rD rC
+    inc rD
+    store byte addr4 rD 255
+    inc rD
+  goto PNG__PLTE.scan
+
+PNG__IEND:
+  stash rA sIl rB sIh rC sHl
+  
+  # sIl - bit-depth
+  # sIh - color type
+  # sJl - compression
+  # sJh - filter
+  # sKl - interlace
+
+  # rA - bit-depth
+  # rB - color type
+  # rC - width
+  
+  # greyscale
+  if rB == 0
+    assign rD 8
+    div rD rA
+    # mul rC 8
+    div rC rD
+    inc rC
+    stash sLl rC
+    # lwcall PNG__PROCESS.dump
+    # lwcall PNG__PROCESS.arrangebytes
+    lwcall PNG__PROCESS.filter
+    goto PNG__IEND.epilogue
+    exit
+  
+  # truecolor
+  # if rB == 2
+  
+  # indexed color  
+  if rB == 3
+    assign rD 8
+    div rD rA
+    # mul rC 8
+    div rC rD
+    inc rC
+    stash sLl rC
+    lwcall PNG__PROCESS.arrangebytes
+    lwcall PNG__PROCESS.filter
+    goto PNG__IEND.epilogue
+  
+  # greyscale with alpha
+  # if rB == 4
+  # truecolor with alpha
+  # if rB == 6
+  
+  assign xA 'todo:ColorType
+  tcall print-text-xa
+  tcall print-space
+  tcall print-int-b
+  tcall print-newline
+  tcall dump-ctx
+  exit
+
+  # compute bytes/words per row
+  PNG__IEND.epilogue:
+  assign rA 1
+  lwreturn
+
+PNG__PROCESS.dump:
+  assign rF 0
+  PNG__PROCESS.dump.lp:
+  if rF < rE
+    load byte rA addr1 rF
+    tcall print-int-a
+    tcall print-space
+    inc rF
+    goto PNG__PROCESS.dump.lp
+  lwreturn
+
+
+# convert table entriesfrom big-endian to little endian.
+#   ALSO:  Some research may be needed to determine if this is the correct thing to do (particularly with indexed color images),
+#          as this is reacting to an observed byte order issue which the specification seemed a bit unclear about.
+PNG__PROCESS.arrangebytes:
+  assign rF 0
+  PNG__PROCESS.arrangebytes.row:
+  if rF < rE
+    assign rD 1
+    assign rA rD
+    add rA rF
+    PNG__PROCESS.arrangebytes.fragment:
+    if rD < rC
+      load dword rB addr1 rA
+      reverse-bytes dword rB
+      store dword addr1 rA rB
+      add rA 4
+      add rD 4
+      goto PNG__PROCESS.arrangebytes.fragment
+    add rF rC
+    goto PNG__PROCESS.arrangebytes.row
+  lwreturn
+
+PNG__PROCESS.filter:
+  assign rF 0
+  PNG__PROCESS.filter.row:
+  if rF < rE
+    load byte rA addr1 rF
+    inc rF
+    if rA == 0
+      stash rC sLl
+      dec rC
+      add rF rC
+      goto PNG__PROCESS.filter.row
+    assign xA 'todo:filter
+    tcall print-text-xa
+    tcall print-space
+    tcall print-int-a
+    tcall print-newline
+    tcall dump-ctx
+    exit
+  lwreturn
+
+PNG__tRNS:
+  bind addr4 m_png_palette
+  assign rF rE
+  add rE rD
+  assign rD 3
+  PNG__tRNS.scan:
+  if rF >= rE PNG__READ.next    
+    load byte rA addr2 rF
+    inc rF
+    store byte addr4 rD 255
+    add rD 4
+  goto PNG__PLTE.scan
+
+PNG__IDAT:
+  load byte rA addr2 rE
+  inc rE
+  
+  # check compression method
+  if rA ~& h.08
+    assign xa 'unkCompMethod
+    tcall print-text-xa
+    tcall print-space
+    tcall print-int-a
+    tcall print-newline
+    assign rA 0
+    lwreturn
+  
+  # check window size
+  shift-right rA 4
+  add rA 8
+  assign rB 1
+  shift-left rB rA  
+  if rB > 32768
+    assign xa 'WindowTooBig
+    tcall print-text-xa
+    tcall print-space
+    tcall print-int-b
+    tcall print-newline
+    assign rA 0
+    lwreturn
+  
+  # dict flag
+  load byte rA addr2 rE
+  inc rE
+  if rA & h.20
+    assign xa 'dict-flag-set
+    tcall print-text-xa
+    tcall print-space
+    tcall print-int-a
+    tcall print-newline
+    assign rA 0
+    lwreturn
+  
+  stash swap rF sBl
+  
+  lwcall DEFLATE__UNCOMPRESS_RAW
+  
+  PNG__IDAT.epilogue:  
+  
+  lwcall DECODE.deflate
+  bind addr4 m_png_control
+  assign rA rF
+  goto PNG__READ.next
+

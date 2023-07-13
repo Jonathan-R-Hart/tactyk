@@ -52,7 +52,8 @@ struct gx_info__irrvnoise
   2048 program_alloc
   4096 general_alloc
   64 properties_alloc
-  48 rasterizer_alloc
+  128 rasterizer_alloc
+  16 pixmap_alloc
   2592 ptxp_alloc
   6400 irrv_alloc
   . 8 num_points

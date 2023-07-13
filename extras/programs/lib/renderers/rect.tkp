@@ -21,102 +21,67 @@ struct gx_info__fillrect_fields
   64 properties_alloc
   128 rasterizer_alloc
   . 8 x
-  8   x2
-  8   y
+  8 y
   8   x1
-  8   y2
   8   y1
+  8   x2
+  8   y2
+  16 pixmap_alloc
   2592 ptxp_alloc
   6400 irrv_alloc
   256 text_alloc
 
+# Set up a Rasterizer which iterates pixels within a rectangular region [in row-major order)
+# Input:
+#   rA:  x1
+#   rB:  y1
+#   rC:  width
+#   rD:  height
+# yielded output:
+#   rA:  absolute X
+#   rB:  absolute Y
+#   rC:  relative X  (x-x1)
+#   rD:  relative Y  (y-y1)
+#   rE/rF:  internal use
+#   addr3:  offset to pixel position ( (framebuffer.width * y + x) * pixel size )
 GX.rect.fill:
-  # block-store 4 addr2 gx_info__fillrect_fields.rasterizer_alloc rA
-  # input:
-  # x1 y1 w  h  .  .
-  
-  # x1 x2  y1  y2  .  .  
-  swap rB rC
-  add rB rA
-  add rD rC
-  
+  add rC rA
+  add rD rB
   dec rA
-  # x x2  y  y2  .  .
-  block-store 3 addr2 gx_info__fillrect_fields.rasterizer_alloc rA
-  
-  # x1 y2  y1  y2  .  .  
+  block-store 2 addr2 gx_info__fillrect_fields.x rA
   inc rA
-  assign rB rD
-  block-store 3 addr2 gx_info__fillrect_fields.x1 rA
-  
+  block-store 4 addr2 gx_info__fillrect_fields.x1 rA
   assign rA GX.rect.fill.impl
   store qword addr2 rF rA
   add rF 8
   lwreturn
-# Axis-aligned box rasterizer
 GX.rect.fill.impl:
-  # fetch rasterizer globals
-  block-load 3 rA addr2 gx_info__fillrect_fields.rasterizer_alloc
-  # rA: x
-  # rB: x2
-  # rC: y
-  
-  # advance one pixel
+  block-load 5 rA addr2 gx_info__fillrect_fields.rasterizer_alloc
   inc rA
-  if rA == rB
-    block-load 2 rA addr2 gx_info__fillrect_fields.x1
-    # rA: x1
-    # rB: y2
-    # rC: y
-    inc rC
-    store qword addr2 gx_info__fillrect_fields.y rC
-    if rB == rC
+  if rA == rE
+    assign rA rC
+    inc rB
+    load qword rE addr2 gx_info__fillrect_fields.y2
+    if rB == rE
       assign rF 1
       lwreturn
-  store qword addr2 gx_info__fillrect_fields.x rA
-  
-  # rA: x
-  # rB: buffer position
-  # rC: y
-  load qword rB addr2 gx_info__view.fb_width
-  mul rB rC
-  add rB rA
-  
-  # should consider generating binary-log2 constants for struct sizes which are powers of two
-  shift-left rB 2
-  assign addr3.offset rB
-  #shift-left rB 5
-  #assign addr4.offset rB
-  #shift-left rB 7
-  #assign addr4.offset rB
-  
-  # rA: x  (u)
-  # rB: x         (absolute x)
-  # rC: y  (v)
-  # rD: y         (absolute y)
-  
-  #swap rA rB
-  #swap rB rD
-  #swap rC rD
-  
-  # rA: x         (absolute x)
-  # rB: y         (absolute y)
-  # rC: x  (u)
-  # rD: y  (v)
-
-  #load qword rA addr2 gx_info__view.x
-  #load qword rB addr2 gx_info__view.y
-  #add rA rC
-  #add rB rD
-  
-  #pack float32.4 xN rA
-  #store oword addr4 gx_pixel.a xN
-  
+  block-store 2 addr2 gx_info__fillrect_fields.rasterizer_alloc rA
+  negate rC
+  negate rD
+  add rC rA
+  add rD rB
+  assign rE rB
+  load qword rE addr2 gx_info__view.fb_width
+  mul rE rB
+  add rE rA
+  shift-left rE 2
+  assign addr3.offset rE
   add rF 8
   if rF == gx_info__program.end
     lwreturn
   load qword rE addr2 rF
   goto rE
+
 
 struct gx_info__outlinerect_fields
   2048 program_alloc
@@ -145,6 +110,7 @@ struct gx_info__outlinerect_fields
   8 scaled-position-incr
   8 border-length
   
+  16 pixmap_alloc
   2592 ptxp_alloc
   6400 irrv_alloc
   256 text_alloc
