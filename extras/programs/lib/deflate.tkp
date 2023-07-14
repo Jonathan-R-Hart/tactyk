@@ -33,6 +33,70 @@ mem m_codelen_codebook s_codebook 1
 flat m_codelen_order byte
   16 17 18 0 8 7 9 6 10 5 11 4 12 3 13 2 14 1 15
 
+flat m_codedlength_table dword
+  h.00000020
+  h.00030070
+  h.00040070
+  h.00050070
+  h.00060070
+  h.00070070
+  h.00080070
+  h.00090070
+  h.000a0070
+  h.000b0170
+  h.000d0170
+  h.000f0170
+  h.00110170
+  h.00130270
+  h.00170270
+  h.001b0270
+  h.001f0270
+  h.00230370
+  h.002b0370
+  h.00330370
+  h.003b0370
+  h.00430470
+  h.00530470
+  h.00630470
+  h.00730470
+  h.00830570
+  h.00a30570
+  h.00c30570
+  h.00e30570
+  h.01020070
+
+flat m_codeddistance_table dword
+  h.00010010
+  h.00020010
+  h.00030010
+  h.00040010
+  h.00050110
+  h.00070110
+  h.00090210
+  h.000d0210
+  h.00110310
+  h.00190310
+  h.00210410
+  h.00310410
+  h.00410510
+  h.00610510
+  h.00810610
+  h.00c10610
+  h.01010710
+  h.01810710
+  h.02010810
+  h.03010810
+  h.04010910
+  h.06010910
+  h.08010a10
+  h.0c010a10
+  h.10010b10
+  h.18010b10
+  h.20010c10
+  h.30010c10
+  h.40010d10
+  h.60010d10
+
 struct s_defl_misc
   2048 data
 mem m_defl_misc s_defl_misc 2
@@ -376,6 +440,7 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
   if rE < 12
     # get codeword length
     if rC < rF
+      bind addr4 m_defl_misc
       load byte rD addr4 rC
     
     # if all codewords for the stratum are handled, move to the next
@@ -390,50 +455,16 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
     # check codeword length - if the codeword does not belong to the current stratum, skip it
     #   (could also sort the data and record indices, but that's an extra complication)
     if rD == rE
-      if rC == 285
-        assign rD 258
-        goto DEFLATE__MK_"DYNAMIC"_TABLE.mk_literal_table.len.len
+      # if a literal, the code instruction is just a bit-shifted value
       if rC < 256
         assign rD rC
         shift-left rD 8
-        # or rD h.00        # literal function
-      if rC >= 257
+      if rC >= 256
+        bind addr4 m_codedlength_table
         assign rD rC
-        sub rD 254
-        if rC > 265
-          assign rA rC
-          sub rA 265
-          mul rA 8
-          add rD rA
-        if rC > 269
-          assign rA rC
-          sub rA 269
-          mul rA 16
-          add rD rA
-        if rC > 273
-          assign rA rC
-          sub rA 273
-          mul rA 32
-          add rD rA
-        if rC > 277
-          assign rA rC
-          sub rA 277
-          mul rA 64
-          add rD rA
-        
-        DEFLATE__MK_"DYNAMIC"_TABLE.mk_literal_table.len.len:
-        shift-left rD 8
-        if rC <= 284
-          if rC >= 261
-            assign rA rC
-            sub rA 261        # backref base length
-            shift-right rA 2
-            or rD rA
-        shift-left rD 8
-        or rD h.70          # backref function
-        
-      if rC == 256
-        assign rD h.20      # end of DEFLATE block function
+        sub rD 256
+        shift-left rD 2
+        load dword rD addr4 rD
       
       or rD rE              # codeword length
       
@@ -460,17 +491,9 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
   DEFLATE__MK_"DYNAMIC"_TABLE.mk_distance_table:
   if rE < 12
     
-    if rB >= 4
-      assign rD 1
-      shift-left rD rA
-      add rB rD
-      if rC ~& 1
-        inc rA
-    if rB < 4
-      inc rB
-    
     # get codeword length
     if rC < rF
+      bind addr4 m_defl_misc
       load byte rD addr4 rC
     
     # if all codewords for the stratum are handled, move to the next
@@ -487,18 +510,23 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
     # check codeword length - if the codeword does not belong to the current stratum, skip it
     #   (could also sort the data and record indices, but that's an extra complication)
     if rD == rE
-      assign rD rB          # offset parameter
-      shift-left rD 8
-      or rD rA            # bit count of offset additive
-      shift-left rD 8
-      or rD h.10            # continue-backref function
-      or rD rE              # codeword length
+      bind addr4 m_codeddistance_table
+      assign rD rA
+      shift-left rD 2
+      load dword rD addr4 rD
       
+      #assign rD rB          # offset parameter
+      #shift-left rD 8
+      #or rD rA            # bit count of offset additive
+      #shift-left rD 8
+      #or rD h.10            # continue-backref function
+      or rD rE              # codeword length
       # add the code to the codebook
       stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
       lwcall CODEBOOK_CH__PUT.deflate
       stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
     inc rC
+    inc rA
     
     goto DEFLATE__MK_"DYNAMIC"_TABLE.mk_distance_table
   
@@ -625,7 +653,6 @@ DEFLATE__HUFFMAN.backref:
   assign addr3.offset 0
   
   stash rF sBh rC sCl rE sBl
-  
   negate rB
   add rB rF
   
