@@ -29,6 +29,11 @@ struct s_texture
 struct s_data_chunk
   16777216 data
 
+struct s_crc
+  1024 data
+
+mem m_crc s_crc 1
+
 mem m_png_palette s_data_chunk 1
 mem m_data_chunk s_data_chunk 1
 mem m_png_control s_MINITABLE 65536
@@ -120,10 +125,12 @@ PNG__READ:
 PNG__GET:
   bind addr2 m_data_chunk
   stash sMh rA sKh rA
-  stash rA sIl rB sIh
   stash rD sHl rE sHh
-  add rD 8
+  # add rD 8
   mul rE rD
+  shift-left rE 2
+  add rE rA
+  stash rA sIl rB sIh
   stash sMl rE
   assign rF rC
   stash rD sLl
@@ -152,6 +159,12 @@ PNG__GET:
   if rA == 8
     assign rC 1
     assign rA PNG__EXTRACT.8bit
+    assign rE h.010101
+    stash sNl rE
+    goto PNG__GET.pickmode
+  if rA == 16
+    assign rC 1
+    assign rA PNG__EXTRACT.16bit
     assign rE h.010101
     stash sNl rE
     goto PNG__GET.pickmode
@@ -191,8 +204,8 @@ PNG__GET.epilogue:
 
 PNG__EXTRACT.1bit:
   assign rE rC
-  stash rF sMl
-  if rE == rF PNG__GET.epilogue
+  # stash rF sMl
+  # if rE == rF PNG__GET.epilogue
   if rE == rD
     add rC 8
     assign rE rC
@@ -212,8 +225,8 @@ PNG__EXTRACT.1bit:
 
 PNG__EXTRACT.2bit:
   assign rE rC
-  stash rF sMl
-  if rE == rF PNG__GET.epilogue
+  # stash rF sMl
+  # if rE == rF PNG__GET.epilogue
   if rE == rD
     add rC 4
     assign rE rC
@@ -234,8 +247,8 @@ PNG__EXTRACT.2bit:
 
 PNG__EXTRACT.4bit:
   assign rE rC
-  stash rF sMl
-  if rE == rF PNG__GET.epilogue
+  # stash rF sMl
+  # if rE == rF PNG__GET.epilogue
   if rE == rD
     add rC 2
     assign rE rC
@@ -255,8 +268,8 @@ PNG__EXTRACT.4bit:
 
 PNG__EXTRACT.8bit:
   assign rE rC
-  stash rF sMl
-  if rE == rF PNG__GET.epilogue
+  # stash rF sMl
+  # if rE == rF PNG__GET.epilogue
   if rE == rD
     inc rC
     assign rE rC
@@ -264,6 +277,21 @@ PNG__EXTRACT.8bit:
     add rD rF
   load byte rF addr2 rE
   inc rC
+  goto rB
+
+PNG__EXTRACT.16bit:
+  assign rE rC
+  # stash rF sMl
+  # if rE == rF PNG__GET.epilogue
+  if rE == rD
+    inc rC
+    assign rE rC
+    stash rF sLl
+    add rD rF
+  assign rF rE
+  # inc rF
+  load byte rF addr2 rF
+  add rC 2
   goto rB
 
 PNG__CONVERT.grayscale:
@@ -275,12 +303,11 @@ PNG__CONVERT.indexed:
 
 PNG__GET.write:
   stash rE sMh
-  # tcall print-int-e
-  # tcall print-space
   store dword addr1 rE rF
   # store dword addr1 rE h.ffff00ff
   add rE 4
-  stash sMh rE
+  stash sMh rE rF sMl
+  if rE >= rF PNG__GET.epilogue
   goto rA
 
 #PNG__GET.indexed:
@@ -367,7 +394,6 @@ PNG__IHDR:
   load byte rD addr2 rF
   inc rF
   load byte rE addr2 rF
-  
   block-stash 5 sI rA
   goto PNG__READ.next
 
@@ -408,16 +434,27 @@ PNG__IEND:
   
   # greyscale
   if rB == 0
-    assign rD 8
-    div rD rA
-    # mul rC 8
-    div rC rD
-    inc rC
-    stash sLl rC
-    mul rE rC
-    # lwcall PNG__PROCESS.dump
-    # lwcall PNG__PROCESS.arrangebytes
+    if rA == 16
+      shift-left rC 1
+      inc rC
+      stash sLl rC
+      mul rE rC
+      
+      # lwcall PNG__PROCESS.dump
+      # lwcall PNG__PROCESS.arrangebytes.word
+      stash rA sIl
+    if rA <= 8
+      assign rD 8
+      div rD rA
+      # mul rC 8
+      div rC rD
+      inc rC
+      stash sLl rC
+      mul rE rC
+      # lwcall PNG__PROCESS.dump
+      # lwcall PNG__PROCESS.arrangebytes
     lwcall PNG__PROCESS.filter
+    # lwcall PNG__PROCESS.dump
     goto PNG__IEND.epilogue
     exit
   
@@ -489,6 +526,25 @@ PNG__PROCESS.arrangebytes:
     goto PNG__PROCESS.arrangebytes.row
   lwreturn
 
+PNG__PROCESS.arrangebytes.word:
+  assign rF 0
+  PNG__PROCESS.arrangebytes.word.row:
+  if rF < rE
+    assign rD 1
+    assign rA rD
+    add rA rF
+    PNG__PROCESS.arrangebytes.word.fragment:
+    if rD < rC
+      load word rB addr1 rA
+      reverse-bytes word rB
+      store word addr1 rA rB
+      add rA 2
+      add rD 2
+      goto PNG__PROCESS.arrangebytes.word.fragment
+    add rF rC
+    goto PNG__PROCESS.arrangebytes.word.row
+  lwreturn
+
 PNG__PROCESS.filter:
   assign rF 0
   assign rA 0
@@ -519,7 +575,7 @@ PNG__PROCESS.filter:
         goto PNG__PROCESS.filter.sub
       goto PNG__PROCESS.filter.row
     
-    if rB == 222222
+    if rB == 2
       load byte rB addr1 rF
       assign rC 0
       
@@ -535,7 +591,6 @@ PNG__PROCESS.filter:
         negate rD
         add rD rF
         load byte rD addr1 rD
-        
         add rB rD
         store byte addr1 rF rB
         inc rF
@@ -704,12 +759,12 @@ PNG__IDAT:
     lwreturn
   
   stash swap rF sBl
-  
   lwcall DEFLATE__UNCOMPRESS_RAW
   
   PNG__IDAT.epilogue:  
   
   lwcall DECODE.deflate
+  
   bind addr4 m_png_control
   assign rA rF
   goto PNG__READ.next

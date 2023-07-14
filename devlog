@@ -6,6 +6,15 @@
     new isntruction: abs
       returns the absolute value of the value on a register
       Implmeneted in single-operand and two-operand form (the single-operand form transforms a value, the two-operand form preserves the value and assigns to anothe register)
+  
+  tactyk-extras - PNG
+    16-bit grEyscale, with reservations.  There is a single pixel in a test image which appears to be incorrectly rendered as white instead of black.
+      Based on the data in the stream as-decompressed and a plain reading of the PNG spec, this appears to be the correct result, but when loaded in a
+      browser or image editor, the pixel is black.
+      Using the least significant bits as an excuse to flip the offending pixel to black yielded errors elsewhere.
+      Including the value of the byte which specifies the scanline filters likewise failed.
+      The symbols read from the deflate stream also appeared to be identical to the output from a debug reader
+          (thus far, errors in handling deflate streams have tended to be catastrophic, so if that's the issue, it'll likely pop up as more PNG feature coverage is expanded).
 
 3-13 Jul 2023
   tactyk-extras - pixmap handling
