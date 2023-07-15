@@ -1,5 +1,17 @@
 15 Jul 2023
-  tactyk-extras - deflate - uncompressed blcok handler
+  tactyk-extras - deflate
+    uncompressed block handler
+    fix codelen-code repetition handling
+      this one caused an obvious catastrophic failure due to a compressed data stream misread.
+    fix lookup table setup
+      The least significant bit was getting masked off on large table indices, causing a problem which initially was mistaken for a fencepost error.
+  tactyk-extras - code
+    make lookup table size a configurable parameter
+      This had no major impact, but the hard-coded value doesn't really belong.  Also took the opportunity to double it as I am not certain about what the largest
+      codeword size is which might appear in a DEFLATE stream.
+  tactyk-extras - png
+    indexed color format (bitrates 1,2,4,8)
+    48-bit rgb color format
 
 14 Jul 2023
   tactyk-core

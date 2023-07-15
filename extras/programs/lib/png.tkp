@@ -193,11 +193,12 @@ PNG__GET:
   if rB == 2
     assign rB PNG__CONVERT.truecolor
     goto rA
-  #if rB == 3 
-  #  assign rB PNG__CONVERT.indexed
-  #  goto rA
+  if rB == 3
+    bind addr3 m_png_palette
+    assign rB PNG__CONVERT.indexed
+    goto rA
   
-  assign xA 'todo-colormode:
+  assign xA 'todo:colormode
   tcall print-text-xa
   tcall print-space
   tcall print-int-b
@@ -334,7 +335,9 @@ PNG__CONVERT.grayscale:
   mul rF rE
   goto PNG__GET.write
 PNG__CONVERT.indexed:
-  goto PNG__GET.epilogue
+  shift-left rF 2
+  load dword rF addr3 rF
+  goto PNG__GET.write
 
 PNG__CONVERT.truecolor:
 PNG__GET.write:
@@ -499,10 +502,7 @@ PNG__IEND:
       inc rC
       stash sLl rC
       mul rE rC
-      # lwcall PNG__PROCESS.dump
-      # lwcall PNG__PROCESS.arrangebytes
     lwcall PNG__PROCESS.filter
-    # lwcall PNG__PROCESS.dump
     goto PNG__IEND.epilogue
     exit
   
@@ -527,7 +527,8 @@ PNG__IEND:
     inc rC
     stash sLl rC
     mul rE rC
-    lwcall PNG__PROCESS.arrangebytes
+    # lwcall PNG__PROCESS.dump
+    # lwcall PNG__PROCESS.arrangebytes
     lwcall PNG__PROCESS.filter
     goto PNG__IEND.epilogue
   
@@ -551,9 +552,14 @@ PNG__IEND:
 
 PNG__PROCESS.dump:
   assign rF 0
+  assign xA '0
   PNG__PROCESS.dump.lp:
   if rF < rE
     load byte rA addr1 rF
+    if rA < 10
+      tcall print-text-xa
+    if rA < 100
+      tcall print-text-xa
     tcall print-int-a
     tcall print-space
     inc rF
@@ -857,7 +863,6 @@ PNG__IDAT:
   
   PNG__IDAT.epilogue:  
   
-  lwcall DECODE.deflate
   
   bind addr4 m_png_control
   assign rA rF
