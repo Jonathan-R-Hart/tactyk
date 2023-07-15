@@ -8,6 +8,11 @@ data basn0g08 data/testpng/basn0g08.png
 data basn0g16 data/testpng/basn0g16.png pad
 data basn2c08 data/testpng/basn2c08.png
 data basn2c16 data/testpng/basn2c16.png
+# data basn3p01 data/testpng/basn3p01.png       # This checkerboard pattern is too regular.
+data ai1b data/testpng/alt_1bit_indexed.png
+data basn3p02 data/testpng/basn3p02.png
+data basn3p04 data/testpng/basn3p04.png
+data basn3p08 data/testpng/basn3p08.png
 data unifont data/unifont_basic_chars.tkf
 
 module ministring lib/ministring.tkp
@@ -30,9 +35,10 @@ module deflate lib/deflate.tkp
 module png lib/png.tkp
 module code lib/code.tkp
   $NAME deflate
-  $CODEWORDMASK h.01ff
+  $CODEWORDMASK h.07ff
+  $CODEWORDLIMIT h.0800
   $CODEWORDBITS 9
-  $CODEWORDSCALE 3
+  $CODEWORDSCALE 2
   $CODEVALUESIZE dword
   $CONSUMPTIONBITS 4
   $CONSUMPTIONMASK h.000f
