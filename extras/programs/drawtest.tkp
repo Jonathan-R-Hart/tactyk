@@ -40,6 +40,10 @@ MAIN:
   lwcall LOAD__PNG
   tcall get-data 'basn3p08
   lwcall LOAD__PNG
+  tcall get-data 'f03n2c08
+  lwcall LOAD__PNG
+  tcall get-data 'f99n0g04
+  lwcall LOAD__PNG
 
   mctxpush
   
@@ -358,6 +362,28 @@ MAIN:
       lwcall GX.rect.fill
       bind addr1 m_texture_data
       assign rA 10240
+      assign rB 32
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+
+      assign rF 0
+      spread rA 680 260 32 32
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 11264
+      assign rB 32
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 720 260 32 32
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 12288
       assign rB 32
       lwcall GX.pixmap.raw
       lwcall GX.util.exit

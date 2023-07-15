@@ -12,6 +12,7 @@
   tactyk-extras - png
     indexed color format (bitrates 1,2,4,8)
     48-bit rgb color format
+    test and fix the average filter
 
 14 Jul 2023
   tactyk-core

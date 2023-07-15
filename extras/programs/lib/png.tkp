@@ -687,13 +687,9 @@ PNG__PROCESS.filter:
           goto PNG__PROCESS.filter.up
         goto PNG__PROCESS.filter.row
       
-      # untested code - temporarilly disabled to ensure it doesn't silently pass
-      # will fix this when the first test image which uses the "average" filter is reached
-      if rB == 3333333
-        assign xA '.
+      if rB == 3
         stash rC sLl
         if rC >= rF PNG__PROCESS.filter.degenerate_average
-        stash sE rE
         assign rC 0
         load byte rB addr1 rF
         PNG__PROCESS.filter.average:
@@ -703,17 +699,16 @@ PNG__PROCESS.filter:
           add rD rF
           load byte rD addr1 rD
           
-          assign rE rC
-          add rE rD
-          shift-right rE 1
-          add rB rE
+          add rC rD
+          shift-right rC 1
+          add rB rC
+          and rB 255
           assign rC rB
           store byte addr1 rF rB
           stash rD sDh
           add rF rD
           load byte rB addr1 rF
           goto PNG__PROCESS.filter.average
-        stash rE sE
         goto PNG__PROCESS.filter.row
         
         PNG__PROCESS.filter.degenerate_average:

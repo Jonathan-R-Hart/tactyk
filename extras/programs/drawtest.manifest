@@ -13,6 +13,8 @@ data ai1b data/testpng/alt_1bit_indexed.png
 data basn3p02 data/testpng/basn3p02.png
 data basn3p04 data/testpng/basn3p04.png
 data basn3p08 data/testpng/basn3p08.png
+data f03n2c08 data/testpng/f03n2c08.png
+data f99n0g04 data/testpng/f99n0g04.png
 data unifont data/unifont_basic_chars.tkf
 
 module ministring lib/ministring.tkp
