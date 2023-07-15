@@ -168,6 +168,11 @@ PNG__GET:
     assign rE h.010101
     stash sNl rE
     goto PNG__GET.pickmode
+  if rA == 24
+    assign rC 1
+    assign rA PNG__EXTRACT.24bit
+    stash sNl rE
+    goto PNG__GET.pickmode
 
   assign xA 'todo-bitrate:
   tcall print-text-xa
@@ -180,6 +185,9 @@ PNG__GET:
   if rB == 0
     assign rB PNG__CONVERT.grayscale
     goto rA
+  if rB == 2
+    assign rB PNG__CONVERT.truecolor
+    goto rA
   #if rB == 3 
   #  assign rB PNG__CONVERT.indexed
   #  goto rA
@@ -187,7 +195,7 @@ PNG__GET:
   assign xA 'todo-colormode:
   tcall print-text-xa
   tcall print-space
-  tcall print-int-a
+  tcall print-int-b
   tcall print-newline
   
   exit
@@ -204,8 +212,6 @@ PNG__GET.epilogue:
 
 PNG__EXTRACT.1bit:
   assign rE rC
-  # stash rF sMl
-  # if rE == rF PNG__GET.epilogue
   if rE == rD
     add rC 8
     assign rE rC
@@ -225,8 +231,6 @@ PNG__EXTRACT.1bit:
 
 PNG__EXTRACT.2bit:
   assign rE rC
-  # stash rF sMl
-  # if rE == rF PNG__GET.epilogue
   if rE == rD
     add rC 4
     assign rE rC
@@ -247,8 +251,6 @@ PNG__EXTRACT.2bit:
 
 PNG__EXTRACT.4bit:
   assign rE rC
-  # stash rF sMl
-  # if rE == rF PNG__GET.epilogue
   if rE == rD
     add rC 2
     assign rE rC
@@ -268,8 +270,6 @@ PNG__EXTRACT.4bit:
 
 PNG__EXTRACT.8bit:
   assign rE rC
-  # stash rF sMl
-  # if rE == rF PNG__GET.epilogue
   if rE == rD
     inc rC
     assign rE rC
@@ -281,8 +281,6 @@ PNG__EXTRACT.8bit:
 
 PNG__EXTRACT.16bit:
   assign rE rC
-  # stash rF sMl
-  # if rE == rF PNG__GET.epilogue
   if rE == rD
     inc rC
     assign rE rC
@@ -294,6 +292,19 @@ PNG__EXTRACT.16bit:
   add rC 2
   goto rB
 
+PNG__EXTRACT.24bit:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    stash rF sLl
+    add rD rF
+  assign rF rE
+  load dword rF addr2 rF
+  and rF h.00ffffff
+  add rC 3
+  goto rB
+
 PNG__CONVERT.grayscale:
   stash rE sNl
   mul rF rE
@@ -301,6 +312,7 @@ PNG__CONVERT.grayscale:
 PNG__CONVERT.indexed:
   goto PNG__GET.epilogue
 
+PNG__CONVERT.truecolor:
 PNG__GET.write:
   stash rE sMh
   store dword addr1 rE rF
@@ -431,6 +443,17 @@ PNG__IEND:
   # rA - bit-depth
   # rB - color type
   # rC - width
+  # rE - height
+  
+  # Perform preparatory transforms to stage the data for export to an externally provided buffer
+  # compute scanline length (in bytes), adjust binary formatting as needed (reverse anything that's big-endian), and apply the inverse filters.
+  #
+  #   sLl:  bytes per scanline
+  #   rE:   image size (in bytes) (must match/reproduce the byte count after decompression)
+  #
+  # In principle, de-interlacing should also be done at this stage (presumably by rewriting the entire image into a higher portion of the buffer)
+  #   BUT:  I dont endorse image interlacing, it doesn't meaningfully contribute to the main use-case for TACTYK (but it is inefficient and artificially increase the amount of code needed),
+  #         and it can be easilly handled ahead of distribution by re-encoding - so this feature is to be at a low priority and if/when implemented, to be deferred to a separate module.
   
   # greyscale
   if rB == 0
@@ -443,6 +466,7 @@ PNG__IEND:
       # lwcall PNG__PROCESS.dump
       # lwcall PNG__PROCESS.arrangebytes.word
       stash rA sIl
+    
     if rA <= 8
       assign rD 8
       div rD rA
@@ -459,7 +483,16 @@ PNG__IEND:
     exit
   
   # truecolor
-  # if rB == 2
+  if rB == 2
+    mul rA 3
+    stash sIl rA
+    mul rC rA
+    shift-right rC 3
+    inc rC
+    stash sLl rC
+    mul rE rC
+    lwcall PNG__PROCESS.filter
+    goto PNG__IEND.epilogue
   
   # indexed color  
   if rB == 3
@@ -548,161 +581,198 @@ PNG__PROCESS.arrangebytes.word:
 PNG__PROCESS.filter:
   assign rF 0
   assign rA 0
-  PNG__PROCESS.filter.row:
-  stash rC sLl
-  add rA rC
-  if rF < rE
-    load byte rB addr1 rF
-    inc rF
-    if rB == 0
-      stash rC sLl
-      PNG__PROCESS.filter.degenerate_up:
-      add rF rC
-      dec rF
-      goto PNG__PROCESS.filter.row
+  assign rB 0
+  
+  stash rD sIl
+  shift-right rD 3
+  if rD <= 0
+    assign rD 1
+  stash sDh rD
+  stash sBh rB
+  
+  # logically split the image into byte slices (one for each pixel byte)
+  PNG__PROCESS.filter.slice:
+  stash rB sBh rD sDh
+  if rB < rD
+    assign rF rB
+    assign rA rB
+    inc rB
+    stash sBh rB
     
-    if rB == 1
-      PNG__PROCESS.filter.degenerate_paeth:
-      load byte rB addr1 rF
-      assign rC 0
-      PNG__PROCESS.filter.sub:
-      if rF < rA
-        add rB rC
-        assign rC rB
-        store byte addr1 rF rB
-        inc rF
-        load byte rB addr1 rF
-        goto PNG__PROCESS.filter.sub
-      goto PNG__PROCESS.filter.row
+    # iterate each row within the slice
+    PNG__PROCESS.filter.row:
+    stash rC sLl rD sDh rB sBh
+    add rA rC
     
-    if rB == 2
-      load byte rB addr1 rF
-      assign rC 0
+    if rF < rE
+      # recover the offset to the first byte in the row and obtain the filter identifier
+      negate rB
+      inc rB
+      add rB rF
+      load byte rB addr1 rB
+      inc rF
       
-      # Do any PNG images have up filter set on the first row?
-      # if on the first row, switch to the "none" filter
-      stash rC sLl
-      if rC >= rF PNG__PROCESS.filter.degenerate_up
+      # null filter - raw values are taken as-decompressed, so skip to the next row.
+      if rB == 0
+        stash rC sLl
+        PNG__PROCESS.filter.degenerate_up:
+        add rF rC
+        dec rF
+        goto PNG__PROCESS.filter.row
       
-      PNG__PROCESS.filter.up:
-      if rF < rA
-        
-        stash rD sLl
-        negate rD
-        add rD rF
-        load byte rD addr1 rD
-        add rB rD
-        store byte addr1 rF rB
-        inc rF
-        load byte rB addr1 rF
-        goto PNG__PROCESS.filter.up
-      goto PNG__PROCESS.filter.row
-    
-    if rB == 3333333
-      assign xA '.
-      stash rC sLl
-      if rC >= rF PNG__PROCESS.filter.degenerate_average
-      stash sE rE
-      assign rC 0
-      load byte rB addr1 rF
-      PNG__PROCESS.filter.3:
-      if rF < rA
-        stash rD sLl
-        negate rD
-        add rD rF
-        load byte rD addr1 rD
-        
-        assign rE rC
-        add rE rD
-        shift-right rE 1
-        add rB rE
-        assign rC rB
-        store byte addr1 rF rB
-        inc rF
-        load byte rB addr1 rF
-        goto PNG__PROCESS.filter.3
-      stash rE sE
-      goto PNG__PROCESS.filter.row
-      
-      PNG__PROCESS.filter.degenerate_average:
+      if rB == 1
+        PNG__PROCESS.filter.degenerate_paeth:
         load byte rB addr1 rF
         assign rC 0
-        PNG__PROCESS.filter.degenerate_average.lp:
+        PNG__PROCESS.filter.sub:
         if rF < rA
           add rB rC
           assign rC rB
-          shift-right rC 1
           store byte addr1 rF rB
-          inc rF
+          add rF rD
           load byte rB addr1 rF
-          goto PNG__PROCESS.filter.degenerate_average.lp
+          goto PNG__PROCESS.filter.sub
         goto PNG__PROCESS.filter.row
-    
-    if rB == 4
-      stash sE rE
       
-      assign rC 0
-      assign rE 0
-      
-      # Do any PNG images have paeth filter set on the first row?
-      # if on the first row, switch to the "sub" filter (which should be the same as paeth with two parameters locked to zero)
-      stash rD sLl
-      if rD >= rF PNG__PROCESS.filter.degenerate_paeth
-      
-      PNG__PROCESS.filter.paeth:
-      
-      stash rD sLl
-      negate rD
-      add rD rF
-      load byte rD addr1 rD
-      
-      if rF < rA
-        
-        stash sAh rA sFh rF
-        
-        assign rB rC
-        add rB rD
-        sub rB rE
-        
-        assign rA rB
-        sub rA rC
-        abs rA
-
-        assign rF rB
-        sub rF rD
-        abs rF
-        
-        if rF < rA
-          assign rA rF
-          assign rC rD
-        
-        assign rF rB
-        sub rF rE
-        abs rF
-        
-        if rF < rA
-          assign rC rE
-        
-        stash rA sAh rF sFh
-        
+      if rB == 2
         load byte rB addr1 rF
-        add rB rC
-        store byte addr1 rF rB
-        inc rF
-        assign rC rB
-        assign rE rD
-        goto PNG__PROCESS.filter.paeth
-      stash rE sE
-      load byte rB addr1 rF
-      goto PNG__PROCESS.filter.row
+        assign rC 0
+        
+        # Do any PNG images have up filter set on the first row?
+        # if on the first row, switch to the "none" filter
+        stash rC sLl
+        if rC >= rF PNG__PROCESS.filter.degenerate_up
+        
+        PNG__PROCESS.filter.up:
+        if rF < rA
+          
+          stash rC sLl
+          negate rC
+          add rC rF
+          load byte rC addr1 rC
+          add rB rC
+          store byte addr1 rF rB
+          add rF rD
+          load byte rB addr1 rF
+          goto PNG__PROCESS.filter.up
+        goto PNG__PROCESS.filter.row
+      
+      # untested code - temporarilly disabled to ensure it doesn't silently pass
+      # will fix this when the first test image which uses the "average" filter is reached
+      if rB == 3333333
+        assign xA '.
+        stash rC sLl
+        if rC >= rF PNG__PROCESS.filter.degenerate_average
+        stash sE rE
+        assign rC 0
+        load byte rB addr1 rF
+        PNG__PROCESS.filter.average:
+        if rF < rA
+          stash rD sLl
+          negate rD
+          add rD rF
+          load byte rD addr1 rD
+          
+          assign rE rC
+          add rE rD
+          shift-right rE 1
+          add rB rE
+          assign rC rB
+          store byte addr1 rF rB
+          stash rD sDh
+          add rF rD
+          load byte rB addr1 rF
+          goto PNG__PROCESS.filter.average
+        stash rE sE
+        goto PNG__PROCESS.filter.row
+        
+        PNG__PROCESS.filter.degenerate_average:
+          load byte rB addr1 rF
+          assign rC 0
+          PNG__PROCESS.filter.degenerate_average.lp:
+          if rF < rA
+            add rB rC
+            assign rC rB
+            shift-right rC 1
+            store byte addr1 rF rB
+            add rF rD
+            load byte rB addr1 rF
+            goto PNG__PROCESS.filter.degenerate_average.lp
+          goto PNG__PROCESS.filter.row
+      
+      if rB == 4
+        stash sE rE
+        
+        assign rC 0
+        assign rE 0
+        
+        # Do any PNG images have paeth filter set on the first row?
+        # if on the first row, switch to the "sub" filter (which should be the same as paeth with two parameters locked to zero)
+        stash rD sLl
+        if rD >= rF PNG__PROCESS.filter.degenerate_paeth
+        
+        PNG__PROCESS.filter.paeth:
+        
+        stash rD sLl
+        negate rD
+        add rD rF
+        load byte rD addr1 rD
+        
+        if rF < rA
+          
+          stash sAh rA sFh rF
+          
+          # Paeth predictor
+          #   The inputs are staged on the preceding iteration
+          #   The result will be placed on register rC
+          assign rB rC
+          add rB rD
+          sub rB rE
+          
+          assign rA rB
+          sub rA rC
+          abs rA
+
+          assign rF rB
+          sub rF rD
+          abs rF
+          
+          if rF < rA
+            assign rA rF
+            assign rC rD
+          
+          assign rF rB
+          sub rF rE
+          abs rF
+          
+          if rF < rA
+            assign rC rE
+          
+          stash rA sAh rF sFh
+          
+          load byte rB addr1 rF
+          add rB rC
+          and rB 255
+          store byte addr1 rF rB
+          assign rC rB
+          assign rE rD
+          stash rD sDh
+          add rF rD
+          goto PNG__PROCESS.filter.paeth
+        stash rE sE
+        load byte rB addr1 rF
+        goto PNG__PROCESS.filter.row
+      
+      # only the average filter remains [implemented, but thus far untested]
+      assign xA 'todo:filter
+      tcall print-text-xa
+      tcall print-space
+      tcall print-int-b
+      tcall print-newline
+      tcall dump-ctx
+      exit
     
-    assign xA 'todo:filter
-    tcall print-text-xa
-    tcall print-space
-    tcall print-int-b
-    tcall print-newline
-    tcall dump-ctx
-    exit
+    goto PNG__PROCESS.filter.slice
   lwreturn
 
 PNG__tRNS:
