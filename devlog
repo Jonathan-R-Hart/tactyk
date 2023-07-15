@@ -13,7 +13,9 @@
     indexed color format (bitrates 1,2,4,8)
     48-bit rgb color format
     test and fix the average filter
-
+  tactyk-draw
+    add a pixmap renderer which performs alpha blending
+  
 14 Jul 2023
   tactyk-core
     new instructions:  sign
