@@ -107,18 +107,39 @@ DEFLATE__UNCOMPRESS_RAW:
   lwcall BITSTREAM__READ_3.decoder
   if rB == 3
     bind addr3 m_deflate_codebook_fixed
-    lwreturn
+    goto DECODE.deflate
   if rB == 5
     lwcall DEFLATE__MK_"DYNAMIC"_TABLE
     bind addr3 m_deflate_codebook_"DYNAMIC"
+    goto DECODE.deflate
+  if rB == 1
+    assign rB rD
+    and rB 7
+    shift-right rA rB
+    and rA h.ffff
+    sub rD rB
+    shift-right rD 3
+    sub rE rD
+    add rE 4
+    
+    DEFLATE__UNCOMPRESS_RAW.copy.qwords:
+    if rA >= 8
+      load qword rB addr2 rE
+      store qword addr1 rF rB
+      sub rA 8
+      add rE 8
+      add rF 8
+      goto DEFLATE__UNCOMPRESS_RAW.copy.qwords
+    DEFLATE__UNCOMPRESS_RAW.copy.bytes:
+    if rA >= 1
+      load byte rB addr2 rE
+      store byte addr1 rF rB
+      dec rA
+      inc rE
+      inc rF
+      goto DEFLATE__UNCOMPRESS_RAW.copy.bytes
+    assign rD 0
     lwreturn
-  
-  assign xA 'todo:DflBlkType
-  tcall print-text-xa
-  tcall print-space
-  tcall print-int-b
-  tcall print-newline
-  tcall dump-ctx
   exit
 
 # Setup the control table used for unpacking DEFLATE blocks which use the fixed Huffman table
