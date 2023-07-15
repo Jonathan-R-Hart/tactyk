@@ -374,7 +374,7 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
   
   add rC 4
   assign rE 0
-  
+    
   # read codelen-code lengths
   lwcall BITSTREAM__PREFETCH.decoder
   bind addr3 m_codelen_order
@@ -456,7 +456,7 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
   stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
   lwcall CODEBOOK_CH__INIT.deflate
   stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
-  
+    
   DEFLATE__MK_"DYNAMIC"_TABLE.mk_literal_table:
   if rE < 12
     # get codeword length
@@ -488,7 +488,6 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
         load dword rD addr4 rD
       
       or rD rE              # codeword length
-      
       # add the code to the codebook
       stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
       lwcall CODEBOOK_CH__PUT.deflate
@@ -562,14 +561,19 @@ DEFLATE__MK_CODELENCODEBOOK.symbol:
   lwreturn
   
 DEFLATE__MK_CODELENCODEBOOK.copy:
-  stash rC sCh
+  stash rC sCh sGl rF
+  lwcall BITSTREAM__READ_2.decoder
+  add rB 3
+  dec rC
+  load byte rF addr4 rC
+  inc rC
   DEFLATE__MK_CODELENCODEBOOK.copy.lp:
   if rB > 0
     store byte addr4 rC rF
     inc rC
     dec rB
     goto DEFLATE__MK_CODELENCODEBOOK.copy.lp
-  stash sCh rC
+  stash sCh rC rF sGl
   lwreturn
 DEFLATE__MK_CODELENCODEBOOK.zeros:
   lwcall BITSTREAM__READ_3.decoder
