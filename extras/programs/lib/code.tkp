@@ -122,7 +122,7 @@ CODEBOOK_CH__PUT.$NAME:
   assign rC 1
   shift-left rC rF
   CODEBOOK_CH__PUT.insert.$NAME:
-  if rB < 1024
+  if rB < $CODEWORDLIMIT
     shift-left rB $CODEWORDSCALE
     stash s27 rF
     load $CODEVALUESIZE rF addr3 rB
