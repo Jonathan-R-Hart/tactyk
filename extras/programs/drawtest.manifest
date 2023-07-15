@@ -7,6 +7,7 @@ data basn0g04 data/testpng/basn0g04.png
 data basn0g08 data/testpng/basn0g08.png
 data basn0g16 data/testpng/basn0g16.png pad
 data basn2c08 data/testpng/basn2c08.png
+data basn2c16 data/testpng/basn2c16.png
 data unifont data/unifont_basic_chars.tkf
 
 module ministring lib/ministring.tkp

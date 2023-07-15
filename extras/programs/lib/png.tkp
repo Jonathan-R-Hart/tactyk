@@ -173,8 +173,13 @@ PNG__GET:
     assign rA PNG__EXTRACT.24bit
     stash sNl rE
     goto PNG__GET.pickmode
+  if rA == 48
+    assign rC 1
+    assign rA PNG__EXTRACT.48bit
+    stash sNl rE
+    goto PNG__GET.pickmode
 
-  assign xA 'todo-bitrate:
+  assign xA 'todo:bitrate
   tcall print-text-xa
   tcall print-space
   tcall print-int-a
@@ -286,9 +291,7 @@ PNG__EXTRACT.16bit:
     assign rE rC
     stash rF sLl
     add rD rF
-  assign rF rE
-  # inc rF
-  load byte rF addr2 rF
+  load byte rF addr2 rE
   add rC 2
   goto rB
 
@@ -299,10 +302,31 @@ PNG__EXTRACT.24bit:
     assign rE rC
     stash rF sLl
     add rD rF
-  assign rF rE
-  load dword rF addr2 rF
+  load dword rF addr2 rE
   and rF h.00ffffff
   add rC 3
+  goto rB
+
+PNG__EXTRACT.48bit:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    stash rF sLl
+    add rD rF
+  # extract from big-endian positions
+  #   (if the least significant bits are ever needed, use the arrange-bytes function and change this)
+  load dword rF addr2 rE
+  and rF h.00ff00ff
+  add rE 4
+  load byte rE addr2 rE
+  shift-left rE 24
+  or rF rE
+  assign rE rF
+  and rE 255
+  shift-right rF 8
+  or rF rE
+  add rC 6
   goto rB
 
 PNG__CONVERT.grayscale:
