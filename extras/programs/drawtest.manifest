@@ -1,6 +1,5 @@
 # GUI test/development program
 
-data basi0g01 data/testpng/basi0g01.png
 data basn0g01 data/testpng/basn0g01.png
 data basn0g02 data/testpng/basn0g02.png
 data basn0g04 data/testpng/basn0g04.png
@@ -19,6 +18,33 @@ data basn4a08 data/testpng/basn4a08.png
 data basn4a16 data/testpng/basn4a16.png
 data basn6a08 data/testpng/basn6a08.png
 data basn6a16 data/testpng/basn6a16.png pad
+
+data s32n3p04 data/testpng/s32n3p04.png
+data s33n3p04 data/testpng/s33n3p04.png
+data s34n3p04 data/testpng/s34n3p04.png
+data s35n3p04 data/testpng/s35n3p04.png
+data s36n3p04 data/testpng/s36n3p04.png
+
+data s32_2b data/testpng/s32n3p04_2bit.png
+data s33_2b data/testpng/s33n3p04_2bit.png
+data s34_2b data/testpng/s34n3p04_2bit.png
+data s35_2b data/testpng/s35n3p04_2bit.png
+data s36_2b data/testpng/s36n3p04_2bit.png
+
+data s32_1b data/testpng/s32n3p04_1bit.png
+data s33_1b data/testpng/s33n3p04_1bit.png
+data s34_1b data/testpng/s34n3p04_1bit.png
+data s35_1b data/testpng/s35n3p04_1bit.png
+data s36_1b data/testpng/s36n3p04_1bit.png
+
+data s32_4g data/testpng/s32n3p04_g4.png
+data s33_4g data/testpng/s33n3p04_g4.png
+data s34_4g data/testpng/s34n3p04_g4.png
+data s35_4g data/testpng/s35n3p04_g4.png
+data s36_4g data/testpng/s36n3p04_g4.png
+
+data bosscat data/alt_testpng/Graykitten.png
+
 data unifont data/unifont_basic_chars.tkf
 
 module ministring lib/ministring.tkp

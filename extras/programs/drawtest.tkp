@@ -52,7 +52,51 @@ MAIN:
   lwcall LOAD__PNG
   tcall get-data 'basn6a16
   lwcall LOAD__PNG
-
+  
+  tcall get-data 's32n3p04
+  lwcall LOAD__PNG
+  tcall get-data 's33n3p04
+  lwcall LOAD__PNG
+  tcall get-data 's34n3p04
+  lwcall LOAD__PNG
+  tcall get-data 's35n3p04
+  lwcall LOAD__PNG
+  tcall get-data 's36n3p04
+  lwcall LOAD__PNG
+  
+  tcall get-data 's32_2b
+  lwcall LOAD__PNG
+  tcall get-data 's33_2b
+  lwcall LOAD__PNG
+  tcall get-data 's34_2b
+  lwcall LOAD__PNG
+  tcall get-data 's35_2b
+  lwcall LOAD__PNG
+  tcall get-data 's36_2b
+  lwcall LOAD__PNG
+  
+  tcall get-data 's32_1b
+  lwcall LOAD__PNG
+  tcall get-data 's33_1b
+  lwcall LOAD__PNG
+  tcall get-data 's34_1b
+  lwcall LOAD__PNG
+  tcall get-data 's35_1b
+  lwcall LOAD__PNG
+  tcall get-data 's36_1b
+  lwcall LOAD__PNG
+  
+  tcall get-data 's32_4g
+  lwcall LOAD__PNG
+  tcall get-data 's33_4g
+  lwcall LOAD__PNG
+  tcall get-data 's34_4g
+  lwcall LOAD__PNG
+  tcall get-data 's35_4g
+  lwcall LOAD__PNG
+  tcall get-data 's36_4g
+  lwcall LOAD__PNG
+  
   mctxpush
   
   tcall dump-dispmode 1
@@ -438,6 +482,226 @@ MAIN:
       assign rA 16384
       assign rB 32
       lwcall GX.pixmap.alphablend
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 680 340 32 32
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 17408
+      assign rB 32
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 720 340 33 33
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 18432
+      assign rB 33
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+
+      assign rF 0
+      spread rA 760 340 34 34
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 19521
+      assign rB 34
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+
+      assign rF 0
+      spread rA 800 340 35 35
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 20677
+      assign rB 35
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      assign rF 0
+      
+      spread rA 840 340 36 36
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 21902
+      assign rB 36
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 680 380 32 32
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 23198
+      assign rB 32
+      lwcall GX.pixmap.alphablend
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 720 380 33 33
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 24222
+      assign rB 33
+      lwcall GX.pixmap.alphablend
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 760 380 34 34
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 25311
+      assign rB 34
+      lwcall GX.pixmap.alphablend
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 800 380 35 35
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 26467
+      assign rB 35
+      lwcall GX.pixmap.alphablend
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 840 380 36 36
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 27692
+      assign rB 36
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 680 420 32 32
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 28988
+      assign rB 32
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 720 420 33 33
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 30012
+      assign rB 33
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 760 420 34 34
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 31101
+      assign rB 34
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 800 420 35 35
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 32257
+      assign rB 35
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 840 420 36 36
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 33482
+      assign rB 36
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 680 460 32 32
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 34778
+      assign rB 32
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 720 460 33 33
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 35802
+      assign rB 33
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 760 460 34 34
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 36891
+      assign rB 34
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 800 460 35 35
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 38047
+      assign rB 35
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+      
+      assign rF 0
+      spread rA 840 460 36 36
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 39272
+      assign rB 36
+      lwcall GX.pixmap.raw
       lwcall GX.util.exit
       assign rF 0
       lwcall GX.draw

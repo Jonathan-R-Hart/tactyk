@@ -12,6 +12,7 @@
 #   sJl - compression
 #   sJh - filter
 #   sKl - interlace
+#   sO,sP - odd-size correction
 #   sU-sZ:  more shadow-registers
 #   
 
@@ -125,6 +126,8 @@ PNG__READ:
 PNG__GET:
   bind addr2 m_data_chunk
   stash sMh rA sKh rA
+  assign rD 0
+  stash sPl rD
   stash rD sHl rE sHh
   # add rD 8
   mul rE rD
@@ -136,7 +139,6 @@ PNG__GET:
   stash rD sLl
   stash sAl rD sBl rD sCl rD
   if rB == 4
-    tcall dump-ctx
     assign rC 1
     if rA == 16
       assign rA PNG__EXTRACT.16bit.alphagrayscale
@@ -239,6 +241,15 @@ PNG__GET.epilogue:
   add rB rA
   lwreturn
 
+PNG__EXTRACT.oddsize.adjust:
+  stash swap rA sOl swap rB sOh swap rD sPl
+  inc rD
+  if rD == rA
+    assign rD 0
+    add rC rB
+  stash swap rA sOl swap rB sOh swap rD sPl
+  lwreturn
+
 PNG__EXTRACT.1bit:
   assign rE rC
   if rE == rD
@@ -256,6 +267,7 @@ PNG__EXTRACT.1bit:
   shift-right rF rE
   and rF 1
   inc rC
+  lwcall PNG__EXTRACT.oddsize.adjust
   goto rB
 
 PNG__EXTRACT.2bit:
@@ -276,6 +288,7 @@ PNG__EXTRACT.2bit:
   shift-right rF rE
   and rF 3
   inc rC
+  lwcall PNG__EXTRACT.oddsize.adjust
   goto rB
 
 PNG__EXTRACT.4bit:
@@ -295,6 +308,7 @@ PNG__EXTRACT.4bit:
   shift-right rF rE
   and rF 15
   inc rC
+  lwcall PNG__EXTRACT.oddsize.adjust
   goto rB
 
 PNG__EXTRACT.8bit:
@@ -501,8 +515,10 @@ PNG__PLTE:
   goto PNG__PLTE.scan
 
 PNG__IEND:
-  tcall dump-ctx
+  assign rB 0
+  stash sOh rB
   stash rA sIl rB sIh rC sHl rE sHh
+  stash sOl rC
   # sIl - bit-depth
   # sIh - color type
   # sJl - compression
@@ -513,7 +529,9 @@ PNG__IEND:
   # rB - color type
   # rC - width
   # rE - height
-  
+  tcall print-space
+  tcall print-int-a
+  tcall print-space
   # Perform preparatory transforms to stage the data for export to an externally provided buffer
   # compute scanline length (in bytes), adjust binary formatting as needed (reverse anything that's big-endian), and apply the inverse filters.
   #
@@ -523,7 +541,6 @@ PNG__IEND:
   # In principle, de-interlacing should also be done at this stage (presumably by rewriting the entire image into a higher portion of the buffer)
   #   BUT:  I dont endorse image interlacing, it doesn't meaningfully contribute to the main use-case for TACTYK (but it is inefficient and artificially increase the amount of code needed),
   #         and it can be easilly handled ahead of distribution by re-encoding - so this feature is to be at a low priority and if/when implemented, to be deferred to a separate module.
-  
   # greyscale
   if rB == 0
     if rA == 16
@@ -537,10 +554,28 @@ PNG__IEND:
       stash rA sIl
     
     if rA <= 8
+      # pixels per byte
       assign rD 8
       div rD rA
-      # mul rC 8
+      
+      assign rA rD
+      assign rB rD
+      
+      # padding pixels per row
+      dec rA
+      and rA rC
+      
+      # bytes per row
       div rC rD
+      
+      # configure the row adjuster to skip over any padding pixels
+      if rA > 0
+        negate rA
+        add rA rB
+        stash sOh rA
+        inc rC
+      
+      # filter byte
       inc rC
       stash sLl rC
       mul rE rC
@@ -579,12 +614,34 @@ PNG__IEND:
   
   # indexed color  
   if rB == 3
+    # pixels per byte
     assign rD 8
     div rD rA
-    # mul rC 8
+    
+    assign rA rD
+    assign rB rD
+    
+    # padding pixels per row
+    dec rA
+    and rA rC
     div rC rD
+
+    # configure the row adjuster to skip over any padding pixels
+    if rA > 0
+      negate rA
+      add rA rB
+      stash sOh rA
+      inc rC
+    
+    # filter byte
     inc rC
     stash sLl rC
+    #tcall print-int-c
+    #tcall print-space
+    #tcall print-int-d
+    #tcall print-space
+    #tcall print-int-b
+    #tcall print-newline
     mul rE rC
     # lwcall PNG__PROCESS.dump
     # lwcall PNG__PROCESS.arrangebytes
@@ -606,7 +663,6 @@ PNG__IEND:
     inc rC
     stash sLl rC
     mul rE rC
-    tcall dump-ctx
     
     # lwcall PNG__PROCESS.dump
     # lwcall PNG__PROCESS.arrangebytes.word

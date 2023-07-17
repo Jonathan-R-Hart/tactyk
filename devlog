@@ -1,3 +1,7 @@
+17 Jul 2023
+  tactyk-extras - png
+    Handle images with odd sizes (bypass padding when loading images with bitrates 1,2,4)
+
 15 Jul 2023
   tactyk-extras - deflate
     uncompressed block handler
