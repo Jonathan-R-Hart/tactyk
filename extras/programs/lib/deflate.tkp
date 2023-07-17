@@ -19,7 +19,7 @@
 # 
 
 struct s_codebook
-  8192 data
+  262144 data
 
 # codebook encoding:  
 #   bits 0-3:   number of bits to advance [in the input bitstream]
@@ -399,7 +399,7 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
   
   assign rB 1
   DEFLATE__MK_"DYNAMIC"_TABLE.mk_codelencodebook:
-  if rB < 11
+  if rB <= 16
     assign rC 0
     DEFLATE__MK_"DYNAMIC"_TABLE.mk_codelencodebook.stratum:
     if rC < 19
@@ -458,7 +458,7 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
   stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
     
   DEFLATE__MK_"DYNAMIC"_TABLE.mk_literal_table:
-  if rE < 12
+  if rE <= 16
     # get codeword length
     if rC < rF
       bind addr4 m_defl_misc
@@ -509,7 +509,7 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
   stash swap sAh rA swap sBh rB swap sCh rC swap sFh rF swap sEh rE
   
   DEFLATE__MK_"DYNAMIC"_TABLE.mk_distance_table:
-  if rE < 12
+  if rE <= 16
     
     # get codeword length
     if rC < rF
@@ -593,12 +593,11 @@ DEFLATE__MK_CODELENCODEBOOK.zeros2:
   add rB 11
   stash rC sCh
   goto DEFLATE__MK_CODELENCODEBOOK.zeros.lp
-
 DEFLATE__HUFFMAN.val:
   store byte addr1 rF rB
   inc rF
-  goto DECODE.deflate
   skip
+  goto DECODE.deflate
 
 DEFLATE__HUFFMAN.distref.ret:
   goto DEFLATE__HUFFMAN.backref.resume
@@ -680,6 +679,7 @@ DEFLATE__HUFFMAN.backref:
   stash rF sBh rC sCl rE sBl
   negate rB
   add rB rF
+  
   
   if rB > 0
     DEFLATE__HUFFMAN.backref.copy:

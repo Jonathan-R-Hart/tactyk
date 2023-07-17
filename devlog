@@ -5,6 +5,7 @@
       this one caused an obvious catastrophic failure due to a compressed data stream misread.
     fix lookup table setup
       The least significant bit was getting masked off on large table indices, causing a problem which initially was mistaken for a fencepost error.
+    fix max codeword size
   tactyk-extras - code
     make lookup table size a configurable parameter
       This had no major impact, but the hard-coded value doesn't really belong.  Also took the opportunity to double it as I am not certain about what the largest
@@ -13,7 +14,9 @@
     indexed color format (bitrates 1,2,4,8)
     48-bit rgb color format
     test and fix the average filter
-  tactyk-draw
+    grayscale with alpha format (8 and 16 bit)
+    truecolor with alpha format (8 and 16 bit)
+  tactyk-extras - draw
     add a pixmap renderer which performs alpha blending
   
 14 Jul 2023

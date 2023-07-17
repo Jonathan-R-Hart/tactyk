@@ -135,6 +135,16 @@ PNG__GET:
   assign rF rC
   stash rD sLl
   stash sAl rD sBl rD sCl rD
+  if rB == 4
+    tcall dump-ctx
+    assign rC 1
+    if rA == 16
+      assign rA PNG__EXTRACT.16bit.alphagrayscale
+    if rA == 32
+      assign rA PNG__EXTRACT.32bit.alphagrayscale
+    stash sNl rE
+    stash rE sIl
+    goto rA
   if rA == 1
     shift-left rD 3
     assign rC 8
@@ -173,9 +183,19 @@ PNG__GET:
     assign rA PNG__EXTRACT.24bit
     stash sNl rE
     goto PNG__GET.pickmode
+  if rA == 32
+    assign rC 1
+    assign rA PNG__EXTRACT.32bit
+    stash sNl rE
+    goto PNG__GET.pickmode
   if rA == 48
     assign rC 1
     assign rA PNG__EXTRACT.48bit
+    stash sNl rE
+    goto PNG__GET.pickmode
+  if rA == 64
+    assign rC 1
+    assign rA PNG__EXTRACT.64bit
     stash sNl rE
     goto PNG__GET.pickmode
 
@@ -191,6 +211,9 @@ PNG__GET:
     assign rB PNG__CONVERT.grayscale
     goto rA
   if rB == 2
+    assign rB PNG__CONVERT.truecolor
+    goto rA
+  if rB == 6
     assign rB PNG__CONVERT.truecolor
     goto rA
   if rB == 3
@@ -308,6 +331,17 @@ PNG__EXTRACT.24bit:
   add rC 3
   goto rB
 
+PNG__EXTRACT.32bit:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    stash rF sLl
+    add rD rF
+  load dword rF addr2 rE
+  add rC 4
+  goto rB
+
 PNG__EXTRACT.48bit:
   assign rE rC
   if rE == rD
@@ -330,6 +364,63 @@ PNG__EXTRACT.48bit:
   add rC 6
   goto rB
 
+PNG__EXTRACT.64bit:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    stash rF sLl
+    add rD rF
+  # extract from big-endian positions
+  #   (if the least significant bits are ever needed, use the arrange-bytes function and change this)
+  load qword rF addr2 rE
+  assign rE rF
+  and rF h.000000ff000000ff
+  and rE h.00ff000000ff0000
+  shift-right rE 8
+  or rF rE
+  assign rE rF
+  and rF h.000000000000ffff
+  and rE h.0000ffff00000000
+  shift-right rE 16
+  or rF rE
+  add rC 8
+  goto rB
+
+PNG__EXTRACT.16bit.alphagrayscale:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    stash rF sLl
+    add rD rF
+  add rC 2
+  load word rF addr2 rE
+  assign rE rF
+  and rF h.00ff
+  and rE h.ff00
+  mul rF h.010101
+  shift-left rE 16
+  or rF rE
+  goto PNG__GET.write
+
+PNG__EXTRACT.32bit.alphagrayscale:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    stash rF sLl
+    add rD rF
+  add rC 4
+  load dword rF addr2 rE
+  assign rE rF
+  and rF h.000000ff
+  and rE h.00ff0000
+  mul rF h.010101
+  shift-left rE 8
+  or rF rE
+  goto PNG__GET.write
+
 PNG__CONVERT.grayscale:
   stash rE sNl
   mul rF rE
@@ -343,60 +434,10 @@ PNG__CONVERT.truecolor:
 PNG__GET.write:
   stash rE sMh
   store dword addr1 rE rF
-  # store dword addr1 rE h.ffff00ff
   add rE 4
   stash sMh rE rF sMl
   if rE >= rF PNG__GET.epilogue
   goto rA
-
-#PNG__GET.indexed:
-#  bind addr3 m_png_palette
-#  stash rD sLl
-#  stash rD sIl
-#  if rD == 2
-#    PNG__GET.indexed.lp.halfnibble.outer:
-#      stash rD sLl
-#      inc rF
-#      PNG__GET.indexed.lp.halfnibble:
-#      dec rD
-#      if rF < rE
-#        if rD == 0  PNG__GET.indexed.lp.halfnibble.outer
-#        load byte rA addr2 rF
-#        
-#        assign rB rA
-#        shift-right rA 2
-#        and rB 3
-#        mul rB 4
-#        load dword rB addr3 rB
-#        store dword addr1 rC rB
-#        add rC 4
-#        
-#        assign rB rA
-#        shift-right rA 2
-#        and rB 3
-#        mul rB 4
-#        load dword rB addr3 rB
-#        store dword addr1 rC rB
-#        add rC 4
-#        
-#        assign rB rA
-#        shift-right rA 2
-#        and rB 3
-#        mul rB 4
-#        load dword rB addr3 rB
-#        store dword addr1 rC rB
-#        add rC 4
-#        
-#        assign rB rA
-#        shift-right rA 2
-#        and rB 3
-#        mul rB 4
-#        load dword rB addr3 rB
-#        store dword addr1 rC rB
-#        add rC 4
-#        
-#        inc rF
-#        goto PNG__GET.indexed.lp.halfnibble
   
   if rD == 8
     PNG__GET.indexed.lp.byte:
@@ -460,6 +501,7 @@ PNG__PLTE:
   goto PNG__PLTE.scan
 
 PNG__IEND:
+  tcall dump-ctx
   stash rA sIl rB sIh rC sHl rE sHh
   # sIl - bit-depth
   # sIh - color type
@@ -504,7 +546,24 @@ PNG__IEND:
       mul rE rC
     lwcall PNG__PROCESS.filter
     goto PNG__IEND.epilogue
-    exit
+  
+  # grayscale with alpha
+  if rB == 4
+    if rA == 16
+      shift-left rC 2
+      shift-left rA 1
+    if rA == 8
+      shift-left rC 1
+      shift-left rA 1
+    inc rC
+    stash sLl rC
+    mul rE rC
+    
+    # lwcall PNG__PROCESS.dump
+    # lwcall PNG__PROCESS.arrangebytes.word
+    stash sIl rA
+    lwcall PNG__PROCESS.filter
+    goto PNG__IEND.epilogue
   
   # truecolor
   if rB == 2
@@ -532,10 +591,29 @@ PNG__IEND:
     lwcall PNG__PROCESS.filter
     goto PNG__IEND.epilogue
   
-  # greyscale with alpha
-  # if rB == 4
   # truecolor with alpha
-  # if rB == 6
+  if rB == 6
+    if rA == 16
+      shift-left rC 3
+      shift-left rA 2
+    if rA == 8
+      tcall print-newline
+      tcall print-newline
+      tcall print-newline
+      tcall print-newline
+      shift-left rC 2
+      shift-left rA 2
+    inc rC
+    stash sLl rC
+    mul rE rC
+    tcall dump-ctx
+    
+    # lwcall PNG__PROCESS.dump
+    # lwcall PNG__PROCESS.arrangebytes.word
+    stash sIl rA
+    lwcall PNG__PROCESS.filter
+    goto PNG__IEND.epilogue
+    
   
   assign xA 'todo:ColorType
   tcall print-text-xa
@@ -856,8 +934,7 @@ PNG__IDAT:
   stash swap rF sBl
   lwcall DEFLATE__UNCOMPRESS_RAW
   
-  PNG__IDAT.epilogue:  
-  
+  PNG__IDAT.epilogue:
   
   bind addr4 m_png_control
   assign rA rF
