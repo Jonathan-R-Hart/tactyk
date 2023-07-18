@@ -97,6 +97,9 @@ MAIN:
   tcall get-data 's36_4g
   lwcall LOAD__PNG
   
+  tcall get-data 'bosscat
+  lwcall LOAD__PNG
+  
   mctxpush
   
   tcall dump-dispmode 1
@@ -701,6 +704,17 @@ MAIN:
       bind addr1 m_texture_data
       assign rA 39272
       assign rB 36
+      lwcall GX.pixmap.raw
+      lwcall GX.util.exit
+      assign rF 0
+      lwcall GX.draw
+
+      assign rF 0
+      spread rA 653 500 395 198
+      lwcall GX.rect.fill
+      bind addr1 m_texture_data
+      assign rA 114870
+      assign rB 700
       lwcall GX.pixmap.raw
       lwcall GX.util.exit
       assign rF 0

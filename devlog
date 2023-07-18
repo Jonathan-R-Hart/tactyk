@@ -1,6 +1,13 @@
 17 Jul 2023
   tactyk-extras - png
-    Handle images with odd sizes (bypass padding when loading images with bitrates 1,2,4)
+    Handle low bitrate images with odd sizes (bypass padding when loading images with bitrates 1,2,4)
+    Handle multiple IDAT chunks
+      The hackish method of overwriting PNG memory was employed, so attempting to load a PNG multiple times will fail (there is not much incentive to fix this).
+  tactyk-extras - deflate
+    Handle multiple deflate blocks.
+    Allocate a 5th bit to the control table codeword size field (to ensure it can actually handle 16-bit codewords)
+  
+  The DEFLATE decompressor seems to be correctly identifying the stream terminals - the "pad" option was successfully removed from all images imports that used it.
 
 15 Jul 2023
   tactyk-extras - deflate
@@ -20,9 +27,12 @@
     test and fix the average filter
     grayscale with alpha format (8 and 16 bit)
     truecolor with alpha format (8 and 16 bit)
+    
+    NOTES ON INTERLACING:
+      Interlaced images are not endorsed, and for the time being, are not supported.  If interlaced images need to be loaded, the preferred solution is to re-encode.
+      (Interlacing undermines compression, would requrie substantial code complexity, and are only meaningful if downloading images from the Internet).
   tactyk-extras - draw
     add a pixmap renderer which performs alpha blending
-  
 14 Jul 2023
   tactyk-core
     new instructions:  sign
@@ -99,6 +109,7 @@
       This is intended to simplify a common pattern.
     store - allow direct storage of integer literals, integer constants, and strings to 8,16,32, and 64 bit memory locations, as well as floating point constants and literals to 32 or 64 bit memory locations
       Similarly motivated to do this in order to simplify common patterns (and to reduce register pressure)
+
 26-28 Jun 2023
   tactyk-ui - A simple framework for setting up Graphical User Interface components.
     It tracks mouse activity and sends mouse-in, mouse-out, mouse-button-down, and mouse-button-up events to abstract components

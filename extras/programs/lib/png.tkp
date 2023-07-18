@@ -46,7 +46,7 @@ PNG__INIT:
   lwcall MINITABLE__PUT.addr4 PNG__IHDR 'IHDR
   lwcall MINITABLE__PUT.addr4 PNG__PLTE 'PLTE
   lwcall MINITABLE__PUT.addr4 PNG__tRNS 'tRNS
-  lwcall MINITABLE__PUT.addr4 PNG__IDAT 'IDAT
+  # lwcall MINITABLE__PUT.addr4 PNG__IDAT 'IDAT
   lwcall MINITABLE__PUT.addr4 PNG__IEND 'IEND
   
   # build the static huffman decoder table (for DEFLATE)
@@ -60,6 +60,8 @@ PNG__INIT:
 PNG__READ:
   stash sBl rA
   bind addr1 m_data_chunk
+  assign rA 0
+  stash sTh rA
   load qword rA addr2 0
   if rA != h.0a1a0a0d474e5089
     assign xA 'ThatsNOTaPNG:
@@ -80,7 +82,49 @@ PNG__READ:
     add rE 4
     
     block-stash 6 sK rA
-    bind addr4 m_png_control    
+    bind addr4 m_png_control
+    
+    # concatenate all IDAT data blocks.  This overwrites the end of the first IDAT chunks as well as everything else until an amount of bytes equal to the amount of compressed
+    # bytes have been read (which will break subsequent attempts to read the PNG - that could be worked around by rewriting the chunk header to indicate how long the IDAT-block is, but
+    # there isn't much incentive to do so, because a PNG only needs to be read once).
+    #
+    # The original misinterpretation of PNG spec was that DEFLATE blocks within an IDAT chunk would not cross IDAT chunk boundaries, so the code for unpacking compressed data simply
+    #   assumes that the DEFLATE blocks would be contiguous.  It would have required a substantially more complex refactoring effort to get it to respect chunk boundaries (and boundary-respecting
+    #   code would also need lots of extra bounds-checking).
+    if rB == 'IDAT
+      stash rB sTh
+      if rB == 0
+        assign rB 1
+        stash sSh rE sTh rB
+        add rE rD
+        stash sUh rE
+        add rE 4
+        goto PNG__READ.scan
+      if rB == 1
+        assign rA rE
+        add rE rD
+        stash rB sUh
+        add rD rB
+        PNG__READ.idat_concat:
+        if rA < rE
+          load qword rC addr2 rA
+          store qword addr2 rB rC
+          add rA 8
+          add rB 8
+          goto PNG__READ.idat_concat
+        stash sUh rD
+        add rE 4
+        goto PNG__READ.scan
+      if rB == 2
+        assign xA 'IDAT-discont!
+        tcall print-text-xa
+        tcall dump-ctx
+        exit
+    stash rC sTh
+    if rC != 0
+      assign rC 2
+      stash sTh rC
+    
     lwcall MINITABLE__GET.addr4
     stash rD sLh
     stash rE sMl
@@ -96,14 +140,15 @@ PNG__READ:
         assign xB 'Ancillary-chunk:
       if rB ~& h.20
         assign xB 'Critical--chunk:
-      tcall print-text-xa
-      tcall print-space
-      tcall print-text-xb
-      tcall print-space
-      tcall print-text-b
-      tcall print-space
-      tcall print-int-d
-      tcall print-newline
+        
+        tcall print-text-xa
+        tcall print-space
+        tcall print-text-xb
+        tcall print-space
+        tcall print-text-b
+        tcall print-space
+        tcall print-int-d
+        tcall print-newline
     
     PNG__READ.next:
     block-stash 6 rA sK
@@ -515,6 +560,8 @@ PNG__PLTE:
   goto PNG__PLTE.scan
 
 PNG__IEND:
+  lwcall PNG__IDAT
+  
   assign rB 0
   stash sOh rB
   stash rA sIl rB sIh rC sHl rE sHh
@@ -529,9 +576,7 @@ PNG__IEND:
   # rB - color type
   # rC - width
   # rE - height
-  tcall print-space
-  tcall print-int-a
-  tcall print-space
+  
   # Perform preparatory transforms to stage the data for export to an externally provided buffer
   # compute scanline length (in bytes), adjust binary formatting as needed (reverse anything that's big-endian), and apply the inverse filters.
   #
@@ -549,8 +594,6 @@ PNG__IEND:
       stash sLl rC
       mul rE rC
       
-      # lwcall PNG__PROCESS.dump
-      # lwcall PNG__PROCESS.arrangebytes.word
       stash rA sIl
     
     if rA <= 8
@@ -594,8 +637,6 @@ PNG__IEND:
     stash sLl rC
     mul rE rC
     
-    # lwcall PNG__PROCESS.dump
-    # lwcall PNG__PROCESS.arrangebytes.word
     stash sIl rA
     lwcall PNG__PROCESS.filter
     goto PNG__IEND.epilogue
@@ -636,15 +677,7 @@ PNG__IEND:
     # filter byte
     inc rC
     stash sLl rC
-    #tcall print-int-c
-    #tcall print-space
-    #tcall print-int-d
-    #tcall print-space
-    #tcall print-int-b
-    #tcall print-newline
     mul rE rC
-    # lwcall PNG__PROCESS.dump
-    # lwcall PNG__PROCESS.arrangebytes
     lwcall PNG__PROCESS.filter
     goto PNG__IEND.epilogue
   
@@ -654,18 +687,12 @@ PNG__IEND:
       shift-left rC 3
       shift-left rA 2
     if rA == 8
-      tcall print-newline
-      tcall print-newline
-      tcall print-newline
-      tcall print-newline
       shift-left rC 2
       shift-left rA 2
     inc rC
     stash sLl rC
     mul rE rC
     
-    # lwcall PNG__PROCESS.dump
-    # lwcall PNG__PROCESS.arrangebytes.word
     stash sIl rA
     lwcall PNG__PROCESS.filter
     goto PNG__IEND.epilogue
@@ -948,9 +975,15 @@ PNG__tRNS:
   goto PNG__PLTE.scan
 
 PNG__IDAT:
+  stash rB sTh
+  if rB == 0
+    assign xA 'No.IDAT!
+    tcall dump-ctx
+    exit
+  stash rE sSh
   load byte rA addr2 rE
-  inc rE
   
+  inc rE
   # check compression method
   if rA ~& h.08
     assign xa 'unkCompMethod
@@ -989,10 +1022,10 @@ PNG__IDAT:
   
   stash swap rF sBl
   lwcall DEFLATE__UNCOMPRESS_RAW
+  stash swap rF sBl
   
   PNG__IDAT.epilogue:
-  
   bind addr4 m_png_control
   assign rA rF
-  goto PNG__READ.next
+  lwreturn
 

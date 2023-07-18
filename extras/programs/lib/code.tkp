@@ -56,10 +56,6 @@ DECODE.$NAME:
     assign xA 'BadCodebookEntry
     assign rB rA
     and rB $CODEWORDMASK
-    # shift-left rB $CODEWORDSCALE
-    tcall print-text-xa
-    tcall print-space
-    tcall print-int-b
     exit
   
   # consume input bits

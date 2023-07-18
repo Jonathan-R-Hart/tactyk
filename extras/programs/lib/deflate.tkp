@@ -34,113 +34,110 @@ flat m_codelen_order byte
   16 17 18 0 8 7 9 6 10 5 11 4 12 3 13 2 14 1 15
 
 flat m_codedlength_table dword
-  h.00000020
-  h.00030070
-  h.00040070
-  h.00050070
-  h.00060070
-  h.00070070
-  h.00080070
-  h.00090070
-  h.000a0070
-  h.000b0170
-  h.000d0170
-  h.000f0170
-  h.00110170
-  h.00130270
-  h.00170270
-  h.001b0270
-  h.001f0270
-  h.00230370
-  h.002b0370
-  h.00330370
-  h.003b0370
-  h.00430470
-  h.00530470
-  h.00630470
-  h.00730470
-  h.00830570
-  h.00a30570
-  h.00c30570
-  h.00e30570
-  h.01020070
+  h.00000040
+  h.000300e0
+  h.000400e0
+  h.000500e0
+  h.000600e0
+  h.000700e0
+  h.000800e0
+  h.000900e0
+  h.000a00e0
+  h.000b01e0
+  h.000d01e0
+  h.000f01e0
+  h.001101e0
+  h.001302e0
+  h.001702e0
+  h.001b02e0
+  h.001f02e0
+  h.002303e0
+  h.002b03e0
+  h.003303e0
+  h.003b03e0
+  h.004304e0
+  h.005304e0
+  h.006304e0
+  h.007304e0
+  h.008305e0
+  h.00a305e0
+  h.00c305e0
+  h.00e305e0
+  h.010200e0
 
 flat m_codeddistance_table dword
-  h.00010010
-  h.00020010
-  h.00030010
-  h.00040010
-  h.00050110
-  h.00070110
-  h.00090210
-  h.000d0210
-  h.00110310
-  h.00190310
-  h.00210410
-  h.00310410
-  h.00410510
-  h.00610510
-  h.00810610
-  h.00c10610
-  h.01010710
-  h.01810710
-  h.02010810
-  h.03010810
-  h.04010910
-  h.06010910
-  h.08010a10
-  h.0c010a10
-  h.10010b10
-  h.18010b10
-  h.20010c10
-  h.30010c10
-  h.40010d10
-  h.60010d10
+  h.00010020
+  h.00020020
+  h.00030020
+  h.00040020
+  h.00050120
+  h.00070120
+  h.00090220
+  h.000d0220
+  h.00110320
+  h.00190320
+  h.00210420
+  h.00310420
+  h.00410520
+  h.00610520
+  h.00810620
+  h.00c10620
+  h.01010720
+  h.01810720
+  h.02010820
+  h.03010820
+  h.04010920
+  h.06010920
+  h.08010a20
+  h.0c010a20
+  h.10010b20
+  h.18010b20
+  h.20010c20
+  h.30010c20
+  h.40010d20
+  h.60010d20
 
 struct s_defl_misc
   2048 data
 mem m_defl_misc s_defl_misc 2
 
+DEFLATE__UNCOMPRESS_RAW.resume:
+  goto DEFLATE__UNCOMPRESS_RAW.resume.in
+
 DEFLATE__UNCOMPRESS_RAW:
   lwcall BITSTREAM__INIT.decoder
-  assign xA 'INIT.state:
+  DEFLATE__UNCOMPRESS_RAW.resume.in:
   lwcall BITSTREAM__READ_3.decoder
-  if rB == 3
+  assign rC rB
+  and rC 1
+  and rB 6
+  stash sWl rC
+  if rB == 2
     bind addr3 m_deflate_codebook_fixed
     goto DECODE.deflate
-  if rB == 5
+  if rB == 4
     lwcall DEFLATE__MK_"DYNAMIC"_TABLE
     bind addr3 m_deflate_codebook_"DYNAMIC"
     goto DECODE.deflate
-  if rB == 1
-    assign rB rD
-    and rB 7
-    shift-right rA rB
-    and rA h.ffff
-    sub rD rB
-    shift-right rD 3
-    sub rE rD
-    add rE 4
-    
-    DEFLATE__UNCOMPRESS_RAW.copy.qwords:
-    if rA >= 8
-      load qword rB addr2 rE
-      store qword addr1 rF rB
-      sub rA 8
-      add rE 8
-      add rF 8
-      goto DEFLATE__UNCOMPRESS_RAW.copy.qwords
-    DEFLATE__UNCOMPRESS_RAW.copy.bytes:
-    if rA >= 1
-      load byte rB addr2 rE
-      store byte addr1 rF rB
-      dec rA
-      inc rE
-      inc rF
-      goto DEFLATE__UNCOMPRESS_RAW.copy.bytes
-    assign rD 0
-    lwreturn
+  if rB == 0
+    goto DEFLATE__UNCOMPRESSED_BLOCK
+  
+  assign xA 'UNK-defblock
+  tcall print-text-xa
+  tcall print-space
+  tcall print-int-b
+  tcall print-newline
+  tcall dump-ctx
   exit
+
+DEFLATE__RETURN:
+  if rD & h.07
+    add rD 8
+  shift-right rD 3
+  sub rE rD
+  inc rE
+  lwreturn
+
 
 # Setup the control table used for unpacking DEFLATE blocks which use the fixed Huffman table
 #
@@ -171,54 +168,54 @@ DEFLATE__INIT:
   lwcall CODEBOOK_CH__NEXTBIT.deflate
   lwcall CODEBOOK_CH__NEXTBIT.deflate
   
-  assign rD h.0027
+  assign rD h.0047
   lwcall CODEBOOK_CH__PUT.deflate
       
-  assign rD h.00030077
+  assign rD h.000300e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00040077
+  assign rD h.000400e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00050077
+  assign rD h.000500e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00060077
+  assign rD h.000600e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00070077
+  assign rD h.000700e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00080077
+  assign rD h.000800e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00090077
+  assign rD h.000900e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.000a0077
+  assign rD h.000a00e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.000b0177
+  assign rD h.000b01e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.000d0177
+  assign rD h.000d01e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.000f0177
+  assign rD h.000f01e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00110177
+  assign rD h.001101e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00130277
+  assign rD h.001302e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00170277
+  assign rD h.001702e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.001b0277
+  assign rD h.001b02e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.001f0277
+  assign rD h.001f02e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00230377
+  assign rD h.002303e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.002b0377
+  assign rD h.002b03e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00330377
+  assign rD h.003303e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.003b0377
+  assign rD h.003b03e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00430477
+  assign rD h.004304e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00530477
+  assign rD h.005304e7
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00630477
+  assign rD h.006304e7
   lwcall CODEBOOK_CH__PUT.deflate
   
   # switch to 8-bit codes
@@ -232,22 +229,22 @@ DEFLATE__INIT:
     add rD h.0100
     goto DEFLATE__MK_FIXED_TABLE.literals.low
   
-  assign rD h.00730478
+  assign rD h.007304e8
   lwcall CODEBOOK_CH__PUT.deflate  
-  assign rD h.00830578
+  assign rD h.008305e8
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00a30578
+  assign rD h.00a305e8
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00c30578
+  assign rD h.00c305e8
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00e30578
+  assign rD h.00e305e8
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.01020078
+  assign rD h.010200e8
   lwcall CODEBOOK_CH__PUT.deflate
   
-  assign rD h.ffff0078
+  assign rD h.ffff00e8
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.ffff0078
+  assign rD h.ffff00e8
   lwcall CODEBOOK_CH__PUT.deflate
   
   lwcall CODEBOOK_CH__NEXTBIT.deflate
@@ -271,73 +268,73 @@ DEFLATE__INIT:
   lwcall CODEBOOK_CH__NEXTBIT.deflate
   
   # distance codes for offsets 1-4 (no extra bits)
-  assign rD h.00010015
+  assign rD h.00010025
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00020015
+  assign rD h.00020025
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00030015
+  assign rD h.00030025
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00040015
+  assign rD h.00040025
   lwcall CODEBOOK_CH__PUT.deflate
   
   # distance codes for base offsets 5-24577 (++1 extra bit every other entry)
-  assign rD h.00050115
+  assign rD h.00050125
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00070115
+  assign rD h.00070125
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00090215
+  assign rD h.00090225
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.000d0215
+  assign rD h.000d0225
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00110315
+  assign rD h.00110325
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00190315
+  assign rD h.00190325
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00210415
+  assign rD h.00210425
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00310415
+  assign rD h.00310425
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00410515
+  assign rD h.00410525
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00610515
+  assign rD h.00610525
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00810615
+  assign rD h.00810625
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.00c10615
+  assign rD h.00c10625
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.01010715
+  assign rD h.01010725
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.01810715
+  assign rD h.01810725
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.02010815
+  assign rD h.02010825
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.03010815
+  assign rD h.03010825
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.04010915
+  assign rD h.04010925
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.06010915
+  assign rD h.06010925
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.08010a15
+  assign rD h.08010a25
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.0c010a15
+  assign rD h.0c010a25
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.10010b15
+  assign rD h.10010b25
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.18010b15
+  assign rD h.18010b25
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.20010c15
+  assign rD h.20010c25
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.30010c15
+  assign rD h.30010c25
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.40010d15
+  assign rD h.40010d25
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.60010d15
+  assign rD h.60010d25
   lwcall CODEBOOK_CH__PUT.deflate
   
   # dummy entries for invalid distnace codes 30 and 31
-  assign rD h.ffff0015
+  assign rD h.ffff0025
   lwcall CODEBOOK_CH__PUT.deflate
-  assign rD h.ffff0015
+  assign rD h.ffff0025
   lwcall CODEBOOK_CH__PUT.deflate
   
   lwreturn
@@ -374,9 +371,11 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
   
   add rC 4
   assign rE 0
-    
+  stash swap sE rE
+  
   # read codelen-code lengths
   lwcall BITSTREAM__PREFETCH.decoder
+  stash swap sE rE
   bind addr3 m_codelen_order
   DEFLATE__MK_"DYNAMIC"_TABLE.read_codelenlen:
   if rC > 0
@@ -409,13 +408,13 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
         shift-left rD 8
         or rD rB
         if rC < 16
-          or rD h.30    # codelen-code literal
+          or rD h.60    # codelen-code literal
         if rC == 16
-          or rD h.40    # codelen-code copy
+          or rD h.80    # codelen-code copy
         if rC == 17
-          or rD h.50    # codelen-code zeros
+          or rD h.a0    # codelen-code zeros
         if rC == 18
-          or rD h.60    # codelen-code zeros2
+          or rD h.c0    # codelen-code zeros2
         stash swap sBh rB swap sCh rC swap sFh rF swap sEh rE
         assign xA 'CODEWORD:
         lwcall CODEBOOK_CH__PUT.deflate
@@ -606,10 +605,10 @@ DEFLATE__HUFFMAN.distref.ret:
   skip
 
 DEFLATE__HUFFMAN.exit:
-  lwreturn
+  stash rC sWl
+  if rC == 0 DEFLATE__UNCOMPRESS_RAW.resume
   skip
-  skip
-  skip
+  goto DEFLATE__RETURN
 
 DEFLATE__MK_CODELENCODE.symbol:
   goto DEFLATE__MK_CODELENCODEBOOK.symbol
@@ -680,7 +679,6 @@ DEFLATE__HUFFMAN.backref:
   negate rB
   add rB rF
   
-  
   if rB > 0
     DEFLATE__HUFFMAN.backref.copy:
     if rC > 0
@@ -692,3 +690,31 @@ DEFLATE__HUFFMAN.backref:
       goto DEFLATE__HUFFMAN.backref.copy
   stash rE sBl
   goto DECODE.deflate
+
+DEFLATE__UNCOMPRESSED_BLOCK:
+  assign rB rD
+  and rB 7
+  shift-right rA rB
+  and rA h.ffff
+  sub rD rB
+  shift-right rD 3
+  sub rE rD
+  add rE 4
+  
+  DEFLATE__UNCOMPRESSED_BLOCK.copy.qwords:
+  if rA >= 8
+    load qword rB addr2 rE
+    store qword addr1 rF rB
+    sub rA 8
+    add rE 8
+    add rF 8
+    goto DEFLATE__UNCOMPRESSED_BLOCK.copy.qwords
+  DEFLATE__UNCOMPRESSED_BLOCK.copy.bytes:
+  if rA >= 1
+    load byte rB addr2 rE
+    store byte addr1 rF rB
+    dec rA
+    inc rE
+    inc rF
+    goto DEFLATE__UNCOMPRESSED_BLOCK.copy.bytes
+  goto DEFLATE__HUFFMAN.exit

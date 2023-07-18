@@ -4,7 +4,7 @@ data basn0g01 data/testpng/basn0g01.png
 data basn0g02 data/testpng/basn0g02.png
 data basn0g04 data/testpng/basn0g04.png
 data basn0g08 data/testpng/basn0g08.png
-data basn0g16 data/testpng/basn0g16.png pad
+data basn0g16 data/testpng/basn0g16.png
 data basn2c08 data/testpng/basn2c08.png
 data basn2c16 data/testpng/basn2c16.png
 # data basn3p01 data/testpng/basn3p01.png       # This checkerboard pattern is too regular.
@@ -17,7 +17,7 @@ data f99n0g04 data/testpng/f99n0g04.png
 data basn4a08 data/testpng/basn4a08.png
 data basn4a16 data/testpng/basn4a16.png
 data basn6a08 data/testpng/basn6a08.png
-data basn6a16 data/testpng/basn6a16.png pad
+data basn6a16 data/testpng/basn6a16.png
 
 data s32n3p04 data/testpng/s32n3p04.png
 data s33n3p04 data/testpng/s33n3p04.png
@@ -69,14 +69,13 @@ module code lib/code.tkp
   $NAME deflate
   $CODEWORDMASK h.0000ffff
   $CODEWORDLIMIT h.00010000
-  $CODEWORDBITS 9
   $CODEWORDSCALE 2
   $CODEVALUESIZE dword
-  $CONSUMPTIONBITS 4
-  $CONSUMPTIONMASK h.000f
+  $CONSUMPTIONBITS 5
+  $CONSUMPTIONMASK h.001f
   $CONSUMPTIONCONST 0
   $HANDLERMASK h.07
-  $HANDLERBITS 4
+  $HANDLERBITS 3
   $HANDLERBASE DEFLATE__HUFFMAN.val
   $HANDLERALIGNMENT 2
 
