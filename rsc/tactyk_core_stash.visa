@@ -84,7 +84,7 @@ typespec stash-item
       value s31
   pick Si
 
-typespec stash-item-low
+typespec stash-item-small
   select-operand
     case sal sAl
       value al
@@ -155,10 +155,7 @@ typespec stash-item-low
       value s30l
     case s31l
       value s31l
-  pick Sil
-
-typespec stash-item-high
-  select-operand
+    
     case sah sAh
       value ah
     case sbh sBh
@@ -228,7 +225,7 @@ typespec stash-item-high
       value s30h
     case s31h
       value s31h
-  pick Sih
+  pick Sis
 
 instruction block-stash
   operand
@@ -369,22 +366,22 @@ instruction stash
         case swap
           pick W
     operand
-      type data xmmx stash-item stash-item-low stash-item-high
+      type data xmmx stash-item stash-item-small
       $DEST $VALUE
     operand
-      type data xmmx stash-item stash-item-low stash-item-high
+      type data xmmx stash-item stash-item-small
       $SRC $VALUE
     select-template
-      case SiD SilD SihD
+      case SiD SisD
         code
           mov gs:[microcontext.$DEST+random_const_GS], $SRC
-      case DSi DSil DSih
+      case DSi DSis
         code
           mov $DEST, gs:[microcontext.$SRC+random_const_GS]
-      case SilX SihX
+      case SisX
         code
           movq gs:[microcontext.$DEST+random_const_GS], $SRC
-      case XSil XSih
+      case XSis
         code
           movq $DEST, gs:[microcontext.$SRC+random_const_GS]
       case SiX
@@ -399,26 +396,26 @@ instruction stash
           movdqu xTEMPA, gs:[microcontext.$SRC+random_const_GS]
           movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
-      case SilSil SilSih SihSil SihSih SilSi SihSi SiSil SiSih
+      case SisSis SisSi SiSis
         sub tmp ra
         code
           mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
           mov gs:[microcontext.$DEST+random_const_GS], rTEMPA
           xor rTEMPA, rTEMPA
-      case WSiD WSilD WSihD
+      case WSiD WSisD
         code
           xchg gs:[microcontext.$DEST+random_const_GS], $SRC
-      case WDSi WDSil WDSih
+      case WDSi WDSis
         code
           xchg $DEST, gs:[microcontext.$SRC+random_const_GS]
-      case WSilX WSihX
+      case WSisX
         sub tmp xa
         code
           movq xTEMPA, $SRC
           movq $SRC, gs:[microcontext.$DEST+random_const_GS]
           movq gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
-      case WXSil WXSih
+      case WXSis
         sub tmp xa
         code
           movq xTEMPA, $DEST
@@ -449,7 +446,7 @@ instruction stash
           movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
           pxor xTEMPB, xTEMPB
-      case WSilSil WSilSih WSihSil WSihSih WSilSi WSihSi WSiSil WSiSih
+      case WSisSis WSisSi WSiSis
         sub tmp ra
         code
           mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]

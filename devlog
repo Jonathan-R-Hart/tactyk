@@ -1,3 +1,7 @@
+18 Jul 2023
+  tactyk-core - stash ops
+    Unify "stash-item-low" and "stash-item-high" typespecs
+
 17 Jul 2023
   tactyk-extras - png
     Handle low bitrate images with odd sizes (bypass padding when loading images with bitrates 1,2,4)

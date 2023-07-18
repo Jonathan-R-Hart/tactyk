@@ -401,7 +401,7 @@ instruction compute
     fxch
     fstp st0
   operand
-    type xmmx data  stash-item stash-item-low stash-item-high
+    type xmmx data  stash-item stash-item-small
     $DEST $VALUE
   code
     ffree st0
@@ -418,7 +418,7 @@ instruction compute
         fstp tword gs:[microcontext.$DEST+random_const_GS]
         ffree st0
         $RESET_TEMP
-    case Sil Sih
+    case Sis
       code $FOOTER
         fstp qword gs:[microcontext.$DEST+random_const_GS]
         ffree st0
@@ -432,7 +432,7 @@ instruction compute
   
   composite 16
     operand
-      type compute-op xmmx data  stash-item stash-item-low stash-item-high  float fconst integer const
+      type compute-op xmmx data  stash-item stash-item-small  float fconst integer const
       $SRC $VALUE
       scramble rTEMPC
       $TGT $SC_TARGET
@@ -448,7 +448,7 @@ instruction compute
         code
           fld tword gs:[microcontext.$SRC+random_const_GS]
           $COMPUTE_OP
-      case Sil Sih
+      case Sis
         code
           fld qword gs:[microcontext.$SRC+random_const_GS]
           $COMPUTE_OP
