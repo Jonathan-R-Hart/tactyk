@@ -227,6 +227,222 @@ typespec stash-item-small
       value s31h
   pick Sis
 
+typespec fstash-item
+  select-operand
+    case saf sAf
+      value al
+    case sbf sBf
+      value bl
+    case scf sCf
+      value cl
+    case sdf sDf
+      value dl
+    case sef sEf
+      value el
+    
+    case sff sFf
+      value fl
+    case sgf sGf
+      value gl
+    case shf sHf
+      value hl
+    case sif sIf
+      value il
+    case sjf sJf
+      value jl
+
+    case skf sKf
+      value kl
+    case slf sLf
+      value ll
+    case smf sMf
+      value ml
+    case snf sNf
+      value nl
+    case sof sOf
+      value ol
+
+    case spf sPf
+      value pl
+    case sqf sQf
+      value ql
+    case srf sRf
+      value rl
+    case ssf sSf
+      value sl
+    case stf sTf
+      value tl
+
+    case suf sUf
+      value ul
+    case svf sVf
+      value vl
+    case swf sWf
+      value wl
+    case sxf sXf
+      value xl
+    case syf sYf
+      value yl
+    case szf sZf
+      value zl
+    
+    case s26f
+      value s26
+    case s27f
+      value s27
+    case s28f
+      value s28
+    case s29f
+      value s29
+    case s30f
+      value s30
+    case s31f
+      value s31
+  pick Sif
+
+typespec fstash-item-small
+  select-operand
+    case salf sAlf
+      value al
+    case sblf sBlf
+      value bl
+    case sclf sClf
+      value cl
+    case sdlf sDlf
+      value dl
+    case self sElf
+      value el
+    
+    case sflf sFlf
+      value fl
+    case sglf sGlf
+      value gl
+    case shlf sHlf
+      value hl
+    case silf sIlf
+      value il
+    case sjlf sJlf
+      value jl
+
+    case sklf sKlf
+      value kl
+    case sllf sLlf
+      value ll
+    case smlf sMlf
+      value ml
+    case snlf sNlf
+      value nl
+    case solf sOlf
+      value ol
+
+    case splf sPlf
+      value pl
+    case sqlf sQlf
+      value ql
+    case srlf sRlf
+      value rl
+    case sslf sSlf
+      value sl
+    case stlf sTlf
+      value tl
+
+    case sulf sUlf
+      value ul
+    case svlf sVlf
+      value vl
+    case swlf sWlf
+      value wl
+    case sxlf sXlf
+      value xl
+    case sylf sYlf
+      value yl
+    case szlf sZlf
+      value zl
+    
+    case s26lf
+      value s26l
+    case s27lf
+      value s27l
+    case s28lf
+      value s28l
+    case s29lf
+      value s29l
+    case s30lf
+      value s30l
+    case s31lf
+      value s31l
+    
+    case sahf sAhf
+      value ah
+    case sbhf sBhf
+      value bh
+    case schf sChf
+      value ch
+    case sdhf sDhf
+      value dh
+    case sehf sEhf
+      value eh
+    
+    case sfhf sFhf
+      value fh
+    case sghf sGhf
+      value gh
+    case shhf sHhf
+      value hh
+    case sihf sIhf
+      value ih
+    case sjhf sJhf
+      value jh
+
+    case skhf sKhf
+      value kh
+    case slhf sLhf
+      value lh
+    case smhf sMhf
+      value mh
+    case snhf sNhf
+      value nh
+    case sohf sOhf
+      value oh
+
+    case sphf sPhf
+      value ph
+    case sqhf sQhf
+      value qh
+    case srhf sRhf
+      value rh
+    case sshf sShf
+      value sh
+    case sthf sThf
+      value th
+
+    case suhf sUhf
+      value uh
+    case svhf sVhf
+      value vh
+    case swhf sWhf
+      value wh
+    case sxhf sXhf
+      value xh
+    case syhf sYhf
+      value yh
+    case szhf sZhf
+      value zh
+    
+    case s26hf
+      value s26h
+    case s27hf
+      value s27h
+    case s28hf
+      value s28h
+    case s29hf
+      value s29h
+    case s30hf
+      value s30h
+    case s31hf
+      value s31h
+  pick Sifs
+
 instruction block-stash
   operand
     type block-quantity

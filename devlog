@@ -1,6 +1,7 @@
 18 Jul 2023
   tactyk-core - stash ops
     Unify "stash-item-low" and "stash-item-high" typespecs
+    Add a pair of typespecs for indicating a stash item shich should be interpreted as a floating point number
 
 17 Jul 2023
   tactyk-extras - png
