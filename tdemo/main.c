@@ -159,6 +159,7 @@ int main(int argc, char *argv[], char *envp[]) {
         tactyk_visa__load_config_module("tactyk_core_simd.visa");
         tactyk_visa__load_config_module("tactyk_core_simd-util.visa");
         tactyk_visa__load_config_module("tactyk_core_bits.visa");
+        tactyk_visa__load_config_module("tactyk_core_stash_ext.visa");
     }
     else {
         tactyk_visa__load_config_module(visa_fname);

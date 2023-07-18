@@ -163,6 +163,7 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_visa__load_config_module("tactyk_core_simd.visa");
     tactyk_visa__load_config_module("tactyk_core_simd-util.visa");
     tactyk_visa__load_config_module("tactyk_core_bits.visa");
+    tactyk_visa__load_config_module("tactyk_core_stash_ext.visa");
     emitctx = tactyk_emit__init();
 
     tactyk_visa__init_emit(emitctx);

@@ -129,17 +129,19 @@ instruction swap
 
 subroutine simple_unary_instruction
   operand 
-    type data
+    type data stash-item stash-item-small
     $A $VALUE
-  code
-    $INSTRUCTION $A
+  select-template
+    case D
+      code
+        $INSTRUCTION $A
 
 subroutine binary_instruction
   operand
-    type data xmmx
+    type data xmmx stash-item stash-item-small
     $A $VALUE
   operand
-    type data xmmx const fconst integer float string branch-index
+    type data xmmx const fconst integer float string branch-index stash-item stash-item-small
     $B $VALUE
     scramble rTEMPC
     $LD_B_IMMEDIATE $SC_LD
@@ -159,10 +161,10 @@ subroutine binary_instruction
 
 instruction sign
   operand
-    type data
+    type data stash-item stash-item-small
     $DEST $VALUE
   opt-operand
-    type data
+    type data stash-item stash-item-small
     $SRC $VALUE
   select-template
     case DD
@@ -181,10 +183,10 @@ instruction sign
 
 instruction abs
   operand
-    type data
+    type data stash-item stash-item-small
     $DEST $VALUE
   opt-operand
-    type data
+    type data stash-item stash-item-small
     $SRC $VALUE
   select-template
     case DD
@@ -210,10 +212,10 @@ instruction sub
 
 instruction assign
   operand 
-    type data xmmx address-offset
+    type data xmmx address-offset stash-item stash-item-small
     $A $VALUE
   operand
-    type data xmmx stackreg const branch-index fconst address-offset context-property integer float string
+    type data xmmx stackreg const branch-index fconst address-offset context-property integer float string stash-item stash-item-small
     $B $VALUE
     scramble rTEMPA
     $LD_B_IMMEDIATE $SC_LD
@@ -243,10 +245,10 @@ instruction assign
 
 instruction mul
   operand
-    type data xmmx
+    type data xmmx stash-item stash-item-small
     $A $VALUE
   operand
-    type data xmmx const fconst integer float string
+    type data xmmx const fconst integer float string stash-item stash-item-small
     $B $VALUE
     scramble rTEMPC
     $LD_B_IMMEDIATE $SC_LD
@@ -274,10 +276,10 @@ instruction mul
 
 instruction div
   operand
-    type data xmmx
+    type data xmmx stash-item stash-item-small
     $A $VALUE
   operand
-    type data xmmx const fconst integer float string
+    type data xmmx const fconst integer float string stash-item stash-item-small
     $B $VALUE
     scramble rTEMPC
     $LD_B_IMMEDIATE $SC_LD
@@ -347,7 +349,7 @@ instruction negate
 instruction goto
   terminal
   operand
-    type branch data const integer
+    type branch data const integer stash-item stash-item-small
     $JTARGET $VALUE
     scramble rMAPPER
     $LD_IMMEDIATE_SOFTREF_BRANCH $SC_LD_INDIRECT
@@ -384,7 +386,7 @@ instruction goto
 subroutine test
   $CJUMP jnz
   operand
-    type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed  data integer const fconst float string
+    type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed  data integer const fconst float string stash-item stash-item-small
     $A $VALUE
     scramble rTEMPA
     $LD_IMMEDIATE_A $SC_LD
@@ -394,7 +396,7 @@ subroutine test
     type comparator
     $CJUMP $VALUE
   opt-operand
-    type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed data integer const fconst float string
+    type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed data integer const fconst float string stash-item stash-item-small
     $B $VALUE
     scramble rTEMPC
     $LD_IMMEDIATE_B $SC_LD
@@ -453,7 +455,7 @@ subroutine test
       sub tmp $TGT_A
       code
         $LD_IMMEDIATE_A_INDIRECT
-        or rTEMPA, $A
+        or rTEMPA, $B
         cmp rTEMPA, 0
         $CJUMP .pass
     case D
@@ -582,7 +584,7 @@ subroutine const-assign
 instruction lwcall
   terminal
   operand
-    type branch data const integer
+    type branch data const integer stash-item stash-item-small
     $JTARGET $VALUE
     scramble rMAPPER
     $LD_IMMEDIATE_SOFTREF_BRANCH $SC_LD_INDIRECT

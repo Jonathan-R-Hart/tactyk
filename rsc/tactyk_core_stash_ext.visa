@@ -1,79 +1,79 @@
 extend subroutine simple_unary_instruction select-template
   case Si Sis
     code
-      $INSTRUCTION gs:[microcontext.$A + random_const_GS]
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS]
 
 extend subroutine simple_binary_instruction select-template
   case DSi DSis
     code
-      $INSTRUCTION $A, gs:[microcontext.$B + random_const_GS]
+      $INSTRUCTION $A, qword gs:[microcontext.$B + random_const_GS]
   case SiD SisD
     code
-      $INSTRUCTION gs:[microcontext.$A + random_const_GS], $B
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], $B
   case SiSi SiSis SisSi SisSis
     sub tmp ra
     code
-      mov rTEMPA, gs:[microcontext.$B + random_const_GS]
-      $INSTRUCTION gs:[microcontext.$A + random_const_GS], rTEMPA
+      mov rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   case SiI SiC SisI SisC
     sub tmp ra
     code
       $SC_LD_INDIRECT
-      $INSTRUCTION gs:[microcontext.$A + random_const_GS], rTEMPA
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   case XSi XSis
     code
-      p$INSTRUCTION $A, gs:[microcontext.$B + random_const_GS]
+      p$INSTRUCTION $A, qword gs:[microcontext.$B + random_const_GS]
   case SiX SisX
     sub tmp xa
     code
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       p$INSTRUCTION xTEMPA, $B
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
 
 extend subroutine binary_instruction select-template
   case DSi DSis
     code
-      $INSTRUCTION $A, gs:[microcontext.$B + random_const_GS]
+      $INSTRUCTION $A, qword gs:[microcontext.$B + random_const_GS]
   case XSi XSis
     sub tmp xa
     code
-      cvtsi2sd xTEMPA, gs:[microcontext.$B + random_const_GS]
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$B + random_const_GS]
       %[$INSTRUCTION]sd $A, xTEMPA
       $RESET_TEMP
   case SiD SisD
     code
-      $INSTRUCTION gs:[microcontext.$A + random_const_GS], $B
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], $B
   case SiSi SiSis SisSi SisSis
     sub tmp ra
     code
-      mov rTEMPA, gs:[microcontext.$B + random_const_GS]
-      $INSTRUCTION gs:[microcontext.$A + random_const_GS], rTEMPA
+      mov rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   case SiSif SiSifs SisSif SisSifs
     sub tmp ra
     code
-      cvtsd2si rTEMPA, gs:[microcontext.$B + random_const_GS]
-      $INSTRUCTION gs:[microcontext.$A + random_const_GS], rTEMPA
+      cvtsd2si rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   case SiX SisX
     sub tmp xa
     code
-      cvtsi2sd xTEMPA, gs:[microcontext.$A + random_const_GS]
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       %[$INSTRUCTION]sd xTEMPA, $B
       cvttsd2si xTEMPA, xTEMPA
-      movdqu gs:[microcontext.$A + random_const_GS], xTEMPA
+      movdqu qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifD SifsD
     sub tmp xa
     sub tmp xb
     code
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       cvtsi2sd xTEMPB, $B
       %[$INSTRUCTION]sd xTEMPA, xTEMPB
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifI SifsI SifC SifsC
     sub tmp xa
@@ -82,9 +82,9 @@ extend subroutine binary_instruction select-template
     code
       $LD_B_IMMEDIATE_INDIRECT
       cvtsi2sd xTEMPB, rTEMPC
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       %[$INSTRUCTION]sd xTEMPA, xTEMPB
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifF SifsF SifCf SifsCf
     sub tmp xa
@@ -93,47 +93,47 @@ extend subroutine binary_instruction select-template
     code
       $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPB, rTEMPC
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       %[$INSTRUCTION]sd xTEMPA, xTEMPB
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifX SifsX
     sub tmp xa
     code
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       %[$INSTRUCTION]sd xTEMPA, $B
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifSi SifsSi SifSis SifsSis
     sub tmp xa
     sub tmp xb
     code
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
-      cvtsi2sd xTEMPB, gs:[microcontext.$B + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cvtsi2sd xTEMPB, qword gs:[microcontext.$B + random_const_GS]
       %[$INSTRUCTION]sd xTEMPA, xTEMPB
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifSif SifsSif SifSifs SifsSifs
     sub tmp xa
     sub tmp xb
     code
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
-      %[$INSTRUCTION]sd xTEMPA, gs:[microcontext.$B + random_const_GS]
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      %[$INSTRUCTION]sd xTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
 
 extend instruction assign select-template
   case DSi DSis
     code
-      mov $A, gs:[microcontext.$B + random_const_GS]
+      mov $A, qword gs:[microcontext.$B + random_const_GS]
   case SiD SisD
     code
-      mov gs:[microcontext.$A + random_const_GS], $B
+      mov qword gs:[microcontext.$A + random_const_GS], $B
   case SiSi SiSis SisSi SisSis
     sub tmp ra
     code
-      mov rTEMPA, gs:[microcontext.$B + random_const_GS]
-      mov gs:[microcontext.$A + random_const_GS], rTEMPA
+      mov rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   
   case XSis
@@ -166,22 +166,22 @@ extend instruction assign select-template
   
   case XSifs
     code
-      movq $A, gs:[microcontext.$B + random_const_GS]
+      movq $A, qword gs:[microcontext.$B + random_const_GS]
   case SifsX
     code
-      movq gs:[microcontext.$A + random_const_GS], $B
+      movq qword gs:[microcontext.$A + random_const_GS], $B
   case XSif
     code
-      movdqu $A, gs:[microcontext.$B + random_const_GS]
+      movdqu $A, qword gs:[microcontext.$B + random_const_GS]
   case SifX
     code
-      movdqu gs:[microcontext.$A + random_const_GS], $B
+      movdqu qword gs:[microcontext.$A + random_const_GS], $B
   
   case SiI SisI SiC SisC SiS SisS SiLi SisLi
     sub tmp $TGT_B
     code
       $LD_B_IMMEDIATE
-      mov gs:[microcontext.$A + random_const_GS], $TGT_B
+      mov qword gs:[microcontext.$A + random_const_GS], $TGT_B
       $RESET_TEMP
   case SiF SisF SiCf SisCf
     sub tmp ra
@@ -196,7 +196,7 @@ extend instruction assign select-template
     sub tmp ra
     code
       $LD_B_IMMEDIATE_INDIRECT
-      mov gs:[microcontext.$A + random_const_GS], rTEMPA
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
 
 extend instruction mul select-template
@@ -204,31 +204,31 @@ extend instruction mul select-template
     sub tmp ra
     code
       mov rTEMPA, $A
-      imul gs:[microcontext.$B + random_const_GS]
+      imul qword gs:[microcontext.$B + random_const_GS]
       mov $A, rTEMPA
       $RESET_TEMP
   case SiD SisD
     sub tmp ra
     code
-      mov rTEMPA, gs:[microcontext.$A + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
       imul $B
-      mov gs:[microcontext.$A + random_const_GS], rTEMPA
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   case SiI SisI
     sub tmp ra
     sub tmp rc
     code
       $LD_B_IMMEDIATE_INDIRECT
-      mov rTEMPA, gs:[microcontext.$A + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
       imul rTEMPC
-      mov gs:[microcontext.$A + random_const_GS], rTEMPA
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   case SiSi SisSi SiSis SisSis
     sub tmp a
     code
-      mov rTEMPA, gs:[microcontext.$A + random_const_GS]
-      imul gs:[microcontext.$B + random_const_GS]
-      mov gs:[microcontext.$A + random_const_GS], rTEMPA
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      imul qword gs:[microcontext.$B + random_const_GS]
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   case SiX SisX
     sub tmp xa
@@ -236,15 +236,15 @@ extend instruction mul select-template
       cvtsi2sd xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       mulsd xTEMPA, $B
       cvtsd2si xTEMPA, xTEMPA
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SiSif SisSif SiSifs SisSifs
     sub tmp xa
     code
       cvtsi2sd xTEMPA, qword gs:[microcontext.$A + random_const_GS]
-      mulsd xTEMPA, gs:[microcontext.$B + random_const_GS]
+      mulsd xTEMPA, qword gs:[microcontext.$B + random_const_GS]
       cvtsd2si xTEMPA, xTEMPA
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SiF SiCf
     sub tmp xa
@@ -256,7 +256,7 @@ extend instruction mul select-template
       cvtsi2sd xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       mulsd xTEMPA, xTEMPB
       cvtsd2si xTEMPA, xTEMPA
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case XSi XSis
     sub tmp xa
@@ -266,22 +266,22 @@ extend instruction mul select-template
       $RESET_TEMP
   case XSif XSifs
     code
-      mulsd $A, gs:[microcontext.$B + random_const_GS]
+      mulsd $A, qword gs:[microcontext.$B + random_const_GS]
   case SifX SifsX
     sub tmp xa
     code
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       mulsd xTEMPA, $B
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifD SifsD
     sub tmp xa
     sub tmp xb
     code
       cvtsi2sd xTEMPB, $B
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       mulsd xTEMPA, xTEMPB
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifI SifsI SifC SifsC
     sub tmp xa
@@ -290,36 +290,36 @@ extend instruction mul select-template
     code
       $LD_B_IMMEDIATE_INDIRECT
       cvtsi2sd xTEMPB, rTEMPC
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       mulsd xTEMPA, xTEMPB
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifSif SifsSif SifSifs SifsSifs
     sub tmp xa
     code
       movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
-      mulsd xTEMPA, gs:[microcontext.$B + random_const_GS]
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      mulsd xTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifSi SifsSi SifSis SifsSis
     sub tmp xa
     sub tmp xb
     code
       movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
-      cvtsi2sd xTEMPB, gs:[microcontext.$B + random_const_GS]
+      cvtsi2sd xTEMPB, qword gs:[microcontext.$B + random_const_GS]
       mulsd xTEMPA, xTEMPB
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
 
 extend instruction div select-template
   case DSiN DSisN
     sub tmp ra
     code
-      cmp gs:[microcontext.$B + random_const_GS], 0
+      cmp qword gs:[microcontext.$B + random_const_GS], 0
       erroreq STATUS_DIVISION_BY_ZERO
       mov rTEMPA, $A
       cqo
-      idiv gs:[microcontext.$B + random_const_GS]
+      idiv qword gs:[microcontext.$B + random_const_GS]
       mov $A, rTEMPA
       $RESET_TEMP
   case SiDN SisDN
@@ -327,20 +327,20 @@ extend instruction div select-template
     code
       cmp $B, 0
       erroreq STATUS_DIVISION_BY_ZERO
-      mov rTEMPA, gs:[microcontext.$A + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
       cqo
       idiv $B
-      mov gs:[microcontext.$A + random_const_GS], rTEMPA
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   case SiSiN SiSisN SisSiN SisSisN
     sub tmp ra
     code
-      cmp gs:[microcontext.$B + random_const_GS], 0
+      cmp qword gs:[microcontext.$B + random_const_GS], 0
       erroreq STATUS_DIVISION_BY_ZERO
-      mov rTEMPA, gs:[microcontext.$A + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
       cqo
-      idiv gs:[microcontext.$B + random_const_GS]
-      mov gs:[microcontext.$A + random_const_GS], rTEMPA
+      idiv qword gs:[microcontext.$B + random_const_GS]
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   case SiIN SiCN SiSN SisIN SisCN SisSN
     sub tmp ra
@@ -349,19 +349,19 @@ extend instruction div select-template
       $LD_B_IMMEDIATE_INDIRECT
       cmp rTEMPC, 0
       erroreq STATUS_DIVISION_BY_ZERO
-      mov rTEMPA, gs:[microcontext.$A + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
       cqo
       idiv rTEMPC
-      mov gs:[microcontext.$A + random_const_GS], rTEMPA
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   
   case SiXN SisXN
     sub tmp xa
     code
-      cvtsi2sd xTEMPA, gs:[microcontext.$A + random_const_GS]
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       divsd xTEMPA, $B
       cvttsd2si xTEMPA, xTEMPA
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SiFN SiCfN SisFN SisCfN
     sub tmp xa
@@ -370,19 +370,19 @@ extend instruction div select-template
     code
       $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPB, rTEMPC
-      cvtsi2sd xTEMPA, gs:[microcontext.$A + random_const_GS]
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       divsd xTEMPA, xTEMPB
       cvttsd2si xTEMPA, xTEMPA
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifD SifsD
     sub tmp xa
     sub tmp xb
     code
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       cvtsi2sd xTEMPB, $B
       divsd xTEMPA, xTEMPB
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifI SifsI SifC SifsC
     sub tmp xa
@@ -390,17 +390,17 @@ extend instruction div select-template
     sub tmp rc
     code
       $LD_B_IMMEDIATE_INDIRECT
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       cvtsi2sd xTEMPB, rTEMPC
       divsd xTEMPA, xTEMPB
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifXN SifsXN
     sub tmp xa
     code
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       divsd xTEMPA, $B
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case SifFN SifCfN SifsFN SifsCfN
     sub tmp xa
@@ -409,27 +409,27 @@ extend instruction div select-template
     code
       $LD_B_IMMEDIATE_INDIRECT
       movq xTEMPB, rTEMPC
-      movq xTEMPA, gs:[microcontext.$A + random_const_GS]
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       divsd xTEMPA, xTEMPB
-      movq gs:[microcontext.$A + random_const_GS], xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
   case XSiN XSisN
     code
-      cvtsi2sd xTEMPA, gs:[microcontext.$B + random_const_GS]
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$B + random_const_GS]
       divsd $A, xTEMPA
       $RESET_TEMP
   case XSifN XSifsN
     code
-      divsd $A, gs:[microcontext.$B + random_const_GS]
+      divsd $A, qword gs:[microcontext.$B + random_const_GS]
   
   case DSiL DSisL
     sub tmp ra
     code
-      cmp gs:[microcontext.$B + random_const_GS], 0
+      cmp qword gs:[microcontext.$B + random_const_GS], 0
       je $DIVZ_TARGET
       mov rTEMPA, $A
       cqo
-      idiv gs:[microcontext.$B + random_const_GS]
+      idiv qword gs:[microcontext.$B + random_const_GS]
       mov $A, rTEMPA
       $RESET_TEMP
   case SiDL SisDL
@@ -437,20 +437,20 @@ extend instruction div select-template
     code
       cmp $B, 0
       je $DIVZ_TARGET
-      mov rTEMPA, gs:[microcontext.$A + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
       cqo
       idiv $B
-      mov gs:[microcontext.$A + random_const_GS], rTEMPA
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   case SiSiL SiSisL SisSiL SisSisL
     sub tmp ra
     code
-      cmp gs:[microcontext.$B + random_const_GS], 0
+      cmp qword gs:[microcontext.$B + random_const_GS], 0
       je $DIVZ_TARGET
-      mov rTEMPA, gs:[microcontext.$A + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
       cqo
-      idiv gs:[microcontext.$B + random_const_GS]
-      mov gs:[microcontext.$A + random_const_GS], rTEMPA
+      idiv qword gs:[microcontext.$B + random_const_GS]
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
   case SiIL SiCL SiSL SisIL SisCL SisSL
     sub tmp ra
@@ -459,10 +459,10 @@ extend instruction div select-template
       $LD_B_IMMEDIATE_INDIRECT
       cmp rTEMPC, 0
       je $DIVZ_TARGET
-      mov rTEMPA, gs:[microcontext.$A + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
       cqo
       idiv rTEMPC
-      mov gs:[microcontext.$A + random_const_GS], rTEMPA
+      mv qword gs:[microcontext.$A + random_const_GS], rTEMPA
       $RESET_TEMP
 
 
@@ -470,7 +470,7 @@ extend instruction goto select
   case Si Sis
     sub tmp ra
     code
-      mov rTEMPA, gs:[microcontext.$JTARGET + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$JTARGET + random_const_GS]
       cmp rTEMPA, fs:[context.instruction_count + random_const_FS]
       errorge STATUS_ROGUE_BRANCH
       cmp rTEMPA, 0
@@ -495,7 +495,7 @@ extend instruction lwcall select
       add rTEMPA, fs:[context.lwcall_stack_address + random_const_FS]
       mov dword [rTEMPA], rTEMPC_32
       inc rLWCSI
-      mov rTEMPA, gs:[microcontext.$JTARGET + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$JTARGET + random_const_GS]
       cmp rTEMPA, fs:[context.instruction_count + random_const_FS]
       errorge STATUS_ROGUE_BRANCH
       cmp rTEMPA, 0
@@ -512,7 +512,7 @@ extend subroutine shift select-template
     case DSi DSis
       sub tmp c
       code 
-        mov rTEMPC, gs:[microcontext.$B + random_const_GS]
+        mov rTEMPC, qword gs:[microcontext.$B + random_const_GS]
         $INSTRUCTION $A, cl
         $RESET_TEMP
     case SiD SisD
@@ -531,61 +531,61 @@ extend subroutine shift select-template
 extend subroutine test select-template
   case DTSi DTSis
     code
-      cmp $A, gs:[microcontext.$B + random_const_GS]
+      cmp $A, qword gs:[microcontext.$B + random_const_GS]
       $CJUMP .pass
   case DTSi DTSis
     code
-      cmp gs:[microcontext.$A + random_const_GS], $B
+      cmp qword gs:[microcontext.$A + random_const_GS], $B
       $CJUMP .pass
   case SiTSi SiTSis SisTSi SisTSis
     sub tmp ra
     code
-      mov tTEMPA, gs:[microcontext.$A + random_const_GS]
-      cmp rTEMPA, gs:[microcontext.$B + random_const_GS]
+      mov tTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cmp rTEMPA, qword gs:[microcontext.$B + random_const_GS]
       $CJUMP .pass
   case SiTI SiTC SiTS SisTI SisTC SisTS
     sub tmp $TGT_B
     code
       $LD_IMMEDIATE_B
-      cmp gs:[microcontext.$A + random_const_GS], $TGT_B
+      cmp qword gs:[microcontext.$A + random_const_GS], $TGT_B
       $CJUMP .pass
   case ITSi CTSi STSi ITSis CTSis STSis
     sub tmp ra
     code
       $LD_IMMEDIATE_A_INDIRECT
-      cmp rTEMPA, gs:[microcontext.$B + random_const_GS]
+      cmp rTEMPA, qword gs:[microcontext.$B + random_const_GS]
       $CJUMP .pass
   
   case DAndSi DAndSis
     code
-      test $A, gs:[microcontext.$B + random_const_GS]
+      test $A, qword gs:[microcontext.$B + random_const_GS]
       $CJUMP .pass
   case SiAndD SisAndD
     code
-      test gs:[microcontext.$A + random_const_GS], $B
+      test qword gs:[microcontext.$A + random_const_GS], $B
       $CJUMP .pass
   case SiAndSi SiAndSis SisAndSi SisAndSis
     sub tmp ra
     code
-      mov rTEMPA, gs:[microcontext.$A + random_const_GS]
-      test rTEMPA, gs:[microcontext.$B + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      test rTEMPA, qword gs:[microcontext.$B + random_const_GS]
       $CJUMP .pass
   case SiAndI SiAndC SisAndS SisAndI SisAndC SisAndS
     sub tmp $TGT_B
     code
       $LD_IMMEDIATE_B
-      test gs:[microcontext.$A + random_const_GS], $TGT_B
+      test qword gs:[microcontext.$A + random_const_GS], $TGT_B
       $CJUMP .pass
   case IAndSi CAndSi SAndSi IAndSis CAndSis SAndSis
     sub tmp $TGT_B
     code
       $LD_IMMEDIATE_A
-      test gs:[microcontext.$B + random_const_GS], $TGT_A
+      test qword gs:[microcontext.$B + random_const_GS], $TGT_A
       $CJUMP .pass
   case DOrSi DOrSis
     sub tmp ra
     code
-      assign rTEMPA, gs:[microcontext.$A + random_const_GS]
+      assign rTEMPA, qword gs:[microcontext.$A + random_const_GS]
       or rTEMPA, $B
       cmp rTEMPA, 0
       $CJUMP .pass
@@ -593,28 +593,28 @@ extend subroutine test select-template
     sub tmp ra
     code
       assign rTEMPA, $A
-      or rTEMPA, gs:[microcontext.$B + random_const_GS]
+      or rTEMPA, qword gs:[microcontext.$B + random_const_GS]
       cmp $A, 0
       $CJUMP .pass
   case SiOrSi SiOrSis SisOrSi SisOrSis
     sub tmp ra
     code
-      assign rTEMPA, gs:[microcontext.$A + random_const_GS]
-      or rTEMPA, gs:[microcontext.$B + random_const_GS]
+      assign rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      or rTEMPA, qword gs:[microcontext.$B + random_const_GS]
       cmp rTEMPA, 0
       $CJUMP .pass
   case SiOrI SiOrC SiOrS SisOrI SisOrC SisOrS
     sub tmp $TGT_B
     code
       $LD_IMMEDIATE_B_INDIRECT
-      or rTEMPC, gs:[microcontext.$A + random_const_GS]
+      or rTEMPC, qword gs:[microcontext.$A + random_const_GS]
       cmp rTEMPC, 0
       $CJUMP .pass
   case IOrSi COrSi SOrSi IOrSis COrSis SOrSis
     sub tmp $TGT_A
     code
       $LD_IMMEDIATE_A_INDIRECT
-      or rTEMPA, gs:[microcontext.$B + random_const_GS]
+      or rTEMPA, qword gs:[microcontext.$B + random_const_GS]
       cmp rTEMPA, 0
       $CJUMP .pass
   case Si Sis
@@ -643,7 +643,7 @@ extend instruction sign select-template
   case SiSi SisSi SiSis SisSis
     sub tmp ra
     code
-      mov rTEMPA, gs:[microcontext.$SRC + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$SRC + random_const_GS]
       not rTEMPA
       shr rTEMPA, 63
       shl rTEMPA, 1
@@ -664,36 +664,36 @@ extend instruction sign select-template
 extend instruction abs select-template
   case DSi DSis
     code
-      mov $DEST, gs:[microcontext.$SRC + random_const_GS]
+      mov $DEST, qword gs:[microcontext.$SRC + random_const_GS]
       neg $DEST
-      cmovl $DEST, gs:[microcontext.$SRC + random_const_GS]
+      cmovl $DEST, qword gs:[microcontext.$SRC + random_const_GS]
   case SiD SisD
     sub tmp ra
     sub tmp rc
     code
-      mov rTEMPC, gs:[microcontext.$DEST + random_const_GS]
+      mov rTEMPC, qword gs:[microcontext.$DEST + random_const_GS]
       mov rTEMPA, $SRC
       neg rTEMPA
       cmovl rTEMPC, rTEMPA
-      mov gs:[microcontext.$DEST + random_const_GS], rTEMPC
+      mv qword gs:[microcontext.$DEST + random_const_GS], rTEMPC
       $RESET_TEMP
   case SiSi SisSi SiSis SisSis
     sub tmp ra
     sub tmp rc
     code
-      mov rTEMPC, gs:[microcontext.$DEST + random_const_GS]
-      mov rTEMPA, gs:[microcontext.$SRC + random_const_GS]
+      mov rTEMPC, qword gs:[microcontext.$DEST + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$SRC + random_const_GS]
       neg rTEMPA
       cmovl rTEMPC, rTEMPA
-      mov gs:[microcontext.$DEST + random_const_GS], rTEMPC
+      mv qword gs:[microcontext.$DEST + random_const_GS], rTEMPC
       $RESET_TEMP
   case Si Sis
     sub tmp ra
     sub tmp rc
     code
-      mov rTEMPA, gs:[microcontext.$DEST + random_const_GS]
-      mov rTEMPC, gs:[microcontext.$DEST + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$DEST + random_const_GS]
+      mov rTEMPC, qword gs:[microcontext.$DEST + random_const_GS]
       neg rTEMPA
       cmovg rTEMPC, rTEMPA
-      mov gs:[microcontext.$DEST + random_const_GS], rTEMPC
+      mv qword gs:[microcontext.$DEST + random_const_GS], rTEMPC
       $RESET_TEMP

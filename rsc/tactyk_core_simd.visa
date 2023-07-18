@@ -2094,7 +2094,7 @@ extend subroutine test select-template
   case Xip XipOr XipAnd
     sub packed-test-basic
     sub packed-test-any
-  csae XipOra XipAnda
+  case XipOra XipAnda
     sub packed-test-basic
     sub packed-test-all
   

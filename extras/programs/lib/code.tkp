@@ -86,15 +86,15 @@ DECODE.$NAME:
 #   (the code is matched if it contains the codeword in its least significant bits)
 CODEBOOK_CH__INIT.$NAME:
   assign rA 0
-  assign rF 1
-  # shift-left rF $CODEWORDBITS
+  assign s27l 1
+  # shift-left s27l $CODEWORDBITS
   assign rE 1
   lwreturn
 
 CODEBOOK_CH__NEXTBIT.$NAME:
   shift-left rA 1
   shift-left rE 1
-  inc rF 1
+  inc s27l 1
   lwreturn
 
 CODEBOOK_CH__PUT.$NAME:
@@ -103,7 +103,7 @@ CODEBOOK_CH__PUT.$NAME:
   if rA & 1
     inc rB
   CODEBOOK_CH__PUT.reverse.$NAME:
-  if rC != rF
+  if rC != s27l
     rotate-right rA 1
     shift-left rB 1
     if rA & 1
@@ -111,7 +111,7 @@ CODEBOOK_CH__PUT.$NAME:
     inc rC
     goto CODEBOOK_CH__PUT.reverse.$NAME
   # rotate-left rA $CODEWORDBITS
-  rotate-left rA rF
+  rotate-left rA s27l
   rotate-right rA 1
   
   # starting with the calculated base value, derive all "variant" codewords and insert them into the codebook
@@ -119,11 +119,11 @@ CODEBOOK_CH__PUT.$NAME:
   #   not removed after processing the codeword.
   #   [allowing the decoder to directly index the codebook with a raw values].
   assign rC 1
-  shift-left rC rF
+  shift-left rC s27l
+  # stash s27 s27l
   CODEBOOK_CH__PUT.insert.$NAME:
   if rB < $CODEWORDLIMIT
     shift-left rB $CODEWORDSCALE
-    stash s27 rF
     load $CODEVALUESIZE rF addr3 rB
     #if rF != 0
     #  tcall dump-ctx
@@ -135,11 +135,11 @@ CODEBOOK_CH__PUT.$NAME:
     #  tcall print-int-d
     #  tcall print-newline
     #  exit
-    stash rF s27
     store $CODEVALUESIZE addr3 rB rD
     shift-right rB $CODEWORDSCALE
     add rB rC
     goto CODEBOOK_CH__PUT.insert.$NAME
+  #stash rF s27
   inc rA
   lwreturn
 

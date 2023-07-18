@@ -2,7 +2,20 @@
   tactyk-core - stash ops
     Unify "stash-item-low" and "stash-item-high" typespecs
     Add a pair of typespecs for indicating a stash item shich should be interpreted as a floating point number
-
+    Added variants of basic operations which operate on stash entries
+      The stash is now treated like a bank of 64 data registers
+      The variants primarilly use register-memory operations.
+      This is expected to make TACTYK-PL a much more practical language (and much less like a programming pizzle)
+      This is expected to improve performance (fewer explicit movement instructions are needed)
+    Instructions affected:
+      [simple_unary_instruction]: inc dec negate not
+      [binary_instruction]: add sub
+      [simple_binary_instruction]:  and or xor 
+      [shift]: shift-left shift-right rotate-left rotate-right
+      [flow control]: goto lwcall if
+      [others]: assign mul div sign abs
+    planned/maybe variations:  load, store, block-load, block-store, block-assign, xassign, x-unary-op, x-binary-op, s-compute
+    notable absense:  compute - this instruction already operates on stash items.
 17 Jul 2023
   tactyk-extras - png
     Handle low bitrate images with odd sizes (bypass padding when loading images with bitrates 1,2,4)

@@ -1,10 +1,10 @@
 
 subroutine shift
   operand 
-    type data
+    type data stash-item stash-item-small
     $A $VALUE
   operand
-    type data integer const
+    type data integer const stash-item stash-item-small
     $B $VALUE
     scramble rTEMPC
     $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
@@ -40,10 +40,10 @@ instruction rotate-right
 
 subroutine simple_binary_instruction
   operand 
-    type data xmmx
+    type data xmmx stash-item stash-item-small
     $A $VALUE
   operand
-    type data const integer xmmx
+    type data const integer xmmx stash-item stash-item-small
     $B $VALUE
     scramble rTEMPA
   select-template
