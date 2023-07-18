@@ -544,10 +544,10 @@ extend subroutine test select-template
       cmp rTEMPA, qword gs:[microcontext.$B + random_const_GS]
       $CJUMP .pass
   case SiTI SiTC SiTS SisTI SisTC SisTS
-    sub tmp $TGT_B
+    sub tmp rc
     code
-      $LD_IMMEDIATE_B
-      cmp qword gs:[microcontext.$A + random_const_GS], $TGT_B
+      $LD_IMMEDIATE_B_INDIRECT
+      cmp qword gs:[microcontext.$A + random_const_GS], rTEMPC
       $CJUMP .pass
   case ITSi CTSi STSi ITSis CTSis STSis
     sub tmp ra
@@ -571,16 +571,16 @@ extend subroutine test select-template
       test rTEMPA, qword gs:[microcontext.$B + random_const_GS]
       $CJUMP .pass
   case SiAndI SiAndC SisAndS SisAndI SisAndC SisAndS
-    sub tmp $TGT_B
+    sub tmp rc
     code
-      $LD_IMMEDIATE_B
-      test qword gs:[microcontext.$A + random_const_GS], $TGT_B
+      $LD_IMMEDIATE_B_INDIRECT
+      test qword gs:[microcontext.$A + random_const_GS], rTEMPC
       $CJUMP .pass
   case IAndSi CAndSi SAndSi IAndSis CAndSis SAndSis
-    sub tmp $TGT_B
+    sub tmp ra
     code
-      $LD_IMMEDIATE_A
-      test qword gs:[microcontext.$B + random_const_GS], $TGT_A
+      $LD_IMMEDIATE_A_INDIRECT
+      test qword gs:[microcontext.$B + random_const_GS], rTEMPA
       $CJUMP .pass
   case DOrSi DOrSis
     sub tmp ra

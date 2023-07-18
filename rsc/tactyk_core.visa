@@ -408,10 +408,10 @@ subroutine test
         cmp $A, $B
         $CJUMP .pass
     case DTI DTC DTS
-      sub tmp $TGT_B
+      sub tmp rc
       code
-        $LD_IMMEDIATE_B
-        cmp $A, $TGT_B
+        $LD_IMMEDIATE_B_INDIRECT
+        cmp $A, rTEMPC
         $CJUMP .pass
     case ITD CTD STD
       sub tmp a
@@ -425,16 +425,16 @@ subroutine test
         test $A, $B
         $CJUMP .pass
     case DAndI DAndC DAndS
-      sub tmp $TGT_B
+      sub tmp rc
       code
-        $LD_IMMEDIATE_B
-        test $A, $TGT_B
+        $LD_IMMEDIATE_B_INDIRECT
+        test $A, rTEMPC
         $CJUMP .pass
     case IAndD CAndD SAndD
-      sub tmp $TGT_B
+      sub tmp ra
       code
-        $LD_IMMEDIATE_A
-        test $B, $TGT_A
+        $LD_IMMEDIATE_A_INDIRECT
+        test $B, rTEMPA
         $CJUMP .pass
     
     case DOrD
@@ -445,7 +445,7 @@ subroutine test
         cmp $A, 0
         $CJUMP .pass
     case DOrI DOrC DOrS
-      sub tmp $TGT_B
+      sub tmp rc
       code
         $LD_IMMEDIATE_B_INDIRECT
         or rTEMPC, $A

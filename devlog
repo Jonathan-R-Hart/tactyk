@@ -10,12 +10,17 @@
     Instructions affected:
       [simple_unary_instruction]: inc dec negate not
       [binary_instruction]: add sub
-      [simple_binary_instruction]:  and or xor 
+      [simple_binary_instruction]:  and or xor
       [shift]: shift-left shift-right rotate-left rotate-right
       [flow control]: goto lwcall if
       [others]: assign mul div sign abs
     planned/maybe variations:  load, store, block-load, block-store, block-assign, xassign, x-unary-op, x-binary-op, s-compute
     notable absense:  compute - this instruction already operates on stash items.
+  
+  tactyk-core - test (condition evaluation)
+    replace direct immediate loading with indirect (temp register)
+      (direct immedaite operand specification does not [at present] account for word size, so this causes incorrect ASM output when compiling)
+
 17 Jul 2023
   tactyk-extras - png
     Handle low bitrate images with odd sizes (bypass padding when loading images with bitrates 1,2,4)
