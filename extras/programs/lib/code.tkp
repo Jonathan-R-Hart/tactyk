@@ -87,32 +87,19 @@ DECODE.$NAME:
 CODEBOOK_CH__INIT.$NAME:
   assign rA 0
   assign s27l 1
-  # shift-left s27l $CODEWORDBITS
   assign rE 1
   lwreturn
 
 CODEBOOK_CH__NEXTBIT.$NAME:
   shift-left rA 1
   shift-left rE 1
-  inc s27l 1
+  inc s27l
   lwreturn
 
 CODEBOOK_CH__PUT.$NAME:
-  assign rB 0
-  assign rC 1
-  if rA & 1
-    inc rB
-  CODEBOOK_CH__PUT.reverse.$NAME:
-  if rC != s27l
-    rotate-right rA 1
-    shift-left rB 1
-    if rA & 1
-      inc rB
-    inc rC
-    goto CODEBOOK_CH__PUT.reverse.$NAME
-  # rotate-left rA $CODEWORDBITS
-  rotate-left rA s27l
-  rotate-right rA 1
+  assign rB rA
+  assign rC s27l
+  reverse-bits rB rC
   
   # starting with the calculated base value, derive all "variant" codewords and insert them into the codebook
   #   They're not really variant codewords - just extra entries to cover arbitrary bits which are neither part of the codeword,

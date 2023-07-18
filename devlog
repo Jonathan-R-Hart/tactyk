@@ -21,6 +21,9 @@
     replace direct immediate loading with indirect (temp register)
       (direct immedaite operand specification does not [at present] account for word size, so this causes incorrect ASM output when compiling)
 
+  tactyk-extras - png/deflate/code
+    begin refactoring (to make use of recently added tactyk features)
+
 17 Jul 2023
   tactyk-extras - png
     Handle low bitrate images with odd sizes (bypass padding when loading images with bitrates 1,2,4)
