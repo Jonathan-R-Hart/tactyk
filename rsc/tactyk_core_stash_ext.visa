@@ -697,3 +697,62 @@ extend instruction abs select-template
       cmovg rTEMPC, rTEMPA
       mv qword gs:[microcontext.$DEST + random_const_GS], rTEMPC
       $RESET_TEMP
+
+extend instruction reverse-bits select-template
+  case Si Sis
+    $rRVBITREG rTEMPC
+    sub tmp rc
+    code 
+      mov rTEMPC, qword gs:[microcontext.$DEST + random_const_GS]
+    sub reverse-bits-core
+    code
+      mov qword gs:[microcontext.$DEST + random_const_GS], rTEMPC
+      $RESET_TEMP
+  case DSi DSis
+    $rRVBITREG $DEST
+    sub tmp rc
+    sub reverse-bits-core
+    code
+      mov rTEMPC, qword gs:[microcontext.$PARAM + random_const_GS]
+      not rTEMPC
+      inc rTEMPC
+      shr $DEST, rTEMPC_8
+      $RESET_TEMP
+  case SiD SisD
+    $rRVBITREG rTEMPC
+    sub tmp rc
+    sub reverse-bits-core
+    code
+      mov rTEMPD, rTEMPC
+      mov rTEMPC, $PARAM
+      not rTEMPC
+      inc rTEMPC
+      shr rTEMPD, rTEMPC_8
+      mov qword gs:[microcontext.$DEST + random_const_GS], rTEMPD
+      $RESET_TEMP
+  case SiSi SisSi SiSis SisSis
+    $rRVBITREG rTEMPC
+    sub tmp rc
+    sub reverse-bits-core
+    code
+      mov rTEMPD, rTEMPC
+      mov rTEMPC, qword gs:[microcontext.$PARAM + random_const_GS]
+      not rTEMPC
+      inc rTEMPC
+      shr rTEMPD, rTEMPC_8
+      mov qword gs:[microcontext.$DEST + random_const_GS], rTEMPD
+      $RESET_TEMP
+  case SiI SisI
+    $rRVBITREG rTEMPC
+    sub tmp rc
+    code 
+      mov rTEMPC, qword gs:[microcontext.$DEST + random_const_GS]
+    sub reverse-bits-core
+    code
+      mov rTEMPD, rTEMPC
+      $LD_IMMEDIATE_INDIRECT_PARAM
+      not rTEMPC
+      inc rTEMPC
+      shr rTEMPD, rTEMPC_8
+      mov qword gs:[microcontext.$DEST + random_const_GS], rTEMPD
+      $RESET_TEMP

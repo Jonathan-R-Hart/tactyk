@@ -13,7 +13,7 @@
       [simple_binary_instruction]:  and or xor
       [shift]: shift-left shift-right rotate-left rotate-right
       [flow control]: goto lwcall if
-      [others]: assign mul div sign abs
+      [others]: assign mul div sign abs reverse-bits
     planned/maybe variations:  load, store, block-load, block-store, block-assign, xassign, x-unary-op, x-binary-op, s-compute
     notable absense:  compute - this instruction already operates on stash items.
   
