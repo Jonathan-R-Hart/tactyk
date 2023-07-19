@@ -46,6 +46,12 @@ extend subroutine binary_instruction select-template
   case SiD SisD
     code
       $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], $B
+  case SiI SisI SiC SisC
+    sub tmp $TGT_B
+    code
+      $LD_B_IMMEDIATE
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], $TGT_B
+      $RESET_TEMP
   case SiSi SiSis SisSi SisSis
     sub tmp ra
     code
