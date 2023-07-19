@@ -2,6 +2,10 @@
   tactyk-core-memory
     load and store instructions - Move most code generation to a set of subroutines, with properties provided by the "word" typespec.
 
+  tactyk-extras - png/deflate/code
+    Replaced a lot of stash/data-register shuffling patterns with the new stash operations.
+      TACTYK-PL no longer needs to resemble a programming puzzle just to implement non-trivial program.
+
 18 Jul 2023
   tactyk-core - stash ops
     Unify "stash-item-low" and "stash-item-high" typespecs

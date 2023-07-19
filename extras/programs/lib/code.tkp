@@ -25,22 +25,94 @@
 # $HANDLERBASE ~HUFFMAN
 # $HANDLERALIGNMENT 4
 
-# Register allocation:
-#   addr2:    input stream
-#   addr3:    codebook
-#   addr4:    output stream
-#   rA:   residue             (32-64 bits from input stream)
-#   rB:   parameter           (entry obtained from codebook)
-#   rC:   variable            (shift parameter or handler ref)
-#   rD:   residue bit count   (used to determine when to fetch more input)
-#   rE:   input position      (read head)
-#   rF:   output position     (write head)
-
 # codebook layout:
 #   each entry is a 16-bit word
 #   bits 0-3:   extra input bits to consume (a fixed consumption amount is added)
 #   bits 4-7:   offset of code handler from base handler (each handler must be aligned in global jump table with base handler)
 #   bits 8-LAST:  values (handler-interpreted field)
+
+# -----------------------------------------------------------------------------------------------------------------
+# PNG + deflate + code stash/register allocation
+# 
+# General:
+#   addr1:  output
+#   addr2:  input
+#   rE:   input read head
+#   rF:   output write head
+#   s26l-s28h:   open
+#   sAl-sFh:  ad-hoc locals, usually register-shadowing [used for functions which don't call into anything complex]
+# 
+# Bistream (while the DEFLATE de-compressor is active)
+#   rA:   bitstream loaded bits
+#   rB:   open, bitstream output
+#   rC:   open
+#   rD:   bitstream bit count
+#   rE:   memory read head
+# 
+# PNG global (valid while loading PNGs):
+#   s29l-s31h:   PNG control-table (MINITABLE)
+# 
+# PNG data:
+#   sHl:  width
+#   sHh:  height
+#   sIl:  bit depth
+#   sIh:  color mode
+#   sJl:  compression method
+#   sJh:  filter method
+#   sKl:  interlace
+#   sKh:  base output offset (PNG__GET input)
+#   sLl:  row byte length
+#   sLh:    stashed rD during IDAT concatenation
+#   
+#   sQh:  stashed output buffer position while reading the PNG data structure
+#         input buffer end while DEFLATE decrompressor is active
+# 
+# PNG - process/filter
+#   sMl:  byte size of image
+# 
+# PNG - export:
+#   sMl:  output end position
+#   sMh:  output current position
+#   sNl:  grayscale byte-to-RGB triplet conversion factor (non-alpha formats)
+# 
+# PNG - padding control:
+#   sNh:  padding-skip trigger value  -- possibly switch to width (sHh)
+#   sOl:  padding amount
+#   sOh:  x
+# 
+# PNG IDAT concatenation:
+#   sPl:  IDAT data block start position
+#   sPh:  IDAT concatenator state
+#   sQl:  IDAT data position end position
+# 
+# DEFLATE:
+#   rA,rB,rC,rD,rE:  bitstream registers
+#   sWl:  final block flag (1 if last block)
+#   addr3:  control datable (codebook)
+#   addr4:  scratch buffer
+# 
+# DEFLATE - "dynamic" table builder
+#   s26l:  - stashed write head [beginning to end]
+#   s27l, s27h, s28l - stashed bitstream persistent vars [while writing codebooks]
+#   sRl:  literal quantity
+#   sRh:  backref quantity
+#   sSl:  codelen quantity
+#   sSh:  symbol index
+#   sTl:  symbol length buffer index (while unpacking the literal & backref list)
+# 
+# HUFFMAN decoder
+#   rA,rB,rC,rD,rE:  bitstream registers
+# 
+# Canonical Huffman Code setup:
+#   [GUARDED with swap covering rA, rD, rE, and distantly rF]
+#   sXh:   codeword length
+#   sXl:   index
+#   sYl:   base affix value (used to generate all codebook entry duplicates)
+#   rB:   base codeword (index bit-reversed)
+#   rC:   open
+#   rD:   coded value (input)
+#   rF:   open
+# -----------------------------------------------------------------------------------------------------------------
 
 DECODE.$NAME:
   lwcall BITSTREAM__PREFETCH.decoder
