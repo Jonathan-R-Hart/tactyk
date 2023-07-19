@@ -10,10 +10,9 @@
 # Two distinct tables are used to account the distinction between "literal/length" symbols and distance symbols.
 # 
 # Known gaps:  
-#     Uncompressed blocks have not been implemented
-#     There is no error checking 
-#         (it relies on TACTYK memory restrictions to avoid getting out of hand, 
-#          and will either yield garbage or crash if the stream is corrupt)
+#   There is no error checking 
+#     (it relies on TACTYK memory restrictions to avoid getting out of hand, 
+#      and will either yield garbage or crash if the stream is corrupt)
 #
 # The matter of decoding Huffman data is deferred to a generic decoding utility (code.tkp)
 # 
@@ -137,7 +136,6 @@ DEFLATE__RETURN:
   sub rE rD
   inc rE
   lwreturn
-
 
 # Setup the control table used for unpacking DEFLATE blocks which use the fixed Huffman table
 #
@@ -341,7 +339,7 @@ DEFLATE__INIT:
 
 DEFLATE__MK_"DYNAMIC"_TABLE:
   bind addr4 m_defl_misc
-  
+  stash s26l rF
   assign rC 0
   DEFLATE__MK_"DYNAMIC"_TABLE.reset:
   if rC < 19
@@ -361,7 +359,7 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
   and rC 31
   add rC 1
   shift-right rA 5
-  stash sB rB sC rC sF rF sE rE
+  stash sB rB sC rC sE rE
   
   assign rC rA
   shift-right rA 4
@@ -388,6 +386,7 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
     dec rC
     inc rE
     goto DEFLATE__MK_"DYNAMIC"_TABLE.read_codelenlen
+  stash s27l rA s27h rD s28l rE
   
   stash sD rD sA rA
   bind addr3 m_codelen_codebook
@@ -549,7 +548,7 @@ DEFLATE__MK_"DYNAMIC"_TABLE:
     
     goto DEFLATE__MK_"DYNAMIC"_TABLE.mk_distance_table
   
-  stash rA sAl rD sDl rE sEl rF sFl
+  stash rA sAl rD sDl rE sEl rF s26l
   lwreturn
 
 DEFLATE__MK_CODELENCODEBOOK.symbol:

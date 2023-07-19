@@ -46,22 +46,18 @@ PNG__INIT:
   lwcall MINITABLE__PUT.addr4 PNG__IHDR 'IHDR
   lwcall MINITABLE__PUT.addr4 PNG__PLTE 'PLTE
   lwcall MINITABLE__PUT.addr4 PNG__tRNS 'tRNS
-  # lwcall MINITABLE__PUT.addr4 PNG__IDAT 'IDAT
   lwcall MINITABLE__PUT.addr4 PNG__IEND 'IEND
   
   # build the static huffman decoder table (for DEFLATE)
-  assign rD 0
-  stash sAl rD
   lwcall DEFLATE__INIT
   
   # build a parallel of the Huffman decoder table with a variant literal-value handler (to capture the distance field in back-references)
   lwreturn
 
 PNG__READ:
-  stash sBl rA
+  stash sQh rA
   bind addr1 m_data_chunk
-  assign rA 0
-  stash sTh rA
+  assign sPh 0
   load qword rA addr2 0
   if rA != h.0a1a0a0d474e5089
     assign xA 'ThatsNOTaPNG:
@@ -81,7 +77,7 @@ PNG__READ:
     load dword rB addr2 rE
     add rE 4
     
-    block-stash 6 sK rA
+    stash sDl rD sEl rE sFl rF sBl rB
     bind addr4 m_png_control
     
     # concatenate all IDAT data blocks.  This overwrites the end of the first IDAT chunks as well as everything else until an amount of bytes equal to the amount of compressed
@@ -92,18 +88,17 @@ PNG__READ:
     #   assumes that the DEFLATE blocks would be contiguous.  It would have required a substantially more complex refactoring effort to get it to respect chunk boundaries (and boundary-respecting
     #   code would also need lots of extra bounds-checking).
     if rB == 'IDAT
-      stash rB sTh
-      if rB == 0
-        assign rB 1
-        stash sSh rE sTh rB
+      if sPh == 0
+        assign sPh 1
+        assign sPl rE
         add rE rD
-        stash sUh rE
+        assign sQl rE
         add rE 4
         goto PNG__READ.scan
-      if rB == 1
+      if sPh == 1
         assign rA rE
         add rE rD
-        stash rB sUh
+        assign rB sQl
         add rD rB
         PNG__READ.idat_concat:
         if rA < rE
@@ -112,25 +107,22 @@ PNG__READ:
           add rA 8
           add rB 8
           goto PNG__READ.idat_concat
-        stash sUh rD
+        assign sQl rD
         add rE 4
         goto PNG__READ.scan
-      if rB == 2
+      if sPh == 2
         assign xA 'IDAT-discont!
         tcall print-text-xa
         tcall dump-ctx
         exit
-    stash rC sTh
-    if rC != 0
-      assign rC 2
-      stash sTh rC
+    if sPh != 0
+      assign sPh 2
     
     lwcall MINITABLE__GET.addr4
-    stash rD sLh
-    stash rE sMl
     
     # if the handler for the PNG chunk is defined, invoke it
     if rC == 1
+      stash rE sEl rD sDl
       goto rA
     
     # if the handler for the PNG chunk is undefined, fuss about it on the System Console.
@@ -151,14 +143,8 @@ PNG__READ:
         tcall print-newline
     
     PNG__READ.next:
-    block-stash 6 rA sK
-    
-    add rE rD
-    
-    # CRC ... dont care - If you want validation, load your PNGs in an image editor and have at it.
-    #load dword rD addr2 rE
-    #reverse-bytes dword rD
-    
+    stash rE sEl rF sFl
+    add rE sDl
     add rE 4
     
     goto PNG__READ.scan
@@ -171,79 +157,64 @@ PNG__READ:
 PNG__GET:
   bind addr2 m_data_chunk
   stash sMh rA sKh rA
-  assign rD 0
-  stash sPl rD
-  stash rD sHl rE sHh
-  # add rD 8
-  mul rE rD
-  shift-left rE 2
-  add rE rA
-  stash rA sIl rB sIh
-  stash sMl rE
-  assign rF rC
+  assign sOh 0
+  assign sMl sHh
+  mul sMl sHl
+  shift-left sMl 2
+  add sMl rA
   stash rD sLl
-  stash sAl rD sBl rD sCl rD
-  if rB == 4
+  stash sAl rD sQh rD sCl rD
+  if sIh == 4
     assign rC 1
-    if rA == 16
+    if sIl == 16
       assign rA PNG__EXTRACT.16bit.alphagrayscale
-    if rA == 32
+    if sIl == 32
       assign rA PNG__EXTRACT.32bit.alphagrayscale
-    stash sNl rE
     stash rE sIl
     goto rA
-  if rA == 1
+  if sIl == 1
     shift-left rD 3
     assign rC 8
-    assign rE h.ffffff
-    stash sNl rE
+    assign sNl h.ffffff
     assign rA PNG__EXTRACT.1bit
     goto PNG__GET.pickmode
-  if rA == 2
+  if sIl == 2
     shift-left rD 2
     assign rC 4
     assign rA PNG__EXTRACT.2bit
-    assign rE h.555555
-    stash sNl rE
+    assign sNl h.555555
     goto PNG__GET.pickmode
-  if rA == 4
+  if sIl == 4
     shift-left rD 1
     assign rC 2
     assign rA PNG__EXTRACT.4bit
-    assign rE h.111111
-    stash sNl rE
+    assign sNl h.111111
     goto PNG__GET.pickmode
-  if rA == 8
+  if sIl == 8
     assign rC 1
     assign rA PNG__EXTRACT.8bit
-    assign rE h.010101
-    stash sNl rE
+    assign sNl h.010101
     goto PNG__GET.pickmode
-  if rA == 16
+  if sIl == 16
     assign rC 1
     assign rA PNG__EXTRACT.16bit
-    assign rE h.010101
-    stash sNl rE
+    assign sNl h.010101
     goto PNG__GET.pickmode
-  if rA == 24
+  if sIl == 24
     assign rC 1
     assign rA PNG__EXTRACT.24bit
-    stash sNl rE
     goto PNG__GET.pickmode
-  if rA == 32
+  if sIl == 32
     assign rC 1
     assign rA PNG__EXTRACT.32bit
-    stash sNl rE
     goto PNG__GET.pickmode
-  if rA == 48
+  if sIl == 48
     assign rC 1
     assign rA PNG__EXTRACT.48bit
-    stash sNl rE
     goto PNG__GET.pickmode
-  if rA == 64
+  if sIl == 64
     assign rC 1
     assign rA PNG__EXTRACT.64bit
-    stash sNl rE
     goto PNG__GET.pickmode
 
   assign xA 'todo:bitrate
@@ -254,16 +225,16 @@ PNG__GET:
   exit
   
   PNG__GET.pickmode:
-  if rB == 0
+  if sIh == 0
     assign rB PNG__CONVERT.grayscale
     goto rA
-  if rB == 2
+  if sIh == 2
     assign rB PNG__CONVERT.truecolor
     goto rA
-  if rB == 6
+  if sIh == 6
     assign rB PNG__CONVERT.truecolor
     goto rA
-  if rB == 3
+  if sIh == 3
     bind addr3 m_png_palette
     assign rB PNG__CONVERT.indexed
     goto rA
@@ -277,22 +248,22 @@ PNG__GET:
   exit
 
 PNG__GET.epilogue:
-  stash rA sKh rB sMh rC sHl rD sHh
+  stash rA sKh rB sMh rD sHh
   
   # calculate where the end index is supposed to be [instead of trusting the pixel emitter to leave a correct index behind]
-  assign rB rC
+  assign rB sHl
   mul rB rD
   mul rB 4
   add rB rA
   lwreturn
 
 PNG__EXTRACT.oddsize.adjust:
-  stash swap rA sOl swap rB sOh swap rD sPl
+  stash swap rA sNh swap rB sOl swap rD sOh
   inc rD
   if rD == rA
     assign rD 0
     add rC rB
-  stash swap rA sOl swap rB sOh swap rD sPl
+  stash swap rA sNh swap rB sOl swap rD sOh
   lwreturn
 
 PNG__EXTRACT.1bit:
@@ -300,7 +271,7 @@ PNG__EXTRACT.1bit:
   if rE == rD
     add rC 8
     assign rE rC
-    stash rF sLl
+    assign rF sLl
     shift-left rF 3
     add rD rF
   shift-right rE 3
@@ -320,7 +291,7 @@ PNG__EXTRACT.2bit:
   if rE == rD
     add rC 4
     assign rE rC
-    stash rF sLl
+    assign rF sLl
     shift-left rF 2
     add rD rF
   shift-right rE 2
@@ -341,7 +312,7 @@ PNG__EXTRACT.4bit:
   if rE == rD
     add rC 2
     assign rE rC
-    stash rF sLl
+    assign rF sLl
     shift-left rF 1
     add rD rF
   shift-right rE 1
@@ -361,8 +332,7 @@ PNG__EXTRACT.8bit:
   if rE == rD
     inc rC
     assign rE rC
-    stash rF sLl
-    add rD rF
+    add rD sLl
   load byte rF addr2 rE
   inc rC
   goto rB
@@ -372,8 +342,7 @@ PNG__EXTRACT.16bit:
   if rE == rD
     inc rC
     assign rE rC
-    stash rF sLl
-    add rD rF
+    add rD sLl
   load byte rF addr2 rE
   add rC 2
   goto rB
@@ -383,8 +352,7 @@ PNG__EXTRACT.24bit:
   if rE == rD
     inc rC
     assign rE rC
-    stash rF sLl
-    add rD rF
+    add rD sLl
   load dword rF addr2 rE
   and rF h.00ffffff
   add rC 3
@@ -395,8 +363,8 @@ PNG__EXTRACT.32bit:
   if rE == rD
     inc rC
     assign rE rC
-    stash rF sLl
-    add rD rF
+    # assign rF sLl
+    add rD sLl
   load dword rF addr2 rE
   add rC 4
   goto rB
@@ -406,8 +374,7 @@ PNG__EXTRACT.48bit:
   if rE == rD
     inc rC
     assign rE rC
-    stash rF sLl
-    add rD rF
+    add rD sLl
   # extract from big-endian positions
   #   (if the least significant bits are ever needed, use the arrange-bytes function and change this)
   load dword rF addr2 rE
@@ -428,8 +395,7 @@ PNG__EXTRACT.64bit:
   if rE == rD
     inc rC
     assign rE rC
-    stash rF sLl
-    add rD rF
+    add rD sLl
   # extract from big-endian positions
   #   (if the least significant bits are ever needed, use the arrange-bytes function and change this)
   load qword rF addr2 rE
@@ -451,8 +417,7 @@ PNG__EXTRACT.16bit.alphagrayscale:
   if rE == rD
     inc rC
     assign rE rC
-    stash rF sLl
-    add rD rF
+    add rD sLl
   add rC 2
   load word rF addr2 rE
   assign rE rF
@@ -468,8 +433,7 @@ PNG__EXTRACT.32bit.alphagrayscale:
   if rE == rD
     inc rC
     assign rE rC
-    stash rF sLl
-    add rD rF
+    add rD sLl
   add rC 4
   load dword rF addr2 rE
   assign rE rF
@@ -494,23 +458,9 @@ PNG__GET.write:
   stash rE sMh
   store dword addr1 rE rF
   add rE 4
-  stash sMh rE rF sMl
-  if rE >= rF PNG__GET.epilogue
+  stash sMh rE
+  if rE >= sMl PNG__GET.epilogue
   goto rA
-  
-  if rD == 8
-    PNG__GET.indexed.lp.byte:
-    if rF < rE
-      load byte rA addr2 rF
-      mul rA 3
-      #load dword rA addr3 rA
-      #or rA h.ff000000
-      store dword addr1 rC rA
-      inc rF
-      add rC 4
-      goto PNG__GET.indexed.lp.byte
-  goto PNG__GET.epilogue
-
 
 PNG__IHDR:
   assign rF rE
@@ -562,10 +512,9 @@ PNG__PLTE:
 PNG__IEND:
   lwcall PNG__IDAT
   
-  assign rB 0
-  stash sOh rB
-  stash rA sIl rB sIh rC sHl rE sHh
-  stash sOl rC
+  assign sOl 0
+  assign sMl sHh
+  assign sNh sHl
   # sIl - bit-depth
   # sIh - color type
   # sJl - compression
@@ -581,119 +530,112 @@ PNG__IEND:
   # compute scanline length (in bytes), adjust binary formatting as needed (reverse anything that's big-endian), and apply the inverse filters.
   #
   #   sLl:  bytes per scanline
-  #   rE:   image size (in bytes) (must match/reproduce the byte count after decompression)
+  #   sMl:   image size (in bytes) (must match/reproduce the byte count after decompression)
   #
   # In principle, de-interlacing should also be done at this stage (presumably by rewriting the entire image into a higher portion of the buffer)
   #   BUT:  I dont endorse image interlacing, it doesn't meaningfully contribute to the main use-case for TACTYK (but it is inefficient and artificially increase the amount of code needed),
   #         and it can be easilly handled ahead of distribution by re-encoding - so this feature is to be at a low priority and if/when implemented, to be deferred to a separate module.
   # greyscale
-  if rB == 0
-    if rA == 16
-      shift-left rC 1
-      inc rC
-      stash sLl rC
-      mul rE rC
-      
-      stash rA sIl
+
+  assign sLl sHl
+  if sIh == 0
+    if sIl == 16
+      shift-left sLl 1
+      inc sLl
+      mul sMl sLl
     
-    if rA <= 8
+    if sIl <= 8
       # pixels per byte
       assign rD 8
-      div rD rA
+      div rD sIl
       
       assign rA rD
       assign rB rD
       
       # padding pixels per row
       dec rA
-      and rA rC
+      and rA sHl
       
       # bytes per row
-      div rC rD
+      div sLl rD
       
       # configure the row adjuster to skip over any padding pixels
       if rA > 0
         negate rA
         add rA rB
-        stash sOh rA
-        inc rC
+        assign sOl rA
+        inc sLl
       
       # filter byte
-      inc rC
-      stash sLl rC
-      mul rE rC
+      inc sLl
+      mul sMl sLl
     lwcall PNG__PROCESS.filter
     goto PNG__IEND.epilogue
   
   # grayscale with alpha
-  if rB == 4
-    if rA == 16
-      shift-left rC 2
-      shift-left rA 1
-    if rA == 8
-      shift-left rC 1
-      shift-left rA 1
-    inc rC
-    stash sLl rC
-    mul rE rC
+  if sIh == 4
+    if sIl == 16
+      shift-left sLl 2
+      shift-left sIl 1
+    if sIl == 8
+      shift-left sLl 1
+      shift-left sIl 1
+    inc sLl
+    mul sMl sLl
     
-    stash sIl rA
+    # stash sIl rA
     lwcall PNG__PROCESS.filter
     goto PNG__IEND.epilogue
   
   # truecolor
-  if rB == 2
-    mul rA 3
-    stash sIl rA
-    mul rC rA
-    shift-right rC 3
-    inc rC
-    stash sLl rC
-    mul rE rC
+  if sIh == 2
+    mul sIl 3
+    mul sLl sIl
+    shift-right sLl 3
+    inc sLl
+    mul sMl sLl
     lwcall PNG__PROCESS.filter
     goto PNG__IEND.epilogue
   
   # indexed color  
-  if rB == 3
+  if sIh == 3
     # pixels per byte
     assign rD 8
-    div rD rA
+    div rD sIl
     
     assign rA rD
     assign rB rD
     
     # padding pixels per row
     dec rA
-    and rA rC
-    div rC rD
+    and rA sLl
+    div sLl rD
 
     # configure the row adjuster to skip over any padding pixels
     if rA > 0
       negate rA
       add rA rB
-      stash sOh rA
-      inc rC
+      assign sOl rA
+      inc sLl
     
     # filter byte
-    inc rC
-    stash sLl rC
-    mul rE rC
+    inc sLl
+    mul sMl sLl
     lwcall PNG__PROCESS.filter
     goto PNG__IEND.epilogue
   
   # truecolor with alpha
-  if rB == 6
-    if rA == 16
-      shift-left rC 3
-      shift-left rA 2
-    if rA == 8
-      shift-left rC 2
-      shift-left rA 2
-    inc rC
-    stash sLl rC
-    mul rE rC
+  if sIh == 6
+    if sIl == 16
+      shift-left sLl 3
+      shift-left sIl 2
+    if sIl == 8
+      shift-left sLl 2
+      shift-left sIl 2
+    inc sLl
+    mul sMl sLl
     
-    stash sIl rA
+    # stash sIl rA
     lwcall PNG__PROCESS.filter
     goto PNG__IEND.epilogue
     
@@ -715,7 +657,7 @@ PNG__PROCESS.dump:
   assign rF 0
   assign xA '0
   PNG__PROCESS.dump.lp:
-  if rF < rE
+  if rF < sMl
     load byte rA addr1 rF
     if rA < 10
       tcall print-text-xa
@@ -727,76 +669,33 @@ PNG__PROCESS.dump:
     goto PNG__PROCESS.dump.lp
   lwreturn
 
-
-# convert table entriesfrom big-endian to little endian.
-#   ALSO:  Some research may be needed to determine if this is the correct thing to do (particularly with indexed color images),
-#          as this is reacting to an observed byte order issue which the specification seemed a bit unclear about.
-PNG__PROCESS.arrangebytes:
-  assign rF 0
-  PNG__PROCESS.arrangebytes.row:
-  if rF < rE
-    assign rD 1
-    assign rA rD
-    add rA rF
-    PNG__PROCESS.arrangebytes.fragment:
-    if rD < rC
-      load dword rB addr1 rA
-      reverse-bytes dword rB
-      store dword addr1 rA rB
-      add rA 4
-      add rD 4
-      goto PNG__PROCESS.arrangebytes.fragment
-    add rF rC
-    goto PNG__PROCESS.arrangebytes.row
-  lwreturn
-
-PNG__PROCESS.arrangebytes.word:
-  assign rF 0
-  PNG__PROCESS.arrangebytes.word.row:
-  if rF < rE
-    assign rD 1
-    assign rA rD
-    add rA rF
-    PNG__PROCESS.arrangebytes.word.fragment:
-    if rD < rC
-      load word rB addr1 rA
-      reverse-bytes word rB
-      store word addr1 rA rB
-      add rA 2
-      add rD 2
-      goto PNG__PROCESS.arrangebytes.word.fragment
-    add rF rC
-    goto PNG__PROCESS.arrangebytes.word.row
-  lwreturn
-
 PNG__PROCESS.filter:
   assign rF 0
   assign rA 0
-  assign rB 0
   
-  stash rD sIl
-  shift-right rD 3
-  if rD <= 0
-    assign rD 1
-  stash sDh rD
-  stash sBh rB
+  # sBh:  [temp] slice index
+  assign sBh 0
+  
+  # sDh:  [temp] slice count
+  assign sDh sIl
+  shift-right sDh 3
+  if sDh <= 0
+    assign sDh 1
   
   # logically split the image into byte slices (one for each pixel byte)
   PNG__PROCESS.filter.slice:
-  stash rB sBh rD sDh
-  if rB < rD
-    assign rF rB
-    assign rA rB
-    inc rB
-    stash sBh rB
+  if sBh < sDh
+    assign rF sBh
+    assign rA sBh
+    inc sBh
     
     # iterate each row within the slice
     PNG__PROCESS.filter.row:
-    stash rC sLl rD sDh rB sBh
-    add rA rC
+    add rA sLl
     
-    if rF < rE
+    if rF < sMl
       # recover the offset to the first byte in the row and obtain the filter identifier
+      assign rB sBh
       negate rB
       inc rB
       add rB rF
@@ -805,9 +704,8 @@ PNG__PROCESS.filter:
       
       # null filter - raw values are taken as-decompressed, so skip to the next row.
       if rB == 0
-        stash rC sLl
         PNG__PROCESS.filter.degenerate_up:
-        add rF rC
+        add rF sLl
         dec rF
         goto PNG__PROCESS.filter.row
       
@@ -820,42 +718,37 @@ PNG__PROCESS.filter:
           add rB rC
           assign rC rB
           store byte addr1 rF rB
-          add rF rD
+          add rF sDh
           load byte rB addr1 rF
           goto PNG__PROCESS.filter.sub
         goto PNG__PROCESS.filter.row
       
       if rB == 2
         load byte rB addr1 rF
-        assign rC 0
         
-        # Do any PNG images have up filter set on the first row?
-        # if on the first row, switch to the "none" filter
-        stash rC sLl
-        if rC >= rF PNG__PROCESS.filter.degenerate_up
+        if sLl >= rF PNG__PROCESS.filter.degenerate_up
         
         PNG__PROCESS.filter.up:
         if rF < rA
           
-          stash rC sLl
+          assign rC sLl
           negate rC
           add rC rF
           load byte rC addr1 rC
           add rB rC
           store byte addr1 rF rB
-          add rF rD
+          add rF sDh
           load byte rB addr1 rF
           goto PNG__PROCESS.filter.up
         goto PNG__PROCESS.filter.row
       
       if rB == 3
-        stash rC sLl
-        if rC >= rF PNG__PROCESS.filter.degenerate_average
+        if sLl >= rF PNG__PROCESS.filter.degenerate_average
         assign rC 0
         load byte rB addr1 rF
         PNG__PROCESS.filter.average:
         if rF < rA
-          stash rD sLl
+          assign rD sLl
           negate rD
           add rD rF
           load byte rD addr1 rD
@@ -866,8 +759,7 @@ PNG__PROCESS.filter:
           and rB 255
           assign rC rB
           store byte addr1 rF rB
-          stash rD sDh
-          add rF rD
+          add rF sDh
           load byte rB addr1 rF
           goto PNG__PROCESS.filter.average
         goto PNG__PROCESS.filter.row
@@ -881,13 +773,12 @@ PNG__PROCESS.filter:
             assign rC rB
             shift-right rC 1
             store byte addr1 rF rB
-            add rF rD
+            add rF sDh
             load byte rB addr1 rF
             goto PNG__PROCESS.filter.degenerate_average.lp
           goto PNG__PROCESS.filter.row
       
       if rB == 4
-        stash sE rE
         
         assign rC 0
         assign rE 0
@@ -895,11 +786,11 @@ PNG__PROCESS.filter:
         # Do any PNG images have paeth filter set on the first row?
         # if on the first row, switch to the "sub" filter (which should be the same as paeth with two parameters locked to zero)
         stash rD sLl
-        if rD >= rF PNG__PROCESS.filter.degenerate_paeth
+        if sLl >= rF PNG__PROCESS.filter.degenerate_paeth
         
         PNG__PROCESS.filter.paeth:
         
-        stash rD sLl
+        assign rD sLl
         negate rD
         add rD rF
         load byte rD addr1 rD
@@ -942,10 +833,8 @@ PNG__PROCESS.filter:
           store byte addr1 rF rB
           assign rC rB
           assign rE rD
-          stash rD sDh
-          add rF rD
+          add rF sDh
           goto PNG__PROCESS.filter.paeth
-        stash rE sE
         load byte rB addr1 rF
         goto PNG__PROCESS.filter.row
       
@@ -975,12 +864,12 @@ PNG__tRNS:
   goto PNG__PLTE.scan
 
 PNG__IDAT:
-  stash rB sTh
-  if rB == 0
+  # stash rB sPh
+  if sPh == 0
     assign xA 'No.IDAT!
     tcall dump-ctx
     exit
-  stash rE sSh
+  stash rE sPl
   load byte rA addr2 rE
   
   inc rE
@@ -1020,9 +909,9 @@ PNG__IDAT:
     assign rA 0
     lwreturn
   
-  stash swap rF sBl
+  stash swap rF sQh
   lwcall DEFLATE__UNCOMPRESS_RAW
-  stash swap rF sBl
+  stash swap rF sQh
   
   PNG__IDAT.epilogue:
   bind addr4 m_png_control
