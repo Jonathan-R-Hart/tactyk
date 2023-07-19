@@ -537,10 +537,16 @@ extend subroutine test select-template
     code
       cmp qword gs:[microcontext.$A + random_const_GS], $B
       $CJUMP .pass
+    case SiTD SisTD
+      sub tmp ra
+      code
+        mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+        cmp rTEMPA, $B
+        $CJUMP .pass
   case SiTSi SiTSis SisTSi SisTSis
     sub tmp ra
     code
-      mov tTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
       cmp rTEMPA, qword gs:[microcontext.$B + random_const_GS]
       $CJUMP .pass
   case SiTI SiTC SiTS SisTI SisTC SisTS
