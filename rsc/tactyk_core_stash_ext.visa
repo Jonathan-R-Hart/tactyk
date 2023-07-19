@@ -768,3 +768,178 @@ extend instruction reverse-bits select-template
       shr rTEMPD, rTEMPC_8
       mov qword gs:[microcontext.$DEST + random_const_GS], rTEMPD
       $RESET_TEMP
+
+subroutine load-stash-DS
+  sub tmp ra
+  sub tmp rd
+  code
+    mov rTEMPD, gs:[microcontext.$OFFSET + random_const_GS]
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPD, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPD, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $MOV %[$DEST__DATA_REG]_$REGBITS_LD, $MVKW [$ADDRESS_REGISTER+rTEMPD]
+    $RESET_TEMP
+
+subroutine load-stash-SD
+  sub tmp ra
+  code
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp $OFFSET, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp $OFFSET, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $MOV rTEMPA_$REGBITS_LD, $MVKW [$ADDRESS_REGISTER+$OFFSET]
+    mov qword gs:[microcontext.$DEST__DATA_REG + random_const_GS], rTEMPA
+    $RESET_TEMP
+
+subroutine load-stash-SS
+  sub tmp ra
+  sub tmp rd
+  code
+    mov rTEMPD, gs:[microcontext.$OFFSET + random_const_GS]
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPD, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPD, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $MOV rTEMPA_$REGBITS_LD, $MVKW [$ADDRESS_REGISTER+rTEMPD]
+    mov qword gs:[microcontext.$DEST__DATA_REG + random_const_GS], rTEMPA
+    $RESET_TEMP
+
+subroutine load-stash-SI
+  sub tmp ra
+  sub tmp rc
+  code
+    $LD_OFFSET_IMMEDIATE
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPC, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPC, 0
+    errorlt STATUS_ROGUE_POINTER
+    lfence
+    $MOV rTEMPA_$REGBITS_LD, $MVKW [$ADDRESS_REGISTER+rTEMPC]
+    mov qword gs:[microcontext.$DEST__DATA_REG + random_const_GS], rTEMPA
+    $RESET_TEMP
+
+extend instruction load select-template
+  select-template
+    case QSiAD DSiAD DsSiAD WSiAD BSiAD  QSisAD DSisAD DsSisAD WSisAD BSisAD
+      sub load-stash-SD
+    case QDASi DDASi DsDASi WDASi BDASi  QDASis DDASis DsDASis WDASis BDASis
+      sub load-stash-DS
+    case QSiASi DSiASi DsSiASi WSiASi BSiASi  QSisASi DSisASi DsSisASi WSisASi BSisASi  QSiASis DSiASis DsSiASis WSiASis BSiASis  QSisASis DSisASis DsSisASis WSisASis BSisASis
+      sub load-stash-SS
+    case QSiAI QSiAC DSiAI DSiAC DsSiAI DsSiAC WSiAI WSiAC BSiAI BSiAC  QSisAI QSisAC DSisAI DSisAC DsSisAI DsSisAC WSisAI WSisAC BSisAI BSisAC
+      sub load-stash-SI
+
+subroutine store-stash-DS
+  sub tmp a
+  code
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp $OFFSET, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp $OFFSET, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    mov rTEMPA, qword gs:[microcontext.$SRC + random_const_GS]
+    mov $MVKW [$ADDRESS_REGISTER+$OFFSET], rTEMPA_$REGBITS_ST
+    $RESET_TEMP
+subroutine store-stash-SD
+  sub tmp a
+  sub tmp d
+  code
+    mov rTEMPD, qword gs:[microcontext.$OFFSET + random_const_GS]
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPD, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPD, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    mov $MVKW [$ADDRESS_REGISTER+rTEMPD], %[$SRC]_$REGBITS_ST
+    $RESET_TEMP
+subroutine store-stash-SS
+  sub tmp a
+  sub tmp d
+  code
+    mov rTEMPD, qword gs:[microcontext.$OFFSET + random_const_GS]
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPD, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPD, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    mov rTEMPA, qword gs:[microcontext.$SRC + random_const_GS]
+    mov $MVKW [$ADDRESS_REGISTER+rTEMPD], rTEMPA_$REGBITS_ST
+    $RESET_TEMP
+
+subroutine store-stash-SI
+  sub tmp a
+  sub tmp d
+  code
+    mov rTEMPD, qword gs:[microcontext.$OFFSET + random_const_GS]
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPD, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPD, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $LD_SRC_IMMEDIATE_INDIRECT
+    mov $MVKW [$ADDRESS_REGISTER+rTEMPD], rTEMPA_$REGBITS_ST
+    $RESET_TEMP
+
+subroutine store-stash-IS
+  sub tmp ra
+  sub tmp rc
+  code
+    $LD_OFFSET_IMMEDIATE
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPC, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPC, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    mov rTEMPA, qword gs:[microcontext.$SRC + random_const_GS]
+    mov $MVKW [$ADDRESS_REGISTER+$OFFSET], rTEMPA_$REGBITS_ST
+    $RESET_TEMP
+
+extend instruction store select-template
+  case QASiD DASiD DsASiD WASiD BASiD  QASisD DASisD DsASisD WASisD BASisD
+    sub store-stash-SD
+  case QADSi DADSi DsADSi WADSi BADSi  QADSis DADSis DsADSis WADSis BADSis
+    sub store-stash-DS
+  case QASiSi DASiSi DsASiSi WASiSi BASiSi QASiSis DASiSis DsASiSis WASiSis BASiSis  QASisSi DASisSi DsASisSi WASisSi BASisSi QASisSis DASisSis DsASisSis WASisSis BASisSis
+    sub store-stash-SS
+  case QAISi QACSi DAISi DACSi DsAISi DsACSi WAISi WACSi BAISi BACSi QAISis QACSis DAISis DACSis DsAISis DsACSis WAISis WACSis BAISis BACSis
+    sub store-stash-IS
+  case QASiI DASiI DsASiI WASiI BASiI  QASisI DASisI DsASisI WASisI BASisI
+    sub store-stash-SI

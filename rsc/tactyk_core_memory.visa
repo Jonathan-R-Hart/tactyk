@@ -165,13 +165,13 @@ instruction load
   operand
     type word
   operand
-    type data xmmx
+    type data xmmx stash-item stash-item-small
     $DEST__DATA_REG $VALUE
   operand
     type address
     $ADDRESS_REGISTER $VALUE
   operand
-    type data const integer
+    type data const integer stash-item stash-item-small
     $OFFSET $VALUE
     scramble rTEMPC
     $LD_OFFSET_IMMEDIATE $SC_LD_INDIRECT
@@ -255,12 +255,12 @@ instruction store
     type address
     $ADDRESS_REGISTER $VALUE
   operand
-    type data const integer
+    type data const integer stash-item stash-item-small
     $OFFSET $VALUE
     scramble rTEMPC
     $LD_OFFSET_IMMEDIATE $SC_LD_INDIRECT
   operand
-    type data xmmx integer *const *branch-index *string float *fconst
+    type data xmmx integer *const *branch-index *string float *fconst stash-item stash-item-small
     $SRC $VALUE
     scramble rTEMPA
     $LD_SRC_IMMEDIATE $SC_LD
