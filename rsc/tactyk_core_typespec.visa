@@ -60,33 +60,81 @@ typespec word
   select-operand
     case byte i8
       $MOV movzx
+      $MVKW byte
+      $REGBITS_LD 64
+      $REGBITS_ST 8
+      $BYTEBOUND 0
       pick B
     case word i16
       $MOV movzx
+      $MVKW word
+      $REGBITS_LD 64
+      $REGBITS_ST 16
+      $BYTEBOUND 1
       pick W
     case dword i32
       $MOV mov
+      $MVKW dword
+      $REGBITS_LD 32
+      $REGBITS_ST 32
+      $BYTEBOUND 3
       pick D
     case qword i64
       $MOV mov
+      $MVKW qword
+      $REGBITS_LD 64
+      $REGBITS_ST 64
+      $BYTEBOUND 7
       pick Q
     case sbyte i8
       $MOV movsx
+      $MVKW byte
+      $REGBITS_LD 64
+      $REGBITS_ST 8
+      $BYTEBOUND 0
       pick B
     case sword i16
       $MOV movsx
+      $MVKW word
+      $REGBITS_LD 64
+      $REGBITS_ST 16
+      $BYTEBOUND 1
       pick W
     case sdword i32
       $MOV movsxd
+      $MVKW dword
+      $REGBITS_LD 64
+      $REGBITS_ST 32
+      $BYTEBOUND 3
       pick Ds
     case sqword i64
       $MOV mov
+      $MVKW qword
+      $REGBITS_LD 64
+      $REGBITS_ST 64
+      $BYTEBOUND 7
       pick Q
     case float float64
+      $MOV_LD movq
+      $MOV movq
+      $BYTEBOUND 7
+      $MVKW qword
+      $REGBITS_LD 64
+      $REGBITS_ST 64
       pick F64
     case float32
+      $MOV_LD cvtss2sd
+      $MOV movd
+      $BYTEBOUND 3
+      $MVKW dword
+      $REGBITS_LD 32
+      $REGBITS_ST 32
       pick F32
     case oword bits128
+      $MOV_LD movdqu
+      $MOV movdqu
+      $BYTEBOUND 15
+      $MVKW oword
       pick B128
 
 typespec stackreg

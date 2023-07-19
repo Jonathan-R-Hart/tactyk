@@ -130,6 +130,37 @@ instruction unbind
 #          containing all tactyk-pl provided instructions.  Register allocation is
 #          global and programs are not permitted to make uncontrolled modifications to
 #          anything but data reguisters and the data content of listed memory blocks.))
+
+subroutine load-D
+  sub tmp ra
+  code
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp $OFFSET, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp $OFFSET, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $MOV %[$DEST__DATA_REG]_$REGBITS_LD, $MVKW [$ADDRESS_REGISTER+$OFFSET]
+    $RESET_TEMP
+
+subroutine load-S
+  sub tmp a
+  sub tmp c
+  code
+    $LD_OFFSET_IMMEDIATE
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPC, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPC, 0
+    errorlt STATUS_ROGUE_POINTER
+    lfence
+    $MOV %[$DEST__DATA_REG]_$REGBITS_LD, $MVKW [$ADDRESS_REGISTER+rTEMPC]
+    $RESET_TEMP
+
 instruction load
   operand
     type word
@@ -145,173 +176,77 @@ instruction load
     scramble rTEMPC
     $LD_OFFSET_IMMEDIATE $SC_LD_INDIRECT
   select-template
-    case QDAD
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        
-        lfence
-        
-        $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
-        $RESET_TEMP
-    case QDAI QDAC
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
-        
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        
-        lfence
-        
-        $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
-        $RESET_TEMP
-    case DDAD
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 3
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        
-        $MOV %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+$OFFSET]
-        $RESET_TEMP
-    case DDAI DDAC
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
-        
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 3
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        
-        lfence
-        
-        $MOV %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+rTEMPC]
-        $RESET_TEMP
-    case DsDAD
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 3
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        
-        $MOV $DEST__DATA_REG, dword [$ADDRESS_REGISTER+$OFFSET]
-        $RESET_TEMP
-    case DsDAI DsDAC
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
-        
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 3
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        
-        lfence
-        
-        $MOV $DEST__DATA_REG, dword [$ADDRESS_REGISTER+rTEMPC]
-        $RESET_TEMP
-    case WDAD
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        dec rTEMPA_32
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        
-        lfence
-        
-        $MOV $DEST__DATA_REG, word [$ADDRESS_REGISTER+$OFFSET]
-        $RESET_TEMP
-    case WDAI WDAC
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
+    case QDAD DDAD DsDAD WDAD BDAD
+      sub load-D
+    case QDAI QDAC DDAI DDAC DsDAI DsDAC WDAI WDAC BDAI BDAC
+      sub load-S
 
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        dec rTEMPA_32
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        
-        lfence
-        
-        $MOV $DEST__DATA_REG, word [$ADDRESS_REGISTER+rTEMPC]
-        $RESET_TEMP
-    case BDAD
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        
-        lfence
-        
-        $MOV $DEST__DATA_REG, byte [$ADDRESS_REGISTER+$OFFSET]
-        $RESET_TEMP
-    case BDAI BDAC
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
-        
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        
-        lfence
-        
-        $MOV $DEST__DATA_REG, byte [$ADDRESS_REGISTER+rTEMPC]
-        $RESET_TEMP
+subroutine store-DD
+  sub tmp a
+  code
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp $OFFSET, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp $OFFSET, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    mov $MVKW [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_$REGBITS_ST
+    $RESET_TEMP
+
+subroutine store-SD
+  sub tmp ra
+  sub tmp rc
+  code
+    $LD_OFFSET_IMMEDIATE
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPC, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPC, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    mov $MVKW [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_$REGBITS_ST
+    $RESET_TEMP
+
+subroutine store-DS
+  sub tmp ra
+  sub tmp $TGT_SRC
+  code
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp $OFFSET, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp $OFFSET, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $LD_SRC_IMMEDIATE_INDIRECT
+    mov $MVKW [$ADDRESS_REGISTER+$OFFSET], rTEMPA_$REGBITS_ST
+    $RESET_TEMP
+
+subroutine store-SS
+  sub tmp a
+  sub tmp c
+  code
+    $LD_OFFSET_IMMEDIATE
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPC, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPC, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $LD_SRC_IMMEDIATE_INDIRECT
+    mov $MVKW [$ADDRESS_REGISTER+rTEMPC], rTEMPA_$REGBITS_ST
+    $RESET_TEMP
 
 instruction store
   operand
@@ -332,257 +267,14 @@ instruction store
     $LD_SRC_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
     $TGT_SRC $SC_TARGET
   select-template
-    case QADD
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        mov [$ADDRESS_REGISTER+$OFFSET], $SRC
-        $RESET_TEMP
-    case QAID QACD
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        mov [$ADDRESS_REGISTER+rTEMPC], $SRC
-        $RESET_TEMP
-    
-    case QADI
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        $LD_SRC_IMMEDIATE
-        mov [$ADDRESS_REGISTER+$OFFSET], $TGT_SRC
-        $RESET_TEMP
-    case QAII QACI
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        $LD_SRC_IMMEDIATE
-        mov [$ADDRESS_REGISTER+rTEMPC], $TGT_SRC
-        $RESET_TEMP
-    
-    case DADD DsADD
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 3
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        mov dword [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_32
-        $RESET_TEMP
-    case DAID DACD DsAID DsACD
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 3
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        mov dword [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_32
-        $RESET_TEMP
-
-    case DADI DsADI
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 3
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        $LD_SRC_IMMEDIATE_INDIRECT
-        mov dword [$ADDRESS_REGISTER+$OFFSET], rTEMPA_32
-        $RESET_TEMP
-    case DAII DACI DsAII DsACI
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 3
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        $LD_SRC_IMMEDIATE_INDIRECT
-        mov dword [$ADDRESS_REGISTER+rTEMPC], rTEMPA_32
-        $RESET_TEMP
-    
-    case WADD
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        dec rTEMPA_32
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        mov word [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_16
-        $RESET_TEMP
-    case WAID WACD
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        dec rTEMPA_32
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        mov word [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_16
-        $RESET_TEMP
-    
-    case WADI
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        dec rTEMPA_32
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        $LD_SRC_IMMEDIATE_INDIRECT
-        mov word [$ADDRESS_REGISTER+$OFFSET], rTEMPA_16
-        $RESET_TEMP
-    case WAII WACI
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        dec rTEMPA_32
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        $LD_SRC_IMMEDIATE_INDIRECT
-        mov word [$ADDRESS_REGISTER+rTEMPC], rTEMPA_16
-        $RESET_TEMP
-    
-    case BADD
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        mov byte [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_8
-        $RESET_TEMP
-    case BAID BACD
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        mov byte [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_8
-        $RESET_TEMP
-    
-    case BADI
-      sub tmp a
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        $LD_SRC_IMMEDIATE_INDIRECT
-        mov byte [$ADDRESS_REGISTER+$OFFSET], rTEMPA_8
-        $RESET_TEMP
-    case BAII BACI
-      sub tmp a
-      sub tmp c
-      code
-        $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        cmp $ADDRESS_REGISTER, 0
-        erroreq STATUS_UNBOUND_MEMORY
-        lfence
-        $LD_SRC_IMMEDIATE_INDIRECT
-        mov byte [$ADDRESS_REGISTER+rTEMPC], rTEMPA_8
-        $RESET_TEMP
+    case QADD   DADD DsADD  WADD  BADD
+      sub store-DD
+    case QAID QACD   DAID DACD DsAID DsACD  WAID WACD  BAID BACD
+      sub store-SD
+    case QADI  DADI DsADI  WADI  BADI
+      sub store-DS
+    case QAII QACI  DAII DACI DsAII DsACI  WAII WACI  BAII BACI
+      sub store-SS
 
 instruction pop
   operand
