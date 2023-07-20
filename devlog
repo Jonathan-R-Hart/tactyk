@@ -10,6 +10,9 @@
   tactyk-examples
     new example:  The obligatory "Hello, world!" program.  (examples/hello.tkp)
     
+    new example:  julia_bus - a rewrite of julia.tkp to use bus notation.  (examples/julia_bus.tkp)
+      This does not seem like a particularly strong case for bus notation, but it at least demonstrates the concept. 
+    
     updated: emit.tkp, fib.tkp, hello_sdl.tkp, julia.tkp, recursive.tkp
     
     removed:  lazy_quine.tkp 

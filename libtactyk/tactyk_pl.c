@@ -321,6 +321,10 @@ void tactyk_pl__add_script_command(struct tactyk_pl__Context *ctx, struct tactyk
             bus_cmd = token;
         }
         
+        printf("BUS RESULT: ");
+        tactyk_dblock__print(bus_cmd);
+        printf(" ");
+        
         struct tactyk_dblock__DBlock *bc_token = tactyk_dblock__new(16);
         tactyk_dblock__set_content(bc_token,bus_cmd);
         bus_cmd = bc_token;
@@ -331,6 +335,8 @@ void tactyk_pl__add_script_command(struct tactyk_pl__Context *ctx, struct tactyk
                 tactyk_dblock__set_content(bc_token, bus_tokens[rc_pos]);
                 buscmd_end->next = bc_token;
                 buscmd_end = bc_token;
+                tactyk_dblock__print(bc_token);
+                printf(" ");
             }
             else if (__token != NULL) {
                 bc_token = tactyk_dblock__new(16);
@@ -338,6 +344,8 @@ void tactyk_pl__add_script_command(struct tactyk_pl__Context *ctx, struct tactyk
                 buscmd_end->next = bc_token;
                 buscmd_end = bc_token;
                 __token = __token->next;
+                tactyk_dblock__print(bc_token);
+                printf(" ");
             }
             else {
                 break;
@@ -345,6 +353,7 @@ void tactyk_pl__add_script_command(struct tactyk_pl__Context *ctx, struct tactyk
             rc_pos += 1;
         }
     }
+    printf("\n");
     tactyk_emit__add_script_command(ctx->emitctx, bus_cmd, line);
 }
 
