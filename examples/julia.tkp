@@ -21,13 +21,25 @@ text footer
   Done.
 
 struct sdl_state
-  8 mpos_x
-  8 mpos_y
-  8 key
+  4 mpos_x
+  4 mpos_y
+  4 key_pressed__sdlcode
+  4 key_released__sdlcode
+  4 key_pressed
+  4 key_released
   1 closing
-  1 mousemoved
-  6 unused
-  8 padding
+  1 mouse_moved
+  1 mouse_btn_pressed
+  1 mouse_btn_released
+
+#struct sdl_state
+#  8 mpos_x
+#  8 mpos_y
+#  8 key
+#  1 closing
+#  1 mousemoved
+#  6 unused
+#  8 padding
 
 const newline 10
 const sp 32
@@ -93,17 +105,16 @@ DISPLAY_IT:
   tcall sdl--render
   goto MAINLOOP
 DELAY_AND_RETRY:
-  assign a 10
-  ccall sleep
+  tcall sleep 10
 MAINLOOP:
   tcall sdl--update_ui
-  load qword a addr3 sdl_state.key
+  load dword a addr3 sdl_state.key_pressed__sdlcode
   if a == 20 CLOSE_AND_EXIT
   if a == 41 CLOSE_AND_EXIT
-  load qword a addr3 sdl_state.mousemoved
+  load byte a addr3 sdl_state.mouse_moved
   if a == 0 DELAY_AND_RETRY
-  load qword b addr3 sdl_state.mpos_x
-  load qword c addr3 sdl_state.mpos_y
+  load dword b addr3 sdl_state.mpos_x
+  load dword c addr3 sdl_state.mpos_y
   load byte a addr3 sdl_state.closing
   if a == 1 CLOSE_AND_EXIT
   assign xh b
@@ -214,9 +225,8 @@ PRINTIT:
   assign c 0
   PRINTIT_LOOP:
   load byte a addr1 c
-  ccall printchar
+  tcall print-text-a
   add c 1
   if c < b PRINTIT_LOOP
-  assign a newline
-  ccall printchar
+  tcall print-newline
   lwreturn
