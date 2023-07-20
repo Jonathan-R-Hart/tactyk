@@ -6,7 +6,10 @@
     Allow direct loading of programs [without a manifest file].
     So long as a raw program (.tkp file) does not need external modules or resources, this should suffice for basic experiments.
     This will replace the tactyk demo program (tdemo).
-
+  
+  tactyk-examples
+    new example:  The obligatory "Hello, world!" program.  (examples/hello.tkp)
+  
 19 Jul 2023
   tactyk-core-memory
     load and store instructions - Move most code generation to a set of subroutines, with properties provided by the "word" typespec.

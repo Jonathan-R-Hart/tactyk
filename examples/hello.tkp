@@ -1,0 +1,8 @@
+MAIN:
+  assign rA 'Hello,
+  assign rB 'World!
+  tcall print-text-a
+  tcall print-space
+  tcall print-text-b
+  tcall print-newline
+  exit
