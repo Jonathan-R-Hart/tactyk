@@ -9,7 +9,9 @@
   
   tactyk-examples
     new example:  The obligatory "Hello, world!" program.  (examples/hello.tkp)
-  
+    
+    updated: emit.tkp
+
 19 Jul 2023
   tactyk-core-memory
     load and store instructions - Move most code generation to a set of subroutines, with properties provided by the "word" typespec.
