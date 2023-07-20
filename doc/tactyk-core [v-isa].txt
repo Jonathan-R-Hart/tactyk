@@ -589,6 +589,34 @@ Variants:
   div xmmx <float-type>
   div <int-reg> <int-type> div-zero-branch
 
+abs dest opt-source
+  compute the absolute value of a signed integer
+  The operand form replaces a register value with the absolute value thereof.
+  The two-operand form calculates the absolute value of the 2nd opreand and assigns it to the register given by the first.
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
+  <int-reg>:              data stash-item stash-item-small
+typespecs:
+  dest:                   <int-reg>
+  source:                 <int-type>
+variants:
+  abs <int-reg>
+  abs <int-reg> <int-type>
+
+sign dest opt-source
+  Extract the sign of an integer:  -1 if less than zero, 1 if greater then or equal to zero
+  The operand form replaces a register value with the sign thereof.
+  The two-operand form calculates the absolute value of the 2nd opreand and assigns it to the register given by the first.
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
+  <int-reg>:              data stash-item stash-item-small
+typespecs:
+  dest:                   <int-reg>
+  source:                 <int-type>
+variants:
+  sign <int-reg>
+  sign <int-reg> <int-type>
+
 and destination source
   Apply bitwise AND to a data register.
   If applied to xmmx registers, this performs the binary operation on all 16 bytes
