@@ -10,7 +10,7 @@ extend subroutine simple_binary_instruction select-template
   case SiD SisD
     code
       $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], $B
-  case SiSi SiSis SisSi SisSis
+  case SiSis SisSi SisSis
     sub tmp ra
     code
       mov rTEMPA, qword gs:[microcontext.$B + random_const_GS]
@@ -30,7 +30,16 @@ extend subroutine simple_binary_instruction select-template
     code
       movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
       p$INSTRUCTION xTEMPA, $B
-      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      movdqu gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SiSi
+    sub tmp xa
+    sub tmp xb
+    code
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      movq xTEMPB, qword gs:[microcontext.$A + random_const_GS]
+      p$INSTRUCTION xTEMPA, xTEMPB
+      movdqu gs:[microcontext.$A + random_const_GS], xTEMPA
       $RESET_TEMP
 
 extend subroutine binary_instruction select-template
