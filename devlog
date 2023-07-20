@@ -15,7 +15,10 @@
     removed:  lazy_quine.tkp 
       (lazy_quine does not DO anything particularly interesting, BUT it does require direct access to its own source code, 
        which is only permitted with the more complex program loading scheme -- that and real_quine would be extra work for not much gain...)
-
+  
+  tactyk-demo - REMOVED
+    the TACTYK standalone runtime completely replaces this component.
+  
 19 Jul 2023
   tactyk-core-memory
     load and store instructions - Move most code generation to a set of subroutines, with properties provided by the "word" typespec.
