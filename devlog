@@ -11,6 +11,10 @@
     new example:  The obligatory "Hello, world!" program.  (examples/hello.tkp)
     
     updated: emit.tkp, fib.tkp, hello_sdl.tkp, julia.tkp
+    
+    removed:  lazy_quine.tkp 
+      (lazy_quine does not DO anything particularly interesting, BUT it does require direct access to its own source code, 
+       which is only permitted with the more complex program loading scheme -- that and real_quine would be extra work for not much gain...)
 
 19 Jul 2023
   tactyk-core-memory
