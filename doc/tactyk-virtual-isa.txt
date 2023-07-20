@@ -97,6 +97,11 @@ Treat each subordinate element as a distinct subroutine and run them in series. 
 The "case" operator is intended for use as all subordinate subroutines within "select-*" operators.
 This is basically a hack to prevent interference between the immediate operand scrambling system and other things which also need a word size (an argument for consolidating all select-* operators into a generic switch operator with a variable name as a parameter)
 
+select <param>::
+Resolve the variable specified by "param" and Perform a switch-like operation using the resolved value as a switch parameter.
+Treat each subordinate element as a distinct subroutine and run them in series.  If any subroutine reports a failure, proceed.  If one of these subroutines reports a success, do not invoke further subroutines and report success.  If all subroutines fail, report a failure.
+The "case" operator is intended for use as all subordinate subroutines within "select-*" operators.
+
 case <params ...>::
 Perform an operation if the switch parameter matches a case-parameter.
 This requires at least one case parameter, and may accept any number of additional case parameters.
@@ -156,6 +161,9 @@ If a recognized "modifier" parameter is present, the behavior will be adjusted a
   new - replace the code block if it already exists.
 If the "outputvar" parameter is specified, this will use the named variable as the code block to append to.  If not, this defaults to the primary code block (what the instruction yields).
 
+vcode <level>
+This is a modified code opreator which conditionally inserts code based on the value of an input "level" parameter.  Each line of code within the subordinate block has an integer prefix.  The prefix is compared with the level parameter.  If the prefix has a value which is equal to or less than the "level", then that line is included in the output, otherwise it is excluded.  The order is preserved, and prefixes are not required to form a monotonic series.  This is intended for defining variable-width vectorized opreations (with prologue and epilogue statements).
+
 int-operand
 Attempt to parse the resolved script-command argument as an integer.
 This does not use any parameters.
@@ -208,6 +216,18 @@ nullarg
 Operator which passes if all script-command arguments have been consumed.
 This predates the "opt-operand" operator and may be removed in a future revision.
 
+repeat <count>
+execute a subroutine multiple times (given by the resolved value of "count").
 
+codeblock
+Check if the input code has subordinate block attached.  The variables needed to set up handling for code blocks are always available, but this check is needed to verify whether or not a codeblock atually exists.
+
+terminal
+Indicate that the function which invoked this operator unconditionally redirects control flow (goto, return, exit, etc).
+If executable layout randomization is enabled, this is used to determine where jump instructions need to be inserted.
+
+reset-template-selector
+Clears out the internal template-selector varaible (cumulative product of all "pick" operators).
+This is used by V-ISA instructions which combine multiple loosely coupled units (such as a conditional jump operator wherein the both test and jump portions are complex but largely independent of each other, but combining them into one template would induce a combinatorial explosion).
 
 
