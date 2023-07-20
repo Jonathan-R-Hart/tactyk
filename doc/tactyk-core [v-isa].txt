@@ -302,19 +302,9 @@ Assigned variables:
   $CTX_ADDRESS_BOUND    context field
 template-selector: 'O'
 
-stash-addr
-  Select a reference to an address field in the microcontext stash
-Accpeted values:
-  s-addr1 stash-addr1
-  s-addr2 stash-addr2
-  s-addr3 stash-addr3
-  s-addr4 stash-addr4
-Assigned variables:
-  $VALUE                reference to a microcontext stash address field
-template-selector: 'Sa'
-
 stash-item
   Select a 16-byte general-purpose field from the microcontext stash.
+  At the cost of a lot of additional combinations, these are usable directly in many instructions as an expanded set of data registers (memory-backed, presumably in L1 cache).
 Accepted values:
   sa sA sb sB sc sC sd sD se sE sf sF
   sg sG sh sH si sI sj sJ sk sK sl sL
@@ -326,8 +316,8 @@ Assigned variables:
 template-selector: 'Si'
 
 stash-item-small
-  Select an 8-byte general-purpose field from the microcontext stash.  These represent the upper and lower 8-byte words (qwords)
-  of a 16-byte stash entry.
+  Select an 8-byte general-purpose field from the microcontext stash.  These represent the upper and lower 8-byte words (qwords) of a 16-byte stash entry.
+  At the cost of a lot of additional combinations, these are usable directly in many instructions as an expanded set of data registers (memory-backed, presumably in L1 cache).
 Accepted values:
   sal sAl sbl sBl scl sCl sdl sDl sel sEl sfl sFl
   sgl sGl shl sHl sil sIl sjl sJl skl sKl sll sLl
@@ -342,6 +332,39 @@ Accepted values:
 Assigned variables:
   $VALUE                name of a microcontext stash general-purpose field
 template-selector: 'Sis'
+
+fstash-item
+  stash-item, with floating-point hint
+  Select a 16-byte general-purpose field from the microcontext stash.
+  At the cost of a lot of additional combinations, these are usable directly in many instructions as an expanded set of floating-point registers (memory-backed, presumably in L1 cache).
+Accepted values:
+  saf sAf sbf sBf scf sCf sdf sDf sef sEf sff sFf
+  sgf sGf shf sHf sif sIf sjf sJf skf sKf slf sLf
+  smf sMf snf sNf sof sOf spf sPf sqf sQf srf sRf
+  ssf sSf stf sTf suf sUf svf sVf swf sWf sxf sXf
+  syf sYf szf sZf
+Assigned variables:
+  $VALUE                name of a microcontext stash general-purpose field
+template-selector: 'Sif'
+
+fstash-item-small
+  stash-item-small, with floating-point hint
+  Select an 8-byte general-purpose field from the microcontext stash.  These represent the upper and lower 8-byte words (qwords) of a 16-byte stash entry.
+  At the cost of a lot of additional combinations, these are usable directly in many instructions as an expanded set of floating-point registers (memory-backed, presumably in L1 cache).
+Accepted values:
+  salf sAlf sblf sBlf sclf sClf sdlf sDlf self sElf sflf sFlf
+  sglf sGlf shlf sHlf silf sIlf sjlf sJlf sklf sKlf sllf sLlf
+  smlf sMlf snlf sNlf solf sOlf splf sPlf sqlf sQlf srlf sRlf
+  sslf sSlf stlf sTlf sulf sUlf svlf sVlf swlf sWlf sxlf sXlf
+  sylf sYlf szlf sZlf
+  sahf sAhf sbhf sBhf schf sChf sdhf sDhf sehf sEhf sfhf sFhf
+  sghf sGhf shhf sHhf sihf sIhf sjhf sJhf skhf sKhf slhf sLhf
+  smhf sMhf snhf sNhf sohf sOhf sphf sPhf sqhf sQhf srhf sRhf
+  sshf sShf sthf sThf suhf sUhf svhf sVhf swhf sWhf sxhf sXhf
+  syhf sYhf szhf sZhf
+Assigned variables:
+  $VALUE                name of a microcontext stash general-purpose field
+template-selector: 'Sifs'
 
 block-quantity
   integer 1-14 with parameters needed to support operations on register groups
@@ -765,6 +788,85 @@ Typespecs:
   source:                 <int-type>
 Variants:
   rotate-right <int-reg> <int-type>
+
+reverse-byte word destination opt-source
+  reverse the byte order of a register value.  (conversion between little-endian and big-endian formats)
+virtual typespecs:
+  <int-reg>:              data stash-item stash-item-small
+Typespecs:
+  word:                   word
+  destination:            <int-reg>
+  source:                 <int-reg>
+Variants:
+  reverse-bits word <int-reg>
+  reverse-bits word <int-reg> <int-reg>
+
+reverse-bits target opt-quantity
+  reverse the bit order of the least signficant bits a register value.
+  The quantity indicates how many bits this applies to (if not specified, it defaults to all 64 bits)
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small string
+  <int-reg>:              data stash-item stash-item-small
+Typespecs:
+  target:                 <int-reg>
+  quantity:               <int-type>
+Variants:
+  reverse-bits <int-reg>
+  reverse-bits <int-reg> <int-type>
+
+bitcount word destination opt-source
+  Count the number of bits set
+Typespecs:
+  word:                   word
+  destination:            data
+  source                  data
+Variants:
+  bitcount qword data
+  bitcount qword data data
+  bitcount dword data
+  bitcount dword data data
+  bitcount word data
+  bitcount word data data
+  bitcount byte data
+  bitcount byte data data
+
+find-bit opt-direction destination source opt-branch
+  Scan the source register for the first or last bit set, return the obtained bit index, and optionally branch if any bits are found.
+  If the direction is not specified, it defaults to "first"
+Typespecs:
+  direction:              "first" "last"
+  destination:            data
+  source:                 data
+  branch:                 label codeblock
+Variants:
+  find-bit data data label
+  find-bit data data codeblock
+  find-bit data data
+  find-bit first data data label
+  find-bit first data data codeblock
+  find-bit first data data
+  find-bit last data data label
+  find-bit last data data codeblock
+  find-bit last data data
+
+lut-transform input-wordsize output-wordsize opt-combiner table-address opt-xmmx-augment-flag destination source
+  Use a set of lookup tables to transform an input value.
+  The input value is logically split into a set of words.  
+  Each input word is then used to index a lookup table.  
+  The results of each lookup are combined and placed on the destination register.
+  Both input and output word sizes are variable.
+  Bounds checking is applied one time for the entire operation (based on the maximum representable index for the requested word sizes).
+  The lookup table used or each input word is distinct (word 1 uses table 1, word 2 uses table 2, etc.)
+  This is intended to implement semi-arbirtary transforms which can be represented with small blocks of data.
+    (bitwise interleaving, color spaces with abnormal channel values, cryptographic transforms, etc.)
+typespecs:
+  input-wordsize:           word
+  output-wordsize:          lookup-table (an alternative "word" typespec which provides parameters for the lookup table operation)
+  opt-combiner:             "add" "or" "xor" "and"
+  table-address:            memblock
+  opt-xmmx-augment-flag:    "x2"
+  destination:              data
+  source:                   data
 
 inc destination
 Add 1 to the value of an integer-type register
