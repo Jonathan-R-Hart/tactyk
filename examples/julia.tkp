@@ -32,15 +32,6 @@ struct sdl_state
   1 mouse_btn_pressed
   1 mouse_btn_released
 
-#struct sdl_state
-#  8 mpos_x
-#  8 mpos_y
-#  8 key
-#  1 closing
-#  1 mousemoved
-#  6 unused
-#  8 padding
-
 const newline 10
 const sp 32
 const width 640

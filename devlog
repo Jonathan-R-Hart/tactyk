@@ -10,7 +10,7 @@
   tactyk-examples
     new example:  The obligatory "Hello, world!" program.  (examples/hello.tkp)
     
-    updated: emit.tkp, fib.tkp, hello_sdl.tkp, julia.tkp
+    updated: emit.tkp, fib.tkp, hello_sdl.tkp, julia.tkp, recursive.tkp
     
     removed:  lazy_quine.tkp 
       (lazy_quine does not DO anything particularly interesting, BUT it does require direct access to its own source code, 
