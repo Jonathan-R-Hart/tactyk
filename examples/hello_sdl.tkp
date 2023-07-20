@@ -10,27 +10,17 @@ const newline 10
 const width 640
 const height 480
 
-struct sdl_state
-  8 mpos_x
-  8 mpos_y
-  8 key
-  1 closing
-  1 mousemoved
-  6 unused
-  8 padding
-
 MAIN:
   bind addr1 header
   assign b 0
   
   PRINT_HEADER_CHAR:
   load byte a addr1 b
-  ccall printchar
+  tcall print-text-a
   add b 1
   if b < header_size PRINT_HEADER_CHAR
   
-  assign a newline
-  ccall printchar
+  tcall print-newline
   
   # obtain an SDL-backed framebuffer
   assign a width
@@ -88,8 +78,7 @@ MAIN:
   tcall sdl--render
   
   # show it for 1.5 seconds, then exit.
-  assign a 1500
-  ccall sleep  
+  tcall sleep 1500
   
   # close the SDL window and clean up
   tcall sdl--release
@@ -100,12 +89,10 @@ MAIN:
   
   PRINT_FOOTER_CHAR:
   load byte a addr1 b
-  ccall printchar
+  tcall print-text-a
   add b 1
   if b < footer_size PRINT_FOOTER_CHAR
-
-  assign a newline
-  ccall printchar
+  tcall print-newline
 
   exit
 

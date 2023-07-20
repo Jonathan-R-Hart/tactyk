@@ -10,7 +10,7 @@
   tactyk-examples
     new example:  The obligatory "Hello, world!" program.  (examples/hello.tkp)
     
-    updated: emit.tkp, fib.tkp
+    updated: emit.tkp, fib.tkp, hello_sdl.tkp
 
 19 Jul 2023
   tactyk-core-memory
