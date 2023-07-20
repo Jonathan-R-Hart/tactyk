@@ -66,8 +66,29 @@ struct tactyk_run__RSC* tactyk_run__load_resource_pack(char *manifest_filename, 
     rsc->asmvmctx = asmvmctx;
     
     tactyk_run__rsc__restrict_charset__default(rsc);
-    tactyk_run__rsc__load_manifest(rsc, manifest_filename);
-    
+    int64_t slen = strnlen(manifest_filename, 2048);
+    if ((slen >= 2047) || slen < 0) {
+        tactyk_report__int("Improper filename length", slen);
+        error(NULL, NULL);
+    }
+    char *ext = &manifest_filename[slen-4];
+    if (strncmp(ext, ".tkp", 4) != 0) {
+        tactyk_run__rsc__load_manifest(rsc, manifest_filename);
+    }
+    else {
+        memset(rsc->base_path, 0, sizeof(rsc->base_path));
+        memset(rsc->manifest_name, 0, sizeof(rsc->manifest_name));
+        struct tactyk_run__module *module = tactyk_run__rsc__load_module__by_filename(rsc, "MAIN", manifest_filename);
+        
+        struct tactyk_pl__Context *plctx = tactyk_pl__new(rsc->emitctx);
+        tactyk_pl__define_constants(plctx, ".VISA", rsc->emitctx->visa_token_constants);
+        tactyk_pl__load_dblock(plctx, module->pl_src_code);
+        struct tactyk_asmvm__Program *program = tactyk_pl__build(plctx);
+        tactyk_asmvm__add_program(rsc->asmvmctx, program);
+        tactyk_dblock__put(rsc->program_table, "MAIN", program);
+        snprintf(rsc->main_entrypoint, 128, "MAIN");
+        rsc->main_program = program;
+    }
     return rsc;
 }
 
@@ -102,7 +123,12 @@ void tactyk_run__rsc__restrict_charset(struct tactyk_run__RSC *rsc, char *charse
 
 FILE* tactyk_run__rsc__get_fileref(char *path, char *fname, char *mode) {
     char fullname[1024];
-    snprintf(fullname, 1024, "%s/%s", path, fname);
+    if (path[0] != 0) {
+        snprintf(fullname, 1024, "%s/%s", path, fname);
+    }
+    else {
+        snprintf(fullname, 1024, "%s", fname);
+    }
     
     FILE *f = fopen(fullname, mode);
     tactyk_report__string("FILENAME", fullname);
@@ -242,6 +268,27 @@ void tactyk_run__rsc__load_manifest(struct tactyk_run__RSC *rsc, char *filename)
         warn(NULL, NULL);
     }
 }
+struct tactyk_run__module* tactyk_run__rsc__load_module__by_filename(struct tactyk_run__RSC *rsc, void *module_name, char *filename_text) {
+    
+    if (!tactyk_run__rsc__test_filename(rsc, filename_text)) {
+        tactyk_report__string("Resource file name rejected (BANNED chars of undesirable patterns)", filename_text);
+        error(NULL, NULL);
+    }
+    
+    int64_t len = 0;
+    uint8_t *bytes;
+    
+    tactyk_report__string("Load module-file", filename_text);
+    if (!tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes, 0)) {
+        tactyk_report__msg("Failed to open file for reading.");
+        error(NULL, NULL);
+    }
+    tactyk_report__int("Loaded bytes", len);
+    struct tactyk_run__module *mod = tactyk_dblock__new_managedobject(rsc->module_table, module_name);
+    mod->pl_src_code = tactyk_run__rsc__to_structured_text(bytes);
+    tactyk_dblock__set_persistence_code(mod->pl_src_code, 123123);
+    return mod;
+}
 
 bool tactyk_run__rsc__load_module(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data) {
     tactyk_report__dblock("load-module", data);
@@ -262,38 +309,24 @@ bool tactyk_run__rsc__load_module(struct tactyk_run__RSC *rsc, struct tactyk_dbl
     
     
     char filename_text[256];
+
     tactyk_dblock__export_cstring(filename_text, 256, filename);
-    
-    if (!tactyk_run__rsc__test_filename(rsc, filename_text)) {
-        tactyk_report__string("Resource file name rejected (BANNED chars of undesirable patterns)", filename_text);
-        error(NULL, NULL);
-    }
-    
-    int64_t len = 0;
-    uint8_t *bytes;
-    
-    tactyk_report__string("Load module-file", filename_text);
-    if (!tactyk_run__rsc__load_file(rsc->base_path, filename_text, &len, &bytes, 0)) {
-        tactyk_report__msg("Failed to open file for reading.");
-        error(NULL, NULL);
-    }
-    tactyk_report__int("Loaded bytes", len);    
-    struct tactyk_run__module *mod = tactyk_dblock__new_managedobject(rsc->module_table, name);
-    mod->pl_src_code = tactyk_run__rsc__to_structured_text(bytes);
-    tactyk_dblock__set_persistence_code(mod->pl_src_code, 123123);
+    struct tactyk_run__module *module = tactyk_run__rsc__load_module__by_filename(rsc, name, filename_text);
     
     // get alias table from structured text
     struct tactyk_dblock__DBlock *mdata = data->child;
     if (mdata != NULL) {
-        mod->alias_table = tactyk_dblock__new_table(256);
-        tactyk_dblock__set_persistence_code(mod->alias_table, 123123);
+        module->alias_table = tactyk_dblock__new_table(256);
+        tactyk_dblock__set_persistence_code(module->alias_table, 123123);
         while (mdata != NULL) {
             struct tactyk_dblock__DBlock *k = mdata->token;
             struct tactyk_dblock__DBlock *v = mdata->token->next;
-            tactyk_dblock__put(mod->alias_table, k,v);
+            tactyk_dblock__put(module->alias_table, k,v);
             mdata = mdata->next;
         }
     }
+    
+    return true;
 }
 bool tactyk_run__rsc__load_data(struct tactyk_run__RSC *rsc, struct tactyk_dblock__DBlock *data) {
     
@@ -345,7 +378,7 @@ bool tactyk_run__rsc__load_data(struct tactyk_run__RSC *rsc, struct tactyk_dbloc
     struct tactyk_dblock__DBlock *dbctn = tactyk_dblock__from_bytes(NULL, bytes, 0, len+padding, true);
     
     tactyk_dblock__put(rsc->data_table, name, dbctn);
-    
+    return true;
 }
 
 // named export target - like other things, must be within the directory containing the manifest file (or a subdirectory).

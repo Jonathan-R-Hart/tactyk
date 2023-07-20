@@ -14,7 +14,7 @@
 #define TACTYK_RUN__RESTRICT_CHAR__SEP 3
 
 struct tactyk_run__RSC {
-    uint8_t charset[256];    
+    uint8_t charset[256];
     char base_path[256];
     char manifest_name[256];
     
@@ -46,6 +46,7 @@ typedef bool (*tactyk_run__rsc_item_handler)(struct tactyk_run__RSC *rsc, struct
 void tactyk_run__init();
 //  void tactyk_run__rsc__delete_file(char *path, char *fname);
 FILE* tactyk_run__rsc__get_fileref(char *path, char *fname, char *mode);
+struct tactyk_run__module* tactyk_run__rsc__load_module__by_filename(struct tactyk_run__RSC *rsc, void *module_name, char *filename_text);
 struct tactyk_run__RSC* tactyk_run__load_resource_pack(char *manifest_filename, struct tactyk_emit__Context *emitctx, struct tactyk_asmvm__Context *asmvmctx);
 void tactyk_run__rsc__add_item_handler(char *name, tactyk_run__rsc_item_handler handler);
 
