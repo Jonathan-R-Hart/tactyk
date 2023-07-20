@@ -86,28 +86,28 @@ typespec word
       $REGBITS_ST 64
       $BYTEBOUND 7
       pick Q
-    case sbyte i8
+    case sbyte s8
       $MOV movsx
       $MVKW byte
       $REGBITS_LD 64
       $REGBITS_ST 8
       $BYTEBOUND 0
       pick B
-    case sword i16
+    case sword s16
       $MOV movsx
       $MVKW word
       $REGBITS_LD 64
       $REGBITS_ST 16
       $BYTEBOUND 1
       pick W
-    case sdword i32
+    case sdword s32
       $MOV movsxd
       $MVKW dword
       $REGBITS_LD 64
       $REGBITS_ST 32
       $BYTEBOUND 3
       pick Ds
-    case sqword i64
+    case sqword s64
       $MOV mov
       $MVKW qword
       $REGBITS_LD 64
