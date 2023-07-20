@@ -1,0 +1,41 @@
+TACTYK Standalone Runtime (trun)
+
+This is a semi-formal mechanism for laoding an executing programs written in TACTYK-PL.  It can load either simple scripts with no associated resources, or it can load complex programs defined through a manifest file.  In both cases, it loads program data, compiles it, executes a main function, and exits.  If at any point an error is indicated, it also spewsup an error report (which might be helpful, might be useful only for tactyk/platform troubleshooting, or might be objectively useless).
+
+The TACTYK standalone runtime attaches an auxilliary library to loaded programs to provide input, output, display, and data persistence functions (each with a tcall-based interface).
+
+The TACTYK standalone runtime may be invoked from a system console through the "trun" program (built with tactyk) and passing a relative path to the tactyk program as an argument.
+
+MANIFEST FILES
+
+A manfest file specifies the collection of modules, module-parameters, and resource files which constitute a TACTYK program, as well as its program entry point.
+
+module <name> <filename>
+  $PARAMNAME1 <value1>
+  $PARAMNAME2 <value2>
+  ...
+  <name>: The name to bind the module to
+  <filename>: The relative path to a tactyk script (.tkp file).  Only subdirectories of the parent directory [containing the manifest file] are permitted.
+  If the TACTYK program uses parameters, the parameter values must be defined here.  Each parameter is a key-value pair specifying the name of the parameter (with the '$' prefix included), as well as the symbol to replace it with.  Though this was intended to aid with register allocation (to allow multiple components to occupy the same context), it can also be used as a form of generic programming.
+
+data <name> <filename> <opt-pad> <opt-pad amount>
+  This specifies a data file which should be loaded into memory and made accessible through "tcall get-data <name>".
+  <name>: A name to bind the loaded memblock to.  This must be 8 or less chars long (TACTYK tiny-string size).
+  <filename>: The relative path to a data file.  Only subdirectories of the parent directory [containing the manifest file] are permitted.
+
+export <name> <max-length> <filename>
+  This specifies file which a TACTYK program may write data to.
+  <name>: A name to bind an empty memblock to (which is to be written to by the TACTYK program).  This must be 8 or less chars long (TACTYK tiny-string size).
+  <filename>: The relative path to the export target.  Only subdirectories of the parent directory [containing the manifest file] are permitted.
+  
+  Data persistence may be attained by referencing the same file for both data input and export (in which case it is also adviseable to pre-generate the file ahead of distribution).
+
+program <name> <modules ...>
+  This defines a program to load into the virtual machine.
+  <name>: specified what name to bind the program to.
+  <modules>: is a list of modules which constitute the program (referenced by the above-specified module name).
+
+main <program-name> <main-function-name>
+  This declares the program entry point.  After the manifest file is processed, control will bepassed to the given location.
+  <program-name>: Program to invoke (referenced by the above-specified program name).
+  <main-function-name>:  A labeled statement within the program to pass control to.
