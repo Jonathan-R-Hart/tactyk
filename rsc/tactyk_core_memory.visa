@@ -20,9 +20,12 @@ instruction bind
     $CTX_ADDR_B $CTX_ADDR
     $SRC $VALUE
     $KWSRC $KW
-    scramble rTEMPA $LD_SRC_IMMEDIATE
+    scramble rTEMPA
   select-template
     case AA
+      sub tmp a
+      sub tmp c
+      sub tmp d
       code
         mov rTEMPA, fs:[$CTX_ADDR_B + 0 + random_const_FS]
         mov rTEMPC, fs:[$CTX_ADDR_B + 8 + random_const_FS]
@@ -31,12 +34,11 @@ instruction bind
         mov fs:[$CTX_ADDR_A + 8 + random_const_FS], rTEMPC
         mov fs:[$CTX_ADDR_A + 16 + random_const_FS], rTEMPD
         mov $ADDR_REG_A, $ADDR_REG_B
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     
     case AD
+      sub tmp a
+      sub tmp c
       code
         mov rTEMPA, $SRC
         
@@ -53,18 +55,17 @@ instruction bind
         mov fs:[$CTX_ADDR_A + random_const_FS], $ADDR_REG_A
 
         mov rTEMPC, [rTEMPA+8]
-        mov rTEMPD, [rTEMPA+16]
+        mov rTEMPA, [rTEMPA+16]
         mov fs:[$CTX_ADDR_A+8 + random_const_FS], rTEMPC
-        mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPD
+        mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPA
         
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     
     case AM AI
+      sub tmp a
+      sub tmp c
       code
-        $LD_SRC_IMMEDIATE
+        $SC_LD_INDIRECT
         
         cmp rTEMPA, 0
         errorlt STATUS_ROGUE_POINTER
@@ -79,14 +80,11 @@ instruction bind
         mov fs:[$CTX_ADDR_A + random_const_FS], $ADDR_REG_A
         
         mov rTEMPC, [rTEMPA+8]
-        mov rTEMPD, [rTEMPA+16]
+        mov rTEMPA, [rTEMPA+16]
         mov fs:[$CTX_ADDR_A+8 + random_const_FS], rTEMPC
-        mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPD
+        mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPA
         
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     
     # Memblock index bounds check is handled by the compiler, so this version probably would be valid.
     # However there also does not seem much point in having this variant, as memory block binding is not expected to be a frequent
@@ -94,8 +92,11 @@ instruction bind
     # be used)
     #
     # case AM 
+    #  sub tmp a
+    #  sub tmp c
+    #  sub tmp d
     #  code
-    #    $LD_SRC_IMMEDIATE
+    #    $SC_LD_INDIRECT
     #
     #    imul rTEMPA, 24
     #    add rTEMPA, fs:[context.memblocks + random_const_FS]
@@ -103,14 +104,11 @@ instruction bind
     #    mov fs:[$CTX_ADDR_A + random_const_FS], $ADDR_REG_A
     #    
     #    mov rTEMPC, [rTEMPA+8]
-    #    mov rTEMPD, [rTEMPA+16]
+    #    mov rTEMPA, [rTEMPA+16]
     #    mov fs:[$CTX_ADDR_A+8 + random_const_FS], rTEMPC
-    #    mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPD
+    #    mov fs:[$CTX_ADDR_A+16 + random_const_FS], rTEMPA
     #    
-    #    xor rTEMPA, rTEMPA
-    #    xor rTEMPC, rTEMPC
-    #    xor rTEMPD, rTEMPD
-    #    jmp $NEXT_INSTRUCTION
+    #    $RESET_TEMP
 
 instruction unbind
   operand
@@ -122,7 +120,6 @@ instruction unbind
     mov qword fs:[$CTX_ADDR_A + 8 + random_const_FS], 0
     mov qword fs:[$CTX_ADDR_A + 16 + random_const_FS], 0
     mov $ADDR_REG_A, 0
-    jmp $NEXT_INSTRUCTION
 
 # Read a word from a memory block and write it to a register
 # NOTICE:  This instruction will need to be reviewed for spectre/meltdown mitigations 
@@ -133,140 +130,124 @@ instruction unbind
 #          containing all tactyk-pl provided instructions.  Register allocation is
 #          global and programs are not permitted to make uncontrolled modifications to
 #          anything but data reguisters and the data content of listed memory blocks.))
+
+subroutine load-D
+  sub tmp ra
+  code
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp $OFFSET, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp $OFFSET, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $MOV %[$DEST__DATA_REG]_$REGBITS_LD, $MVKW [$ADDRESS_REGISTER+$OFFSET]
+    $RESET_TEMP
+
+subroutine load-S
+  sub tmp a
+  sub tmp c
+  code
+    $LD_OFFSET_IMMEDIATE
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPC, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPC, 0
+    errorlt STATUS_ROGUE_POINTER
+    lfence
+    $MOV %[$DEST__DATA_REG]_$REGBITS_LD, $MVKW [$ADDRESS_REGISTER+rTEMPC]
+    $RESET_TEMP
+
 instruction load
   operand
     type word
   operand
-    type data xmmx
+    type data xmmx stash-item stash-item-small
     $DEST__DATA_REG $VALUE
   operand
     type address
     $ADDRESS_REGISTER $VALUE
   operand
-    type data const integer
+    type data const integer stash-item stash-item-small
     $OFFSET $VALUE
-    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+    scramble rTEMPC
+    $LD_OFFSET_IMMEDIATE $SC_LD_INDIRECT
   select-template
-    case QDAD
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        
-        lfence
-        
-        mov $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case QDAI QDAC
-      code
-        $LD_OFFSET_IMMEDIATE
-        
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        
-        lfence
-        
-        mov $DEST__DATA_REG, [$ADDRESS_REGISTER+rTEMPC]
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
-    case DDAD
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 3
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        
-        mov %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+$OFFSET]
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case DDAI DDAC
-      code
-        $LD_OFFSET_IMMEDIATE
-        
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 3
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        
-        lfence
-        
-        mov %[$DEST__DATA_REG]_32, dword [$ADDRESS_REGISTER+rTEMPC]
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
-    case WDAD
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        dec rTEMPA_32
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        
-        lfence
-        
-        movzx $DEST__DATA_REG, word [$ADDRESS_REGISTER+$OFFSET]
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case WDAI WDAC
-      code
-        $LD_OFFSET_IMMEDIATE
+    case QDAD DDAD DsDAD WDAD BDAD
+      sub load-D
+    case QDAI QDAC DDAI DDAC DsDAI DsDAC WDAI WDAC BDAI BDAC
+      sub load-S
 
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        dec rTEMPA_32
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        
-        lfence
-        
-        movzx $DEST__DATA_REG, word [$ADDRESS_REGISTER+rTEMPC]
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
-    case BDAD
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        
-        lfence
-        
-        movzx $DEST__DATA_REG, byte [$ADDRESS_REGISTER+$OFFSET]
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case BDAI BDAC
-      code
-        $LD_OFFSET_IMMEDIATE
-        
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        
-        lfence
-        
-        movzx $DEST__DATA_REG, byte [$ADDRESS_REGISTER+rTEMPC]
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
+subroutine store-DD
+  sub tmp a
+  code
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp $OFFSET, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp $OFFSET, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    mov $MVKW [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_$REGBITS_ST
+    $RESET_TEMP
+
+subroutine store-SD
+  sub tmp ra
+  sub tmp rc
+  code
+    $LD_OFFSET_IMMEDIATE
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPC, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPC, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    mov $MVKW [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_$REGBITS_ST
+    $RESET_TEMP
+
+subroutine store-DS
+  sub tmp ra
+  sub tmp $TGT_SRC
+  code
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp $OFFSET, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp $OFFSET, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $LD_SRC_IMMEDIATE_INDIRECT
+    mov $MVKW [$ADDRESS_REGISTER+$OFFSET], rTEMPA_$REGBITS_ST
+    $RESET_TEMP
+
+subroutine store-SS
+  sub tmp a
+  sub tmp c
+  code
+    $LD_OFFSET_IMMEDIATE
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPC, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPC, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $LD_SRC_IMMEDIATE_INDIRECT
+    mov $MVKW [$ADDRESS_REGISTER+rTEMPC], rTEMPA_$REGBITS_ST
+    $RESET_TEMP
+
 instruction store
   operand
     type word
@@ -274,120 +255,26 @@ instruction store
     type address
     $ADDRESS_REGISTER $VALUE
   operand
-    type data const integer
+    type data const integer stash-item stash-item-small
     $OFFSET $VALUE
-    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+    scramble rTEMPC
+    $LD_OFFSET_IMMEDIATE $SC_LD_INDIRECT
   operand
-    type data xmmx
+    type data xmmx integer *const *branch-index *string float *fconst stash-item stash-item-small
     $SRC $VALUE
-    scramble rTEMPA $LD_SRC_IMMEDIATE
+    scramble rTEMPA
+    $LD_SRC_IMMEDIATE $SC_LD
+    $LD_SRC_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_SRC $SC_TARGET
   select-template
-    case QADD
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov [$ADDRESS_REGISTER+$OFFSET], $SRC
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case QAID QACD
-      code
-        $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 7
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov [$ADDRESS_REGISTER+rTEMPC], $SRC
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
-    
-    case DADD
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 3
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov dword [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_32
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case DAID DACD
-      code
-        $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        sub rTEMPA_32, 3
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov dword [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_32
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
-    
-    case WADD
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        dec rTEMPA_32
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov word [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_16
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case WAID WACD
-      code
-        $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        dec rTEMPA_32
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov word [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_16
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
-    
-    case BADD
-      code
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        cmp $OFFSET, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp $OFFSET, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov byte [$ADDRESS_REGISTER+$OFFSET], %[$SRC]_8
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case BAID BACD
-      code
-        $LD_OFFSET_IMMEDIATE
-        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
-        cmp rTEMPC, rTEMPA
-        errorge STATUS_ROGUE_POINTER
-        cmp rTEMPC, 0
-        errorlt STATUS_ROGUE_POINTER
-        lfence
-        mov byte [$ADDRESS_REGISTER+rTEMPC], %[$SRC]_8
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
-
+    case QADD   DADD DsADD  WADD  BADD
+      sub store-DD
+    case QAID QACD   DAID DACD DsAID DsACD  WAID WACD  BAID BACD
+      sub store-SD
+    case QADI  DADI DsADI  WADI  BADI
+      sub store-DS
+    case QAII QACI  DAII DACI DsAII DsACI  WAII WACI  BAII BACI
+      sub store-SS
 
 instruction pop
   operand
@@ -405,7 +292,6 @@ instruction pop
     sub $ADDRESS_REGISTER, 8
     mov $DEST__DATA_REG, [$ADDRESS_REGISTER]
     xor rTEMPA, rTEMPA
-    jmp $NEXT_INSTRUCTION
 
 instruction push
   operand
@@ -414,7 +300,9 @@ instruction push
   operand
     type data integer const
     $SRC__DATA_REGISTER $VALUE
-    scramble rTEMPC $LD_SRC_IMMEDIATE
+    scramble rTEMPC
+    $LD_SRC_IMMEDIATE $SC_LD
+    $TGT $SC_TARGET
   select-template
     case AD
       code
@@ -426,7 +314,6 @@ instruction push
         mov [$ADDRESS_REGISTER], $SRC__DATA_REGISTER
         add $ADDRESS_REGISTER, 8
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
     case AI AC
       code
         $LD_SRC_IMMEDIATE
@@ -435,10 +322,9 @@ instruction push
         add rTEMPA, 8
         cmp rTEMPA, fs:[$CTX_ARRAY_BOUND + random_const_FS]
         errorge STATUS_MEMORY_OVERFLOW
-        mov [$ADDRESS_REGISTER], rTEMPC
+        mov qword [$ADDRESS_REGISTER], $TGT
         add $ADDRESS_REGISTER, 8
         xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
 
 
 extend instruction assign select-template
@@ -451,10 +337,10 @@ extend instruction assign select-template
       lfence
       mov $ADDRESS_REGISTER, $B
       add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS + random_const_FS]
-      jmp $NEXT_INSTRUCTION
   case OI OC
+    sub tmp a
     code
-      $LD_B_IMMEDIATE
+      $LD_B_IMMEDIATE_INDIRECT
       cmp rTEMPA_32, dword fs:[$CTX_ADDRESS_BOUND + random_const_FS]
       errorge STATUS_ROGUE_POINTER
       cmp rTEMPA_32, 0
@@ -462,30 +348,28 @@ extend instruction assign select-template
       lfence
       mov $ADDRESS_REGISTER, rTEMPA
       add $ADDRESS_REGISTER, fs:[$CTX_ADDRESS + random_const_FS]
-      xor rTEMPA, rTEMPA
-      jmp $NEXT_INSTRUCTION
+      $RESET_TEMP
   case DO
     code
       mov $A, $ADDRESS_REGISTER
-      sub $A, fs:[$CTX_ADDRESS + random_const_FS]
-      jmp $NEXT_INSTRUCTION
-
+      sub %[$A]_32, dword fs:[$CTX_ADDRESS + random_const_FS]
 
 extend instruction swap select-template
   case AA
+    sub tmp a
     code
       mov rTEMPA, fs:[$CTX_ADDR_A + 0 + random_const_FS]
-      mov rTEMPC, fs:[$CTX_ADDR_A + 8 + random_const_FS]
-      mov rTEMPD, fs:[$CTX_ADDR_A + 16 + random_const_FS]
       xchg rTEMPA, fs:[$CTX_ADDR_B + 0 + random_const_FS]
-      xchg rTEMPC, fs:[$CTX_ADDR_B + 8 + random_const_FS]
-      xchg rTEMPD, fs:[$CTX_ADDR_B + 16 + random_const_FS]
       mov fs:[$CTX_ADDR_A + 0 + random_const_FS], rTEMPA
-      mov fs:[$CTX_ADDR_A + 8 + random_const_FS], rTEMPC
-      mov fs:[$CTX_ADDR_A + 16 + random_const_FS], rTEMPD
+
+      mov rTEMPA, fs:[$CTX_ADDR_A + 8 + random_const_FS]
+      xchg rTEMPA, fs:[$CTX_ADDR_B + 8 + random_const_FS]
+      mov fs:[$CTX_ADDR_A + 8 + random_const_FS], rTEMPA
+      
+      mov rTEMPA, fs:[$CTX_ADDR_A + 16 + random_const_FS]
+      xchg rTEMPA, fs:[$CTX_ADDR_B + 16 + random_const_FS]
+      mov fs:[$CTX_ADDR_A + 16 + random_const_FS], rTEMPA
+      
       xchg $ADDR_REG_A, $ADDR_REG_B
-      xor rTEMPA, rTEMPA
-      xor rTEMPC, rTEMPC
-      xor rTEMPD, rTEMPD
-      jmp $NEXT_INSTRUCTION
+      $RESET_TEMP
 

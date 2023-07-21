@@ -1,0 +1,13 @@
+
+flat m_interleavehalfnibbles_byte_bit byte
+  h.00 h.01
+  h.00 h.02
+  h.00 h.10
+  h.00 h.20
+  h.00 h.04
+  h.00 h.08
+  h.00 h.40
+  h.00 h.80
+
+# bind addr1 m_interleavehalfnibbles_byte_bit
+# lut-transform byte bit add addr1 rB rA

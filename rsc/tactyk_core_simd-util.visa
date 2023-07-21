@@ -600,6 +600,245 @@ subroutine simd-format-sse-params
       $SSE_UCLASS q
       $SSE_CLASS sq
 
+typespec xmmf32-packed
+  select-operand
+    case x0.f32 xmm0.f32 xa.f32 xA.f32
+      value xA
+    case x1.f32 xmm1.f32 xb.f32 xB.f32
+      value xB
+    case x2.f32 xmm2.f32 xc.f32 xC.f32
+      value xC
+    case x3.f32 xmm3.f32 xd.f32 xD.f32
+      value xD
+    case x4.f32 xmm4.f32 xe.f32 xE.f32
+      value xE
+    case x5.f32 xmm5.f32 xf.f32 xF.f32
+      value xF
+    case x6.f32 xmm6.f32 xg.f32 xG.f32
+      value xG
+    case x7.f32 xmm7.f32 xh.f32 xH.f32
+      value xH
+    case x8.f32 xmm8.f32 xi.f32 xI.f32
+      value xI
+    case x9.f32 xmm9.f32 xj.f32 xJ.f32
+      value xJ
+    case x10.f32 xmm10.f32 xk.f32 xK.f32
+      value xK
+    case x11.f32 xmm11.f32 xl.f32 xL.f32
+      value xL
+    case x12.f32 xmm12.f32 xm.f32 xM.f32
+      value xM
+    case x13.f32 xmm13.f32 xn.f32 xN.f32
+      value xN
+  pick Xf32p
+
+typespec xmmf64-packed
+  select-operand
+    case x0.f64 xmm0.f64 xa.f64 xA.f64
+      value xA
+    case x1.f64 xmm1.f64 xb.f64 xB.f64
+      value xB
+    case x2.f64 xmm2.f64 xc.f64 xC.f64
+      value xC
+    case x3.f64 xmm3.f64 xd.f64 xD.f64
+      value xD
+    case x4.f64 xmm4.f64 xe.f64 xE.f64
+      value xE
+    case x5.f64 xmm5.f64 xf.f64 xF.f64
+      value xF
+    case x6.f64 xmm6.f64 xg.f64 xG.f64
+      value xG
+    case x7.f64 xmm7.f64 xh.f64 xH.f64
+      value xH
+    case x8.f64 xmm8.f64 xi.f64 xI.f64
+      value xI
+    case x9.f64 xmm9.f64 xj.f64 xJ.f64
+      value xJ
+    case x10.f64 xmm10.f64 xk.f64 xK.f64
+      value xK
+    case x11.f64 xmm11.f64 xl.f64 xL.f64
+      value xL
+    case x12.f64 xmm12.f64 xm.f64 xM.f64
+      value xM
+    case x13.f64 xmm13.f64 xn.f64 xN.f64
+      value xN
+  pick Xf64p
+
+typespec xmmi-packed
+  select-operand
+    case x0.b xmm0.b xa.b xA.b x0.i8 xmm0.i8 xa.i8 xA.i8
+      $WORD b
+      value xA
+    case x1.b xmm1.b xb.b xB.b x1.i8 xmm1.i8 xb.i8 xB.i8
+      $WORD b
+      value xB
+    case x2.b xmm2.b xc.b xC.b x2.i8 xmm2.i8 xc.i8 xC.i8
+      $WORD b
+      value xC
+    case x3.b xmm3.b xd.b xD.b x3.i8 xmm3.i8 xd.i8 xD.i8
+      $WORD b
+      value xD
+    case x4.b xmm4.b xe.b xE.b x4.i8 xmm4.i8 xe.i8 xE.i8
+      $WORD b
+      value xE
+    case x5.b xmm5.b xf.b xF.b x5.i8 xmm5.i8 xf.i8 xF.i8
+      $WORD b
+      value xF
+    case x6.b xmm6.b xg.b xG.b x6.i8 xmm6.i8 xg.i8 xG.i8
+      $WORD b
+      value xG
+    case x7.b xmm7.b xh.b xH.b x7.i8 xmm7.i8 xh.i8 xH.i8
+      $WORD b
+      value xH
+    case x8.b xmm8.b xi.b xI.b x8.i8 xmm8.i8 xi.i8 xI.i8
+      $WORD b
+      value xI
+    case x9.b xmm9.b xj.b xJ.b x9.i8 xmm9.i8 xj.i8 xJ.i8
+      $WORD b
+      value xJ
+    case x10.b xmm10.b xk.b xK.b x10.i8 xmm10.i8 xk.i8 xK.i8
+      $WORD b
+      value xK
+    case x11.b xmm11.b xl.b xL.b x11.i8 xmm11.i8 xl.i8 xL.i8
+      $WORD b
+      value xL
+    case x12.b xmm12.b xm.b xM.b x12.i8 xmm12.i8 xm.i8 xM.i8
+      $WORD b
+      value xM
+    case x13.b xmm13.b xn.b xN.b x13.i8 xmm13.i8 xn.i8 xN.i8
+      $WORD b
+      value xN
+    
+    case x0.w xmm0.w xa.w xA.w x0.i16 xmm0.i16 xa.i16 xA.i16
+      $WORD w
+      value xA
+    case x1.w xmm1.w xw.w xB.w x1.i16 xmm1.i16 xB.i16 xB.i16
+      $WORD w
+      value xB
+    case x2.w xmm2.w xc.w xC.w x2.i16 xmm2.i16 xc.i16 xC.i16
+      $WORD w
+      value xC
+    case x3.w xmm3.w xd.w xD.w x3.i16 xmm3.i16 xd.i16 xD.i16
+      $WORD w
+      value xD
+    case x4.w xmm4.w xe.w xE.w x4.i16 xmm4.i16 xe.i16 xE.i16
+      $WORD w
+      value xE
+    case x5.w xmm5.w xf.w xF.w x5.i16 xmm5.i16 xf.i16 xF.i16
+      $WORD w
+      value xF
+    case x6.w xmm6.w xg.w xG.w x6.i16 xmm6.i16 xg.i16 xG.i16
+      $WORD w
+      value xG
+    case x7.w xmm7.w xh.w xH.w x7.i16 xmm7.i16 xh.i16 xH.i16
+      $WORD w
+      value xH
+    case x8.w xmm8.w xi.w xI.w x8.i16 xmm8.i16 xi.i16 xI.i16
+      $WORD w
+      value xI
+    case x9.w xmm9.w xj.w xJ.w x9.i16 xmm9.i16 xj.i16 xJ.i16
+      $WORD w
+      value xJ
+    case x10.w xmm10.w xk.w xK.w x10.i16 xmm10.i16 xk.i16 xK.i16
+      $WORD w
+      value xK
+    case x11.w xmm11.w xl.w xL.w x11.i16 xmm11.i16 xl.i16 xL.i16
+      $WORD w
+      value xL
+    case x12.w xmm12.w xm.w xM.w x12.i16 xmm12.i16 xm.i16 xM.i16
+      $WORD w
+      value xM
+    case x13.w xmm13.w xn.w xN.w x13.i16 xmm13.i16 xn.i16 xN.i16
+      $WORD w
+      value xN
+    
+    case x0.d xmm0.d xa.d xA.d x0.i32 xmm0.i32 xa.i32 xA.i32
+      $WORD d
+      value xA
+    case x1.d xmm1.d xd.d xB.d x1.i32 xmm1.i32 xB.i32 xB.i32
+      $WORD d
+      value xB
+    case x2.d xmm2.d xc.d xC.d x2.i32 xmm2.i32 xc.i32 xC.i32
+      $WORD d
+      value xC
+    case x3.d xmm3.d xd.d xD.d x3.i32 xmm3.i32 xd.i32 xD.i32
+      $WORD d
+      value xD
+    case x4.d xmm4.d xe.d xE.d x4.i32 xmm4.i32 xe.i32 xE.i32
+      $WORD d
+      value xE
+    case x5.d xmm5.d xf.d xF.d x5.i32 xmm5.i32 xf.i32 xF.i32
+      $WORD d
+      value xF
+    case x6.d xmm6.d xg.d xG.d x6.i32 xmm6.i32 xg.i32 xG.i32
+      $WORD d
+      value xG
+    case x7.d xmm7.d xh.d xH.d x7.i32 xmm7.i32 xh.i32 xH.i32
+      $WORD d
+      value xH
+    case x8.d xmm8.d xi.d xI.d x8.i32 xmm8.i32 xi.i32 xI.i32
+      $WORD d
+      value xI
+    case x9.d xmm9.d xj.d xJ.d x9.i32 xmm9.i32 xj.i32 xJ.i32
+      $WORD d
+      value xJ
+    case x10.d xmm10.d xk.d xK.d x10.i32 xmm10.i32 xk.i32 xK.i32
+      $WORD d
+      value xK
+    case x11.d xmm11.d xl.d xL.d x11.i32 xmm11.i32 xl.i32 xL.i32
+      $WORD d
+      value xL
+    case x12.d xmm12.d xm.d xM.d x12.i32 xmm12.i32 xm.i32 xM.i32
+      $WORD d
+      value xM
+    case x13.d xmm13.d xn.d xN.d x13.i32 xmm13.i32 xn.i32 xN.i32
+      $WORD d
+      value xN
+    
+    case x0.q xmm0.q xa.q xA.q x0.i64 xmm0.i64 xa.i64 xA.i64
+      $WORD q
+      value xA
+    case x1.q xmm1.q xq.q xB.q x1.i64 xmm1.i64 xB.i64 xB.i64
+      $WORD q
+      value xB
+    case x2.q xmm2.q xc.q xC.q x2.i64 xmm2.i64 xc.i64 xC.i64
+      $WORD q
+      value xC
+    case x3.q xmm3.q xd.q xD.q x3.i64 xmm3.i64 xd.i64 xD.i64
+      $WORD q
+      value xD
+    case x4.q xmm4.q xe.q xE.q x4.i64 xmm4.i64 xe.i64 xE.i64
+      $WORD q
+      value xE
+    case x5.q xmm5.q xf.q xF.q x5.i64 xmm5.i64 xf.i64 xF.i64
+      $WORD q
+      value xF
+    case x6.q xmm6.q xg.q xG.q x6.i64 xmm6.i64 xg.i64 xG.i64
+      $WORD q
+      value xG
+    case x7.q xmm7.q xh.q xH.q x7.i64 xmm7.i64 xh.i64 xH.i64
+      $WORD q
+      value xH
+    case x8.q xmm8.q xi.q xI.q x8.i64 xmm8.i64 xi.i64 xI.i64
+      $WORD q
+      value xI
+    case x9.q xmm9.q xj.q xJ.q x9.i64 xmm9.i64 xj.i64 xJ.i64
+      $WORD q
+      value xJ
+    case x10.q xmm10.q xk.q xK.q x10.i64 xmm10.i64 xk.i64 xK.i64
+      $WORD q
+      value xK
+    case x11.q xmm11.q xl.q xL.q x11.i64 xmm11.i64 xl.i64 xL.i64
+      $WORD q
+      value xL
+    case x12.q xmm12.q xm.q xM.q x12.i64 xmm12.i64 xm.i64 xM.i64
+      $WORD q
+      value xM
+    case x13.q xmm13.q xn.q xN.q x13.i64 xmm13.i64 xn.i64 xN.i64
+      $WORD q
+      value xN
+  pick Xip
+
 # Yet more syntax for expressing packed xmm register slots
 #   This one does not conflict with integer data types. 
 typespec xmmf64

@@ -1,0 +1,282 @@
+struct s_gui_element
+  8 name
+  4 state
+  4 render
+  4 hit_test
+  4 on_pointer_enter
+  4 on_pointer_exit
+  4 on_pointer_press
+  4 on_pointer_release
+  4096 data
+
+struct s_kui_element
+  8 name
+  4 is_active
+  4 on_key_press
+  4 on_key_rekease
+
+struct s_ui_control
+  16 program_name
+  4 pointer_x
+  4 pointer_y
+  2 needs_framebuffer_upload
+  2 needs_redraw
+  4 is_closing
+  8 mouse_buttons_down
+  256 keyboard_buttons_down
+
+struct sdl_state
+  4 mpos_x
+  4 mpos_y
+  4 key_pressed__sdlcode
+  4 key_released__sdlcode
+  4 key_pressed
+  4 key_released
+  1 closing
+  1 mouse_moved
+  1 mouse_btn_pressed
+  1 mouse_btn_released
+
+const GUI_ELEMENT_STATE_INACTIVE 0
+const GUI_ELEMENT_STATE_ACTIVE 1
+const GUI_ELEMENT_STATE_HOVER 2
+const GUI_ELEMENT_STATE_PRESSED 3
+
+mem m_gui_elements s_gui_element 64
+mem m_kui_elements s_kui_element 16
+mem m_ui_control s_ui_control 1
+mem m_gui_table s_MINITABLE 128
+mem m_kui_table s_MINITABLE 128
+
+UI__INIT:
+  bind addr4 m_gui_table
+  lwcall MINITABLE__INIT.addr4
+  bind addr4 m_kui_table
+  lwcall MINITABLE__INIT.addr4
+  if xA == 0
+    assign xA 'Default-PrgName
+  bind addr4 m_ui_control
+  store oword addr4 s_ui_control.program_name xA
+  lwreturn
+
+UI__GET:
+  assign rB rA
+  bind addr1 m_gui_elements
+  bind addr4 m_gui_table
+  lwcall MINITABLE__GET.addr4
+  assign addr1.offset rA
+  lwreturn
+
+UI__NEW_GUI_ELEMENT:
+  if rA == 0
+    assign rA -1
+    lwreturn
+  bind addr1 m_gui_elements
+  bind addr4 m_gui_table
+  
+  assign addr4.offset 0
+  load dword rB addr4 s_TABLE_HEADER.table_length
+  dec rB
+  
+  mul rB s_gui_element_size
+  assign addr1.offset rB
+  
+  store qword addr1 s_gui_element.name rA
+  assign rC GUI_ELEMENT_STATE_ACTIVE
+  store dword addr1 s_gui_element.state rC
+  swap rA rB
+  lwcall MINITABLE__PUT.addr4
+  
+  lwreturn
+
+UI__NEW_KUI_ELEMENT:
+  if rA == 0
+    assign rA -1
+    lwreturn
+  bind addr1 m_kui_elements
+  bind addr4 m_kui_table
+  
+  assign addr4.offset 0
+  load dword rB addr4 s_TABLE_HEADER.table_length
+  
+  mul rB s_kui_element_size
+  assign addr1.offset rB
+  
+  store qword addr1 s_kui_element.name rA
+  swap rA rB
+  lwcall MINITABLE__PUT.addr4
+  lwreturn
+
+UI__UPDATE:
+  bind addr4 m_ui_control
+  load byte rA addr4 s_ui_control.is_closing  
+  if rA == 1 UI__CLOSE
+  
+  tcall sdl--get-eventview
+  tcall sdl--update_ui
+  load dword rA addr1 sdl_state.key_pressed__sdlcode
+  #if rA == 20
+  #  lwcall UI__SCHEDULE_CLOSE
+  if rA == 41
+    lwcall UI__SCHEDULE_CLOSE
+  load byte a addr1 sdl_state.closing
+  if rA == 1
+    lwcall UI__SCHEDULE_CLOSE
+  
+  # combine all mouse-event indicators into one easilly tested variable
+  load byte rA addr1 sdl_state.mouse_moved
+  load byte rC addr1 sdl_state.mouse_btn_pressed
+  load byte rD addr1 sdl_state.mouse_btn_released
+  assign rB rA
+  or rA rC
+  or rA rD
+  
+  # Handle basic Mouse-based GUI interactions
+  # If any mouse action detected, check each mouseable GUI element.
+  # If the GUI element is valid, active, and the hit-test function indicates that the mouse position is within the element, then perform a mouse-based interaction:
+  #   If in ACTIVE state and the mouse has entered the component, switch to HOVER state and perform the pointer_enter action          (mouseover)
+  #   If in HOVER state and the mouse button has been pressed, switch to PRESSED state and perform the pointer_press action           (mouse-button-down)
+  #   If in PRESSED state and the mouse button has been released, switch to HOVER state and perform the pointer_release action        (mouse-button-up)
+  #   If in HOVER or PRESSED state and the mouse has exited the element, switch to ACTIVE state and perform the pointer_exit action   (cancel and/or mouseout)  
+  # If anything more sophisticated is needed, write custom polling code and call it at some point during the main loop
+  #
+  # The event will be applied to each GUI element which responds to the hit test.
+  #
+  if rA != 0
+    load dword rA addr1 sdl_state.mpos_x
+    load dword rB addr1 sdl_state.mpos_y
+    bind addr1 m_gui_elements
+    block-stash 4 sA rA
+    assign rE addr1.array_bound
+    dec rE
+    stash sCl rE
+    UI__UPDATE.do_elements:
+      stash rE sCl
+      if rE <= 0 UI__UPDATE.done
+      sub rE s_gui_element_size
+      stash sCl rE
+      assign addr1.offset rE
+      load dword rF addr1 s_gui_element.on_pointer_exit
+      load qword rA addr1 s_gui_element.name
+      if rA != 0
+        load dword rA addr1 s_gui_element.state
+        if rA != GUI_ELEMENT_STATE_INACTIVE
+          if rA == GUI_ELEMENT_STATE_ACTIVE
+            block-stash 4 rA sA
+            load dword rF addr1 s_gui_element.hit_test
+            lwcall rF
+            
+            # if out of element bounds, skip
+            if rA == 0
+              goto UI__UPDATE.do_elements
+            
+            # if in bounds, enter hover state
+            assign rA GUI_ELEMENT_STATE_HOVER
+            store dword addr1 s_gui_element.state rA
+            load dword rF addr1 s_gui_element.on_pointer_enter
+            if rF != 0
+              lwcall rF
+            goto UI__UPDATE.do_elements
+            
+          if rA == GUI_ELEMENT_STATE_HOVER
+            block-stash 4 rA sA
+            load dword rF addr1 s_gui_element.hit_test
+            lwcall rF
+            
+            # if out of bounds, exit hover state
+            if rA == 0
+              assign rA GUI_ELEMENT_STATE_ACTIVE
+              store dword addr1 s_gui_element.state rA
+              load dword rF addr1 s_gui_element.on_pointer_exit
+              if rF != 0
+                lwcall rF
+              goto UI__UPDATE.do_elements
+            
+            # if mouse clicked, enter pressed state and do the thing
+            block-stash 4 rA sA
+            if rC != 0
+              assign rA GUI_ELEMENT_STATE_PRESSED
+              store dword addr1 s_gui_element.state rA
+              load dword rF addr1 s_gui_element.on_pointer_press
+              if rF != 0
+                lwcall rF
+              goto UI__UPDATE.do_elements
+            
+            goto UI__UPDATE.do_elements
+          
+          if rA == GUI_ELEMENT_STATE_PRESSED
+            block-stash 4 rA sA
+            load dword rF addr1 s_gui_element.hit_test
+            lwcall rF
+            
+            # if out of bounds, exit pressed state (mouse-out while pressed)
+            if rA == 0
+              assign rA GUI_ELEMENT_STATE_ACTIVE
+              store dword addr1 s_gui_element.state rA
+              load dword rF addr1 s_gui_element.on_pointer_exit
+              if rF != 0
+                lwcall rF
+              goto UI__UPDATE.do_elements
+
+            # if mouse released, resume hover state and do the other thing
+            block-stash 4 rA sA
+            if rD != 0
+              assign rA GUI_ELEMENT_STATE_HOVER
+              store dword addr1 s_gui_element.state rA
+              block-stash 4 rA sA
+              load dword rF addr1 s_gui_element.on_pointer_release
+              if rF != 0
+                lwcall rF
+              goto UI__UPDATE.do_elements
+    
+    goto UI__UPDATE.do_elements
+  UI__UPDATE.done:
+  unbind addr1
+  lwreturn
+
+UI__DRAW_ALL:
+  bind addr1 m_gui_elements
+  assign rA 0
+  assign rB addr1.array_bound
+  dec rB
+  
+  block-stash 2 sI rA
+  goto UI__DRAW_ALL.do_element
+  
+  UI__DRAW_ALL.do_elements:
+    block-stash 2 rA sI
+    if rA >= rB
+      lwreturn
+    add rA s_gui_element_size
+    stash sIl rA
+    
+    UI__DRAW_ALL.do_element:
+    assign addr1.offset rA
+    load qword rA addr1 s_gui_element.name
+    if rA != 0
+      load dword rA addr1 s_gui_element.render
+      if rA != 0
+        lwcall rA
+    goto UI__DRAW_ALL.do_elements
+
+UI__SCHEDULE_CLOSE:
+  assign rA 1
+  store byte addr4 s_ui_control.is_closing rA
+  lwreturn
+  
+UI__CLOSE:
+  assign rA 500
+  tcall sleep
+  load oword xA addr4 s_ui_control.program_name
+  assign xB ':
+  assign xC 'EXIT
+  tcall print-text-xa
+  tcall print-text-xb
+  tcall print-space
+  tcall print-text-xc
+  tcall print-newline
+  tcall sdl--release
+  tcall sdl--quit
+  exit
+
+

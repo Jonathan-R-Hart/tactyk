@@ -1,0 +1,325 @@
+# Rasterizer functions for handling axis-aligned rectangles
+#   (rasterizers are iterate all pixels in a region and set relevant data for other shader components)
+#
+# There are two rasterizers:  fill-rect and  outline-rect
+# 
+# Both rasterizers generate UVs at approximately the same scale as pixels 
+#   (textures mapped with them should match display resolution if no other scaling effects apply)
+#
+# Fill UVs are simply coordinates relative to the upper-left corner of the rectagle
+# Outline UVs trace the outline of the rectangle
+#   +U is a clockwise square path
+#   +V points from the edge toward the interior
+# Pixel pitch scales down toward the interior of the rectangle 
+# Proportionality with the length of the outline is maintained
+# Proportionality with individual edges is not maintained (though it should at least maintain the upper left to lower-right diagonal).
+
+# This layout helps reduce the amount of unique load instructions
+struct gx_info__fillrect_fields
+  2048 program_alloc
+  4096 general_alloc
+  64 properties_alloc
+  128 rasterizer_alloc
+  . 8 x
+  8 y
+  8   x1
+  8   y1
+  8   x2
+  8   y2
+  16 pixmap_alloc
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
+
+# Set up a Rasterizer which iterates pixels within a rectangular region [in row-major order)
+# Input:
+#   rA:  x1
+#   rB:  y1
+#   rC:  width
+#   rD:  height
+# yielded output:
+#   rA:  absolute X
+#   rB:  absolute Y
+#   rC:  relative X  (x-x1)
+#   rD:  relative Y  (y-y1)
+#   rE/rF:  internal use
+#   addr3:  offset to pixel position ( (framebuffer.width * y + x) * pixel size )
+GX.rect.fill:
+  add rC rA
+  add rD rB
+  dec rA
+  block-store 2 addr2 gx_info__fillrect_fields.x rA
+  inc rA
+  block-store 4 addr2 gx_info__fillrect_fields.x1 rA
+  assign rA GX.rect.fill.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.rect.fill.impl:
+  block-load 5 rA addr2 gx_info__fillrect_fields.rasterizer_alloc
+  inc rA
+  if rA == rE
+    assign rA rC
+    inc rB
+    load qword rE addr2 gx_info__fillrect_fields.y2
+    if rB == rE
+      assign rF 1
+      lwreturn
+  block-store 2 addr2 gx_info__fillrect_fields.rasterizer_alloc rA
+  negate rC
+  negate rD
+  add rC rA
+  add rD rB
+  assign rE rB
+  load qword rE addr2 gx_info__view.fb_width
+  mul rE rB
+  add rE rA
+  shift-left rE 2
+  assign addr3.offset rE
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+
+
+struct gx_info__outlinerect_fields
+  2048 program_alloc
+  4096 general_alloc
+  64 properties_alloc
+  128 rasterizer_alloc
+
+  . 0 main-iterator
+  8 x
+  8 y
+  8 target
+  
+  0 box-definition
+  8 x1
+  8 x2
+  8 y1
+  8 y2
+  
+  0 inset-iterator
+  8 inset-position
+  8 inset-limit
+  
+  0 uv-export
+  8 scaled-position
+  8 output
+  8 scaled-position-incr
+  8 border-length
+  
+  16 pixmap_alloc
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
+  
+GX.rect.outline:
+  # rasterizer vars
+  #   main iterator
+  #   a   int x
+  #   b   int y
+  #   c   int target position (x or y, depending on current heading)
+  
+  #   box definition
+  #   d   int x1
+  #   e   int x2
+  #   f   int y1
+  #   g   int y2
+  
+  #   inset iterator
+  #   h   int inset-position
+  #   i   int inset-limit
+  
+  #   uv export
+  #   j   float scaled position along border (inset position / inset length) * border length
+  #   k   output
+  #   l   float scaled position incrementer  (1 / inset length) * border length
+  #   m   float border length
+  
+  # inputs:
+  #   rA  x1
+  #   rB  y1
+  #   rC  w
+  #   rD  h
+  #   rE  border-width
+  add rC rA
+  add rD rB
+  
+  # x1 y1 x2 y2
+  swap rB rC
+  block-store 4 addr2 gx_info__outlinerect_fields.box-definition rA
+  
+  spread xJ 0.0 0.0
+  xcompute xK float32 3 1 div rE
+  xassign xL 1.0
+  compute xM rB sub rA mul 2 ->x rD sub rC mul 2 add <-x ~div rA
+  block-store 4 addr2 gx_info__outlinerect_fields.uv-export xJ
+
+  swap rB rC
+  dec rA  
+  block-store 3 addr2 gx_info__outlinerect_fields.main-iterator rA
+  
+  assign rD 0
+  block-store 2 addr2 gx_info__outlinerect_fields.inset-iterator rD
+
+  assign rA GX.rect.outline.north
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+
+GX.rect.outline.inset:
+  block-load 2 rA addr2 gx_info__outlinerect_fields.inset-iterator
+  inc rA
+  store qword addr2 gx_info__outlinerect_fields.inset-position rA
+  # completion check
+  if rA >= rB
+    assign rF 1
+    lwreturn
+  
+  # xJ (j): relative position [NEEDS UPDATE]
+  # xK (k): output
+  # xL (l): relative incr
+  
+  # compute xA rA add 1 div rB
+  # xassign xK float32.3 xA
+  xcompute xK float32 3 rA add 1 div rB
+  
+  block-load 4 rA addr2 gx_info__outlinerect_fields.box-definition
+  if rA < rB
+    inc rA
+    dec rB
+  if rC < rD
+    inc rC
+    dec rD
+  
+  if rA >= rB
+    assign rF 1
+    lwreturn
+  if rC >= rD
+    assign rF 1
+    lwreturn
+  
+  block-store 4 addr2 gx_info__outlinerect_fields.box-definition rA
+  sub rA 1
+  swap rB rC
+  block-store 3 addr2 gx_info__outlinerect_fields.main-iterator rA
+  
+  load qword rA addr2 gx_info__outlinerect_fields.border-length
+  
+  assign xJ 0.0
+  
+  # boundary / inset
+  compute xL rB sub rA mul 2 ->x rD sub rC mul 2 add <-x ~div rA
+  
+  block-store 3 addr2 gx_info__outlinerect_fields.uv-export xJ
+  
+  assign rE GX.rect.outline.north
+  store qword addr2 rF rE
+  goto rE
+
+GX.rect.outline.north:
+  block-load 3 rA addr2 gx_info__outlinerect_fields.main-iterator
+  # rA (a):  x [NEEDS UPDATE]
+  # rB (b):  y
+  # rC (c):  target
+  inc rA
+  store qword addr2 gx_info__outlinerect_fields.main-iterator rA
+  
+  if rA == rC
+    # goal reached, pick next
+    block-load 2 rC addr2 gx_info__outlinerect_fields.y1
+    if rC != rD
+      # activate 'east' tracer and set target to y2
+      store qword addr2 gx_info__outlinerect_fields.target rD
+      assign rD GX.rect.outline.east
+      store qword addr2 rF rD
+  
+  goto GX.rect.outline.epilogue
+
+GX.rect.outline.east:
+  block-load 3 rA addr2 gx_info__outlinerect_fields.main-iterator
+  # rA (a):  x
+  # rB (b):  y [NEEDS UPDATE]
+  # rC (c):  target
+  inc rB
+  store qword addr2 gx_info__outlinerect_fields.y rB
+  
+  if rB == rC
+    # goal reached, pick next
+    block-load 2 rC addr2 gx_info__outlinerect_fields.x1
+    if rC != rD
+      # activate 'south' tracer and set target to x1
+      store qword addr2 gx_info__outlinerect_fields.target rC
+      assign rD GX.rect.outline.south
+      store qword addr2 rF rD
+  goto GX.rect.outline.epilogue
+
+GX.rect.outline.south:
+  block-load 3 rA addr2 gx_info__outlinerect_fields.main-iterator
+  # rA (a):  x [NEEDS UPDATE]
+  # rB (b):  y
+  # rC (c):  target
+  dec rA
+  store qword addr2 gx_info__outlinerect_fields.x rA
+  
+  if rA == rC
+    # goal reached, pick next
+    block-load 2 rC addr2 gx_info__outlinerect_fields.y1
+    if rC != rD
+      # activate 'west' tracer and set target to y1
+      store qword addr2 gx_info__outlinerect_fields.target rC
+      assign rD GX.rect.outline.west
+      store qword addr2 rF rD
+  
+  goto GX.rect.outline.epilogue
+
+GX.rect.outline.west:
+  block-load 3 rA addr2 gx_info__outlinerect_fields.main-iterator
+  # rA (a):  x
+  # rB (b):  y [NEEDS UPDATE]
+  # rC (c):  target
+  dec rB
+  store qword addr2 gx_info__outlinerect_fields.y rB
+  
+  if rB == rC
+    assign rD GX.rect.outline.inset
+    store qword addr2 rF rD
+  
+  goto GX.rect.outline.epilogue
+
+GX.rect.outline.epilogue:
+  # absolute (x,y)
+  block-load 2 rC addr2 gx_info__view.world_position
+  add rC rA
+  add rD rB
+  
+  load qword rE addr2 gx_info__view.fb_width
+  mul rE rD
+  add rE rC
+  #shift-left rE 7
+  #assign addr4.offset rE
+  shift-left rE 2
+  assign addr3.offset rE
+  
+  
+  #block-load 2 xJ addr2 gx_info__outlinerect_fields.uv-export
+  # xJ (j): relative position [NEEDS UPDATE]
+  # xK (k): output
+  # xL (l): relative incr
+  #xassign xK float32 0 rC
+  #xassign xK float32 1 rD
+  #pack float32.2 xK rA
+  
+  # u
+  #add xJ xL
+  #xassign xK float32 2 xJ
+  #block-store 2 addr2 gx_info__outlinerect_fields.uv-export xJ
+  
+  #store oword addr4 gx_pixel.a xK
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE

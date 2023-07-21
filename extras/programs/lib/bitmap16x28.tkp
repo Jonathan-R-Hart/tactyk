@@ -1,0 +1,53 @@
+# Bitmap sprite loader
+#
+# This is intended to support text and pattern rendering
+# 
+# Each sprite uses 64 bytes of memory, with 8 reserved for properties and 56 reserved for pixels
+# The pixel memory is a a 16x28 patch of 1-bit pixels laid out in row-major order.
+# Pixels within a rows are in bitwise little endian order (the least significant bit is the left-most pixel)
+#   and may be iterated with bitwise right-shift
+# Properties:
+#   next - a reference to another entry within a sprite sheet (to suypport the use of multiple bitmap components to render a sprite)
+#   offset - signed pixel offset from base position to the left-most pixel in the first row
+#   displacement - signed pixel offset to apply to the base position after a sprite is rendered (context-dependent interpretation)
+#   rows - number of pixel rows to draw (ideally, this is a measurement of the number of non-empty rows in the bitmap)
+#   value - lookup table index (also intended to help with chain-rendering)
+struct s_bmp_16x28
+  2 next
+  1 offset_x
+  1 offset_y
+  1 displacement_x
+  1 displacement_y
+  1 rows
+  1 value
+  56 data
+
+mem m_bmp_16x28 s_bmp_16x28 65536
+
+# Load a set of bitmap sprites from a font
+BMP_16x28_LD_TKF:
+  bind addr2 m_bmp_16x28
+  assign rA 0
+  assign rF addr1.element_bound
+  sub rF 16
+  
+  BMP_16x28_LD_TKF.lp:
+    if rA >= rF BMP_16x28_LD_TKF.ret
+    
+    # get the code-point
+    load word rB addr1 rA
+    
+    # select the bitmap position for code-point
+    assign rC rB
+    mul rC s_bmp_16x28_size
+    assign addr2.offset rC
+    
+    # Copy bitmap data
+    add rA 2
+    block-load 4 xxA addr1 rA
+    block-store 4 addr2 0 xxA
+    
+    add rA 64
+    goto BMP_16x28_LD_TKF.lp
+  BMP_16x28_LD_TKF.ret:
+  lwreturn

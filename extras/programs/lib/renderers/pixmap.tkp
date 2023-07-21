@@ -1,0 +1,131 @@
+
+struct gx_info__texture
+  2048 program_alloc
+  4096 general_alloc
+  64 properties_alloc
+  128 rasterizer_alloc
+  16 pixmap_alloc
+  . 4 offset
+  4 vstride
+  8 padding
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
+
+GX.pixmap.raw:
+  store dword addr2 gx_info__texture.offset rA
+  store dword addr2 gx_info__texture.vstride rB
+  assign rA GX.pixmap.raw.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.pixmap.raw.impl:
+  load dword rA addr2 gx_info__texture.offset
+  load dword rB addr2 gx_info__texture.vstride
+  # compute pixel position (using data left on registers by a rasterizer)
+  mul rB rD
+  add rB rA
+  add rB rC
+  shift-left rB 2
+  load dword rA addr1 rB
+  store dword addr3 0 rA
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+
+# Sample both the framebuffer and pixmap, and apply alpha blending using the pixmap alpha channel value as the blending factor.
+#   Frambuffer alpha is ignored
+# Blending function in use: 
+#   ( ((PixmapChannel_X+1) * (alpha+1) >> 8 ) -1 ) + ( ((FramebufferChannel_X+1) * (256-alpha) >> 8) -1)
+GX.pixmap.alphablend:
+  store dword addr2 gx_info__texture.offset rA
+  store dword addr2 gx_info__texture.vstride rB
+  assign rA GX.pixmap.alphablend.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.pixmap.alphablend.impl:
+  load dword rA addr2 gx_info__texture.offset
+  load dword rB addr2 gx_info__texture.vstride
+  # compute pixel position (using data left on registers by a rasterizer)
+  mul rB rD
+  add rB rA
+  add rB rC
+  shift-left rB 2
+  
+  load dword rA addr1 rB
+  assign rB rA
+  shift-right rB 24
+  and rB 255
+  inc rB
+  
+  assign rC rA
+  and rC 255
+  inc rC
+  mul rC rB
+  dec rC
+  shift-right rC 8
+  assign rD rC
+
+  assign rC rA
+  shift-right rC 8
+  and rC 255
+  inc rC
+  mul rC rB
+  dec rC
+  and rC h.ff00
+  or rD rC
+
+  assign rC rA
+  shift-right rC 16
+  and rC 255
+  inc rC
+  mul rC rB
+  dec rC
+  and rC h.ff00
+  shift-left rC 8
+  or rD rC
+  
+  negate rB
+  add rB 257
+  
+  load dword rA addr3 0
+  
+  assign rC rA
+  and rC 255
+  inc rC
+  mul rC rB
+  dec rC
+  shift-right rC 8
+  add rD rC
+
+  assign rC rA
+  shift-right rC 8
+  and rC 255
+  inc rC
+  mul rC rB
+  dec rC
+  and rC h.ff00
+  add rD rC
+
+  assign rC rA
+  shift-right rC 16
+  and rC 255
+  inc rC
+  mul rC rB
+  dec rC
+  and rC h.ff00
+  shift-left rC 8
+  add rD rC
+  
+  store dword addr3 0 rD
+  
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+
+

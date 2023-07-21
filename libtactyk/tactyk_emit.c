@@ -75,9 +75,12 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__put(ctx->operator_table, "flags", tactyk_emit__Flags);
 
     tactyk_dblock__put(ctx->operator_table, "case", tactyk_emit__Case);
+    tactyk_dblock__put(ctx->operator_table, "default", tactyk_emit__Default);
     tactyk_dblock__put(ctx->operator_table, "contains", tactyk_emit__Contains);
+    tactyk_dblock__put(ctx->operator_table, "repeat", tactyk_emit__Repeat);
 
     tactyk_dblock__put(ctx->operator_table, "pick", tactyk_emit__Pick);
+    tactyk_dblock__put(ctx->operator_table, "reset-template-selector", tactyk_emit__ClearTemplate);
     tactyk_dblock__put(ctx->operator_table, "operand", tactyk_emit__Operand);
     tactyk_dblock__put(ctx->operator_table, "opt-operand", tactyk_emit__OptionalOperand);
     tactyk_dblock__put(ctx->operator_table, "composite", tactyk_emit__Composite);
@@ -91,13 +94,22 @@ struct tactyk_emit__Context* tactyk_emit__init() {
     tactyk_dblock__put(ctx->operator_table, "int-operand", tactyk_emit__IntOperand);
     tactyk_dblock__put(ctx->operator_table, "float-operand", tactyk_emit__FloatOperand);
     tactyk_dblock__put(ctx->operator_table, "string-operand", tactyk_emit__StringOperand);
+    tactyk_dblock__put(ctx->operator_table, "codeblock", tactyk_emit__Codeblock_VOperand);
 
     tactyk_dblock__put(ctx->operator_table, "sub", tactyk_emit__DoSub);
     tactyk_dblock__put(ctx->operator_table, "nullarg", tactyk_emit__NullArg);
+    
+    tactyk_dblock__put(ctx->operator_table, "terminal", tactyk_emit__Terminal);
 
     ctx->active_labels = NULL;
     ctx->active_labels_last = NULL;
-
+    
+    ctx->use_immediate_scrambling = true;
+    ctx->use_executable_layout_randomization = true;
+    ctx->use_extra_permutations = true;
+    ctx->use_exopointers = true;
+    ctx->use_temp_register_autoreset = true;
+    
     return ctx;
 }
 
@@ -109,6 +121,7 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
 
     ctx->symbol_tables = tactyk_dblock__new_table(128);
     ctx->label_table = tactyk_dblock__new_table(256);
+    ctx->labelindex_table = tactyk_dblock__new_table(256);
     ctx->const_table = tactyk_dblock__new_table(64);
     ctx->fconst_table = tactyk_dblock__new_table(64);
     ctx->memblock_table = tactyk_dblock__new_table(64);
@@ -118,12 +131,16 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
     tactyk_dblock__set_persistence_code(ctx->program->functions, 10);
 
     tactyk_dblock__put(ctx->symbol_tables, "label", ctx->label_table);
+    tactyk_dblock__put(ctx->symbol_tables, "label-index", ctx->labelindex_table);
     tactyk_dblock__put(ctx->symbol_tables, "const", ctx->const_table);
     tactyk_dblock__put(ctx->symbol_tables, "fconst", ctx->fconst_table);
     tactyk_dblock__put(ctx->symbol_tables, "mem", ctx->memblock_table);
     tactyk_dblock__put(ctx->symbol_tables, "capi", ctx->c_api_table);
     tactyk_dblock__put(ctx->symbol_tables, "tapi", ctx->api_table);
-
+    
+    ctx->active_labels = NULL;
+    ctx->active_command = NULL;
+    
     ctx->program->memory_layout_ll = tactyk_dblock__new_container(TACTYK_ASMVM__MEMBLOCK_CAPACITY, sizeof(struct tactyk_asmvm__memblock_lowlevel));
     tactyk_dblock__fix(ctx->program->memory_layout_ll);
     tactyk_dblock__make_pseudosafe(ctx->program->memory_layout_ll);
@@ -131,6 +148,11 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx) {
 
     tactyk_dblock__set_persistence_code(ctx->program->memory_layout_ll, 10);
     tactyk_dblock__set_persistence_code(ctx->program->memory_layout_hl, 10);
+    
+    ctx->next_codeblock_id = 0;
+    ctx->active_codeblock_index = -1;
+    ctx->codeblocks = tactyk_dblock__new_allocated_container(TACTYK_EMIT__MAX_CODEBLOCK_NESTLEVEL, sizeof(struct tactyk_emit__codeblock));
+    tactyk_dblock__set_persistence_code(ctx->codeblocks, 10);
 }
 
 // release all memory belonging to an emit context.
@@ -193,7 +215,6 @@ bool tactyk_emit__ExecSubroutine(struct tactyk_emit__Context *ctx, struct tactyk
         else {
             struct tactyk_dblock__DBlock *varname = name;
             if (tactyk_dblock__getchar(varname, 0) == '$') {
-
                 struct tactyk_dblock__DBlock *varvalue_raw = varname->next;
                 if (varvalue_raw != NULL) {
                     struct tactyk_dblock__DBlock *varvalue_resolved = tactyk_emit__fetch_var(ctx, varname, varvalue_raw);
@@ -218,7 +239,27 @@ bool tactyk_emit__DoSub(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
     if (spec == NULL) {
         tactyk_emit__error(ctx, "referenced subroutine is undefined", NULL);
     }
-    spec->func(ctx, spec->vopcfg);
+    
+    // place subroutine arguments in local namespace
+    //  A stack-based solution would yield more senbible results, but this is much simpler.
+    char buf[8];
+    while (ctx->subarg_count > 0) {
+        ctx->subarg_count -= 1;
+        snprintf(buf, 8, "$arg.%ju", ctx->subarg_count);
+        tactyk_dblock__delete(ctx->local_vars, buf);
+    }
+    struct tactyk_dblock__DBlock *token = data->token->next->next;
+    while (token != NULL) {
+        snprintf(buf, 8, "$arg.%ju", ctx->subarg_count);
+        struct tactyk_dblock__DBlock *resolved = tactyk_emit__fetch_var(ctx, buf, token);
+        token = token->next;
+        ctx->subarg_count += 1;
+    }
+    
+    if (!spec->func(ctx, spec->vopcfg)) {
+        tactyk_report__dblock("subroutine invocation failed", data);
+        return false;
+    }
     return true;
 }
 
@@ -227,25 +268,48 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
     struct tactyk_emit__script_command *cmd = ctx->active_command;
     tactyk_dblock__reset_table(ctx->local_vars, true);
     tactyk_dblock__clear(ctx->code_template);
+    tactyk_dblock__put(ctx->local_vars, "$TEMPLATE_SELECTOR", ctx->code_template);
+    ctx->subarg_count = 0;
+    ctx->is_terminal = false;
     ctx->valid_parse_result = false;
 
     ctx->pl_operand_raw = cmd->tokens;
     ctx->pl_operand_resolved = NULL;
 
-    struct tactyk_dblock__DBlock *cmd_idx = tactyk_dblock__from_uint(ctx->iptr);
-    struct tactyk_dblock__DBlock *cmd_idx_next = tactyk_dblock__from_uint(ctx->iptr + 1);
-    tactyk_dblock__put(ctx->local_vars, "$COMMAND_INDEX", cmd_idx);
+    struct tactyk_dblock__DBlock *cmd_idx = NULL;
+    struct tactyk_dblock__DBlock *cmd_idx_next = tactyk_dblock__from_uint(ctx->target_iptr + 1);
     tactyk_dblock__put(ctx->local_vars, "$COMMAND_INDEX_NEXT", cmd_idx_next);
-    tactyk_dblock__append(cmd->asm_code, TACTYK_EMIT__COMMAND_PREFIX);
-    tactyk_dblock__append(cmd->asm_code, cmd_idx);
-    tactyk_dblock__append(cmd->asm_code, ":\n");
+    while (ctx->iptr <= ctx->target_iptr) {
+        cmd_idx = tactyk_dblock__from_uint(ctx->iptr);
+        tactyk_dblock__append(cmd->asm_code, TACTYK_EMIT__COMMAND_PREFIX);
+        tactyk_dblock__append(cmd->asm_code, cmd_idx);
+        tactyk_dblock__append(cmd->asm_code, ":\n");
+        ctx->iptr += 1;
+    }
+    tactyk_dblock__put(ctx->local_vars, "$COMMAND_INDEX", cmd_idx);
+    //tactyk_dblock__append(cmd->asm_code, TACTYK_EMIT__COMMAND_PREFIX);
+    //tactyk_dblock__append(cmd->asm_code, cmd_idx);
+    //tactyk_dblock__append(cmd->asm_code, ":\n");
+    
+    if (cmd->parent.header_label != NULL) {
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_HEADER", cmd->parent.header_label);
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_FIRST", cmd->parent.first_label);
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CLOSE", cmd->parent.close_label);
+    }
+    if (cmd->child.header_label != NULL) {
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CHILD_HEADER", cmd->child.header_label);
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CHILD_FIRST", cmd->child.first_label);
+        tactyk_dblock__put(ctx->local_vars, "$CODEBLOCK_CHILD_CLOSE", cmd->child.close_label);
+    }
+    
+    
     uint64_t code_len = cmd->asm_code->length;
 
     struct tactyk_dblock__DBlock *next_instruction_label = tactyk_dblock__from_c_string(TACTYK_EMIT__COMMAND_PREFIX);
     tactyk_dblock__append(next_instruction_label, cmd_idx_next);
     tactyk_dblock__put(ctx->local_vars, "$NEXT_INSTRUCTION", next_instruction_label);
     
-    bool result = tactyk_emit__ExecSubroutine(ctx, data);
+    bool result =  tactyk_emit__ExecSubroutine(ctx, data);
     
     tactyk_report__dblock_list_vars("LOCAL VARIABLES", ctx->local_vars);
     if (result == false) {
@@ -256,9 +320,11 @@ bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tacty
         tactyk_report__msg("Code generation failed");
         error(NULL, NULL);
     }
+    if ( (ctx->use_executable_layout_randomization) && (!ctx->is_terminal) && (ctx->insert_branch_to_next_instruction != NULL) ) {
+        tactyk_emit__ExecSubroutine(ctx, ctx->insert_branch_to_next_instruction->vopcfg);
+    }
     ctx->pl_operand_raw = NULL;
     ctx->pl_operand_resolved = NULL;
-
     return result;
 }
 
@@ -342,10 +408,19 @@ bool tactyk_emit__FloatOperand(struct tactyk_emit__Context *ctx, struct tactyk_d
     }
 }
 
+// All variables this would need to set are handled by the main instruction handler.  
+// All that remains is a simple validation
+bool tactyk_emit__Codeblock_VOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    return ctx->active_command->child.header_label != NULL;
+}
+
 bool tactyk_emit__StringOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
     char buf[16];
     memset(buf, 0, 16);
     struct tactyk_dblock__DBlock *sb = ctx->pl_operand_raw;
+    if (sb == NULL) {
+        return false;
+    }
     int64_t len = sb->length;
     if (len > 0) {
         uint8_t *data = (uint8_t*) sb->data;
@@ -508,6 +583,30 @@ bool tactyk_emit__Contains(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     }
     return false;
 }
+bool tactyk_emit__Repeat(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    struct tactyk_dblock__DBlock *rpt_token = data->token->next;
+    if (rpt_token == NULL) {
+        tactyk_report__msg("REPEAT - no quantity specified");
+        return false;
+    }
+    struct tactyk_dblock__DBlock *rpt_resolved = tactyk_emit__fetch_var(ctx, NULL, rpt_token);
+    if (rpt_resolved == NULL) {
+        tactyk_report__dblock("REPEAT - invalid quantity", rpt_token);
+        return false;
+    }
+    uint64_t amount = 0;
+    if (!tactyk_dblock__try_parseuint(&amount, rpt_resolved)) {
+        tactyk_report__dblock("REPEAT - invalid quantity", rpt_token);
+        return false;
+    }
+    for (uint64_t i = 0; i < amount; i++) {
+        if (!tactyk_emit__ExecSubroutine(ctx, data)) {
+            return false;
+        }
+    }
+    return true;
+    
+}
 bool tactyk_emit__Case(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     struct tactyk_dblock__DBlock *case_token = data->token->next;
     while (case_token != NULL) {
@@ -518,6 +617,11 @@ bool tactyk_emit__Case(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
         case_token = case_token->next;
     }
     return false;
+}
+
+bool tactyk_emit__Default(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
+    tactyk_emit__ExecSubroutine(ctx, data);
+    return true;
 }
 
 bool tactyk_emit__Pick(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
@@ -566,6 +670,11 @@ bool tactyk_emit__Operand__impl(struct tactyk_emit__Context *ctx, struct tactyk_
     return true;
 }
 
+bool tactyk_emit__ClearTemplate(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    tactyk_dblock__clear(ctx->code_template);
+    return true;
+}
+
 bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *data) {
     if (ctx->pl_operand_raw != NULL) {
         tactyk_report__dblock("OPERAND", ctx->pl_operand_raw->next);
@@ -606,7 +715,7 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
     struct tactyk_dblock__DBlock *param = vopcfg->token;
     while (param != NULL) {
         if (!tactyk_dblock__try_parseuint(&max_ops, param)) {
-            if (tactyk_dblock__equals_c_string(param, "permute-code")) {
+            if (ctx->use_extra_permutations && tactyk_dblock__equals_c_string(param, "permute-code")) {
                 permute = true;
             }
             else if (tactyk_dblock__equals_c_string(param, "no-duplicates")) {
@@ -640,14 +749,16 @@ bool tactyk_emit__Composite(struct tactyk_emit__Context *ctx, struct tactyk_dblo
             opcount += 1;
         }
         tactyk_dblock__clear(ctx->code_template);
-
-        for (uint64_t i = 0; i < opcount; i++) {
-            struct tactyk_dblock__DBlock *cfrag_a = code_fragments[i];
-            for (uint64_t j = i+1; j < opcount; j++) {
-                struct tactyk_dblock__DBlock *cfrag_b = code_fragments[j];
-                if (tactyk_dblock__equals(cfrag_a, cfrag_b)) {
-                    tactyk_dblock__clear(cfrag_a);
-                    break;
+        
+        if (remove_duplicates) {
+            for (uint64_t i = 0; i < opcount; i++) {
+                struct tactyk_dblock__DBlock *cfrag_a = code_fragments[i];
+                for (uint64_t j = i+1; j < opcount; j++) {
+                    struct tactyk_dblock__DBlock *cfrag_b = code_fragments[j];
+                    if (tactyk_dblock__equals(cfrag_a, cfrag_b)) {
+                        tactyk_dblock__clear(cfrag_a);
+                        break;
+                    }
                 }
             }
         }
@@ -733,8 +844,6 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     struct tactyk_dblock__DBlock *token = data->token->next;
     struct tactyk_dblock__DBlock *sc_dest_register = tactyk_emit__fetch_var(ctx, NULL, token);
     token = token->next;
-    struct tactyk_dblock__DBlock *sc_code_name = token;
-    token = token->next;
     struct tactyk_dblock__DBlock *sc_input;
 
     if (token == NULL) {
@@ -755,54 +864,39 @@ bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dbloc
     int64_t raw_val;
 
 
-    // if no integer input, cancel and output a dummy value as "de-scrambling" code.
-    //      This looseness is a hack to allow operands to resolve to non-integer tokens without having to make the type specification subroutines
-    //      aware either of other type specifiers or of the target variables that their outputs are to be stored in.
-    //      If the selected assembly template does not reference the de-scrambling code, this should not break anything.
-    //      If assembly template erroneously references it (or if the wrong values are used for makign the selection), then the dummy value
-    //      becomes an obvious and obnoxious assembly-language comment.
+    // if no integer input, cancel and return (in theory, something else is supposed to take over if no valid integer.
     if (!tactyk_dblock__try_parseint(&raw_val, sc_input)) {
-        struct tactyk_dblock__DBlock *error_indicator = tactyk_dblock__from_c_string("; ---- OMITTED DE-SCRAMBLE OP (no value) ---- ;");
-        tactyk_dblock__put(ctx->local_vars, sc_code_name, error_indicator);
         return true;
     }
-    tactyk_dblock__dispose(sc_input);
-
+    
     uint64_t rand_val = tactyk__rand_uint64();
     uint64_t diff_val = (uint64_t)raw_val ^ rand_val;
-    //bool is_qword = false;
 
-    if (raw_val < 0) {
-        //is_qword = true;
-    }
-    else if (raw_val <= 0xff) {
-        rand_val &= 0xff;
-        diff_val &= 0xff;
-    }
-    else if (raw_val <= 0xffff) {
-        rand_val &= 0xffff;
-        diff_val &= 0xffff;
-    }
-    else if (raw_val <= 0xffffffff) {
-        rand_val &= 0xffffffff;
-        diff_val &= 0xffffffff;
-    }
-    else {
-        //is_qword = true;
+    if (raw_val >= 0) {
+        if (raw_val <= 0xff) {
+            rand_val &= 0xff;
+            diff_val &= 0xff;
+        }
+        else if (raw_val <= 0xffff) {
+            rand_val &= 0xffff;
+            diff_val &= 0xffff;
+        }
+        else if (raw_val <= 0xffffffff) {
+            rand_val &= 0xffffffff;
+            diff_val &= 0xffffffff;
+        }
     }
 
     struct tactyk_dblock__DBlock *sc_rand = tactyk_dblock__from_uint(rand_val);
     struct tactyk_dblock__DBlock *sc_diff = tactyk_dblock__from_uint(diff_val);
+    struct tactyk_dblock__DBlock *sc_val = tactyk_dblock__from_uint(raw_val);
     tactyk_dblock__put(ctx->local_vars, "$SC_RAND", sc_rand);
     tactyk_dblock__put(ctx->local_vars, "$SC_DIFF", sc_diff);
     tactyk_dblock__put(ctx->local_vars, "$SC_DEST", sc_dest_register);
-
-    tactyk_dblock__delete(ctx->local_vars, "$SC");
+    tactyk_dblock__put(ctx->local_vars, "$SC_VALUE", sc_val);
+    
     struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->subroutine_table, "scramble");
-    if (sub->func(ctx, sub->vopcfg)) {
-        struct tactyk_dblock__DBlock *code = tactyk_dblock__get(ctx->local_vars, "$SC");
-        tactyk_dblock__put(ctx->local_vars, sc_code_name, code);
-    }
+    sub->func(ctx, sub->vopcfg);
     return true;
 }
 
@@ -828,7 +922,7 @@ bool tactyk_emit__Code(struct tactyk_emit__Context *ctx, struct tactyk_dblock__D
             }
         }
     }
-
+    
     struct tactyk_dblock__DBlock *code_template = data->child;
     while (code_template != NULL) {
         struct tactyk_dblock__DBlock *code_rewritten = tactyk_emit__fetch_var(ctx, NULL, code_template);
@@ -884,6 +978,11 @@ bool tactyk_emit__VCode(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
     return true;
 }
 
+bool tactyk_emit__Terminal(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
+    ctx->is_terminal = true;
+    return true;
+}
+
 void tactyk_emit__sanitize_identifier(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *out, struct tactyk_dblock__DBlock* id) {
     char txt[8];
     uint8_t *id_chars = (uint8_t*)id->data;
@@ -912,7 +1011,9 @@ void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tact
     id->value = ctx->script_commands->element_count;
     tactyk_dblock__export_cstring(id->txt, TACTYK__MAX_IDENTIFIER_LENGTH, raw_label);
     //strncpy(id->txt, tactyk_dblock__export_cstring(raw_label), MAX_IDENTIFIER_LENGTH);
-
+    struct tactyk_dblock__DBlock *lblidx_entry = tactyk_dblock__from_uint(ctx->script_commands->element_count);
+    tactyk_dblock__put(ctx->labelindex_table, raw_label, lblidx_entry);
+    
     if (ctx->active_labels == NULL) {
         ctx->active_labels = sanitized_label;
         ctx->active_labels_last = sanitized_label;
@@ -923,42 +1024,144 @@ void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tact
     }
 }
 
+void tactyk_emit__append_label_to_command(struct tactyk_emit__script_command *cmd, struct tactyk_dblock__DBlock *lbl) {
+
+    struct tactyk_dblock__DBlock *cmd_lbl = cmd->labels;
+    if (cmd_lbl == NULL) {
+        cmd->labels = lbl;
+    }
+    else {
+        while (cmd_lbl->next != NULL) {
+            cmd_lbl = cmd_lbl->next;
+        }
+        cmd_lbl->next = lbl;
+    }
+}
+
+void tactyk_emit__push_codeblock(struct tactyk_emit__Context *ctx, bool orphan) {
+    if (ctx->active_command == NULL) {
+        return;
+    }
+    ctx->active_codeblock_index += 1;
+    
+    if (ctx->active_codeblock_index >= TACTYK_EMIT__MAX_CODEBLOCK_NESTLEVEL) {
+        tactyk_report__reset();
+        tactyk_report__int("Codeblock nest level out of bounds", ctx->active_codeblock_index);
+        error(NULL, NULL);
+    }
+    
+    struct tactyk_emit__codeblock *codeblock = tactyk_dblock__index(ctx->codeblocks, ctx->active_codeblock_index);
+    
+    char lbl[64];
+    snprintf(lbl, 64, "codeblock_header#%ju", ctx->next_codeblock_id);
+    codeblock->header_label = tactyk_dblock__from_c_string(lbl);
+    snprintf(lbl, 64, "codeblock_first#%ju", ctx->next_codeblock_id);
+    codeblock->first_label = tactyk_dblock__from_c_string(lbl);
+    snprintf(lbl, 64, "codeblock_close#%ju", ctx->next_codeblock_id);
+    codeblock->close_label = tactyk_dblock__from_c_string(lbl);
+    
+    ctx->active_command->child = *codeblock;
+    
+    if (ctx->active_labels == NULL) {
+        ctx->active_labels = codeblock->first_label;
+        ctx->active_labels_last = codeblock->first_label;
+    }
+    else {
+        ctx->active_labels_last->next = codeblock->first_label;
+        ctx->active_labels_last = codeblock->first_label;
+    }
+    
+    ctx->next_codeblock_id += 1;
+}
+void tactyk_emit__pop_codeblock(struct tactyk_emit__Context *ctx) {
+    if (ctx->active_codeblock_index == -1) {
+        return;
+    }
+    
+    struct tactyk_emit__codeblock *codeblock = tactyk_dblock__index(ctx->codeblocks, ctx->active_codeblock_index);
+    
+    if (ctx->active_labels == NULL) {
+        ctx->active_labels = codeblock->close_label;
+        ctx->active_labels_last = codeblock->close_label;
+    }
+    else {
+        ctx->active_labels_last->next = codeblock->close_label;
+        ctx->active_labels_last = codeblock->close_label;
+    }
+    
+    ctx->active_codeblock_index -= 1;
+}
 void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *token, struct tactyk_dblock__DBlock *line) {
     struct tactyk_dblock__DBlock *name = token;
+    struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, name);
+    if (sub == NULL) {
+        tactyk_report__reset();
+        tactyk_report__dblock("Instruction not defined", line);
+        error(NULL, NULL);
+    }
+    
+    uint64_t cmd_index = ctx->script_commands->element_count;
     struct tactyk_emit__script_command *cmd = tactyk_dblock__new_object(ctx->script_commands);
     cmd->name = name;
     cmd->tokens = token;
     cmd->pl_code = line;
     cmd->asm_code = tactyk_dblock__new(4096);
     cmd->labels = ctx->active_labels;
-
     ctx->active_labels = NULL;
     ctx->active_labels_last = NULL;
+    
+    ctx->active_command = cmd;
+    
 }
 
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
+    // indicate to the scramble subroutine what it should do
+    //      FINALLY!  A use for V-ISA global variables!
+    if (ctx->use_immediate_scrambling) {
+        tactyk_dblock__put(ctx->global_vars, "$USE_SCRAMBLE", tactyk_dblock__from_safe_c_string("true"));
+    }
+    else {
+        tactyk_dblock__put(ctx->global_vars, "$USE_SCRAMBLE", tactyk_dblock__from_safe_c_string("false"));
+    }
+    struct tactyk_dblock__DBlock *label = NULL;
+    struct tactyk_dblock__DBlock *label_last = NULL;
+    ctx->iptr = 0;
     for (uint64_t i = 0; i < ctx->script_commands->element_count; i += 1) {
         struct tactyk_emit__script_command *cmd = tactyk_dblock__index(ctx->script_commands, i);
+        struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, cmd->name);
         tactyk_report__reset();
         tactyk_report__dblock("COMMAND", cmd->pl_code);
         tactyk_report__uint("INDEX", i);
-        ctx->iptr = i;
+        ctx->target_iptr = i;
         ctx->active_command = cmd;
-        struct tactyk_dblock__DBlock *label = cmd->labels;
-        while (label != NULL) {
-            tactyk_report__dblock("LABEL", label);
-            tactyk_dblock__append(cmd->asm_code, label);
-            tactyk_dblock__append(cmd->asm_code, ":\n");
-            label = label->next;
+        
+        if (label == NULL) {
+            label = cmd->labels;
+            label_last = label;
         }
-        struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__get(ctx->instruction_table, cmd->name);
-        if (sub == NULL) {
-            tactyk_emit__error(ctx, "Instruction not defined.", NULL);
+        else {
+            label_last->next = cmd->labels;
         }
-        sub->func(ctx, sub->vopcfg);
-        tactyk_report__dblock_full("ASM", cmd->asm_code);
+        if (label_last != NULL) {
+            while (label_last->next != NULL) {
+                label_last = label_last->next;
+            }
+        }
+        
+        if (!sub->skip) {
+            //struct tactyk_dblock__DBlock *label = cmd->labels;
+            while (label != NULL) {
+                tactyk_report__dblock("LABEL", label);
+                tactyk_dblock__append(cmd->asm_code, label);
+                tactyk_dblock__append(cmd->asm_code, ":\n");
+                label = label->next;
+            }
+            sub->func(ctx, sub->vopcfg);
+            tactyk_report__dblock_full("ASM", cmd->asm_code);
+            label_last = NULL;
+        }
     }
-
+    
     tactyk_report__reset();
     tactyk_report__msg("COMPILE");
     uint64_t program_size = ctx->script_commands->element_count;
@@ -967,16 +1170,18 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
         program_map[i] = i;
     }
     uint64_t j;
+    
+    if (ctx->use_executable_layout_randomization) {
+        for (uint64_t i = 0; i < (program_size-1); i++) {
+            uint64_t j = i + tactyk_util__rand_range(program_size-i);
+            int32_t iv = program_map[i];
+            int32_t jv = program_map[j];
 
-    for (uint64_t i = 0; i < (program_size-1); i++) {
-        uint64_t j = i + tactyk_util__rand_range(program_size-i);
-        int32_t iv = program_map[i];
-        int32_t jv = program_map[j];
-
-        program_map[i] = jv;
-        program_map[j] = iv;
+            program_map[i] = jv;
+            program_map[j] = iv;
+        }
     }
-
+    
     char fname_assembly_code[64];
     char fname_object[64];
     char fname_symbols[64];
@@ -1000,10 +1205,23 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     FILE *asm_file =  fopen( fname_assembly_code, "w" );
     fprintf(asm_file, "BITS 64\n");
     fprintf(asm_file, "[map symbols %s]\n", fname_symbols);
-
-    fprintf(asm_file, "%%define random_const_FS %ju\n", ctx->random_const_fs);
-    fprintf(asm_file, "%%define random_const_GS %ju\n", ctx->random_const_gs);
-
+    
+    if (ctx->use_exopointers) {
+        fprintf(asm_file, "%%define random_const_FS %ju\n", ctx->random_const_fs);
+        fprintf(asm_file, "%%define random_const_GS %ju\n", ctx->random_const_gs);
+    }
+    else {
+        fprintf(asm_file, "%%define random_const_FS %u\n", 0);
+        fprintf(asm_file, "%%define random_const_GS %u\n", 0);
+    }
+    
+    if (ctx->use_temp_register_autoreset) {
+        tactyk_dblock__put(ctx->global_vars, "$USE_AUTO_RESET_TEMP", "1");
+    }
+    else {
+        tactyk_dblock__put(ctx->global_vars, "$USE_AUTO_RESET_TEMP", "0");
+    }
+    
     fprintf(asm_file, "%s\n", ctx->asm_header);
 
     for (uint64_t i = 0; i < program_size; i++) {
@@ -1019,7 +1237,12 @@ void tactyk_emit__compile(struct tactyk_emit__Context *ctx) {
     fclose(asm_file);
 
     struct tactyk_assembly *assembly = tactyk_assemble(fname_assembly_code, fname_object, fname_symbols);
-
+    
+    if (assembly == NULL) {
+        tactyk_report__msg("Assembled program rejected.");
+        error(NULL, NULL);
+    }
+    
     assembly->name = "Tactyk (should) Affix Captions To Your Kitten: Mix - o - Bits, The Very Technical";
     //printf("assembled %ju bytes, name=%s\n", assembly->length, assembly->name);
 

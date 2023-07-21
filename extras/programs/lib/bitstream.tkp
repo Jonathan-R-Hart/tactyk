@@ -1,0 +1,137 @@
+# bitstream handling - sequentially a read data array 1-16 bits at a time.
+# 
+# $rBITS          bit register  (temp storage for data extracted form the array)
+# $rBITCOUNT      Number of bits stored in the bit register (interpreted as a bitfield to allow additional functionality)
+# $rPOSITION      Current position in data array
+# $rEND           End position in the data array (not needed if using padded stream and a detectable or predetermined end) (also not presently in use)
+# $rOUT           output register
+# $rDATA          data source
+
+# This assumes 8 bytes are available at the start of the stream
+BITSTREAM__INIT.$NAME:
+  assign $rBITCOUNT 64
+  load qword $rBITS $rDATA $rPOSITION
+  add $rPOSITION 8
+  lwreturn
+
+# This assumes 4 bytes are available at the current stream position
+BITSTREAM__PREFETCH.$NAME:
+  if $rBITCOUNT ~& h.60
+    load dword $rOUT $rDATA $rPOSITION
+    shift-left $rOUT $rBITCOUNT
+    or $rBITS $rOUT
+    add $rPOSITION 4
+    add $rBITCOUNT 32
+  lwreturn
+
+BITSTREAM__READ_1.$NAME:
+  assign $rOUT 1
+  and $rOUT $rBITS
+  shift-right $rBITS 1
+  sub $rBITCOUNT 1
+  lwreturn
+
+BITSTREAM__READ_2.$NAME:
+  assign $rOUT 3
+  and $rOUT $rBITS
+  shift-right $rBITS 2
+  sub $rBITCOUNT 2
+  lwreturn
+
+BITSTREAM__READ_3.$NAME:
+  assign $rOUT 7
+  and $rOUT $rBITS
+  shift-right $rBITS 3
+  sub $rBITCOUNT 3
+  lwreturn
+
+BITSTREAM__READ_4.$NAME:
+  assign $rOUT 15
+  and $rOUT $rBITS
+  shift-right $rBITS 4
+  sub $rBITCOUNT 4
+  lwreturn
+
+BITSTREAM__READ_5.$NAME:
+  assign $rOUT 31
+  and $rOUT $rBITS
+  shift-right $rBITS 5
+  sub $rBITCOUNT 5
+  lwreturn
+
+BITSTREAM__READ_6.$NAME:
+  assign $rOUT 63
+  and $rOUT $rBITS
+  shift-right $rBITS 6
+  sub $rBITCOUNT 6
+  lwreturn
+
+BITSTREAM__READ_7.$NAME:
+  assign $rOUT 127
+  and $rOUT $rBITS
+  shift-right $rBITS 7
+  sub $rBITCOUNT 7
+  lwreturn
+
+BITSTREAM__READ_8.$NAME:
+  assign $rOUT 255
+  and $rOUT $rBITS
+  shift-right $rBITS 8
+  sub $rBITCOUNT 8
+  lwreturn
+
+BITSTREAM__READ_9.$NAME:
+  assign $rOUT 511
+  and $rOUT $rBITS
+  shift-right $rBITS 9
+  sub $rBITCOUNT 9
+  lwreturn
+
+BITSTREAM__READ_10.$NAME:
+  assign $rOUT 1023
+  and $rOUT $rBITS
+  shift-right $rBITS 10
+  sub $rBITCOUNT 10
+  lwreturn
+
+BITSTREAM__READ_11.$NAME:
+  assign $rOUT 2047
+  and $rOUT $rBITS
+  shift-right $rBITS 11
+  sub $rBITCOUNT 11
+  lwreturn
+
+BITSTREAM__READ_12.$NAME:
+  assign $rOUT 4095
+  and $rOUT $rBITS
+  shift-right $rBITS 12
+  sub $rBITCOUNT 12
+  lwreturn
+
+BITSTREAM__READ_13.$NAME:
+  assign $rOUT 8191
+  and $rOUT $rBITS
+  shift-right $rBITS 13
+  sub $rBITCOUNT 13
+  lwreturn
+
+BITSTREAM__READ_14.$NAME:
+  assign $rOUT 16383
+  and $rOUT $rBITS
+  shift-right $rBITS 14
+  sub $rBITCOUNT 14
+  lwreturn
+
+BITSTREAM__READ_15.$NAME:
+  assign $rOUT 32767
+  and $rOUT $rBITS
+  shift-right $rBITS 15
+  sub $rBITCOUNT 16
+  lwreturn
+
+BITSTREAM__READ_16.$NAME:
+  assign $rOUT 65535
+  and $rOUT $rBITS
+  shift-right $rBITS 16
+  sub $rBITCOUNT 17
+  lwreturn

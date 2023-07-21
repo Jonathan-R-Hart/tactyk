@@ -1,0 +1,148 @@
+# "ministring" - a utility for handling 8 and 16-char strings from memblocks containing text
+#   (In TACTYK, the 8 and 16 char string is KING ... of alphanumeric data processing ... because it is as easy to handle as an integer or floating point number) 
+
+# Destructively Extract a unicode code point from a string stored in xA
+# The code point will be taken from the left-most char
+# Extracted chars will also be removed from the input string (to allow for iterative reading)
+#
+# This optionally also can use xmm registers xB-xN as supplemental string storage
+# 
+# Any trailing null bytes within a string are treated as a single string terminator (and bypassed if supplemental string storage is in use)
+#   (the string, "asdf" is not evaluated as "asdf\0\0\0\0\0\0\0\0\0\0\0\0", even if the use of supplemental string storage would suggest otherwise)
+#
+# Inputs:
+#   xA - utf-8 string to read (max 16 bytes)
+#   rE - string bank flag - if value is 1 and xA is zeroed after extracting any byte, all entries in supplemental string storage will be shifted one space to the left
+#   [OPT] xB-xN: supplemental string storage
+#                (if rF is not equal to 1, then this is ignored and not treated as supplemental string storage)
+# Output:
+#   rA - extracted unicode code point
+#   xA - string with one less char (or next string if using supplemental storage and xA was zeroed)
+# clobbers:
+#   rB-rD
+
+MINISTRING__EXTRACT_UTF8:
+  lwcall MINISTRING__EXTRACT_UTF8.nextbyte
+  assign rA rD
+  # b.0xxxxxxx: ASCII char
+  if rA ~& b.10000000
+    lwreturn
+  
+  # b.10xxxxxx: unexpected continuation byte
+  if rA ~& b.01000000
+    assign rA -1
+    lwreturn
+  
+  # b.110xxxxx: 11-bit char
+  if rA ~& b.00100000
+    and rA b.00011111
+    lwcall MINISTRING__EXTRACT_UTF8.append6bits
+    lwreturn
+  
+  # b.1110xxxx: 16-bit char
+  if rA ~& b.00010000
+    and rA b.00001111
+    lwcall MINISTRING__EXTRACT_UTF8.append6bits
+    lwcall MINISTRING__EXTRACT_UTF8.append6bits
+    lwreturn
+  
+  # b.11110xxx: 21-bit char
+  if rA ~& b.00001000
+    and rA b.00000111
+    lwcall MINISTRING__EXTRACT_UTF8.append6bits
+    lwcall MINISTRING__EXTRACT_UTF8.append6bits
+    lwcall MINISTRING__EXTRACT_UTF8.append6bits
+    lwreturn
+  
+  # b.11111xxx: invalid byte
+  assign rA -1
+  lwreturn
+
+MINISTRING__EXTRACT_UTF8.append6bits:
+  lwcall MINISTRING__EXTRACT_UTF8.nextbyte
+  assign rB rD
+  and rB b.11000000
+  
+  #continuation byte
+  if rB == b.10000000
+    and rD b.00111111
+    shift-left rA 6
+    or rA rD
+    lwreturn
+  
+  assign rA 0
+  lwreturn
+
+MINISTRING__EXTRACT_UTF8.nextbyte:
+  # destructively extract low byte from upper qword
+  xassign rB xA int64 1
+  assign rC rB
+  shift-right rB 8
+  xassign xA int64 1 rB
+  
+  # destructively extract low byte from lower qword
+  xassign rB xA int64 0
+  assign rD rB
+  and rD 255
+  
+  # transfer byte taken from upper qword to lower qword
+  shift-right rB 8
+  and rC 255
+  shift-left rC 56
+  or rB rC
+  xassign xA int64 0 rB
+  
+  # if xmm-based supplemental string storage is enabled, and the input string has been consumed, shift supplemental storage one slot left
+  if rE == 1
+    or rB rC
+    if rB == 0
+      xduplicate 7 xA xB
+      xduplicate 6 xH xI
+      xassign xN 0 0
+  lwreturn
+
+MINISTRING__PRINT_TOKENS:
+  if xA == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xa
+  tcall print-space
+  if xB == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xb
+  tcall print-space
+  if xC == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xc
+  tcall print-space
+  if xD == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xd
+  tcall print-space
+  if xE == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xe
+  tcall print-space
+  if xF == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xf
+  tcall print-space
+  if xG == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xg
+  tcall print-space
+  if xH == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xh
+  tcall print-space
+  if xI == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xi
+  tcall print-space
+  if xJ == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xj
+  tcall print-space
+  if xK == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xk
+  tcall print-space
+  if xL == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xl
+  tcall print-space
+  if xM == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xm
+  tcall print-space
+  if xN == 0 MINISTRING__PRINT_TOKENS.end
+  tcall print-text-xn
+  tcall print-space
+  MINISTRING__PRINT_TOKENS.end:
+  lwreturn

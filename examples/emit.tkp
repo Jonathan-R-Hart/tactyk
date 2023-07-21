@@ -77,10 +77,9 @@ MAIN:
   lwcall DESCRIBE_POLYNOMIAL
   lwcall EVAL_POLYNOMIAL
   
-  ccall printint
-  assign a newline
-  ccall printchar
-  ccall printchar
+  tcall print-int-a
+  tcall print-newline
+  tcall print-newline
 
   bind addr1 footer
   lwcall PRINTIT
@@ -89,64 +88,39 @@ MAIN:
 DESCRIBE_POLYNOMIAL:
   stash sA a
 
-  ccall printint
-  assign a ch_x
-  ccall printchar
-  assign a e
-  ccall printint
-  assign a ch_exp
-  ccall printchar
-  assign a 3
-  ccall printint
+  tcall print-int-a
+  tcall print-text 'x
+  tcall print-int-e
+  tcall print-text '^
+  tcall print-int-a 3
 
-  assign a ch_sp
-  ccall printchar
-  assign a ch_minus
-  ccall printchar
-  assign a ch_sp
-  ccall printchar
+  tcall print-space
+  tcall print-text '-
+  tcall print-space
 
-  assign a b
-  ccall printint
-  assign a ch_x
-  ccall printchar
-  assign a e
-  ccall printint
-  assign a ch_exp
-  ccall printchar
-  assign a 2
-  ccall printint
+  tcall print-int-b
+  tcall print-text 'x
+  tcall print-int-e
+  tcall print-text '^
+  tcall print-int-a 2
   
-  assign a ch_sp
-  ccall printchar
-  assign a ch_plus
-  ccall printchar
-  assign a ch_sp
-  ccall printchar
+  tcall print-space
+  tcall print-text '+
+  tcall print-space
 
-  assign a c
-  ccall printint
-  assign a ch_x
-  ccall printchar
-  assign a e
-  ccall printint
-
-  assign a ch_sp
-  ccall printchar
-  assign a ch_plus
-  ccall printchar
-  assign a ch_sp
-  ccall printchar
-
-  assign a d
-  ccall printint
+  tcall print-int-c
+  tcall print-text 'x
+  tcall print-int-e
   
-  assign a ch_sp
-  ccall printchar
-  assign a ch_eq
-  ccall printchar
-  assign a ch_sp
-  ccall printchar
+  tcall print-space
+  tcall print-text '+
+  tcall print-space
+
+  tcall print-int-d
+
+  tcall print-space
+  tcall print-text '=
+  tcall print-space
   
   stash a sA
   lwreturn
@@ -237,19 +211,17 @@ PRINTIT:
   assign b addr1.element_bound
   PRINTIT_LOOP:
   load byte a addr1 c
-  ccall printchar
+  tcall print-text-a
   add c 1
   if c < b PRINTIT_LOOP
-  assign a newline
-  ccall printchar
-  ccall printchar
+  tcall print-newline
+  tcall print-newline
   lwreturn
 
 MAKE_CALCULATOR:
   tcall emit-new
   assign a 0
   tcall emit-intlabel
-  ccall printint
   store byte addr2 calc.multiply a
   assign a .mul
   tcall emit-cmd

@@ -1,0 +1,1007 @@
+# PNG image loader - read compressed PNG data and write it to an uncompressed RGBA texture buffer.
+# 
+# Usage
+#   First initialize the PNG loader:
+#     lwcall PNG__INIT
+#     (this sets up the internal control table for handling PNG chunks and the Fixed-format Huffman table used by the DEFLATE decompressor)
+#   
+#   Then, for each image to load:
+#     bind the memblock containing the PNG data to addr2 and assign the position of the data within the memblock to register rA (usually 0 if not loading from a data package):
+#       bind addr2 m__my_png
+#       assign rA 0
+#       lwcall PNG__READ
+#     bind the memblock to write uncompressed image data to to addr1 and assign the position to begin writing to ro register rA:
+#       bind addr1 m__my_texture_buffer
+#       assign rA sZl
+#       lwcall PNG__GET
+#     If needed, read register rA to obtain the end position (start position + amount of bytes written):
+#       assign sZl rA
+#
+# The PNG loader output pixel format is 32-bit RGBA
+#
+# Interlaced images are presently not supported (If it gets added in the future, it will be with an optional module).
+# All PNG data other than raw pixels is not supported.
+# Transparent palette colors are presently not supported (planned feature)
+#
+# PNG image loader + supporting components use a large portion of the stash, so it is best either to load all PNG images at once,
+# or to reserve a micricontext stash block and "mctxjump" to it every time the PNG loader needs to be accessed.
+# 
+# -----------------------------------------------------------------------------------------------------------------
+# PNG + deflate + code stash/register allocation
+# 
+# General:
+#   addr1:  output
+#   addr2:  input
+#   rE:   input read head
+#   rF:   output write head
+#   s26l-s28h:   open
+#   sAl-sFh:  ad-hoc locals, usually register-shadowing [used for functions which don't call into anything complex]
+# 
+# Bistream (while the DEFLATE de-compressor is active)
+#   rA:   bitstream loaded bits
+#   rB:   open, bitstream output
+#   rC:   open
+#   rD:   bitstream bit count
+#   rE:   memory read head
+# 
+# PNG global (valid while loading PNGs):
+#   s29l-s31h:   PNG control-table (MINITABLE)
+# 
+# PNG data:
+#   sHl:  width
+#   sHh:  height
+#   sIl:  bit depth
+#   sIh:  color mode
+#   sJl:  compression method
+#   sJh:  filter method
+#   sKl:  interlace
+#   sKh:  base output offset (PNG__GET input)
+#   sLl:  row byte length
+#   sLh:    stashed rD during IDAT concatenation
+#   
+#   sQh:  stashed output buffer position while reading the PNG data structure
+#         input buffer end while DEFLATE decrompressor is active
+# 
+# PNG - process/filter
+#   sMl:  byte size of image
+# 
+# PNG - export:
+#   sMl:  output end position
+#   sMh:  output current position
+#   sNl:  grayscale byte-to-RGB triplet conversion factor (non-alpha formats)
+# 
+# PNG - padding control:
+#   sNh:  padding-skip trigger value  -- possibly switch to width (sHh)
+#   sOl:  padding amount
+#   sOh:  x
+# 
+# PNG IDAT concatenation:
+#   sPl:  IDAT data block start position
+#   sPh:  IDAT concatenator state
+#   sQl:  IDAT data position end position
+# 
+# DEFLATE:
+#   rA,rB,rC,rD,rE:  bitstream registers
+#   sWl:  final block flag (1 if last block)
+#   addr3:  control datable (codebook)
+#   addr4:  scratch buffer
+# 
+# DEFLATE - "dynamic" table builder
+#   s26l:  - stashed write head [beginning to end]
+#   s27l, s27h, s28l - stashed bitstream persistent vars [while writing codebooks]
+#   sRl:  literal quantity
+#   sRh:  backref quantity
+#   sSl:  codelen quantity
+#   sSh:  symbol index
+#   sTl:  symbol length buffer index (while unpacking the literal & backref list)
+# 
+# HUFFMAN decoder
+#   rA,rB,rC,rD,rE:  bitstream registers
+# 
+# Canonical Huffman Code setup:
+#   [GUARDED with swap covering rA, rD, rE, and distantly rF]
+#   sXh:   codeword length
+#   sXl:   index
+#   sYl:   base affix value (used to generate all codebook entry duplicates)
+#   rB:   base codeword (index bit-reversed)
+#   rC:   open
+#   rD:   coded value (input)
+#   rF:   open
+# -----------------------------------------------------------------------------------------------------------------
+
+struct s_texture
+  4 width
+  4 height
+  # data [any amount]
+
+struct s_data_chunk
+  16777216 data
+
+struct s_crc
+  1024 data
+
+mem m_crc s_crc 1
+
+mem m_png_palette s_data_chunk 1
+mem m_data_chunk s_data_chunk 1
+mem m_png_control s_MINITABLE 65536
+
+
+PNG__INIT:
+  bind addr4 m_png_control
+  lwcall MINITABLE__INIT.addr4
+  lwcall MINITABLE__PUT.addr4 PNG__IHDR 'IHDR
+  lwcall MINITABLE__PUT.addr4 PNG__PLTE 'PLTE
+  lwcall MINITABLE__PUT.addr4 PNG__tRNS 'tRNS
+  lwcall MINITABLE__PUT.addr4 PNG__IEND 'IEND
+  
+  # build the static huffman decoder table (for DEFLATE)
+  lwcall DEFLATE__INIT
+  
+  # build a parallel of the Huffman decoder table with a variant literal-value handler (to capture the distance field in back-references)
+  lwreturn
+
+PNG__READ:
+  stash sQh rA
+  bind addr1 m_data_chunk
+  assign sPh 0
+  load qword rA addr2 0
+  if rA != h.0a1a0a0d474e5089
+    assign xA 'ThatsNOTaPNG:
+    tcall print-text-xa
+    tcall print-space
+    tcall print-int-a
+    tcall print-newline
+    exit
+    
+  assign rE 8
+  assign rF addr2.element_bound
+  PNG__READ.scan:
+  if rE < rF
+    load dword rD addr2 rE
+    reverse-bytes dword rD
+    add rE 4
+    load dword rB addr2 rE
+    add rE 4
+    
+    stash sDl rD sEl rE sFl rF sBl rB
+    bind addr4 m_png_control
+    
+    # concatenate all IDAT data blocks.  This overwrites the end of the first IDAT chunks as well as everything else until an amount of bytes equal to the amount of compressed
+    # bytes have been read (which will break subsequent attempts to read the PNG - that could be worked around by rewriting the chunk header to indicate how long the IDAT-block is, but
+    # there isn't much incentive to do so, because a PNG only needs to be read once).
+    #
+    # The original misinterpretation of PNG spec was that DEFLATE blocks within an IDAT chunk would not cross IDAT chunk boundaries, so the code for unpacking compressed data simply
+    #   assumes that the DEFLATE blocks would be contiguous.  It would have required a substantially more complex refactoring effort to get it to respect chunk boundaries (and boundary-respecting
+    #   code would also need lots of extra bounds-checking).
+    if rB == 'IDAT
+      if sPh == 0
+        assign sPh 1
+        assign sPl rE
+        add rE rD
+        assign sQl rE
+        add rE 4
+        goto PNG__READ.scan
+      if sPh == 1
+        assign rA rE
+        add rE rD
+        assign rB sQl
+        add rD rB
+        PNG__READ.idat_concat:
+        if rA < rE
+          load qword rC addr2 rA
+          store qword addr2 rB rC
+          add rA 8
+          add rB 8
+          goto PNG__READ.idat_concat
+        assign sQl rD
+        add rE 4
+        goto PNG__READ.scan
+      if sPh == 2
+        assign xA 'IDAT-discont!
+        tcall print-text-xa
+        tcall dump-ctx
+        exit
+    if sPh != 0
+      assign sPh 2
+    
+    lwcall MINITABLE__GET.addr4
+    
+    # if the handler for the PNG chunk is defined, invoke it
+    if rC == 1
+      stash rE sEl rD sDl
+      goto rA
+    
+    # if the handler for the PNG chunk is undefined, fuss about it on the System Console.
+    if rC == 0
+      assign xA 'Unimplemented
+      if rB & h.20
+        assign xB 'Ancillary-chunk:
+      if rB ~& h.20
+        assign xB 'Critical--chunk:
+        
+        tcall print-text-xa
+        tcall print-space
+        tcall print-text-xb
+        tcall print-space
+        tcall print-text-b
+        tcall print-space
+        tcall print-int-d
+        tcall print-newline
+    
+    PNG__READ.next:
+    stash rE sEl rF sFl
+    add rE sDl
+    add rE 4
+    
+    goto PNG__READ.scan
+  assign xA 'ERR.missing.IEND
+  tcall print-text-xa
+  tcall print-newline
+  assign rA 0
+  lwreturn
+
+PNG__GET:
+  bind addr2 m_data_chunk
+  stash sMh rA sKh rA
+  assign sOh 0
+  assign sMl sHh
+  mul sMl sHl
+  shift-left sMl 2
+  add sMl rA
+  stash rD sLl
+  stash sAl rD sQh rD sCl rD
+  if sIh == 4
+    assign rC 1
+    if sIl == 16
+      assign rA PNG__EXTRACT.16bit.alphagrayscale
+    if sIl == 32
+      assign rA PNG__EXTRACT.32bit.alphagrayscale
+    stash rE sIl
+    goto rA
+  if sIl == 1
+    shift-left rD 3
+    assign rC 8
+    assign sNl h.ffffff
+    assign rA PNG__EXTRACT.1bit
+    goto PNG__GET.pickmode
+  if sIl == 2
+    shift-left rD 2
+    assign rC 4
+    assign rA PNG__EXTRACT.2bit
+    assign sNl h.555555
+    goto PNG__GET.pickmode
+  if sIl == 4
+    shift-left rD 1
+    assign rC 2
+    assign rA PNG__EXTRACT.4bit
+    assign sNl h.111111
+    goto PNG__GET.pickmode
+  if sIl == 8
+    assign rC 1
+    assign rA PNG__EXTRACT.8bit
+    assign sNl h.010101
+    goto PNG__GET.pickmode
+  if sIl == 16
+    assign rC 1
+    assign rA PNG__EXTRACT.16bit
+    assign sNl h.010101
+    goto PNG__GET.pickmode
+  if sIl == 24
+    assign rC 1
+    assign rA PNG__EXTRACT.24bit
+    goto PNG__GET.pickmode
+  if sIl == 32
+    assign rC 1
+    assign rA PNG__EXTRACT.32bit
+    goto PNG__GET.pickmode
+  if sIl == 48
+    assign rC 1
+    assign rA PNG__EXTRACT.48bit
+    goto PNG__GET.pickmode
+  if sIl == 64
+    assign rC 1
+    assign rA PNG__EXTRACT.64bit
+    goto PNG__GET.pickmode
+
+  assign xA 'todo:bitrate
+  tcall print-text-xa
+  tcall print-space
+  tcall print-int-a
+  tcall print-newline
+  exit
+  
+  PNG__GET.pickmode:
+  if sIh == 0
+    assign rB PNG__CONVERT.grayscale
+    goto rA
+  if sIh == 2
+    assign rB PNG__CONVERT.truecolor
+    goto rA
+  if sIh == 6
+    assign rB PNG__CONVERT.truecolor
+    goto rA
+  if sIh == 3
+    bind addr3 m_png_palette
+    assign rB PNG__CONVERT.indexed
+    goto rA
+  
+  assign xA 'todo:colormode
+  tcall print-text-xa
+  tcall print-space
+  tcall print-int-b
+  tcall print-newline
+  
+  exit
+
+PNG__GET.epilogue:
+  stash rA sKh rB sMh rD sHh
+  
+  # calculate where the end index is supposed to be [instead of trusting the pixel emitter to leave a correct index behind]
+  assign rB sHl
+  mul rB rD
+  mul rB 4
+  add rB rA
+  lwreturn
+
+PNG__EXTRACT.oddsize.adjust:
+  stash swap rA sNh swap rB sOl swap rD sOh
+  inc rD
+  if rD == rA
+    assign rD 0
+    add rC rB
+  stash swap rA sNh swap rB sOl swap rD sOh
+  lwreturn
+
+PNG__EXTRACT.1bit:
+  assign rE rC
+  if rE == rD
+    add rC 8
+    assign rE rC
+    assign rF sLl
+    shift-left rF 3
+    add rD rF
+  shift-right rE 3
+  load byte rF addr2 rE
+  assign rE rC
+  and rE h.07
+  negate rE
+  add rE 7
+  shift-right rF rE
+  and rF 1
+  inc rC
+  lwcall PNG__EXTRACT.oddsize.adjust
+  goto rB
+
+PNG__EXTRACT.2bit:
+  assign rE rC
+  if rE == rD
+    add rC 4
+    assign rE rC
+    assign rF sLl
+    shift-left rF 2
+    add rD rF
+  shift-right rE 2
+  load byte rF addr2 rE
+  assign rE rC
+  and rE h.03
+  negate rE
+  add rE 3
+  shift-left rE 1
+  shift-right rF rE
+  and rF 3
+  inc rC
+  lwcall PNG__EXTRACT.oddsize.adjust
+  goto rB
+
+PNG__EXTRACT.4bit:
+  assign rE rC
+  if rE == rD
+    add rC 2
+    assign rE rC
+    assign rF sLl
+    shift-left rF 1
+    add rD rF
+  shift-right rE 1
+  load byte rF addr2 rE
+  assign rE rC
+  and rE h.01
+  xor rE 1
+  shift-left rE 2
+  shift-right rF rE
+  and rF 15
+  inc rC
+  lwcall PNG__EXTRACT.oddsize.adjust
+  goto rB
+
+PNG__EXTRACT.8bit:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    add rD sLl
+  load byte rF addr2 rE
+  inc rC
+  goto rB
+
+PNG__EXTRACT.16bit:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    add rD sLl
+  load byte rF addr2 rE
+  add rC 2
+  goto rB
+
+PNG__EXTRACT.24bit:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    add rD sLl
+  load dword rF addr2 rE
+  and rF h.00ffffff
+  add rC 3
+  goto rB
+
+PNG__EXTRACT.32bit:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    # assign rF sLl
+    add rD sLl
+  load dword rF addr2 rE
+  add rC 4
+  goto rB
+
+PNG__EXTRACT.48bit:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    add rD sLl
+  # extract from big-endian positions
+  #   (if the least significant bits are ever needed, use the arrange-bytes function and change this)
+  load dword rF addr2 rE
+  and rF h.00ff00ff
+  add rE 4
+  load byte rE addr2 rE
+  shift-left rE 24
+  or rF rE
+  assign rE rF
+  and rE 255
+  shift-right rF 8
+  or rF rE
+  add rC 6
+  goto rB
+
+PNG__EXTRACT.64bit:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    add rD sLl
+  # extract from big-endian positions
+  #   (if the least significant bits are ever needed, use the arrange-bytes function and change this)
+  load qword rF addr2 rE
+  assign rE rF
+  and rF h.000000ff000000ff
+  and rE h.00ff000000ff0000
+  shift-right rE 8
+  or rF rE
+  assign rE rF
+  and rF h.000000000000ffff
+  and rE h.0000ffff00000000
+  shift-right rE 16
+  or rF rE
+  add rC 8
+  goto rB
+
+PNG__EXTRACT.16bit.alphagrayscale:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    add rD sLl
+  add rC 2
+  load word rF addr2 rE
+  assign rE rF
+  and rF h.00ff
+  and rE h.ff00
+  mul rF h.010101
+  shift-left rE 16
+  or rF rE
+  goto PNG__GET.write
+
+PNG__EXTRACT.32bit.alphagrayscale:
+  assign rE rC
+  if rE == rD
+    inc rC
+    assign rE rC
+    add rD sLl
+  add rC 4
+  load dword rF addr2 rE
+  assign rE rF
+  and rF h.000000ff
+  and rE h.00ff0000
+  mul rF h.010101
+  shift-left rE 8
+  or rF rE
+  goto PNG__GET.write
+
+PNG__CONVERT.grayscale:
+  stash rE sNl
+  mul rF rE
+  goto PNG__GET.write
+PNG__CONVERT.indexed:
+  shift-left rF 2
+  load dword rF addr3 rF
+  goto PNG__GET.write
+
+PNG__CONVERT.truecolor:
+PNG__GET.write:
+  stash rE sMh
+  store dword addr1 rE rF
+  add rE 4
+  stash sMh rE
+  if rE >= sMl PNG__GET.epilogue
+  goto rA
+
+PNG__IHDR:
+  assign rF rE
+  
+  load dword rA addr2 rF
+  reverse-bytes dword rA
+  add rF 4
+  load dword rB addr2 rF
+  reverse-bytes dword rB
+  add rF 4
+  block-stash 2 sH rA
+  
+  # bit-depth, color-type, compression, filter, and interlace fields
+  load byte rA addr2 rF
+  inc rF
+  load byte rB addr2 rF
+  inc rF
+  load byte rC addr2 rF
+  inc rF
+  load byte rD addr2 rF
+  inc rF
+  load byte rE addr2 rF
+  block-stash 5 sI rA
+  goto PNG__READ.next
+
+PNG__PLTE:
+  bind addr4 m_png_palette
+  assign rF rE
+  add rE rD
+  assign rD 0
+  PNG__PLTE.scan:
+  if rF >= rE PNG__READ.next
+    load byte rA addr2 rF
+    inc rF
+    load byte rB addr2 rF
+    inc rF
+    load byte rC addr2 rF
+    inc rF
+    store byte addr4 rD rA
+    inc rD
+    store byte addr4 rD rB
+    inc rD
+    store byte addr4 rD rC
+    inc rD
+    store byte addr4 rD 255
+    inc rD
+  goto PNG__PLTE.scan
+
+PNG__IEND:
+  lwcall PNG__IDAT
+  
+  assign sOl 0
+  assign sMl sHh
+  assign sNh sHl
+  # sIl - bit-depth
+  # sIh - color type
+  # sJl - compression
+  # sJh - filter
+  # sKl - interlace
+
+  # rA - bit-depth
+  # rB - color type
+  # rC - width
+  # rE - height
+  
+  # Perform preparatory transforms to stage the data for export to an externally provided buffer
+  # compute scanline length (in bytes), adjust binary formatting as needed (reverse anything that's big-endian), and apply the inverse filters.
+  #
+  #   sLl:  bytes per scanline
+  #   sMl:   image size (in bytes) (must match/reproduce the byte count after decompression)
+  #
+  # In principle, de-interlacing should also be done at this stage (presumably by rewriting the entire image into a higher portion of the buffer)
+  #   BUT:  I dont endorse image interlacing, it doesn't meaningfully contribute to the main use-case for TACTYK (but it is inefficient and artificially increase the amount of code needed),
+  #         and it can be easilly handled ahead of distribution by re-encoding - so this feature is to be at a low priority and if/when implemented, to be deferred to a separate module.
+  # greyscale
+
+  assign sLl sHl
+  if sIh == 0
+    if sIl == 16
+      shift-left sLl 1
+      inc sLl
+      mul sMl sLl
+    
+    if sIl <= 8
+      # pixels per byte
+      assign rD 8
+      div rD sIl
+      
+      assign rA rD
+      assign rB rD
+      
+      # padding pixels per row
+      dec rA
+      and rA sHl
+      
+      # bytes per row
+      div sLl rD
+      
+      # configure the row adjuster to skip over any padding pixels
+      if rA > 0
+        negate rA
+        add rA rB
+        assign sOl rA
+        inc sLl
+      
+      # filter byte
+      inc sLl
+      mul sMl sLl
+    lwcall PNG__PROCESS.filter
+    goto PNG__IEND.epilogue
+  
+  # grayscale with alpha
+  if sIh == 4
+    if sIl == 16
+      shift-left sLl 2
+      shift-left sIl 1
+    if sIl == 8
+      shift-left sLl 1
+      shift-left sIl 1
+    inc sLl
+    mul sMl sLl
+    
+    # stash sIl rA
+    lwcall PNG__PROCESS.filter
+    goto PNG__IEND.epilogue
+  
+  # truecolor
+  if sIh == 2
+    mul sIl 3
+    mul sLl sIl
+    shift-right sLl 3
+    inc sLl
+    mul sMl sLl
+    lwcall PNG__PROCESS.filter
+    goto PNG__IEND.epilogue
+  
+  # indexed color  
+  if sIh == 3
+    # pixels per byte
+    assign rD 8
+    div rD sIl
+    
+    assign rA rD
+    assign rB rD
+    
+    # padding pixels per row
+    dec rA
+    and rA sLl
+    div sLl rD
+
+    # configure the row adjuster to skip over any padding pixels
+    if rA > 0
+      negate rA
+      add rA rB
+      assign sOl rA
+      inc sLl
+    
+    # filter byte
+    inc sLl
+    mul sMl sLl
+    lwcall PNG__PROCESS.filter
+    goto PNG__IEND.epilogue
+  
+  # truecolor with alpha
+  if sIh == 6
+    if sIl == 16
+      shift-left sLl 3
+      shift-left sIl 2
+    if sIl == 8
+      shift-left sLl 2
+      shift-left sIl 2
+    inc sLl
+    mul sMl sLl
+    
+    # stash sIl rA
+    lwcall PNG__PROCESS.filter
+    goto PNG__IEND.epilogue
+    
+  
+  assign xA 'todo:ColorType
+  tcall print-text-xa
+  tcall print-space
+  tcall print-int-b
+  tcall print-newline
+  tcall dump-ctx
+  exit
+
+  # compute bytes/words per row
+  PNG__IEND.epilogue:
+  assign rA 1
+  lwreturn
+
+PNG__PROCESS.dump:
+  assign rF 0
+  assign xA '0
+  PNG__PROCESS.dump.lp:
+  if rF < sMl
+    load byte rA addr1 rF
+    if rA < 10
+      tcall print-text-xa
+    if rA < 100
+      tcall print-text-xa
+    tcall print-int-a
+    tcall print-space
+    inc rF
+    goto PNG__PROCESS.dump.lp
+  lwreturn
+
+PNG__PROCESS.filter:
+  assign rF 0
+  assign rA 0
+  
+  # sBh:  [temp] slice index
+  assign sBh 0
+  
+  # sDh:  [temp] slice count
+  assign sDh sIl
+  shift-right sDh 3
+  if sDh <= 0
+    assign sDh 1
+  
+  # logically split the image into byte slices (one for each pixel byte)
+  PNG__PROCESS.filter.slice:
+  if sBh < sDh
+    assign rF sBh
+    assign rA sBh
+    inc sBh
+    
+    # iterate each row within the slice
+    PNG__PROCESS.filter.row:
+    add rA sLl
+    
+    if rF < sMl
+      # recover the offset to the first byte in the row and obtain the filter identifier
+      assign rB sBh
+      negate rB
+      inc rB
+      add rB rF
+      load byte rB addr1 rB
+      inc rF
+      
+      # null filter - raw values are taken as-decompressed, so skip to the next row.
+      if rB == 0
+        PNG__PROCESS.filter.degenerate_up:
+        add rF sLl
+        dec rF
+        goto PNG__PROCESS.filter.row
+      
+      if rB == 1
+        PNG__PROCESS.filter.degenerate_paeth:
+        load byte rB addr1 rF
+        assign rC 0
+        PNG__PROCESS.filter.sub:
+        if rF < rA
+          add rB rC
+          assign rC rB
+          store byte addr1 rF rB
+          add rF sDh
+          load byte rB addr1 rF
+          goto PNG__PROCESS.filter.sub
+        goto PNG__PROCESS.filter.row
+      
+      if rB == 2
+        load byte rB addr1 rF
+        
+        if sLl >= rF PNG__PROCESS.filter.degenerate_up
+        
+        PNG__PROCESS.filter.up:
+        if rF < rA
+          
+          assign rC sLl
+          negate rC
+          add rC rF
+          load byte rC addr1 rC
+          add rB rC
+          store byte addr1 rF rB
+          add rF sDh
+          load byte rB addr1 rF
+          goto PNG__PROCESS.filter.up
+        goto PNG__PROCESS.filter.row
+      
+      if rB == 3
+        if sLl >= rF PNG__PROCESS.filter.degenerate_average
+        assign rC 0
+        load byte rB addr1 rF
+        PNG__PROCESS.filter.average:
+        if rF < rA
+          assign rD sLl
+          negate rD
+          add rD rF
+          load byte rD addr1 rD
+          
+          add rC rD
+          shift-right rC 1
+          add rB rC
+          and rB 255
+          assign rC rB
+          store byte addr1 rF rB
+          add rF sDh
+          load byte rB addr1 rF
+          goto PNG__PROCESS.filter.average
+        goto PNG__PROCESS.filter.row
+        
+        PNG__PROCESS.filter.degenerate_average:
+          load byte rB addr1 rF
+          assign rC 0
+          PNG__PROCESS.filter.degenerate_average.lp:
+          if rF < rA
+            add rB rC
+            assign rC rB
+            shift-right rC 1
+            store byte addr1 rF rB
+            add rF sDh
+            load byte rB addr1 rF
+            goto PNG__PROCESS.filter.degenerate_average.lp
+          goto PNG__PROCESS.filter.row
+      
+      if rB == 4
+        
+        assign rC 0
+        assign rE 0
+        
+        # Do any PNG images have paeth filter set on the first row?
+        # if on the first row, switch to the "sub" filter (which should be the same as paeth with two parameters locked to zero)
+        stash rD sLl
+        if sLl >= rF PNG__PROCESS.filter.degenerate_paeth
+        
+        PNG__PROCESS.filter.paeth:
+        
+        assign rD sLl
+        negate rD
+        add rD rF
+        load byte rD addr1 rD
+        
+        if rF < rA
+          
+          stash sAh rA sFh rF
+          
+          # Paeth predictor
+          #   The inputs are staged on the preceding iteration
+          #   The result will be placed on register rC
+          assign rB rC
+          add rB rD
+          sub rB rE
+          
+          assign rA rB
+          sub rA rC
+          abs rA
+
+          assign rF rB
+          sub rF rD
+          abs rF
+          
+          if rF < rA
+            assign rA rF
+            assign rC rD
+          
+          assign rF rB
+          sub rF rE
+          abs rF
+          
+          if rF < rA
+            assign rC rE
+          
+          stash rA sAh rF sFh
+          
+          load byte rB addr1 rF
+          add rB rC
+          and rB 255
+          store byte addr1 rF rB
+          assign rC rB
+          assign rE rD
+          add rF sDh
+          goto PNG__PROCESS.filter.paeth
+        load byte rB addr1 rF
+        goto PNG__PROCESS.filter.row
+      
+      # only the average filter remains [implemented, but thus far untested]
+      assign xA 'todo:filter
+      tcall print-text-xa
+      tcall print-space
+      tcall print-int-b
+      tcall print-newline
+      tcall dump-ctx
+      exit
+    
+    goto PNG__PROCESS.filter.slice
+  lwreturn
+
+PNG__tRNS:
+  bind addr4 m_png_palette
+  assign rF rE
+  add rE rD
+  assign rD 3
+  PNG__tRNS.scan:
+  if rF >= rE PNG__READ.next    
+    load byte rA addr2 rF
+    inc rF
+    store byte addr4 rD 255
+    add rD 4
+  goto PNG__PLTE.scan
+
+PNG__IDAT:
+  # stash rB sPh
+  if sPh == 0
+    assign xA 'No.IDAT!
+    tcall dump-ctx
+    exit
+  stash rE sPl
+  load byte rA addr2 rE
+  
+  inc rE
+  # check compression method
+  if rA ~& h.08
+    assign xa 'unkCompMethod
+    tcall print-text-xa
+    tcall print-space
+    tcall print-int-a
+    tcall print-newline
+    assign rA 0
+    lwreturn
+  
+  # check window size
+  shift-right rA 4
+  add rA 8
+  assign rB 1
+  shift-left rB rA  
+  if rB > 32768
+    assign xa 'WindowTooBig
+    tcall print-text-xa
+    tcall print-space
+    tcall print-int-b
+    tcall print-newline
+    assign rA 0
+    lwreturn
+  
+  # dict flag
+  load byte rA addr2 rE
+  inc rE
+  if rA & h.20
+    assign xa 'dict-flag-set
+    tcall print-text-xa
+    tcall print-space
+    tcall print-int-a
+    tcall print-newline
+    assign rA 0
+    lwreturn
+  
+  stash swap rF sQh
+  lwcall DEFLATE__UNCOMPRESS_RAW
+  stash swap rF sQh
+  
+  PNG__IDAT.epilogue:
+  bind addr4 m_png_control
+  assign rA rF
+  lwreturn
+

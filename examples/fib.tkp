@@ -18,7 +18,6 @@ text footer
   Done.
 
 # compile-time constants
-const newline 10
 const limit 20
 
 MAIN:
@@ -29,14 +28,12 @@ MAIN:
   # Read the header one byte at a time and print each read byte using a C function named "printchar"
   PRINT_HEADER_CHAR:
   load byte a addr1 b
-  ccall printchar
+  tcall print-text-a
   add b 1
   if b < header_size PRINT_HEADER_CHAR
-  
-  # print using a declared constant
-  assign a newline
-  ccall printchar
-  ccall printchar
+    
+  tcall print-newline
+  tcall print-newline
   
   # set up a fibonacci generator
   assign b 0
@@ -51,14 +48,12 @@ FIBLOOP:
   # capture the result and print it using the C function named "printint"
   #   (it is also possible to convert it to decimal and print digits, but I think that doesn't need to be example'd here)
   assign a b
-  ccall printint
-  assign a newline
-  ccall printchar
+  tcall print-int-a
+  tcall print-newline
   
   if c < limit FIBLOOP
   
-  # reprint the "lingering" newline char
-  ccall printchar
+  tcall print-newline
   
   # same procedure as was used to print the header
   bind addr1 footer
@@ -66,11 +61,10 @@ FIBLOOP:
   
 PRINT_FOOTER_CHAR:
   load byte a addr1 b
-  ccall printchar
+  tcall print-text-a
   add b 1
   if b < footer_size PRINT_FOOTER_CHAR
 
-  assign a newline
-  ccall printchar
+  tcall print-newline
 
   exit

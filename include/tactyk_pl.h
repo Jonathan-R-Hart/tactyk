@@ -49,13 +49,21 @@ struct tactyk_pl__Context {
     struct tactyk_dblock__DBlock *struct_table;
     struct tactyk_dblock__DBlock *memspec_highlevel_table;
     struct tactyk_dblock__DBlock *memspec_lowlevel_buffer;
-
+    
     struct tactyk_dblock__DBlock *getters;
     struct tactyk_dblock__DBlock *setters;
     
+    struct tactyk_dblock__DBlock *alias_table;
+    bool alias_chars[256];
+    
     struct tactyk_dblock__DBlock *constant_sets;
+    struct tactyk_dblock__DBlock *bus_tokens[256];
 };
 
+void tactyk_pl__add_script_command(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *token, struct tactyk_dblock__DBlock *line);
+void tactyk_pl__resolve_aliased_tokens(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dbcode);
+
+bool tactyk_pl__bus(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__var(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__get(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);
 bool tactyk_pl__set(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock);

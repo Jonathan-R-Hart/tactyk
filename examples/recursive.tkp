@@ -1,3 +1,12 @@
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#   Copyright 2023, Jonathan Hart
+#   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
+#   either version 3 of the License, or (at your option) any later version.
+#   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE. See the GNU General Public License for more details.
+#   You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 # TACTYK recursion demo
 #
 # This uses the microcontext stack to store intermediate values from a modified random walk algorithm
@@ -14,18 +23,18 @@ struct global
   8 padding
 
 struct sdl_state
-  8 mpos_x
-  8 mpos_y
-  8 key
+  4 mpos_x
+  4 mpos_y
+  4 key_pressed__sdlcode
+  4 key_released__sdlcode
+  4 key_pressed
+  4 key_released
   1 closing
-  1 mousemoved
-  6 unused
-  8 padding
+  1 mouse_moved
+  1 mouse_btn_pressed
+  1 mouse_btn_released
 
 mem global_vars global 1
-
-extmem video
-mem s_state sdl_state 1
 
 text header
   TACTYK Example - Recursion
@@ -42,29 +51,30 @@ const FRAME_HEIGHT 480
 MAIN:
   bind addr1 header
   bind addr2 global_vars
-  bind addr3 s_state
-  bind addr4 video
   assign b 0
   
   PRINT_HEADER_CHAR:
   load byte a addr1 b
-  ccall printchar
+  tcall print-text-a
   add b 1
   if b < header_size PRINT_HEADER_CHAR
   
-  assign a newline
-  ccall printchar
+  tcall print-newline
 
   # obtain an SDL-backed framebuffer
-  tcall sdl_init
-  assign a 4
-  assign b 3
-  assign c FRAME_WIDTH
-  assign d FRAME_HEIGHT
-  tcall fb_new
+  
+  assign a FRAME_WIDTH
+  assign b FRAME_HEIGHT
+  tcall sdl--new
+  tcall sdl--get-eventview
+  bind addr3 addr1
+  tcall sdl--get-framebuffer
+  bind addr4 addr1
+  
   store qword addr2 global.width a
   
-  tcall fb_render
+  tcall sdl--upload-framebuffer
+  tcall sdl--render
   
   # iterate each visible pixel in the frame buffer
 
@@ -77,50 +87,45 @@ MAIN:
   lwcall RANDDRAW
 
   FINISH:
-  tcall fb_update
-  tcall fb_render
+  tcall sdl--upload-framebuffer
+  tcall sdl--render
 
   WAIT:
-  assign a 50
-  ccall sleep
+  tcall sleep 50
   
   lwcall CHK_UI_STATE
   
-  tcall fb_render
+  tcall sdl--render
   
   goto WAIT
   
   CLOSE_AND_EXIT:  
   # close the SDL window and clean up
-  tcall fb_release
-  tcall sdl_quit
+  tcall sdl--release
+  tcall sdl--quit
   
   bind addr1 footer
   assign b 0
   
   PRINT_FOOTER_CHAR:
   load byte a addr1 b
-  ccall printchar
+  tcall print-text-a
   add b 1
   if b < footer_size PRINT_FOOTER_CHAR
 
-  assign a newline
-  ccall printchar
-  
-  ccall printint
+  tcall print-newline
   exit
 
   RANDDRAW:
-  tcall fb_update
-  tcall fb_render
-  assign a 1
-  ccall sleep
+  tcall sdl--upload-framebuffer
+  tcall sdl--render
+  tcall sleep 1
   
   lwcall CHK_UI_STATE
   
   mctxpush
   stash sB b sC c sE e
-  ccall a rand
+  tcall rand-a
   and a 3
   if a == 0 NORTH
   if a == 1 EAST
@@ -186,8 +191,8 @@ MAIN:
   lwreturn
 
 CHK_UI_STATE:
-  tcall sdl_update_state
-  load qword a addr3 sdl_state.key
+  tcall sdl--update_ui
+  load dword a addr3 sdl_state.key_pressed__sdlcode
   if a == 20 CLOSE_AND_EXIT
   if a == 41 CLOSE_AND_EXIT
   load byte a addr3 sdl_state.closing

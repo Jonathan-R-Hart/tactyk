@@ -1,0 +1,205 @@
+
+struct gx_pixel
+  32 components
+  . 16 channel_ABCD
+  16 channel_EFGH
+  32 normals
+  . 16 normal_ABCD
+  16 normal_EFGH
+  4 a
+  4 b
+  4 c
+  4 d
+  4 e
+  4 stencil
+  4 z
+  4 id
+  # positions of global normal and color tables
+  16 gdata_indices
+  . 4 index_gnorm1
+  4 index_gnorm2
+  4 index_gcolors1
+  4 index_gcolors2
+  # additive blend factors
+  16 gdata_blend_factors
+  . 4 blend_gcolors1
+  4 blend_gcolors2
+  4 blend_gnorm1
+  4 blend_gnorm2
+
+struct gx_info__view
+  2048 program_alloc
+  4096 general_alloc
+  64 properties_alloc
+  
+  . 16 view_size
+  . 8 width
+  8 height
+  
+  16 fbuf_size
+  . 8 fb_width
+  8 fb_height
+  
+  16 world_position
+  . 8 x
+  8 y
+  
+  16 fixed_properties
+  4 id
+  4 stencil
+  4 z
+  4 unused
+  
+  128 rasterizer_alloc
+  16 pixmap_alloc
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
+
+# tactyk-draw memory allocation
+#   storage locations assigned to each top-level draw components
+# Dynamic memory allocation may be preferable, but will require a fair amount of revision
+struct gx_info
+  2048 program_alloc
+  4096 general_alloc
+  64 properties_alloc
+  128 rasterizer_alloc
+  16 pixmap_alloc
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
+
+struct gx_info__program
+  2048 program_alloc
+  . 8 f0
+  8 f1
+  8 f2
+  8 f3
+  8 f4
+  8 f5
+  8 f6
+  8 f7
+  8 f8
+  8 f9
+  8 f10
+  8 f11
+  8 f12
+  8 f13
+  8 f14
+  8 f15
+  0 end
+  4096 general_alloc
+  64 properties_alloc
+  128 rasterizer_alloc
+  16 pixmap_alloc
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
+
+mem m_gx_info gx_info 1
+# mem m_gx_drawprogram gx_program 1
+
+# Initialize and obtain a window from SDL
+#   At some point, if/when there is a desire to perform off-display rendering, 
+#   responsibility for buffer generation and binding will have to be transferred elsewhere.
+GX.mk_window:
+  bind addr2 m_gx_info
+  load qword rA addr2 gx_info__view.width
+  load qword rB addr2 gx_info__view.height
+  assign rD 3
+  tcall sdl--new
+  lwreturn
+
+# Obtain references to tactyk-draw memory
+#   All tactyk address registers are used (addr1 is used by renderers for instance-ish parameters), so other components needing memory will have to rebind it.
+GX.bind_memblocks:
+  tcall sdl--get-framebuffer
+  bind addr3 addr1
+  bind addr2 m_gx_info
+  store dword addr2 gx_info__view.fb_width rA
+  store dword addr2 gx_info__view.fb_height rB
+  lwreturn
+
+
+# fill a rectangular area
+GX.fill.rect:
+  #bind addr1 m_gx_drawprogram
+  assign rF 0
+  lwcall GX.rect.fill
+  lwcall GX.fills.simple
+  lwcall GX.util.exit
+  assign rF 0
+  goto GX.draw
+
+# draw an inset outline around a rectangular area
+GX.trace.rect:
+  assign rF 0
+  lwcall GX.rect.outline
+  lwcall GX.fills.simple
+  lwcall GX.util.exit
+  assign rF 0
+  goto GX.draw
+
+# main rendering driver
+GX.draw:
+  if rF == 1
+    lwreturn
+  assign rF 0
+  load qword rE addr2 gx_info__program.f0
+  lwcall rE
+  goto GX.draw
+
+# basic filling function
+# This performs a simple overwrite of all color channels and normals
+GX.fills.simple:
+  assign rA GX.fills.simple.impl
+  store qword addr2 rF rA
+  stash sOl rB
+  add rF 8
+  lwreturn
+GX.fills.simple.impl:
+  stash rA sOl
+  store dword addr3 0 rA
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+
+GX.clip:
+  block-stash 4 sM rA
+  assign rA GX.clip.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.clip.impl:
+  # load and clip against the low bound
+  block-stash 2 rD sM
+  if rA < rD GX.clip.impl.exit
+  if rB < rE GX.clip.impl.exit
+  # load and clip against the high bound
+  block-stash 2 rD sN
+  if rA > rD GX.clip.impl.exit
+  if rB > rE GX.clip.impl.exit
+  # if pass, proceed to the next operation
+  add rF 8
+  if rF == gx_info__program.end
+    lwreturn
+  load qword rE addr2 rF
+  goto rE
+# if clipped, cancel the renderer
+GX.clip.impl.exit:
+  lwreturn
+
+
+# return from a renderer
+GX.util.exit:
+  assign rA GX.util.exit.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+GX.util.exit.impl:
+  assign rF gx_info__program.end
+  lwreturn
+
+

@@ -1,0 +1,13 @@
+
+flat m_interleavebits_byte_bit byte
+  h.0 h.01
+  h.0 h.04
+  h.0 h.10
+  h.0 h.40
+  h.0 h.02
+  h.0 h.08
+  h.0 h.20
+  h.0 h.80
+
+# bind addr1 m_interleavebits_byte_bit
+# lut-transform byte bit add addr1 rB rA

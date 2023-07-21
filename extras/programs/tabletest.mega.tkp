@@ -1,0 +1,223 @@
+
+mem m_table s_MEGATABLE 65536
+
+TABLE__TEST:
+  bind addr1 m_table
+  lwcall MEGATABLE__INIT.addr1
+  assign rA 1
+  assign rB 'a
+  lwcall TABLE__TPUT
+  assign rB 'a
+  lwcall MEGATABLE__GET.addr1
+  assign rA 2
+  assign rB 'b
+  lwcall TABLE__TPUT
+  assign rA 3
+  assign rB 'c
+  lwcall TABLE__TPUT
+  assign rA 4
+  assign rB 'd
+  lwcall TABLE__TPUT
+  assign rA 5
+  assign rB 'e
+  lwcall TABLE__TPUT
+  assign rA 6
+  assign rB 'f
+  lwcall TABLE__TPUT
+  assign rA 7
+  assign rB 'g
+  lwcall TABLE__TPUT
+  assign rA 8
+  assign rB 'h
+  lwcall TABLE__TPUT
+  assign rA 9
+  assign rB 'i
+  lwcall TABLE__TPUT
+  assign rA 10
+  assign rB 'j
+  lwcall TABLE__TPUT
+  assign rA 11
+  assign rB 'k
+  lwcall TABLE__TPUT
+  assign rA 12
+  assign rB 'a!
+  lwcall TABLE__TPUT
+  assign rA 13
+  assign rB 'hello
+  lwcall TABLE__TPUT
+  assign rB 'i
+  lwcall TABLE__TGET
+  assign rA 14
+  assign rB 'a!
+  lwcall TABLE__TPUT
+  assign rA 15
+  assign rB '...!
+  lwcall TABLE__TPUT
+  assign rA 16
+  assign rB 'zzz
+  lwcall TABLE__TPUT
+  
+  assign rB 'a!
+  lwcall TABLE__TGET
+  assign rB '...!
+  lwcall TABLE__TGET
+  assign rB 'zzz
+  lwcall TABLE__TGET
+  assign rB '...!
+  lwcall MEGATABLE__LOOKUP.addr1
+  assign rB '...!
+  lwcall MEGATABLE__REMOVE.addr1
+  assign rB 'a
+  lwcall TABLE__TGET
+  assign rB '...!
+  lwcall TABLE__TGET
+  assign rB 'FAKE
+  lwcall TABLE__TREMOVE
+  assign rB 'k
+  lwcall TABLE__TGET
+  assign rB 'j
+  lwcall TABLE__TGET
+  assign rB 'i
+  lwcall TABLE__TGET
+  assign rB 'h
+  lwcall TABLE__TGET
+  assign rB 'g
+  lwcall TABLE__TGET
+  assign rB 'f
+  lwcall TABLE__TGET
+  assign rB 'e
+  lwcall TABLE__TGET
+  assign rB 'd
+  lwcall TABLE__TGET
+  assign rB 'c
+  lwcall TABLE__TGET
+  assign rB 'b
+  lwcall TABLE__TGET
+  assign rB 'a
+  lwcall TABLE__TGET
+  exit
+
+TABLE__PRINT_PARENT:
+  load word rA addr1 s_MEGATABLE.parent
+  shift-left rA MEGATABLE_scale
+  assign addr1.offset rA
+  shift-right rA MEGATABLE_scale
+  goto TABLE__PRINT_NODE
+TABLE__PRINT_NODE:
+  block-stash 6 sA rA
+  assign xA 'OFS
+  assign xB '.id
+  assign xC 'par
+  assign xD 'prx
+  assign xE 'ref
+  assign xF 'nodes:
+  load qword rB addr1 s_MEGATABLE.id
+  load word rC addr1 s_MEGATABLE.parent
+  load word rD addr1 s_MEGATABLE.prefix
+  load dword rE addr1 s_MEGATABLE.ref
+  tcall print-text-xa
+  tcall print-space
+  tcall print-int-a
+  tcall print-newline
+  tcall print-text-xb
+  tcall print-space
+  tcall print-int-b
+  tcall print-newline
+  tcall print-text-xc
+  tcall print-space
+  tcall print-int-c
+  tcall print-newline
+  tcall print-text-xd
+  tcall print-space
+  tcall print-int-d
+  tcall print-newline
+  tcall print-text-xe
+  tcall print-space
+  tcall print-int-e
+  tcall print-newline
+  tcall print-text-xf
+  tcall print-space
+  load word rA addr1 s_MEGATABLE.a
+  tcall print-int-a
+  tcall print-space
+  load word rA addr1 s_MEGATABLE.b
+  tcall print-int-a
+  tcall print-space
+  load word rA addr1 s_MEGATABLE.c
+  tcall print-int-a
+  tcall print-space
+  load word rA addr1 s_MEGATABLE.d
+  tcall print-int-a
+  tcall print-space
+  #load word rA addr1 s_MEGATABLE.e
+  #tcall print-int-a
+  #tcall print-space
+  #load word rA addr1 s_MEGATABLE.f
+  #tcall print-int-a
+  #tcall print-space
+  #load word rA addr1 s_MEGATABLE.g
+  #tcall print-int-a
+  #tcall print-space
+  load word rA addr1 s_MEGATABLE.h
+  tcall print-int-a
+  tcall print-newline
+  block-stash 6 rA sA
+  lwreturn
+
+TABLE__TPUT:
+  assign rC 'put
+  assign rD '<-
+  tcall print-text-c
+  tcall print-space
+  tcall print-text-b
+  tcall print-space
+  tcall print-text-d
+  tcall print-space
+  tcall print-int-a
+  lwcall MEGATABLE__PUT.addr1
+  if rC == 1
+    assign rD '*REPLACE
+  if rC == 2
+    assign rD '*NEW
+  if rC == 0
+    assign rD '*NO.WAY!
+  tcall print-space
+  tcall print-space
+  tcall print-text-d
+  tcall print-newline
+  lwreturn
+
+TABLE__TREMOVE:
+  assign rC 'rem
+  tcall print-text-c
+  tcall print-space
+  tcall print-text-b
+  tcall print-space
+  lwcall MEGATABLE__REMOVE.addr1
+  if rC == 0
+    assign rD '*IGNORED
+  if rC == 1
+    assign rD '*REMOVED
+  tcall print-space
+  tcall print-space
+  tcall print-text-d
+  tcall print-newline
+  lwreturn
+
+TABLE__TGET:
+  assign rC 'get
+  assign rD '->
+  tcall print-text-c
+  tcall print-space
+  tcall print-text-b
+  tcall print-space
+  tcall print-text-d
+  tcall print-space
+  lwcall MEGATABLE__GET.addr1
+  if rC == 1
+    tcall print-int-a
+  if rC == 0
+    assign rD 'NULL
+    tcall print-text-d
+  tcall print-newline
+  lwreturn

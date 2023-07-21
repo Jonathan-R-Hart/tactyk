@@ -657,6 +657,7 @@
     %define STATUS_INVALID_TVMJUMP 108
     %define STATUS_INVALID_TVMJUMP_STATE 109
     %define STATUS_DIVISION_BY_ZERO 110
+    %define STATUS_UNBOUND_MEMORY 111
     
     ; runtime registers do not belong to tactyk, and so do not use internal tactyk names
     ; The only thing that matters here is that they get correctly stored and restored.
@@ -761,6 +762,8 @@
         movdqu xmm15, fs:[context.registers + rbtactyk.xp  + random_const_FS]
         mov rTEMPA_32, fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
         cmp rTEMPA, 0
+        emms
+        finit
         jne .ldctx_restoremxcsr
         stmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
         mov rTEMPA_32, fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
@@ -772,6 +775,8 @@
         .ldctx_restoremxcsr:
         ldmxcsr fs:[context.registers + rbtactyk.mxcsr + random_const_FS ]
         .ldctx_end:
+        xor rTEMPA, rTEMPA
+        xor rTEMPC, rTEMPC
     %endmacro
 
     %macro store_context 0
@@ -947,6 +952,14 @@
   .pass:
   xor rTEMPC, rTEMPC
 %endmacro
+    
+; workarounds (map non-existent instructions onto existent ones, to avoid a having to implement a more complex solution)
+%define andss andps
+%define andsd andpd
+%define orss orps
+%define orsd orpd
+%define xorss xorps
+%define xorsd xorpd
 
 run:
   validate_context_pointer rdi

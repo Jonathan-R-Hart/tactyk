@@ -162,10 +162,16 @@ void tactyk_test__run(struct tactyk_test__Status *tstate) {
     tactyk_visa__load_config_module("tactyk_core_math.visa");
     tactyk_visa__load_config_module("tactyk_core_simd.visa");
     tactyk_visa__load_config_module("tactyk_core_simd-util.visa");
+    tactyk_visa__load_config_module("tactyk_core_bits.visa");
+    tactyk_visa__load_config_module("tactyk_core_stash_ext.visa");
     emitctx = tactyk_emit__init();
 
     tactyk_visa__init_emit(emitctx);
-
+    emitctx->use_executable_layout_randomization = test_state->use_executable_layout_randomization;
+    emitctx->use_exopointers = test_state->use_exopointers;
+    emitctx->use_extra_permutations = test_state->use_extra_permutations;
+    emitctx->use_immediate_scrambling = test_state->use_immediate_scrambling;
+    emitctx->use_temp_register_autoreset = test_state->use_temp_register_autoreset;;
     vm = tactyk_asmvm__new_vm();
     vmctx = tactyk_asmvm__new_context(vm);
     shadow_vmctx = calloc(1, sizeof(struct tactyk_asmvm__Context));

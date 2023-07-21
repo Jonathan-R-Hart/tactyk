@@ -59,18 +59,82 @@ typespec data
 typespec word
   select-operand
     case byte i8
+      $MOV movzx
+      $MVKW byte
+      $REGBITS_LD 64
+      $REGBITS_ST 8
+      $BYTEBOUND 0
       pick B
     case word i16
+      $MOV movzx
+      $MVKW word
+      $REGBITS_LD 64
+      $REGBITS_ST 16
+      $BYTEBOUND 1
       pick W
     case dword i32
+      $MOV mov
+      $MVKW dword
+      $REGBITS_LD 32
+      $REGBITS_ST 32
+      $BYTEBOUND 3
       pick D
     case qword i64
+      $MOV mov
+      $MVKW qword
+      $REGBITS_LD 64
+      $REGBITS_ST 64
+      $BYTEBOUND 7
+      pick Q
+    case sbyte s8
+      $MOV movsx
+      $MVKW byte
+      $REGBITS_LD 64
+      $REGBITS_ST 8
+      $BYTEBOUND 0
+      pick B
+    case sword s16
+      $MOV movsx
+      $MVKW word
+      $REGBITS_LD 64
+      $REGBITS_ST 16
+      $BYTEBOUND 1
+      pick W
+    case sdword s32
+      $MOV movsxd
+      $MVKW dword
+      $REGBITS_LD 64
+      $REGBITS_ST 32
+      $BYTEBOUND 3
+      pick Ds
+    case sqword s64
+      $MOV mov
+      $MVKW qword
+      $REGBITS_LD 64
+      $REGBITS_ST 64
+      $BYTEBOUND 7
       pick Q
     case float float64
+      $MOV_LD movq
+      $MOV movq
+      $BYTEBOUND 7
+      $MVKW qword
+      $REGBITS_LD 64
+      $REGBITS_ST 64
       pick F64
     case float32
+      $MOV_LD cvtss2sd
+      $MOV movd
+      $BYTEBOUND 3
+      $MVKW dword
+      $REGBITS_LD 32
+      $REGBITS_ST 32
       pick F32
     case oword bits128
+      $MOV_LD movdqu
+      $MOV movdqu
+      $BYTEBOUND 15
+      $MVKW oword
       pick B128
 
 typespec stackreg
@@ -89,14 +153,35 @@ typespec integer
   int-operand
   pick I
 
+typespec *const
+  symbol const
+  pick I
+
+typespec *string
+  string-operand
+  pick I
+
+typespec *branch-index
+  symbol label-index
+  pick I
+
 typespec float
   float-operand
+  pick F
+
+typespec *fconst
+  symbol fconst
   pick F
 
 # symbolic fields are handled by looking them up in symbol tables.
 typespec branch
   symbol label
+  $IS_CODEBLOCK false
   pick L
+
+typespec branch-index
+  symbol label-index
+  pick Li
 
 typespec const
   symbol const
@@ -125,6 +210,11 @@ typespec none
 typespec string
   string-operand
   pick S
+
+typespec codeblock
+  codeblock
+  $IS_CODEBLOCK true
+  pick B
 
 typespec context-property
   select-operand
@@ -181,31 +271,92 @@ typespec context-property
 # set up a prototype paramter block 
 typespec comparator
   select-operand
-    case < lt
+    case < *< lt any-lt
       value jl
       $VPRED 1
       $VPREDCOMPLEMENT 6
-    case <= le
+      pick T
+    case <= *<= le any-le
       value jle
       $VPRED 2
       $VPREDCOMPLEMENT 5
-    case == eq
+      pick T
+    case == *== eq any-eq
       value je
       $VPRED 0
       $VPREDCOMPLEMENT 0
-    case >= ge
+      pick T
+    case >= *>= ge any-ge
       value jge
       $VPRED 5
       $VPREDCOMPLEMENT 2
-    case > gt
+      pick T
+    case > *> gt any-gt
       value jg
       $VPRED 6
       $VPREDCOMPLEMENT 1
-    case ~= != neq
+      pick T
+    case ~= != *~= *!= neq any-neq
       value jne
       $VPRED 4
       $VPREDCOMPLEMENT 4
-  pick T
+      pick T
+
+    case [<] [lt] all-lt
+      value jl
+      $VPRED 1
+      $VPREDCOMPLEMENT 6
+      pick Ta
+    case [<=] [le] all-le
+      value jle
+      $VPRED 2
+      $VPREDCOMPLEMENT 5
+      pick Ta
+    case [==] [eq] all-eq
+      value je
+      $VPRED 0
+      $VPREDCOMPLEMENT 0
+      pick Ta
+    case [>=] [ge] all-ge
+      value jge
+      $VPRED 5
+      $VPREDCOMPLEMENT 2
+      pick Ta
+    case [>] [gt] all-gt
+      value jg
+      $VPRED 6
+      $VPREDCOMPLEMENT 1
+      pick Ta
+    case [~=] [!=] [neq] all-neq
+      value jne
+      $VPRED 4
+      $VPREDCOMPLEMENT 4
+      pick Ta
+    
+    case & and
+      value jnz
+      pick And
+    case ~& !& ~and !and nand
+      value jz
+      pick And
+    case [&] [and]
+      value jnz
+      pick Anda
+    case [~&] [!&] [~and] [!and] [nand]
+      value jz
+      pick Anda
+    case | or
+      value jnz
+      pick Or
+    case ~| !| ~or !or nor
+      value jz
+      pick Or
+    case [|] or
+      value jnz
+      pick Ora
+    case [~|] [!|] [~or] [!or] [nor]
+      value jz
+      pick Ora
 
 typespec address-offset
   select-operand

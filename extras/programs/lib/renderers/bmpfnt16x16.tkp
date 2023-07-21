@@ -1,0 +1,261 @@
+# A bitmap font renderer for TACTYK
+#
+# This is intended for rendering text using 16x16 1-bit graphics, but as-written can handle a glyph size up to 16x28,
+#   and includes a specified (but unimplemented) mechanism for rendering arbitrary color depth with multiple bit planes
+#
+# The intent of this is a bit beyond a simple demo:
+#   The complexity of a text rendering engine gets factored out it it can be handled entirely within the virtual machine.
+#   (and likewise the entire User Interface, program graphical representation, and program logic)
+
+struct gx_info__text
+  2048 program_alloc
+  4096 general_alloc
+  64 properties_alloc
+  128 rasterizer_alloc
+  16 pixmap_alloc
+  2592 ptxp_alloc
+  6400 irrv_alloc
+  256 text_alloc
+  . 4 len
+  4 position
+  4 row
+  4 col
+  2 x
+  2 y
+  2 offset_x
+  2 offset_y
+  2 fragment
+  2 value
+  228 text
+
+# take a max-8-char text chunk from register rA and initialize the text renderer with it
+GX.text.bmp16x16.8bitENC.chunk8:
+  stash sAl rF sAh rB sBl rC
+  assign rD rA
+  assign rE gx_info__text.text
+  assign rF 0
+  GX.text.bmp16x16.8bitENC.chunk8.lp:
+  if rD == 0 GX.text.bmp16x16.8bitENC.epilogue
+  inc rF
+  store byte addr2 rE rD
+  shift-right rD 8
+  add rE 2
+  goto GX.text.bmp16x16.8bitENC.chunk8.lp
+
+# take a max-16-char text chunk from register xA and initialize the text renderer with it
+GX.text.bmp16x16.8bitENC.chunk16:
+  stash sAl rF sAh rB sBl rC
+  xassign rD xA int64 0
+  assign rE gx_info__text.text
+  assign rF 0
+  
+  GX.text.bmp16x16.8bitENC.chunk16.lp1:
+  if rD == 0 GX.text.bmp16x16.8bitENC.chunk16.2
+  inc rF
+  store byte addr2 rE rD
+  shift-right rD 8
+  add rE 2
+  goto GX.text.bmp16x16.8bitENC.chunk16.lp1
+  
+  GX.text.bmp16x16.8bitENC.chunk16.2:
+  xassign rD xA int64 1
+  
+  GX.text.bmp16x16.8bitENC.chunk16.lp2:
+  if rD == 0 GX.text.bmp16x16.8bitENC.epilogue
+  inc rF
+  store byte addr2 rE rD
+  shift-right rD 8
+  add rE 2
+  
+  goto GX.text.bmp16x16.8bitENC.chunk16.lp2
+
+GX.text.bmp16x16.utf8ENC:
+  stash sAl rF sAh rB sBl rC
+  assign rE 0
+  assign rF gx_info__text.text
+  GX.text.bmp16x16.utf8ENC.lp:
+  lwcall MINISTRING__EXTRACT_UTF8
+  if rA == 0 GX.text.bmp16x16.utf8ENC.epilogue
+  store word addr2 rF rA
+  add rF 2
+  goto GX.text.bmp16x16.utf8ENC.lp
+
+GX.text.bmp16x16.utf8ENC.txtbank:
+  stash sAl rF sAh rB sBl rC
+  assign rE 1
+  assign rF gx_info__text.text
+  GX.text.bmp16x16.utf8ENC.txtbank.lp:
+  lwcall MINISTRING__EXTRACT_UTF8
+  if rA == 0 GX.text.bmp16x16.utf8ENC.epilogue
+  store word addr2 rF rA
+  add rF 2
+  goto GX.text.bmp16x16.utf8ENC.txtbank.lp
+
+GX.text.bmp16x16.utf8ENC.epilogue:
+  sub rF gx_info__text.text
+  shift-right rF 1
+  # goto GX.text.bmp16x16.8bitENC.epilogue
+GX.text.bmp16x16.8bitENC.epilogue:
+  assign rA rF
+  stash rF sAl
+  goto GX.text.bmp16x16
+
+# text renderer setup
+#  Not intended for direct invocation (due to an inconsistant interface)
+GX.text.bmp16x16:
+  bind addr1 m_bmp_16x28
+  load word rB addr2 gx_info__text.text
+  mul rB s_bmp_16x28_size
+  assign addr1.offset rB
+  load sbyte rD addr1 s_bmp_16x28.offset_x
+  load sbyte rE addr1 s_bmp_16x28.offset_y
+  stash rB sAh rC sBl
+  #add rB rD
+  #add rC rE
+  store dword addr2 gx_info__text.len rA
+  store word addr2 gx_info__text.x rB
+  store word addr2 gx_info__text.y rC
+  store word addr2 gx_info__text.offset_x rD
+  store word addr2 gx_info__text.offset_y rE
+  assign rD 0
+  store dword addr2 gx_info__text.position rD
+  store dword addr2 gx_info__text.row rD
+  store dword addr2 gx_info__text.col rD
+  # store dword addr2 gx_info__text.value rD
+
+  load word rA addr1 s_bmp_16x28.data
+  store word addr2 gx_info__text.fragment rA
+  load word rA addr2 gx_info__text.value
+  store word addr2 gx_info__text.value rA
+  
+  assign rA GX.text.bmp16x16.impl
+  store qword addr2 rF rA
+  add rF 8
+  lwreturn
+
+# text renderer
+GX.text.bmp16x16.impl:
+  load word rA addr2 gx_info__text.fragment
+  load sword rC addr2 gx_info__text.x
+  load sword rD addr2 gx_info__text.y
+  load dword rE addr2 gx_info__text.row
+  add rD rE
+  load sword rE addr2 gx_info__text.offset_x
+  add rC rE
+  load sword rE addr2 gx_info__text.offset_y
+  add rD rE
+  load dword rE addr2 gx_info__text.col
+  
+  # if bit available
+  GX.text.bmp16x16.scan:
+  find-bit rB rA
+    
+    inc rB
+    
+    shift-right rA rB
+    add rE rB
+    store word addr2 gx_info__text.fragment rA
+    store word addr2 gx_info__text.col rE
+    
+    # calculate the buffer index of the pixel
+    load qword rB addr2 gx_info__view.fb_width
+    mul rB rD
+    add rB rE
+    add rB rC
+    
+    # bind pixel
+    shift-left rB 2
+    assign addr3.offset rB
+    # shift-left rB 7
+    # assign addr4.offset rB
+    assign rA rE
+    assign rB rD
+    add rA rC
+    load byte rC addr1 s_bmp_16x28.value
+    
+    # proceed to the next renderer operation
+    add rF 8
+    if rF == gx_info__program.end
+      lwreturn
+    load qword rE addr2 rF
+    goto rE
+  
+  # next row
+  load dword rA addr2 gx_info__text.row
+  load byte rE addr1 s_bmp_16x28.rows
+  inc rA
+  
+  # if the last row of pixels has been rendered, proceed to the next char
+  if rA >= rE
+    load dword rA addr2 gx_info__text.position
+    inc rA
+    store dword addr2 gx_info__text.position rA
+    
+    # if the last char has been rendered, exit the rendering function
+    load dword rB addr2 gx_info__text.len
+    if rA >= rB
+      assign rF 1
+      lwreturn
+    
+    # select the next position in the text
+    mul rA 2
+    add rA gx_info__text.text
+    
+    # select the glyph
+    load word rA addr2 rA
+    mul rA s_bmp_16x28_size
+    assign addr1.offset rA
+    
+    load sbyte rD addr1 s_bmp_16x28.offset_x
+    load sbyte rE addr1 s_bmp_16x28.offset_y
+    store word addr2 gx_info__text.offset_x rD
+    store word addr2 gx_info__text.offset_y rE
+    
+    # fetch the immediately required data for the next iteration and store it in the main renderer properties
+    load word rA addr1 s_bmp_16x28.data
+    store word addr2 gx_info__text.fragment rA
+    load sword rC addr2 gx_info__text.x
+    load sword rB addr2 gx_info__text.y
+    
+    # apply displacement to obtain the offset of the first row
+    load sbyte rE addr1 s_bmp_16x28.displacement_x
+    load sbyte rD addr1 s_bmp_16x28.displacement_y
+    add rC rE
+    add rD rB
+    store word addr2 gx_info__text.x rC
+    store word addr2 gx_info__text.y rD
+    
+    # reset row/col position
+    assign rE 0
+    store dword addr2 gx_info__text.row rE
+    store dword addr2 gx_info__text.col rE
+    
+    goto GX.text.bmp16x16.impl
+  
+  # if more rows to draw
+  # reset column position and proceed to the next row
+  assign rE 0  
+  store dword addr2 gx_info__text.row rA
+  store dword addr2 gx_info__text.col rE
+  inc rD
+  
+  # fetch the next row of pixels
+  mul rA 2
+  add rA s_bmp_16x28.data
+  load word rA addr1 rA
+  store word addr2 gx_info__text.fragment rA
+
+  # render the first pixel
+  #  (there were no remaining pixels to render in the prior row, so immediately re-enter the loop and try again)
+  goto GX.text.bmp16x16.scan
+
+
+
+
+
+
+
+
+
+
+

@@ -1,3 +1,609 @@
+20 Jul 2023 [0.9.0]
+  tactyk-doc
+    Update documentation for 0.9.0 (for now, only a partial description of new features - it will need a closer examination since a lot has changed)
+  
+  tactyk-runtime
+    Allow direct loading of programs [without a manifest file].
+    So long as a raw program (.tkp file) does not need external modules or resources, this should suffice for basic experiments.
+    This will replace the tactyk demo program (tdemo).
+  
+  tactyk-examples
+    new example:  The obligatory "Hello, world!" program.  (examples/hello.tkp)
+    
+    new example:  julia_bus - a rewrite of julia.tkp to use bus notation.  (examples/julia_bus.tkp)
+      This does not seem like a particularly strong case for bus notation, but it at least demonstrates the concept. 
+    
+    updated: emit.tkp, fib.tkp, hello_sdl.tkp, julia.tkp, recursive.tkp
+    
+    removed:  lazy_quine.tkp 
+      (lazy_quine does not DO anything particularly interesting, BUT it does require direct access to its own source code, 
+       which is only permitted with the more complex program loading scheme -- that and real_quine would be extra work for not much gain...)
+  
+  tactyk-demo - REMOVED
+    the TACTYK standalone runtime completely replaces this component.
+  
+19 Jul 2023
+  tactyk-core-memory
+    load and store instructions - Move most code generation to a set of subroutines, with properties provided by the "word" typespec.
+
+  tactyk-extras - png/deflate/code
+    Replaced a lot of stash/data-register shuffling patterns with the new stash operations.
+      TACTYK-PL no longer needs to resemble a programming puzzle just to implement non-trivial program.
+  
+  tactyk-pl - bus notation
+    Added an alternative dataflow notation to tactyk-pl.  For lack of a better term, I'm calling it "bus notation".
+    
+    Bus notation is a table layout for subroutines.
+    Each column represents a register or memory location (defined by an associated "bus header")
+    Each row represents an instruction.
+    Parameters into an instruction are represented with numeric "pins".
+    The integer value of a pin specifies where within the list of parameters a given register or memory location is placed.
+    
+    The bus header is a directive which specifies which symbol each column maps onto.
+    
+    EXAMPLE:
+      bus rF rE rD rC rB rA
+      assign 23 ^ 1 . . . . . ^     # assign rF 23
+      assign 54 ^ . . 1 . . . ^     # assign rD 54
+      assign 1  ^ . . . . . 1 ^     # assign rA 1
+      add       ^ 2 . . . 1 . ^     # add rB rF
+      mul       ^ . . 2 . 1 . ^     # mul rB rD
+      add       ^ . . . . 1 2 ^     # add rB rA
+      add       ^ 1 . . . 2 . ^     # add rF rB
+    
+    Implementation details:
+      There are no constraints on what symbols may be used to define a column - it can accept literals, functions, labels, etc (though this is only of limited use).
+        (parameters specified in bus notation are subject to the same rules and restrictions as are in place everywhere else).
+      The following characters are ignored [and thus may freely be used for any supplemental formatting]:  <>[](){} and SPACE
+      The carat char ^ defines the boundaries of the bus-notation table.
+      Symbols which are outside of the bus-notation table will inserted [in order] into the generated code in positions which are not referenced by the table.
+        If there are not enough symbols to fill in all gaps, then the instruction will terminate at the first undefined position
+        (even if there are bus-notation references to paramters farther out).
+      Bus notation may freely be mixed with more conventional assembly-like notation (the bus header will remain valid until the next bus header is encountered).
+    
+    The main motivation for this is to try to better represent how a processor is being used
+      (generic register names does not yield much insight, and setting descriptive aliases for them does not help much).
+
+18 Jul 2023
+  tactyk-core - stash ops
+    Unify "stash-item-low" and "stash-item-high" typespecs
+    Add a pair of typespecs for indicating a stash item shich should be interpreted as a floating point number
+    Added variants of basic operations which operate on stash entries
+      The stash is now treated like a bank of 64 data registers
+      The variants primarilly use register-memory operations.
+      This is expected to make TACTYK-PL a much more practical language (and much less like a programming pizzle)
+      This is expected to improve performance (fewer explicit movement instructions are needed)
+    Instructions affected:
+      [simple_unary_instruction]: inc dec negate not
+      [binary_instruction]: add sub
+      [simple_binary_instruction]:  and or xor
+      [shift]: shift-left shift-right rotate-left rotate-right
+      [flow control]: goto lwcall if
+      [others]: assign mul div sign abs reverse-bits
+    planned/maybe variations:  load, store, block-load, block-store, block-assign, xassign, x-unary-op, x-binary-op, s-compute
+    notable absense:  compute - this instruction already operates on stash items.
+  
+  tactyk-core - test (condition evaluation)
+    replace direct immediate loading with indirect (temp register)
+      (direct immedaite operand specification does not [at present] account for word size, so this causes incorrect ASM output when compiling)
+
+  tactyk-extras - png/deflate/code
+    begin refactoring (to make use of recently added tactyk features)
+
+17 Jul 2023
+  tactyk-extras - png
+    Handle low bitrate images with odd sizes (bypass padding when loading images with bitrates 1,2,4)
+    Handle multiple IDAT chunks
+      The hackish method of overwriting PNG memory was employed, so attempting to load a PNG multiple times will fail (there is not much incentive to fix this).
+  tactyk-extras - deflate
+    Handle multiple deflate blocks.
+    Allocate a 5th bit to the control table codeword size field (to ensure it can actually handle 16-bit codewords)
+  
+  The DEFLATE decompressor seems to be correctly identifying the stream terminals - the "pad" option was successfully removed from all images imports that used it.
+
+15 Jul 2023
+  tactyk-extras - deflate
+    uncompressed block handler
+    fix codelen-code repetition handling
+      this one caused an obvious catastrophic failure due to a compressed data stream misread.
+    fix lookup table setup
+      The least significant bit was getting masked off on large table indices, causing a problem which initially was mistaken for a fencepost error.
+    fix max codeword size
+  tactyk-extras - code
+    make lookup table size a configurable parameter
+      This had no major impact, but the hard-coded value doesn't really belong.  Also took the opportunity to double it as I am not certain about what the largest
+      codeword size is which might appear in a DEFLATE stream.
+  tactyk-extras - png
+    indexed color format (bitrates 1,2,4,8)
+    48-bit rgb color format
+    test and fix the average filter
+    grayscale with alpha format (8 and 16 bit)
+    truecolor with alpha format (8 and 16 bit)
+    
+    NOTES ON INTERLACING:
+      Interlaced images are not endorsed, and for the time being, are not supported.  If interlaced images need to be loaded, the preferred solution is to re-encode.
+      (Interlacing undermines compression, would requrie substantial code complexity, and are only meaningful if downloading images from the Internet).
+  tactyk-extras - draw
+    add a pixmap renderer which performs alpha blending
+14 Jul 2023
+  tactyk-core
+    new instructions:  sign
+      returns -1 if the register value is less than zero, returns 1 if the value is equal to or greater than zero
+      Implmeneted in single-operand and two-operand form (the single-operand form transforms a value, the two-operand form preserves the value and assigns to anothe register)
+    new instruction: abs
+      returns the absolute value of the value on a register
+      Implmeneted in single-operand and two-operand form (the single-operand form transforms a value, the two-operand form preserves the value and assigns to anothe register)
+  
+  tactyk-extras - PNG
+    16-bit grEyscale.
+    24-bit RGB
+      As a side-effect of implementing this, an issue apparent only as one incorrect pixel in 16-bit grayscale handling was fixed (through greater clarity on how PNG filters are applied)
+
+3-14 Jul 2023
+  tactyk-extras - pixmap handling
+    Revise the "GX.rect.fill" rasterizaer to leave more sensible values on the registers.
+      (and more importantly, to leave relative X and Y coordinates on the registers)
+    Added a "pixmap" sampler (nearest-neighbor only)
+      This takes relative X and Y coordinates from a rasterizer and samples a pixmap (2D image with a 32-bit RGBA pixel format)
+      and passes the sampled color to the next stage.
+    Added a PNG image loader
+      (and a DEFLATE de-compressor ... and a binary code evaluator, and mechanisms to configure it to recognize Canonical Huffman Code)
+      It does not perform any sort of error checking and will produce grabage data (if anything) or induce a crash if the input is corrupt or unrecognized.
+      And, most significantly:  It is implemented completely inside the TACTYK sandbox.
+      Currently supported formats:
+        1-bit greyscale
+        2-bit grayscale
+        4-bit greyscale
+        8-bit grAyscale
+        24-bit RGB
+      
+12 Jul 2023
+  tactyk-core-bits - new instruction:  reverse-bits
+    reverse bit order with bitwise opreators and bswap. 
+    The second [optional] parameter specifies the size of the bitfield.
+      (if specified, this reverses the least signfiicant bits and discards any out-of-bounds bits)
+
+8 Jul 2023
+  tactyk-runtime
+    Add an option to append padding bytes to loaded files.
+
+6 Jul 2023
+  tactyk-extras - table
+    Make the table data structures passable as a generic container format
+    (move the table header to the 2nd entry use the first entry for a file header which indicates file type and specifies an optioanl supplemental data block)
+
+4 Jul 2023
+  tactyk-core-bits - new instruction:  bitcount
+
+30 Jun 2023
+  tactyk-core-bits - new instruction:  reverse-bytes
+    Accepts a word size and input data register, transforms it by reversing byte order.
+  tactyk-core
+    Allow the use of branch targets as [integer] operands in simple two-argument instructions
+29 Jun 2023
+  tactyk-draw
+    use registers rA and rB as absolute x and y coordinate outputs for rasterizer stage renderers
+    add a function for clipping pixels outside of a specified rectangle
+    
+  tactyk-ui [basic]
+    clip button/label text againts component boundary
+    draw-all function
+
+  bitmap-font renderer - fix incorrect transition to next bitmap row
+  tactyk-emit
+    bind the template selector (combined product of pick operators) to a local variable named "$TEMPLATE_SELECTOR"
+  
+  tactyk-core
+    Add alternative typespecs which allow integers, integer constants, labels, and strings to be treated as the same type
+    Make spread, block-assign, and xassign instructions more flexible about what types are accepted (and consolidate template selectors a bit)
+    goto, lwcall, tcall, and ccall - augmented these flow-control instructions to optionally write constant-integer-type data to data registers prior to the flow-control transfer
+      It is equivalent to prepending the flow-control instruction with "spread rA ...".
+      This is intended to simplify a common pattern.
+    store - allow direct storage of integer literals, integer constants, and strings to 8,16,32, and 64 bit memory locations, as well as floating point constants and literals to 32 or 64 bit memory locations
+      Similarly motivated to do this in order to simplify common patterns (and to reduce register pressure)
+
+26-28 Jun 2023
+  tactyk-ui - A simple framework for setting up Graphical User Interface components.
+    It tracks mouse activity and sends mouse-in, mouse-out, mouse-button-down, and mouse-button-up events to abstract components
+    Components are generated and configured by calling the constructor, then writing data to the returned memblock
+    based on the result of an abstract hit-test function
+    There is no notion of layering or bubbling - all components which respond to the hit-test will receive the provoking mouse event.
+  tactyk-basic-ui - Graphical User Interface components
+    This is a basic implementation of tactyk-ui
+    If provides a generic GUI component rendering function and constructor.
+    basic-components are instantiated in the same way as the underlying components (actually just an extention of it)
+    The generated componnet has a border color, border width, and background color (which may be defined per-state), and up to 50 text snippets.
+    Each text snippet is independently positioned and colored, and can contain up to 64 aschii chars (or 64 bytes of unicode text).
+    GUI components are drawn directly onto the framebuffer, and there is no notion of layering or depth (apart from draw order).
+    A GUI components are also immediately redrawn when its internal state is changed (and will "pop" to the front if nothing else is drawn over before submitting the frame to SDL)
+    All mouse events are captured and used to update the state.
+      If a mouse-out event occurs, it will cancel the "pressed" state (and thus anything that responds to the mouse button release).
+  
+  aux-sdl - revise the "sdl_state" data structure
+    Send both press and release events
+    Transfer unicode value of pressed keyboard buttons
+    
+24 Jun 2023
+  tactyk-emit - repeat operator
+    This runs evaluates a subroutine an arbitrary number of times (specified with a V-ISA parameter)
+
+  tactyk-bits - new instruction: lut-transform
+    This instruction breaks up an input value into a set of chunks (1, 2, 4, 8, or 16 bits wide), performs a series of lookups using each chunk as an
+      index into a lookup table, and combines values obtained from the lookup tables with a combiner function (add, and, or, xor), yielding the output
+    Both the word-size of the chunk and the word-size of the lookup table entries must be specified 
+      typically the chunk word size will be small, and the table entry wors size will be the maximum size (qword)
+    A different table is used for each chunk
+    The lookup tables must be a contiguous memblock [in little-endian chunk-order]
+    Tables are indexed directly with chunk values
+    Bounds checking is performed only once within the instruction (the memblock bounds must be large enough to contain a complete set of lookup tables)
+    The memblock must also be offset to the location of the first lookup table within the set
+    The main use of this is expected to be bitwise interleaving & de-interleaving and operations involving binary representations of color
+    ADDENDUM:
+      As an afterthought, an extra variant which operates on xmm registers has been added.
+      This uses [64-bit] data & temp registers for control, but targets an an xmm register.
+      Be default, this simply replicates the behavior of a data register destination/target
+      BUT, if the xmm register operand is prepended with optional operand "x2", the width of the operation will be doubled
+        the control register will use the same word sizes, but the values applied to the xmm register will be twice as wide as the control words
+        (and the lookup tables will also need to be twice as large)
+      For the time being, it has not been tested in any way.
+      Known discrepencies:
+        Due to limitations od sse (and no desire to insert extra steps to detect integer overflow and convert it to a carry) the "add" operator uses 64-bit integer addition. 
+        128-bit addition would be somewhat preferable (for consistancy)
+    
+  tactyk-draw
+    Initial revision of tactyk rendering to directly output 32-bit integer pixels (ABGR).
+      removed the scratch buffer (it may be re-introduced strictly as one or more script-controlled buffers to be used in compositing operations)
+      Removed the blend function.
+      Remove value transfer functions (only meaningful in the context of said blend function)
+      Everything else was handled by retargetting everything at the pixel buffer
+      Remove other functions for supporting a complex rendering pipeline
+      - Will probably pick a stash allocation and use that for data interchange between rendering components
+
+  tactyk-extras
+    Added a collection of bitwise interleaving transforms (extras/lib/bitwise-transforms/*)
+    Each of these is a module which sets up a named memblock containing a series of lookup tables
+    Each of these also contain a pair of comments demonstrating how to apply it.
+    NOTE:  Testing of this data set and of the underlying lookup table transform was very limited 
+           (typically only one transform from each module - and many of them using similar inputs)
+    Added a new module for handling basic user-interface components
+
+22 Jun 2023
+tactyk-extras - bdf-extract / bmpfnt16x16
+  Convert the interchange bitmap format to the format the renderer uses.
+  The renderer was implemented after the extracter, so the requirements were not fully worked out at the time.
+  The renderer format makes better use of space, supports a few additional features, and is intended to be extended at some point for used for 
+    non-text bitmap rendering.
+  The intermediate data storage format had to be expanded to include the code-point.
+  It is intended that the new converter should clip leading and trailing emoty lines form bitmaps.  The clipping if leading empty lines works,
+    but the code for clipping trailing empty lines fails and clips off the 16th line if it is present, and so has been disabled.
+
+BACKTRACK NOTICE
+Performance testing of tactyk-draw yielded the predictabley bad results (it at least would likely do alright if spread across many cores).
+The results were expected (due to use of complex per-pixel calculations), though the unexpected result was that the "--perf" option did not 
+significantly improve performance (though I still expect it to make a difference when handling large amounts of code).  I'm planning on setting aside the 
+complex portions of the rendering pipeline and instead operating on RGBA pixels directly with integer/bitwise opretors (possibly also with a bit of SIMD).
+I do plan on keeping most fo the rendering pipeline (in particular, the "rasterization" fucntions), as I have little reason at present to blame it for anything.
+
+NOTE:  If/when I get around to implementing 3D rendering interface, that complex rendering pipeline is likely to come back in the form of shader and geometric primitive management (where it actually belongs).
+
+21 Jun 2023
+tactyk-runtime
+  Added a "text" data-block directive - this places the contained text into a named datablock
+    It is intended to be used for loading parameters into a tactyk program.
+
+tactyk-extras
+  Added a BDF font extractor utility
+    Ostensibly, this was/is needed to support text rendering, but its *real* purpose was to guide the initial development
+    of string processing and an associative array, as well as the backend functionality needed for an efficient implementation.
+  Added a bitmap font renderer
+    It is construction as a rasterizer, and thus only selects pixels and defers the production of color to other rendering opreations.
+    Bitmap format is 1-bit / 16x28 in bitwise row-major order with little-endian bit-order
+    It renders only a single line of up to 228 chars (with no corrections or accounting for bounds other than tactyk counds checking)
+    It begins drawing text at a provided starting point, and accumulates per-glyph displacement vectors to trace the path text is to be rendered along
+    Glyphs are additionally positioned in relation to the base position by an offset applied to the first row of pixels.
+    Data extracted from GNU Unifont is used by the test code [and will likely be used as the builtin font] (http://unifoundry.com/unifont/)
+  minstring
+    Split ministring into a string reader component and a string handler
+    Add a function for extracting unicode codepoints from a string
+20 Jun 2023
+tactyk-runtime
+  catch invalid file references and report error.
+  catch null or invalid data references and report them as errors
+
+tactyk-core-memory - load
+  Add the ability to load signed 8-bit, 16-bit, and 32-bit words onto data registers.
+  Signed value loading is specified with keywords "sbyte", "sword", and "sdword"
+    ("sqword" has been added for completeness, but there is no technical difference between signed and unsigned 64-bit integers)
+  The implementation is a bit hackish [on account of x86-shennanigans]
+
+tactyk-emit
+  Report an error when NASM rejects the generated assembly code.
+  I would also like to capture the error output, but attempts to redirect it to an error log caused it to vanish completely 
+    (both by piping to a log file and by using NASM's a -Z option), so for now, unmodified stderr in a text terminal will have to suffice.
+  Require subroutines invoked through the "sub" operator to report success
+
+19 Jun 2023
+tactyk-core - if
+  Added bitwise operators "or", "and", "nor", and "nand"
+  The "or" test combines the 'A' and 'B' arguments with a bitwise or, then evaluates to true if any result bits are set
+  The "and" test  combines the 'A' and 'B' arguments with a bitwise and, then evaluates to true if any result bits are set
+  The "nor" test combines the 'A' and 'B' arguments with a bitwise or, then evaluates to true if no result bits are set
+  The "nand" test  combines the 'A' and 'B' arguments with a bitwise and, then evaluates to true if no result bits are set
+  The bitwise opreators applies either to data registers or xmm registers [if a packed-integer type specification is provided]
+  Changed the notation for xmm "all" modifier from a prepended '&' to surrounding square brackets
+    the "all" modifier is an extra set of variants which evaluate to true only if the bitwise opreator evaluates to true for all 
+    xmm packed fields.
+  Added a collection of arithmetical comparators for packed floating point fields and another set for packed integer fields
+    (comparators < <= == ~= >= > and packed types float-32x4, float-64x2, int32x4, and int64x2)
+    The "all" modifier can be applied to these as well.
+
+New instructions:  nop and skip
+  "nop" is just a conventional no-op
+  "skip" is a dummy instruction which is skipped over completely.
+    The skip instruction causes extra references to the next valid instruction to be inserted into the global jump table.
+    All labels prepended to a skip instruction target the next non-skip instruction
+    Any computed gotos will jump straight to the next non-skip instruction
+    This is to be used for aligning the global jump table (to help set up and switch statements / computed goto and make them equivalent)
+
+New tactyk module - "bits"
+  For bitwise operations
+  New instruction:  find-bit <low/high> <destination> <source> <opt-branch>
+    This returns the lowest or highest bit set on a data register
+    Optionally, this also does a conditional jump (or a conditionally executes a code block) if the test value is non-zero.
+  Moved conventional bitwise operators to the "bits" module (and or xor not shift/rotate)
+  Moved the "simple_binary_instruction" subroutine to the "bits" module and merged the xmm extension into it
+    (It is not presently used for anything but bitwise operators - other instructions which previously used it got switched to a more
+     elaborate base)
+
+17 Jun 2023
+tactyk-emit
+  New operator:  reset-template-selector
+    This resets the tokens selected with "pick" opertor (and is intended to allow selecting and contatenating two or more templates)
+  Subroutine arguments
+    When explicitly invoking a subroutine ( "sub <subroutine-name>" ), any trailing tokens will be resolved (against local & global variables)
+    and assigned to a set of local variables (format:  $arg.#)
+    There is no concept of scope or stack within tactyk-visa/emit
+      The variables will persist until either another subroutine is invoked (and will be replaced by a new set of arguments) or until the
+      evaluation of the currnet instruction is complete.
+  New operator:  default
+    The "default" operator unconditionally runs its subordinate subroutine and indicates success 
+      (causing select operator to also accept anything)
+    This will prevent evaluation of any subsequent code within a selector subroutine, so if it represents a default case, it should be placed
+      at the end of the selector subroutine.
+
+tactyk-core
+  restructured if - Transferred the conditional jump operator into the "test" subroutine.
+  Formally declare temp registers, and make temp register cleanup optional
+    This is accomplished by invoking a new subroutine named "tmp" and passing it a name (or common alias) for a temp register, then
+      placing the text, "$RESET_TEMP" in the location in code where the temp register reset code should be inserted.
+    In cases where the instruction resets the temp register on its own, or where the cleanup is impractical (such as a register-indirect jump),
+      register declaration is not needed or desirable.
+    Except for configuration, this is handled entirely through Virtual-ISA operations
+    In general, it is recommented to declare temp registers immediately before the template which uses temp registers.
+    In cases where temp register use is a bit more dynamic, it is acceptable to place it where the temp register is referenced
+    The temp register subroutine deliberately ignores invalid references (for compatibility with immediate operand not-really-scrambling)
+    Recognized temp register aliases:
+      rTEMPA:  rTEMPA
+      rTEMPC:  rTEMPC
+      rTEMPD:  rTEMPD
+      ra:      rTEMPA
+      rc:      rTEMPC
+      rd:      rTEMPD
+      a:       rTEMPA
+      c:       rTEMPC
+      d:       rTEMPD
+      xTEMPA:  xTEMPA
+      xTEMPB:  xTEMPB
+      xa:      xTEMPA
+      xb:      xTEMPB
+  Adjusted a few memory instructions to resist leaking address register content when temp register resetting is disabled 
+    (or left temp register resets as-is where appropriate adjustment were not available)
+  Adjusted vectorized instructions to use "vcode" directives exclusively
+    (the original design of vcode too rigid, and was also visually ambiguous)
+  New instruction - "block-assign"
+    This loads a value or set of packed values onto every register within a register-group
+    For data register groups, it can accept an integer literal, an integer constant, an 8-char string literal, a floating point literal, 
+      a floating point constant, a data register, or an xmm register.
+    For xmm register register groups, it can accept anything a data register can, but has additional functions for accepting packed data.
+      It can accept two floating point literals, two floating point constants, two integer literals, two integer constants, two data registers, 
+        or two xmm registers and convert it to the packed 64-bit floating point format [copied onto the entire register group].
+      It can also accept four floating point literals, four floating point constants, four integer literals, four integer constants, four data
+        registers, or four xmm registers and convert it to the packed 32-bit floating point format[copied onto the entire register group].
+
+16 Jun 2023
+tactyk-extras - table
+  Added NANOTABLE and MEGATABLE variants
+  Made register and stash allocations configurable (tactyk-runtime module loading)
+  I was almost able to get the table size as a configuration option, but a the handling of nanotables differed enough to break the limited generic-ish system.
+    (It was also making the code unreasonably harder to understand -- too many $pesos)
+
+tactyk-emit
+  Add options for enabling/disabling the experimental [and heavy-handed] security features
+  
+  Make aggressive binary executable randomization optional
+    Jumps between adjacent instructions are now handled by the emit interface (and only inserted if the aggressive binary executable layout option is enabled)
+    Added a "terminal" emit operator.  This marks an instruction as a "terminal" (always redicrects control flow).  Terminal instructions will always be ignored by
+      "jump-to-next-isntruction" logic (it's an error if control flow makes it through such instructions, so maybe in the future, an option to insert instructions to
+      terminate and throw an exception should be added).
+    The automatically generated branch targets attached to each instruction are retained.
+      (it is simpler that way, and they are still needed to enable some of the more advanced forms of control flow.  They also are not known to take up any extra space in the executable.)
+  
+  Make immediate operand scrambling optional
+    Responsibility for injecting scrambling code into the output is now exclusively on V-ISA subroutines
+      Specificially, the emit "scramble" operator now only provides the scrambled data thorugh variables and invokes the V-ISA scramble subroutine
+      It is up to the scramble subroutine to reset its code and the operand subroutine to select and rename the scramble subroutine outputs,
+      and the code template to accept the renamed outputs.
+    All aspects of tactyk-core which either have formal test coverage or are used by new scripts have been reworded to use the newer, more flexible
+      immediate operand handling.
+    When immediate operand scrambling is enabled, it works the way it did previously
+      (a random value and a difference are derived by the emit interface, and the scramble function accepts the derviced values and generates
+       code which loads them onto a pair of temp registers and combines them with an xor instruction)
+    When immediate operand scrambling is disabled, there are two schemes at play:
+      In the simple case (when only an 8-32 bit value is needed as a proper immediate), it bypasses the temp register and places it directly
+      in the x86 instruction as an immediate
+      In the complex case (when eithe the immediate is a 64-bit value or when it simply needs to be on a temp register), then the value
+        is loaded onto a temp register (the smae one that it would with scrambling).
+  
+  Make exopointers optional
+    Nor much to this one - just a set of offsets applied to segment registers
+  
+  Make composite-instruction permutations optional
+    For the time being, this only affects the unstructured stash instructions (specifically the order in which stash transfers are exeuted)  
+  
+  TACTYK has been steadilly gaining interesting features and qualities in other aspects
+  It is starting to seem appropriate to think of tactyk as a general experiment in low-level scripting, and perhaps even as an alternative to Assembly Language.
+
+tactyk-dblock - fixed a subtle table corruption error
+  A random error was occuring in one of the tests - a named field wasn't getting picked up by the string interpolator, but changing a single char
+  caused it to pick up the string (and pass the test).  Several hours later (after much tracing), an out-of-spec operation was found in the 
+  table lookup function - specfically, it was an inappropriate check for "PSEUDO_NULL" (causing a retired table entry to be treated as an 
+  empty entry, which causes rare data-dependent table lookup failures [would be a bit more common with denser tables]).
+
+15 Jun 2023
+tactyk-extras - table
+  A TACTYK-PL component implementing an associative array
+  This accepts 8-char keys (or 64-bit integers, if you prefer) and binds 64-bit integer values to them (or indices into an memblock)
+  The internal data structure is a prefix trie -- which was selected mainly due to not needing any data beyond a memblock with a root node at position 0.
+    (and it proved to very simple to implement)
+  All of these tables are expected to uniquely resolve each key to a specific table entry
+  Presently, there is only the "MINITABLE" variant has been implemented
+    It offers a maximum of 65536 entries of storage, uses 3 key bits per lookup iteration, and has a worst-case lookup time of 22 iterations.
+  There are plans to add a "MEGATABLE" (dword) variant with maximum table size of 2^32 (after implementing a table entry removal function)
+  ... and possibly also a "NANOTABLE" (byte) variant that supports just 256 entries
+
+tactyk-pl - add a basic preprocessor
+  It scans tactyk-pl code for the presence of defined aliases, then replaces them with aliased values.
+  This is intended to allow tactyk-pl register allocation to be configurable
+  (With a bit of creativity, it should also be able to support generic programming -- though only through the script import procedure)
+
+14 Jun 2023
+tactyk-core - bitwise opreators (and or xor)
+  Added templates for handling xmm registers to the basic bitwise operators
+tactyk-core - if
+  Add generic packed-xmm register type specifications
+  Add typed xmm registers as recognizable arguments to the if instruction (no templates yet, and the specialized comparators will probably be limited in scope)
+  Expanded the comparator type specification to include "any" and "all" hints for comparisons involving packed types.
+  Added templates to 'if' for conditional jumps involving packed floating point and integer fields (32 and 64 bit floats, 8,16,32, and 64 bit integers, "any-pass" and "all-pass")
+    Packed integer comparators needed specialized logic to synthesize the operations from eq and gt comparators and bitwise inversion
+
+tactyk-core - new instruction: block-stash
+  This is an alternative (and simpler and faster) stash instruction which transfers entire register groups in and out of the stash
+  It works similarly to stash, in that it accepts a stash reference and a register, performs a transfer in or out of the stash depending on argument order,
+    and optionally instead performs a swap if the "swap" keyword is present
+  It also accepts an integer quanity specifying how wide the stash opreation shoudl be (defaults to maximum amount)
+  And, like the block-load and block-store commands, it operates on register groups (consecutive registers by lexical ordering, with wraparound)
+  Unlike the stash command, this does not permit stash-stash transfers, and it does not allow upper/lower halves of a 128-bit element to be targetted specifically
+    Instead, all stash operations start at the lower element and affect entire entries (a complete data stash fills 3 stash entries, and a complete xmm stash fills 14)
+  This should help to reinforce the concept for which the "microcontext" stash was named.
+
+tactyk-extras - ministring
+  A TACTYK-PL component for handling 8 and 16 char strings
+
+13 Jun 2023
+tactyk-core-simd - added instructions:  "xadd-interleaved", xsxub-interleaved", and "xsqrt"
+  These functions accept one of two xmm register arguments and optionally may be vectorized further by prepending it with a quantity (like the other x-whatever instrucitons)
+  the "interleaved" instructions are perform operations between adjacent values within a packed register ("horizontal" in SSE terminology)
+  like multiplication and division operators are desirable, but they'll have to be synthesized from other packed instructions (shuffle + op).
+
+tactyk-draw
+  texture generation - "texture" within tactyk-draw is defined as any multiplicative combination of single-channel generators.
+    These are initiated with the 'GX.texture' function, then any series ot texture functions are run, then the result is applied with a GX.transfer.<destination> function.
+  Irregular Value Noise - First texture!  A value noise function based on distance drop-off.  It has an inefficient x87-based implementation, as well as a much more effiicent 
+    SIMD implementation.
+
+tactyk-runtime - Added a data export mechanism
+  Data storage must be declared in the manifest file (a specific file name, maximum file length, and buffer name).
+  When setting up the runtime, this adds an export target with a data buffer equal to the specified maximum file length, and makes it available through the "get-data" tcall function.
+  The program may freely read and write to that buffer.
+  To store the data, use "tcall export" while the export buffer is bound to addr1.  This will then measure the length of the data buffer [by scanning for the last non-zero byte],
+    then write it to the file specified in the application manifest file.
+  If your application needs to read the file back in [in a lsubsequent session],
+    add a regular data buffer reference to the file [with a different buffer name] to the application manifest file.
+
+12 Jun 2023
+tactyk-core-math - add an exponentiation function to the compute instruction, as well as an equivalent exponentiation instruction.
+  For the time being, these functions only work with positive base values, so negative numbers need to be handled correctly, wrap it and handle the sign/parity explicitly.
+
+10 Jun 2023
+tactyk-core - add a null pointer check to all dynamic memory access instructions
+tactyk-emit - prevent the composite instruction handler from removing duplicates when not requested
+
+9 Jun 2023
+tactyk-draw - rendering pipeline
+  A software rendering pipeline, modelled loosely on a conventional GPU rendering pipeline.
+  It will break GPU conventions in at least two ways:
+    Rasterization shader support
+    Shaders with read+write access to the output buffer
+
+tactyk-core-simd
+  Add a pack instruction template for taking values from data registers
+  Add an unpack instruction template for unpacking to data registers
+  
+8 Jun 2023
+tactyk-simd - new instructions: x-and, x-or, x-xor
+  These are based on the "x-binary-op" subroutine (and thus aren't particularly noteworthy for test coverage).
+  x86_64/sse4 does not come with scalar instructions the x-binary-op subroutine wants to use (andsd, andss, orsd, orss, xorsd, xorss), so for a simple workaround, 
+    a set of aliases have been added to the main assembly header which map said non-existent isntructions onto the packed instuctions.
+  The motivation was to hack in an easy floating point absolute value function, but vectorized bitwise operators are very much a welcome addition to tactyk-core.
+
+Begin development of a 2D rendering & GUI framefork ("tactyk-draw")
+  This is a TACTYK-PL project.  It will run in the new standalone runtime.  It will render to a framebuffer and use SDL, both for displaying video output and for obtaining events.
+  It will also use a formal rendering pipeline to produce graphics.
+
+aux-printit - add a set of functions for printing long-double values from the stash
+
+Add option to aux-sdl to choose whether to use a "flat" array format or an "element" array format for framebuffers and scratchbuffer
+  The "flat" format represents the buffer as a simple byte array
+    The flat buffer requires a complete offset be computed for all access
+  The "element" format represents the buffer as an array of objects
+    The element buffer format requires the address offset to be applied separately to the memblock each time a different "object" within it is accessed
+  (It might be worthwhile to consider adding a tactyk function to dynamiclaly set a memblock format)
+
+Use the word size used by the adress offset setter template
+
+6-7 Jun 2023
+Added a minimal tactyk runtime + components.
+  Not much to it - just a mechanism for loading data from files, program code, and defining an entry point, and accessing loaded data from tactyk
+
+Upgrade the status of the aux-sdl component (from test code to an actual auxilliary library component)
+  Switch to dynamic memory binding (simplifies setup)
+  Add a "scratch" buffer (not really an SDL thing, but should help with specialized rendering code)
+  Add an OpenGL flag to the SDL window (eventually, a 3D rendering interface based on OpenGL is to be included)
+
+tactyk-core - Add templates for making dynamic lwcalls (referencing jump targets by register or by integer literal/constant)
+
+5 Jun 2023
+Add a mechanism for defining code blocks.
+Code blocks [at the V-ISA level] are defined as a set of labels which are accessible from templates
+  These labels are visible to "child" instructions
+    $CODEBLOCK_HEADER - branch target referencing the parent instruction
+    $CODEBLOCK_FIRST  - branch target referencing the first instruction within the parent code block
+    $CODEBLOCK_CLOSE  - branch target referencing the next instruction in the parent code block.
+  These labels are visible to the "parent" instructions
+    $CODEBLOCK_CHILD_HEADER - branch target self-reference
+    $CODEBLOCK_CHILD_FIRST  - branch target referencing the first instruction within the child code block
+    $CODEBLOCK_CHILD_CLOSE  - branch target referencing the next instruction within the current block
+
+Due to 'discovered' functionality, the extensive rewrite of the "if" instruction tests can be de-prioritized! 
+  (the conversion was accomplished by overriding branch target variables)
+  There was a plan to implement chained control-flow structures (if-elif-...-else), but it was cancelled due to
+    requiring dynamic instruction insertion.
+
+Reset the x87 FPU on context switch
+Also decided that x87 stack content left over after compute operation is underfined behavior.
+  (might consider a complete fpu reset at the end of compute instructions if the unchecked-ness of the matter is considered too bothersome)
+
+Add a mechanism for obtaining a dynamic reference to labels (branch targets)
+  added internal "label-index" symbol table + typespec
+  added the label-index typespec to assign operator
+  added a template alias to assign operator ['load constant onto register' template]
+
+Add dynamic branch templates to the goto instruction
+  Dynamic branching jumps to specific instructions (by indexing an opaque global jump table which maps all instructions onto positions in the assembly)
+  A label reference may be obtained by assigning it to a data register, then offset by adding or subtracting integer values  to/from it.
+  It might be worthwhile to add a set of templates to the 'if' instruction, but that would be a lot of extra junk to test, and the real value of this is with 
+    the goto instruction (for implementing jump tables).
+
 8 Jun 2023 [fix-0.8.2]
 Fix word size used by address offset template
 

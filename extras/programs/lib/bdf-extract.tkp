@@ -1,0 +1,588 @@
+# A BDF-bitmap font extractor
+#   ... or at least enough of one to get through GNU unifont.
+#
+# Partly, this was intended to help develop [and test] string and processing and associative array handling
+# and direct the development of supporting internal functionality (otherwise it would have made more sense to start
+# with a binary format), and partly, I want the bitmap font to help bootstrap the tactyk scripting environment.
+
+const .sp 32
+const .nl 10
+
+struct s_font
+  8 size_pt
+  8 bmp_width
+  8 bmp_height
+  8 bmp_offset_x
+  8 bmp_offset_y
+  8 glyph_count
+  8 glyphid_current
+  
+  176 active_glyph
+  . 8 gkey
+  8 gbmp_width
+  8 gbmp_height
+  8 gbmp_offset_x
+  8 gbmp_offset_y
+  8 gdisplacement
+  32 gdata
+
+struct s_bmp_16x28
+  2 key
+  2 next
+  1 offset_x
+  1 offset_y
+  1 displacement_x
+  1 displacement_y
+  1 rows
+  1 value
+  56 data
+
+struct s_out
+  16000000 data
+
+mem m_funcs s_MINITABLE 1024
+
+mem m_font s_font 1
+mem m_glyphs s_bmp_16x28 65536
+
+BIND_FUNC:
+  xassign rB xA int64 0
+  xassign rC xA int64 1
+  rotate-right rC 2
+  xor rB rC
+  lwcall MINITABLE__PUT.addr2
+  lwreturn
+
+EXEC_FUNC:  
+  xassign rB xA int64 0
+  xassign rC xA int64 1
+  rotate-right rC 2
+  xor rB rC
+  lwcall MINITABLE__GET.addr2
+  if rA == 0
+    assign xN 'ERROR.undefined:
+    tcall print-text-xn
+    tcall print-space
+    lwcall MINISTRING__CONTEXT_ENTER.addr1
+    lwcall MINISTRING__PRINT_TOKENS
+    lwcall MINISTRING__CONTEXT_EXIT.addr1
+    tcall print-newline
+    lwreturn
+  goto rA
+
+f_ignore:
+  lwreturn
+
+f_size:
+  xassign xA xB
+  lwcall PARSE_INT
+  store qword addr3 s_font.size_pt rA
+  lwreturn
+
+f_bbox_font:
+  xassign xA xB
+  lwcall PARSE_INT
+  store qword addr3 s_font.bmp_width rA
+  xassign xA xC
+  lwcall PARSE_INT
+  store qword addr3 s_font.bmp_height rA
+  xassign xA xD
+  lwcall PARSE_INT
+  store qword addr3 s_font.bmp_offset_x rA
+  xassign xA xE
+  lwcall PARSE_INT
+  store qword addr3 s_font.bmp_offset_y rA
+  lwreturn
+
+f_chars:
+  xassign xA xB
+  lwcall PARSE_INT
+  store qword addr3 s_font.glyph_count rA
+  lwreturn
+
+f_startchar:
+  store oword addr3 s_font.gkey xA
+  stash rA sZl
+  inc rA
+  stash sZl rA
+  lwreturn
+f_key:
+  xassign xA xB
+  lwcall PARSE_INT
+  store qword addr3 s_font.gkey rA
+  lwreturn
+
+f_bbox_glyph:
+  xassign xA xB
+  lwcall PARSE_INT
+  store qword addr3 s_font.gbmp_width rA
+  xassign xA xC
+  lwcall PARSE_INT
+  store qword addr3 s_font.gbmp_height rA
+  xassign xA xD
+  lwcall PARSE_INT
+  store qword addr3 s_font.gbmp_offset_x rA
+  xassign xA xE
+  lwcall PARSE_INT
+  store qword addr3 s_font.gbmp_offset_y rA
+  lwreturn
+
+f_dwidth:
+  xassign xA xB
+  lwcall PARSE_INT
+  store qword addr3 s_font.gdisplacement rA
+  xassign xA xC
+  lwcall PARSE_INT
+  lwreturn
+
+f_bitmap:
+  load qword rF addr3 s_font.gbmp_height
+  if rF == 0
+    load qword rF addr3 s_font.bmp_height
+  assign rE s_font.gdata
+  stash sZh rE
+  f_bmp.iterate:
+  if rF > 0
+    dec rF
+    lwcall MINISTRING__CONTEXT_ENTER.addr1
+    lwcall MINISTRING__NEXTLINE.addr1
+    lwcall MINISTRING__READ_STR16.addr1
+    lwcall MINISTRING__CONTEXT_EXIT.addr1
+    lwcall PARSE_REV_HEXFIELD
+    stash rE sZh
+    store word addr3 rE rA
+    add rE 2
+    stash sZh rE
+    goto f_bmp.iterate
+  lwreturn
+
+PRINT_BMP_LINE:
+  assign rB '#
+  if rA
+    if rA & 1
+      shift-right rA 1
+      tcall print-text-b
+      goto PRINT_BMP_LINE
+    shift-right rA 1
+    tcall print-space
+    goto PRINT_BMP_LINE
+  tcall print-newline
+  lwreturn
+
+f_endchar:
+  block-load 5 rA addr3 s_font.active_glyph
+  add rC rE
+  negate rC
+  assign rF rA
+  mul rA s_bmp_16x28_size
+  assign addr4.offset rA
+  load qword rA addr3 s_font.gdisplacement
+  store word addr4 s_bmp_16x28.key rF
+  store byte addr4 s_bmp_16x28.displacement_x rA
+  store byte addr4 s_bmp_16x28.offset_x rD
+  
+  # defaults [Not part of BDF, but are planned tacty-draw bitmap rendering features]
+  spread rE 0 1
+  store byte addr4 s_bmp_16x28.displacement_y rE
+  store byte addr4 s_bmp_16x28.value rF
+  store word addr3 s_bmp_16x28.next rE
+  
+  assign rA -1
+
+  f_endchar.find_row0:
+    inc rA
+    assign rB rA
+    mul rB 2
+    add rB s_font.gdata
+    load word rB addr3 rB
+    if rA == 16 f_endchar.export
+    if rB == 0 f_endchar.find_row0
+  assign rF rA
+  add rC rA
+  assign rE s_bmp_16x28.data
+  
+  f_endchar.transfer:
+    store word addr4 rE rB
+    if rA >= 16 f_endchar.export
+    add rE 2
+    inc rA
+    assign rB rA
+    mul rB 2
+    add rB s_font.gdata
+    load word rB addr3 rB
+    goto f_endchar.transfer
+  
+  #f_endchar.lastrow_scan:
+  #  if rB != 0 f_endchar.export
+  #  dec rA
+  #  sub rE 2
+  #  assign rB rA
+  #  mul rB 2
+  #  add rB s_font.gdata
+  #  load word rB addr3 rB
+  #  goto f_endchar.lastrow_scan
+  
+  f_endchar.export:
+  store byte addr4 s_bmp_16x28.offset_y rC
+  store byte addr4 s_bmp_16x28.rows rA
+  
+  lwreturn
+
+INIT:
+  bind addr2 m_funcs
+  bind addr3 m_font
+  bind addr4 m_glyphs
+  
+  lwcall MINITABLE__INIT.addr2
+  
+  assign rA f_ignore
+  assign xA 'STARTFONT
+  lwcall BIND_FUNC
+  assign xA 'COMMENT
+  lwcall BIND_FUNC
+  assign xA 'CONTENTVERSION
+  lwcall BIND_FUNC
+  assign xA 'FONT
+  lwcall BIND_FUNC  
+  assign xA 'COPYRIGHT
+  lwcall BIND_FUNC
+  assign xA 'STARTPROPERTIES
+  lwcall BIND_FUNC
+  assign xA 'FONT_VERSION
+  lwcall BIND_FUNC
+  assign xA 'FONT_TYPE
+  lwcall BIND_FUNC
+  assign xA 'FOUNDRY
+  lwcall BIND_FUNC
+  assign xA 'FAMILY_NAME
+  lwcall BIND_FUNC
+  assign xA 'WEIGHT_NAME
+  lwcall BIND_FUNC
+  assign xA 'SLANT
+  lwcall BIND_FUNC
+  assign xA 'SETWIDTH_NAME
+  lwcall BIND_FUNC
+  assign xA 'PIXEL_SIZE
+  lwcall BIND_FUNC
+  assign xA 'ADD_STYLE_NAME
+  lwcall BIND_FUNC
+  assign xA 'RESOLUTION_X
+  lwcall BIND_FUNC
+  assign xA 'RESOLUTION_Y
+  lwcall BIND_FUNC
+  assign xA 'SPACING
+  lwcall BIND_FUNC
+  assign xA 'AVERAGE_WIDTH
+  lwcall BIND_FUNC
+  assign xA 'CHARSET_REGISTRY
+  lwcall BIND_FUNC
+  assign xA 'CHARSET_ENCODING
+  lwcall BIND_FUNC
+  assign xA 'UNDERLINE_POSITI
+  lwcall BIND_FUNC
+  assign xA 'UNDERLINE_THICKN
+  lwcall BIND_FUNC
+  assign xA 'CAP_HEIGHT
+  lwcall BIND_FUNC
+  assign xA 'X_HEIGHT
+  lwcall BIND_FUNC
+  assign xA 'POINT_SIZE
+  lwcall BIND_FUNC
+  assign xA 'FONT_ASCENT
+  lwcall BIND_FUNC
+  assign xA 'FONT_DESCENT
+  lwcall BIND_FUNC
+  assign xA 'DEFAULT_CHAR
+  lwcall BIND_FUNC
+  assign xA 'ENDPROPERTIES
+  lwcall BIND_FUNC
+  
+  assign xA 'SWIDTH
+  lwcall BIND_FUNC
+  assign xA 'SHEIGHT
+  lwcall BIND_FUNC
+  
+  
+  assign rA f_size
+  assign xA 'SIZE
+  lwcall BIND_FUNC
+  assign rA f_bbox_font
+  assign xA 'FONTBOUNDINGBOX
+  lwcall BIND_FUNC
+  assign rA f_chars
+  assign xA 'CHARS
+  lwcall BIND_FUNC
+  
+  assign rA f_startchar
+  assign xA 'STARTCHAR
+  lwcall BIND_FUNC
+  assign rA f_key
+  assign xA 'ENCODING
+  lwcall BIND_FUNC
+  assign rA f_bbox_glyph
+  assign xA 'BBX
+  lwcall BIND_FUNC
+  
+  assign rA f_dwidth
+  assign xA 'DWIDTH
+  lwcall BIND_FUNC
+  
+  assign rA f_bitmap
+  assign xA 'BITMAP
+  lwcall BIND_FUNC  
+  assign rA f_endchar
+  assign xA 'ENDCHAR
+  lwcall BIND_FUNC  
+
+  assign rA f_done
+  assign xA 'ENDFONT
+  lwcall BIND_FUNC  
+  
+  assign rA 0
+  stash sZl rA
+  
+  lwreturn
+
+f_done:
+  assign rB 0
+  stash sQ rB
+  lwreturn
+  
+
+BDFUTIL__EXTRACT_SUBSET:
+  lwcall INIT
+  
+  assign xA 'STARTFONT
+  lwcall EXEC_FUNC
+  
+  assign rA 'font
+  tcall get-data
+  assign rF 0
+  
+  assign rA .sp
+  assign rB .nl
+  lwcall MINISTRING__INIT.addr1
+  
+  assign rB 99999999999 
+  BDFLP:
+  if rB > 0
+    stash sQ rB
+    lwcall BDFUTIL__NEXTLINE
+    stash rB sQ
+    dec rB
+    goto BDFLP
+  assign xA 'Processed
+  assign xB '/
+  assign xC 'Glyphs
+  stash rA sZl
+  load qword rB addr3 s_font.glyph_count
+  tcall print-text-xa
+  tcall print-space
+  tcall print-int-a
+  tcall print-space
+  tcall print-text-xb
+  tcall print-space
+  tcall print-int-b
+  tcall print-space
+  tcall print-text-xc
+  tcall print-newline
+  if rA != rB
+    assign xD 'Glyph-count
+    assign xE 'mismatch...
+    assign xF 'Congratulations!
+    tcall print-text-xd
+    tcall print-space
+    tcall print-text-xe
+    tcall print-newline
+    tcall print-text-xf
+    tcall print-newline
+  
+  assign rA 'subset
+  tcall get-data
+  bind addr2 addr1
+  
+  assign rA 'bdfuo
+  tcall get-data
+  
+  assign rF addr2.element_bound
+  assign rD 0
+  assign rE 0
+  BDFUTIL_EXPORT.loop:
+  if rD < rF
+    lwcall GET_UTF8_VALUE
+    assign rB rA
+    mul rB s_bmp_16x28_size
+    assign addr4.offset rB
+    assign rA rE
+    mul rA s_bmp_16x28_size
+    load word rC addr4 s_bmp_16x28.key
+    store word addr1 rA rC
+    add rA 2
+    block-load 4 xxC addr4 s_bmp_16x28.next
+    block-store 4 addr1 rA xxC
+    assign rC 0
+    inc rE
+    goto BDFUTIL_EXPORT.loop
+  assign rA rE
+  mul rA s_bmp_16x28_size
+  
+  # data-block export searches for the last non-null byte and treats it as an end-of-file marker.
+  # This behavior interferes with simple data import functions which expect a complete word
+  # Appending an end-of-file marker forces the trailing null bytes to be included 
+  #   [and thus readable without introducing complex end-of-file behavior].
+  assign xA '/T\H/E\/\/E\N/D\
+  store oword addr1 rA xA
+  tcall export
+  exit
+
+BDFUTIL__NEXTLINE:
+  block-assign 14 xA 0 0
+  lwcall MINISTRING__CONTEXT_ENTER.addr1
+  lwcall MINISTRING__TOKENIZE.addr1
+  lwcall MINISTRING__CONTEXT_EXIT.addr1
+  lwcall EXEC_FUNC
+  lwcall MINISTRING__CONTEXT_ENTER.addr1
+  #lwcall MINISTRING__PRINT_TOKENS
+  lwcall MINISTRING__NEXTLINE.addr1
+  lwcall MINISTRING__CONTEXT_EXIT.addr1
+  lwreturn
+
+# parse decimal integers
+# This reads chars off an xmm register from least signifiant to greatest, converts them into an integer, and returns it on rA
+# It stops if any non-numeric chars are encountered.
+# it can handle range -999999999999999 - 9999999999999999
+PARSE_INT:
+  xassign rC xA uint64 0
+  assign rF 1
+  assign rA 0
+  lwcall PARSE_INT.half
+  if rC == 0
+    xassign rC xA uint64 1
+    lwcall PARSE_INT.half
+  mul rA rF
+  lwreturn
+
+PARSE_INT.half:
+  if rC != 0
+    assign rB rC   
+    and rB 255
+    shift-right rC 8
+    if rB == '-
+      if rF == -1
+        assign rC 1
+        lwreturn
+      negate rF
+      goto PARSE_INT.half
+    sub rB '0
+    if rB >= 10
+      assign rC 1
+      lwreturn
+    if rB < 0
+      assign rC 1
+      lwreturn
+    mul rA 10
+    add rA rB
+    goto PARSE_INT.half
+  lwreturn
+
+# parse ASCII-encoded hexadecimal value (max 16 chars), reverse bit order, output a 64-bit integer.
+#   If the input is less than 16 chars, then it is effectively zero-padded on the right
+# This allows a BDF-derived bitmap scan line to be easily iterated or scanned from left to right with bitwise instructions.
+#   (BDF as specified would otherwise require iterating from right to left, and either handling each nibble separately
+#    or having to reverse the nibbles [anyway] at some point)
+PARSE_REV_HEXFIELD:
+  assign rE 0
+  assign rA 0
+  xassign rB xA int64 0
+  lwcall PARSE_REV_HEXFIELD.extract
+  xassign rB xA int64 1
+  PARSE_REV_HEXFIELD.extract:
+  if rB
+    assign rC rB
+    and rC 255
+    shift-right rB 8
+    if rC <= '9
+      if rC >= '0
+        sub rC '0
+        goto PARSE_REV_HEXFIELD.ins_rev
+      assign rA -100
+      lwreturn
+    if rC <= 'F
+      if rC >= 'A
+        sub rC 55
+        goto PARSE_REV_HEXFIELD.ins_rev
+      assign rA -10
+      lwreturn
+    if rC <= 'f
+      if rC >= 'a
+        sub rC 'a
+        add rC 10
+        goto PARSE_REV_HEXFIELD.ins_rev
+  lwreturn
+
+
+PARSE_REV_HEXFIELD.ins_rev:
+  assign rD h.f7b3d591e6a2c480
+  shift-left rC 2
+  shift-right rD rC
+  and rD 15
+  shift-left rD rE
+  add rE 4
+  or rA rD
+  goto PARSE_REV_HEXFIELD.extract
+
+GET_UTF8_VALUE:
+  load byte rA addr2 rD
+  inc rD
+  
+  # b.0xxxxxxx: ASCII char
+  if rA ~& b.10000000
+    lwreturn
+  
+  # b.10xxxxxx: unexpected continuation byte
+  if rA ~& b.01000000
+    assign rA -1
+    lwreturn
+  
+  # b.110xxxxx: 11-bit char
+  if rA ~& b.00100000
+    and rA b.00011111
+    lwcall GET_UTF8_VALUE.append6bits
+    lwreturn
+  
+  # b.1110xxxx: 16-bit char
+  if rA ~& b.00010000
+    and rA b.00001111
+    lwcall GET_UTF8_VALUE.append6bits
+    lwcall GET_UTF8_VALUE.append6bits
+    lwreturn
+  
+  # b.11110xxx: 21-bit char
+  if rA ~& b.00001000
+    and rA b.00000111
+    lwcall GET_UTF8_VALUE.append6bits
+    lwcall GET_UTF8_VALUE.append6bits
+    lwcall GET_UTF8_VALUE.append6bits
+    lwreturn
+  
+  # b.11111xxx: invalid byte
+  assign rA -1
+  lwreturn
+GET_UTF8_VALUE.append6bits:
+  load byte rB addr2 rD
+  inc rD
+  assign rC rB
+  and rC b.11000000
+  
+  #continuation byte
+  if rC == b.10000000
+    and rC b.00111111
+    shift-left rA 6
+    or rA rB
+    lwreturn
+  assign rA -1
+  lwreturn
+
+
+
+

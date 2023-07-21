@@ -2,11 +2,14 @@ instruction ccall
   operand
     type data capi
     $A $VALUE
-  operand
-    type capi none
+  opt-operand
+    type capi
     $B $VALUE
-  select-template
-    case CfuncN
+  $SEL $TEMPLATE_SELECTOR
+  reset-template-selector
+  sub const-assign
+  select $SEL
+    case Cfunc
       code
         store_context
         
@@ -31,12 +34,6 @@ instruction ccall
         sub r14, random_const_FS
         
         load_context r14
-        
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        
-        jmp $NEXT_INSTRUCTION
     case DCfunc
       code
         store_context
@@ -65,19 +62,13 @@ instruction ccall
         load_context r14
         
         mov $A, rTEMPD
-        
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        
-        jmp $NEXT_INSTRUCTION
-    case CfuncCfunc DN
-      error
 
 instruction tcall
   operand
     type tapi
     $A $VALUE
+  reset-template-selector
+  sub const-assign
   code
     store_context    
     
@@ -106,10 +97,4 @@ instruction tcall
     validate_context_pointer r14
     sub r14, random_const_FS
     load_context r14
-    
-    xor rTEMPA, rTEMPA
-    xor rTEMPC, rTEMPC
-    xor rTEMPD, rTEMPD
-    
-    jmp $NEXT_INSTRUCTION
     

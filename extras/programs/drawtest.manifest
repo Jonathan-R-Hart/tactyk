@@ -1,0 +1,92 @@
+# GUI test/development program
+
+data basn0g01 data/testpng/basn0g01.png
+data basn0g02 data/testpng/basn0g02.png
+data basn0g04 data/testpng/basn0g04.png
+data basn0g08 data/testpng/basn0g08.png
+data basn0g16 data/testpng/basn0g16.png
+data basn2c08 data/testpng/basn2c08.png
+data basn2c16 data/testpng/basn2c16.png
+# data basn3p01 data/testpng/basn3p01.png       # This checkerboard pattern is too regular.
+data ai1b data/alt_testpng/alt_1bit_indexed.png
+data basn3p02 data/testpng/basn3p02.png
+data basn3p04 data/testpng/basn3p04.png
+data basn3p08 data/testpng/basn3p08.png
+data f03n2c08 data/testpng/f03n2c08.png
+data f99n0g04 data/testpng/f99n0g04.png
+data basn4a08 data/testpng/basn4a08.png
+data basn4a16 data/testpng/basn4a16.png
+data basn6a08 data/testpng/basn6a08.png
+data basn6a16 data/testpng/basn6a16.png
+
+data s32n3p04 data/testpng/s32n3p04.png
+data s33n3p04 data/testpng/s33n3p04.png
+data s34n3p04 data/testpng/s34n3p04.png
+data s35n3p04 data/testpng/s35n3p04.png
+data s36n3p04 data/testpng/s36n3p04.png
+
+data s32_2b data/testpng/s32n3p04_2bit.png
+data s33_2b data/testpng/s33n3p04_2bit.png
+data s34_2b data/testpng/s34n3p04_2bit.png
+data s35_2b data/testpng/s35n3p04_2bit.png
+data s36_2b data/testpng/s36n3p04_2bit.png
+
+data s32_1b data/testpng/s32n3p04_1bit.png
+data s33_1b data/testpng/s33n3p04_1bit.png
+data s34_1b data/testpng/s34n3p04_1bit.png
+data s35_1b data/testpng/s35n3p04_1bit.png
+data s36_1b data/testpng/s36n3p04_1bit.png
+
+data s32_4g data/testpng/s32n3p04_g4.png
+data s33_4g data/testpng/s33n3p04_g4.png
+data s34_4g data/testpng/s34n3p04_g4.png
+data s35_4g data/testpng/s35n3p04_g4.png
+data s36_4g data/testpng/s36n3p04_g4.png
+
+data bosscat data/alt_testpng/Graykitten.png
+
+data unifont data/unifont_basic_chars.tkf
+
+module ministring lib/ministring.tkp
+module bmp16x28 lib/bitmap16x28.tkp
+module bmpf lib/renderers/bmpfnt16x16.tkp
+module draw lib/tactyk_draw.tkp
+module rect-renderers lib/renderers/rect.tkp
+module pixmap lib/renderers/pixmap.tkp
+module matrix lib/matrix-simd.tkp
+module main drawtest.tkp
+module irrvn lib/renderers/irrvnoise.tkp
+module thead lib/table.header.tkp
+module table.addr4  lib/table.mini.tkp
+  $T addr4
+  $StTmp s28h
+module ui lib/ui.tkp
+module basic-ui lib/basic-ui.tkp
+
+module deflate lib/deflate.tkp
+module png lib/png.tkp
+module code lib/code.tkp
+  $NAME deflate
+  $CODEWORDMASK h.0000ffff
+  $CODEWORDLIMIT h.00010000
+  $CODEWORDSCALE 2
+  $CODEVALUESIZE dword
+  $CONSUMPTIONBITS 5
+  $CONSUMPTIONMASK h.001f
+  $CONSUMPTIONCONST 0
+  $HANDLERMASK h.07
+  $HANDLERBITS 3
+  $HANDLERBASE DEFLATE__HUFFMAN.val
+  $HANDLERALIGNMENT 2
+
+module bitstream lib/bitstream.tkp
+  $NAME decoder
+  $rBITCOUNT rD
+  $rPOSITION rE
+  $rEND rF
+  $rBITS rA
+  $rOUT rB
+  $rDATA addr2
+
+program prog thead table.addr4 bitstream deflate png code ui basic-ui main matrix rect-renderers draw bmp16x28 bmpf ministring pixmap
+main prog MAIN

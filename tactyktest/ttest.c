@@ -47,11 +47,18 @@ char **testfilenames;
 
 uint64_t max_active_jobs = 1;
 
+bool use_immediate_scrambling = true;
+bool use_executable_layout_randomization = true;
+bool use_extra_permutations = true;
+bool use_exopointers = true;
+bool use_temp_register_autoreset = true;
+
 int main(int argc, char *argv[], char *envp[]) {
     printf("%s\n\n", TACTYK_TEST__DESCRIPTION);
     tests_completed = 0;
     tests_started = 0;
     testfilenames = calloc(argc, sizeof(void*));
+    
     for (uint64_t i = 1; i < argc; i += 1) {
         char *arg = argv[i];
         if (strncmp(arg, "--jobs=", 7) == 0) {
@@ -59,6 +66,14 @@ int main(int argc, char *argv[], char *envp[]) {
                 printf("ERROR:  malformed argument:  '%s'\n", arg);
                 exit(1);
             }
+        }
+        else if (strncmp(arg, "--perf", 6) == 0) {
+            printf("Testing with experimental security features disabled.\n");
+            use_immediate_scrambling = false;
+            use_executable_layout_randomization = false;
+            use_extra_permutations = false;
+            use_exopointers = false;
+            use_temp_register_autoreset = false;
         }
         else {
             FILE *f = fopen(arg, "r");
@@ -347,6 +362,11 @@ void tactyk_test__prepare(struct tactyk_test__Status *tstate) {
     tstate->test_result = TACTYK_TESTSTATE__PREPARING;
     tstate->testid = tests_started;
     tstate->ran = false;
+    tstate->use_executable_layout_randomization = use_executable_layout_randomization;
+    tstate->use_exopointers = use_exopointers;
+    tstate->use_extra_permutations = use_extra_permutations;
+    tstate->use_immediate_scrambling = use_immediate_scrambling;
+    tstate->use_temp_register_autoreset = use_temp_register_autoreset;
     tests_started += 1;
 }
 

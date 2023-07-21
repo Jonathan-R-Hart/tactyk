@@ -36,44 +36,54 @@
 
 header tactyk_asmvm_header.asm
 
-# enables all of aggressive binary executable randomization
-settings
-  $ABXR_SCRAMBLE_IMMEDIATES
-  $ABXR_RANDOMIZE_EXECUTABLE
+subroutine next-instruction
+  code
+    jmp $NEXT_INSTRUCTION
 
-# immediate scrambling config
-# This sets up the scrambling system whereby the script-provided immediate values are scrabled in executable memory and
-# unscrambled when accessed.
-# 
+settings
+  $RESET_TEMP ;
+  $USE_AUTO_RESET_TEMP 1
+
 subroutine scramble
-  select-kw2
-    case byte word
-      code $SC
-        mov $SC_DEST, $SC_RAND
-        xor $SC_DEST, $SC_DIFF
-    case dword
-      code $SC
-        mov $SC_DEST, $SC_RAND
-        xor %[$SC_DEST]_32, $SC_DIFF
-    case qword
-      code $SC
-        mov $SC_DEST, $SC_RAND
-        mov rTEMPD, $SC_DIFF
-        xor $SC_DEST, rTEMPD
-        xor rTEMPD, rTEMPD
-        # mov $SC_DEST, $SC_RAND_HIGH
-        # xor %[$SC_DEST]_32, $SC_DIFF_HIGH
-        # shl $SC_DEST, 32
-        # xor %[$SC_DEST]_32, $SC_RAND_LOW
-        # xor %[$SC_DEST]_32, $SC_DIFF_LOW
+  select $USE_SCRAMBLE
+    case true
+      $SC_TARGET $SC_DEST
+      select-kw2
+        case byte word
+          code new $SC_LD
+            mov $SC_DEST, $SC_RAND
+            xor $SC_DEST, $SC_DIFF
+        case dword
+          code new $SC_LD
+            mov $SC_DEST, $SC_RAND
+            xor %[$SC_DEST]_32, $SC_DIFF
+        case qword
+          code new $SC_LD
+            mov $SC_DEST, $SC_RAND
+            mov rTEMPD, $SC_DIFF
+            xor $SC_DEST, rTEMPD
+            xor rTEMPD, rTEMPD
+      $SC_LD_INDIRECT $SC_LD
+    case false
+      code new $SC_LD_INDIRECT
+        mov $SC_DEST, $SC_VALUE
+      select-kw2
+        case byte word dword
+          $SC_TARGET $SC_VALUE
+          code new $SC_LD
+            ;
+        case qword
+          $SC_TARGET $SC_DEST
+          code new $SC_LD
+            mov $SC_DEST, $SC_VALUE
 
 instruction exit
+  terminal
   $KW dword
-  scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX
+  scramble rTEMPA $COMMAND_INDEX
   code
-    $LD_IPTR_IMMEDIATE
-    mov fs:[context.instruction_index + random_const_FS], rTEMPA
-    xor rTEMPA, rTEMPA
+    $SC_LD
+    mov qword fs:[context.instruction_index + random_const_FS], $SC_TARGET
     mov fs:[context.status + random_const_FS], dword STATUS_HALT
     store_context
     rdfsbase rax
@@ -85,12 +95,12 @@ instruction exit
     ret
 
 instruction break
+  terminal
   $KW dword
-  scramble rTEMPA $LD_IPTR_IMMEDIATE $COMMAND_INDEX_NEXT
+  scramble rTEMPA $COMMAND_INDEX_NEXT
   code
-    $LD_IPTR_IMMEDIATE
-    mov fs:[context.instruction_index + random_const_FS], rTEMPA
-    xor rTEMPA, rTEMPA
+    $SC_LD
+    mov qword fs:[context.instruction_index + random_const_FS], $SC_TARGET
     mov fs:[context.status + random_const_FS], dword STATUS_SUSPEND
     store_context
     rdfsbase rax
@@ -116,55 +126,81 @@ instruction swap
     case DD
       code
         xchg $A, $B
-        jmp $NEXT_INSTRUCTION
 
 subroutine simple_unary_instruction
   operand 
-    type data
+    type data stash-item stash-item-small
     $A $VALUE
-  code
-    $INSTRUCTION $A
-    jmp $NEXT_INSTRUCTION
-
-subroutine simple_binary_instruction
-  operand 
-    type data
-    $A $VALUE
-  operand
-    type data const integer
-    $B $VALUE
-    scramble rTEMPA $LD_B_IMMEDIATE
   select-template
-    case DD
-      code 
-        $INSTRUCTION $A, $B
-        jmp $NEXT_INSTRUCTION
-    case DI DC
-      code 
-        $LD_B_IMMEDIATE
-        $INSTRUCTION $A, rTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+    case D
+      code
+        $INSTRUCTION $A
 
 subroutine binary_instruction
   operand
-    type data xmmx
+    type data xmmx stash-item stash-item-small
     $A $VALUE
   operand
-    type data xmmx const fconst integer float
+    type data xmmx const fconst integer float string branch-index stash-item stash-item-small
     $B $VALUE
-    scramble rTEMPC $LD_B_IMMEDIATE
+    scramble rTEMPC
+    $LD_B_IMMEDIATE $SC_LD
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_B $SC_TARGET
   select-template
     case DD
       code
         $INSTRUCTION $A, $B
-        jmp $NEXT_INSTRUCTION
-    case DI DC
+    case DI DC DS DLi
+      sub tmp a
+      sub tmp $TGT_B
       code
         $LD_B_IMMEDIATE
-        $INSTRUCTION $A, rTEMPC
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
+        $INSTRUCTION $A, $TGT_B
+        $RESET_TEMP
+
+instruction sign
+  operand
+    type data stash-item stash-item-small
+    $DEST $VALUE
+  opt-operand
+    type data stash-item stash-item-small
+    $SRC $VALUE
+  select-template
+    case DD
+      code
+        mov $DEST, $SRC
+        not $DEST
+        shr $DEST, 63
+        shl $DEST, 1
+        dec $DEST
+    case D
+      code
+        not $DEST
+        shr $DEST, 63
+        shl $DEST, 1
+        dec $DEST
+
+instruction abs
+  operand
+    type data stash-item stash-item-small
+    $DEST $VALUE
+  opt-operand
+    type data stash-item stash-item-small
+    $SRC $VALUE
+  select-template
+    case DD
+      code
+        mov $DEST, $SRC
+        neg $DEST
+        cmovl $DEST, $SRC
+    case D
+      sub tmp ra
+      code
+        mov rTEMPA, $DEST
+        neg rTEMPA
+        cmovg $DEST, rTEMPA
+        $RESET_TEMP
 
 instruction add
   $INSTRUCTION add
@@ -174,89 +210,87 @@ instruction sub
   $INSTRUCTION sub
   sub binary_instruction
 
-instruction and
-  $INSTRUCTION and
-  sub simple_binary_instruction
-
-instruction or
-  $INSTRUCTION or
-  sub simple_binary_instruction
-
-instruction xor
-  $INSTRUCTION xor
-  sub simple_binary_instruction
-
 instruction assign
   operand 
-    type data xmmx address-offset
+    type data xmmx address-offset stash-item stash-item-small
     $A $VALUE
   operand
-    type data xmmx stackreg const fconst address-offset context-property integer float string
+    type data xmmx stackreg const branch-index fconst address-offset context-property integer float string stash-item stash-item-small
     $B $VALUE
-    scramble rTEMPA $LD_B_IMMEDIATE
-    scramble rTEMPC $LD_B_HIGHBITS_IMMEDIATE $VALUE_UPPER
+    scramble rTEMPA
+    $LD_B_IMMEDIATE $SC_LD
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_B $SC_TARGET
+    scramble rTEMPC $VALUE_UPPER
+    $LD_B_HIGHBITS_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
   select-template
     case DD
       code 
         mov $A, $B
-        jmp $NEXT_INSTRUCTION
     case DSreg
       code
         mov %[$A]_16, %[$B]_16
         sub %[$A]_16, word fs:[$STACK_FLOOR + random_const_FS]
-        jmp $NEXT_INSTRUCTION
-    case DI DC DS
+    case DI DC DS DLi
+      sub tmp $TGT_B
       code 
         $LD_B_IMMEDIATE
-        mov $A, rTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        mov $A, $TGT_B
+        $RESET_TEMP
     case DCtx
       select-kw
         case dword
           code
             mov %[$A]_32, fs:[$B + random_const_FS]
-            jmp $NEXT_INSTRUCTION
 
 instruction mul
   operand
-    type data xmmx
+    type data xmmx stash-item stash-item-small
     $A $VALUE
   operand
-    type data xmmx const fconst integer float
+    type data xmmx const fconst integer float string stash-item stash-item-small
     $B $VALUE
-    scramble rTEMPC $LD_B_IMMEDIATE
+    scramble rTEMPC
+    $LD_B_IMMEDIATE $SC_LD
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_B $SC_TARGET
   select-template
     case DD
+      sub tmp a
       code
         mov rTEMPA, $A
         imul $B
         mov $A, rTEMPA
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-    case DI DC
+        $RESET_TEMP
+    case DI DC DS
+      sub tmp a
+      sub tmp c
       code
-        $LD_B_IMMEDIATE
+        $LD_B_IMMEDIATE_INDIRECT
         mov rTEMPA, $A
         imul rTEMPC
         mov $A, rTEMPA
         xor rTEMPA, rTEMPA
         xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
 
 instruction div
   operand
-    type data xmmx
+    type data xmmx stash-item stash-item-small
     $A $VALUE
   operand
-    type data xmmx const fconst integer float
+    type data xmmx const fconst integer float string stash-item stash-item-small
     $B $VALUE
-    scramble rTEMPC $LD_B_IMMEDIATE
+    scramble rTEMPC
+    $LD_B_IMMEDIATE $SC_LD
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_B $SC_TARGET
   operand
     type branch none
     $DIVZ_TARGET $VALUE
   select-template
     case DDN
+      sub tmp a
       code
         cmp $B, 0
         erroreq STATUS_DIVISION_BY_ZERO
@@ -264,23 +298,21 @@ instruction div
         cqo
         idiv $B
         mov $A, rTEMPA
-        xor rTEMPA, rTEMPA
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
-    case DIN DCN
+        $RESET_TEMP
+    case DIN DCN DSN
+      sub tmp a
+      sub tmp c
       code
-        $LD_B_IMMEDIATE
+        $LD_B_IMMEDIATE_INDIRECT
         cmp rTEMPC, 0
         erroreq STATUS_DIVISION_BY_ZERO
         mov rTEMPA, $A
         cqo
         idiv rTEMPC
         mov $A, rTEMPA
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case DDL
+      sub tmp a
       code
         cmp $B, 0
         je $DIVZ_TARGET
@@ -288,60 +320,19 @@ instruction div
         cqo
         idiv $B
         mov $A, rTEMPA
-        xor rTEMPA, rTEMPA
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
-    case DIL DCL
+        $RESET_TEMP
+    case DIL DCL DSL
+      sub tmp a
+      sub tmp c
       code
-        $LD_B_IMMEDIATE
+        $LD_B_IMMEDIATE_INDIRECT
         cmp rTEMPC, 0
         je $DIVZ_TARGET
         mov rTEMPA, $A
         cqo
         idiv rTEMPC
         mov $A, rTEMPA
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        xor rTEMPD, rTEMPD
-        jmp $NEXT_INSTRUCTION
-
-subroutine shift
-  operand 
-    type data
-    $A $VALUE
-  operand
-    type data integer const
-    $B $VALUE
-    scramble rTEMPC $LD_B_IMMEDIATE
-  select-template
-    case DD
-      code 
-        mov rcx, $B
-        $INSTRUCTION $A, cl
-        xor rcx, rcx
-        jmp $NEXT_INSTRUCTION
-    case DI DC
-      code 
-        $LD_B_IMMEDIATE
-        $INSTRUCTION $A, cl
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
-
-instruction shift-left
-  $INSTRUCTION shl
-  sub shift
-
-instruction shift-right
-  $INSTRUCTION shr
-  sub shift
-
-instruction rotate-left
-  $INSTRUCTION rol
-  sub shift
-
-instruction rotate-right
-  $INSTRUCTION ror
-  sub shift
+        $RESET_TEMP
 
 instruction inc
   $INSTRUCTION inc
@@ -351,86 +342,320 @@ instruction dec
   $INSTRUCTION dec
   sub simple_unary_instruction
 
-instruction not
-  $INSTRUCTION not
-  sub simple_unary_instruction
-
 instruction negate
   $INSTRUCTION neg
   sub simple_unary_instruction
 
 instruction goto
+  terminal
   operand
-    type branch
+    type branch data const integer stash-item stash-item-small
     $JTARGET $VALUE
-  select-template
+    scramble rMAPPER
+    $LD_IMMEDIATE_SOFTREF_BRANCH $SC_LD_INDIRECT
+  $SEL $TEMPLATE_SELECTOR
+  reset-template-selector
+  sub const-assign
+  select $SEL
     case L
       code
         jmp $JTARGET
+    case D
+      code
+        cmp $JTARGET, fs:[context.instruction_count + random_const_FS]
+        errorge STATUS_ROGUE_BRANCH
+        cmp $JTARGET, 0
+        errorlt STATUS_ROGUE_BRANCH
+        lfence
+        mov rMAPPER, $JTARGET
+        shl rMAPPER, 3
+        add rMAPPER, fs:[context.program_map + random_const_FS]
+        jmp [rMAPPER]
+    case C I
+      code
+        $LD_IMMEDIATE_SOFTREF_BRANCH
+        cmp rMAPPER, fs:[context.instruction_count + random_const_FS]
+        errorge STATUS_ROGUE_BRANCH
+        cmp rMAPPER, 0
+        errorlt STATUS_ROGUE_BRANCH
+        lfence
+        shl rMAPPER, 3
+        add rMAPPER, fs:[context.program_map + random_const_FS]
+        jmp [rMAPPER]
 
-instruction if
+subroutine test
+  $CJUMP jnz
   operand
-    type xmmx data integer const fconst float
+    type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed  data integer const fconst float string stash-item stash-item-small
     $A $VALUE
-    scramble rTEMPA $LD_IMMEDIATE_A
-  operand
+    scramble rTEMPA
+    $LD_IMMEDIATE_A $SC_LD
+    $LD_IMMEDIATE_A_INDIRECT $SC_LD_INDIRECT
+    $TGT_A $SC_TARGET
+  opt-operand
     type comparator
     $CJUMP $VALUE
-  operand
-    type xmmx data integer const fconst float
+  opt-operand
+    type xmmx xmmf32 xmmf64 xmmf32-packed xmmf64-packed xmmi-packed data integer const fconst float string stash-item stash-item-small
     $B $VALUE
-    scramble rTEMPC $LD_IMMEDIATE_B
-  operand
-    type branch
-    $JTARGET $VALUE
+    scramble rTEMPC
+    $LD_IMMEDIATE_B $SC_LD
+    $LD_IMMEDIATE_B_INDIRECT $SC_LD_INDIRECT
+    $TGT_B $SC_TARGET
   select-template
-    case DTDL
+    case DTD
       code
         cmp $A, $B
         $CJUMP .pass
-        jmp $NEXT_INSTRUCTION
-        .pass:
-        jmp $JTARGET
-    case DTIL DTCL
+    case DTI DTC DTS
+      sub tmp rc
       code
-        $LD_IMMEDIATE_B
+        $LD_IMMEDIATE_B_INDIRECT
         cmp $A, rTEMPC
         $CJUMP .pass
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
-        .pass:
-        xor rTEMPC, rTEMPC
-        jmp $JTARGET
-    case ITDL CTDL
+    case ITD CTD STD
+      sub tmp a
       code
-        $LD_IMMEDIATE_A
+        $LD_IMMEDIATE_A_INDIRECT
         cmp rTEMPA, $B
         $CJUMP .pass
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
-        .pass:
-        xor rTEMPA, rTEMPA
-        jmp $JTARGET
+    
+    case DAndD
+      code
+        test $A, $B
+        $CJUMP .pass
+    case DAndI DAndC DAndS
+      sub tmp rc
+      code
+        $LD_IMMEDIATE_B_INDIRECT
+        test $A, rTEMPC
+        $CJUMP .pass
+    case IAndD CAndD SAndD
+      sub tmp ra
+      code
+        $LD_IMMEDIATE_A_INDIRECT
+        test $B, rTEMPA
+        $CJUMP .pass
+    
+    case DOrD
+      sub tmp ra
+      code
+        assign rTEMPA, $A
+        or rTEMPA, $B
+        cmp $A, 0
+        $CJUMP .pass
+    case DOrI DOrC DOrS
+      sub tmp rc
+      code
+        $LD_IMMEDIATE_B_INDIRECT
+        or rTEMPC, $A
+        cmp rTEMPC, 0
+        $CJUMP .pass
+    case IOrD COrD SOrD
+      sub tmp $TGT_A
+      code
+        $LD_IMMEDIATE_A_INDIRECT
+        or rTEMPA, $B
+        cmp rTEMPA, 0
+        $CJUMP .pass
+    case D
+      code
+        cmp $A, 0
+        $CJUMP .pass
+
+subroutine cjump
+  operand
+    type branch codeblock
+    $JTARGET $VALUE
+    select $IS_CODEBLOCK
+      case true
+        $NEXT_INSTRUCTION $CODEBLOCK_CHILD_CLOSE
+        $JTARGET $CODEBLOCK_CHILD_FIRST
+      case false
+    code
+      $RESET_TEMP
+      jmp $NEXT_INSTRUCTION
+      .pass:
+      $RESET_TEMP
+      jmp $JTARGET
+
+instruction if
+  terminal
+  sub test
+  reset-template-selector
+  sub cjump
+
+subroutine const-assign
+  pick .
+  opt-operand
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_0 $SC_TARGET
+    $LD_IMMEDIATE_0 $SC_LD
+    $LD_IMMEDIATE_0_INDIRECT $SC_LD_INDIRECT
+  opt-operand
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_1 $SC_TARGET
+    $LD_IMMEDIATE_1 $SC_LD
+    $LD_IMMEDIATE_1_INDIRECT $SC_LD_INDIRECT
+  opt-operand
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_2 $SC_TARGET
+    $LD_IMMEDIATE_2 $SC_LD
+    $LD_IMMEDIATE_2_INDIRECT $SC_LD_INDIRECT
+  opt-operand
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_3 $SC_TARGET
+    $LD_IMMEDIATE_3 $SC_LD
+    $LD_IMMEDIATE_3_INDIRECT $SC_LD_INDIRECT
+  opt-operand
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_4 $SC_TARGET
+    $LD_IMMEDIATE_4 $SC_LD
+    $LD_IMMEDIATE_4_INDIRECT $SC_LD_INDIRECT
+  opt-operand
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_5 $SC_TARGET
+    $LD_IMMEDIATE_5 $SC_LD
+    $LD_IMMEDIATE_5_INDIRECT $SC_LD_INDIRECT
+  select-template
+    case .
+      # pass
+    case .I
+      code
+        $LD_IMMEDIATE_0
+        mov rA, $TGT_0
+    case .II
+      code
+        $LD_IMMEDIATE_0
+        mov rA, $TGT_0
+        $LD_IMMEDIATE_1
+        mov rB, $TGT_1
+    case .III
+      code
+        $LD_IMMEDIATE_0
+        mov rA, $TGT_0
+        $LD_IMMEDIATE_1
+        mov rB, $TGT_1
+        $LD_IMMEDIATE_2
+        mov rC, $TGT_2
+    case .IIII
+      code
+        $LD_IMMEDIATE_0
+        mov rA, $TGT_0
+        $LD_IMMEDIATE_1
+        mov rB, $TGT_1
+        $LD_IMMEDIATE_2
+        mov rC, $TGT_2
+        $LD_IMMEDIATE_3
+        mov rD, $TGT_3
+    case .IIIII
+      code
+        $LD_IMMEDIATE_0
+        mov rA, $TGT_0
+        $LD_IMMEDIATE_1
+        mov rB, $TGT_1
+        $LD_IMMEDIATE_2
+        mov rC, $TGT_2
+        $LD_IMMEDIATE_3
+        mov rD, $TGT_3
+        $LD_IMMEDIATE_4
+        mov rD, $TGT_4
+    case .IIIIII
+      code
+        $LD_IMMEDIATE_0
+        mov rA, $TGT_0
+        $LD_IMMEDIATE_1
+        mov rB, $TGT_1
+        $LD_IMMEDIATE_2
+        mov rC, $TGT_2
+        $LD_IMMEDIATE_3
+        mov rD, $TGT_3
+        $LD_IMMEDIATE_4
+        mov rD, $TGT_4
+        $LD_IMMEDIATE_5
+        mov rD, $TGT_5
 
 instruction lwcall
+  terminal
   operand
-    type branch
+    type branch data const integer stash-item stash-item-small
     $JTARGET $VALUE
-    scramble rTEMPC $LD_RETURN_TARGET $COMMAND_INDEX_NEXT
-  code
-    $LD_RETURN_TARGET
-    cmp rLWCSI, lwcall_stack_max
-    errorge STATUS_STACK_OVERFLOW
-    mov rTEMPA, rLWCSI
-    shl rTEMPA, 2
-    add rTEMPA, fs:[context.lwcall_stack_address + random_const_FS]
-    mov dword [rTEMPA], rTEMPC_32
-    inc rLWCSI
-    xor rTEMPA, rTEMPA
-    xor rTEMPC, rTEMPC
-    jmp $JTARGET
+    scramble rMAPPER
+    $LD_IMMEDIATE_SOFTREF_BRANCH $SC_LD_INDIRECT
+    scramble rTEMPC $COMMAND_INDEX_NEXT
+    $LD_RETURN_TARGET $SC_LD_INDIRECT
+  $SEL $TEMPLATE_SELECTOR
+  reset-template-selector
+  sub const-assign
+  select $SEL
+    case L
+      sub tmp a
+      sub tmp c
+      code
+        $LD_RETURN_TARGET
+        cmp rLWCSI, lwcall_stack_max
+        errorge STATUS_STACK_OVERFLOW
+        mov rTEMPA, rLWCSI
+        shl rTEMPA, 2
+        add rTEMPA, fs:[context.lwcall_stack_address + random_const_FS]
+        mov dword [rTEMPA], rTEMPC_32
+        inc rLWCSI
+        $RESET_TEMP
+        jmp $JTARGET
+    case D
+      sub tmp a
+      sub tmp c
+      code
+        $LD_RETURN_TARGET
+        cmp rLWCSI, lwcall_stack_max
+        errorge STATUS_STACK_OVERFLOW
+        mov rTEMPA, rLWCSI
+        shl rTEMPA, 2
+        add rTEMPA, fs:[context.lwcall_stack_address + random_const_FS]
+        mov dword [rTEMPA], rTEMPC_32
+        inc rLWCSI
+        cmp $JTARGET, fs:[context.instruction_count + random_const_FS]
+        errorge STATUS_ROGUE_BRANCH
+        cmp $JTARGET, 0
+        errorlt STATUS_ROGUE_BRANCH
+        lfence
+        mov rMAPPER, $JTARGET
+        shl rMAPPER, 3
+        add rMAPPER, fs:[context.program_map + random_const_FS]
+        $RESET_TEMP
+        jmp [rMAPPER]
+    case C I
+      sub tmp a
+      sub tmp c
+      code
+        $LD_RETURN_TARGET
+        cmp rLWCSI, lwcall_stack_max
+        errorge STATUS_STACK_OVERFLOW
+        mov rTEMPA, rLWCSI
+        shl rTEMPA, 2
+        add rTEMPA, fs:[context.lwcall_stack_address + random_const_FS]
+        mov dword [rTEMPA], rTEMPC_32
+        inc rLWCSI
+        
+        $LD_IMMEDIATE_SOFTREF_BRANCH
+        cmp rMAPPER, fs:[context.instruction_count + random_const_FS]
+        errorge STATUS_ROGUE_BRANCH
+        cmp rMAPPER, 0
+        errorlt STATUS_ROGUE_BRANCH
+        lfence
+        shl rMAPPER, 3
+        add rMAPPER, fs:[context.program_map + random_const_FS]
+        $RESET_TEMP
+        jmp [rMAPPER]
 
 instruction lwreturn
+  terminal
   code
     cmp rLWCSI_16, fs:[context.lwcall_floor + random_const_FS]
     errorle STATUS_STACK_UNDERFLOW
@@ -444,3 +669,68 @@ instruction lwreturn
     shl rMAPPER, 3
     add rMAPPER, fs:[context.program_map + random_const_FS]
     jmp [rMAPPER]
+
+# temp register auto-reset code generation
+subroutine tmp
+  select $USE_AUTO_RESET_TEMP$arg.0
+    case 1a 1ra 1rTEMPA
+      select $tmplockra
+        case X
+          # pass
+        default
+          $tmplockra X
+          code $RESET_TEMP
+            xor rTEMPA, rTEMPA
+    case 1b 1rb 1rTEMPB
+      select $tmplockrb
+        case X
+          # pass
+        default
+          $tmplockrb X
+          code $RESET_TEMP
+            xor rTEMPB, rTEMPB
+    case 1c 1rc 1rTEMPC
+      select $tmplockrc
+        case X
+          # pass
+        default
+          $tmplockrc X
+          code $RESET_TEMP
+            xor rTEMPC, rTEMPC
+    case 1xa 1xTEMPA
+      select $tmplockxa
+        case X
+          # pass
+        default
+          $tmplockxa X
+          code $RESET_TEMP
+            pxor xTEMPA, xTEMPA
+    case 1xb 1xTEMPB
+      select $tmplockxb
+        case X
+          # pass
+        default
+          $tmplockxb X
+          code $RESET_TEMP
+            pxor xTEMPB, xTEMPB
+    case 1map 1rmap
+      select $tmplockmap
+        case X
+          # pass
+        default
+          $tmplockmap X
+          code $RESET_TEMP
+            xor rMAPPER, rMAPPER
+    default
+      # pass
+
+instruction nop
+  code
+    nop
+
+instruction skip
+  code
+    ; pass
+
+
+

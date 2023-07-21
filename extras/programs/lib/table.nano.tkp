@@ -1,0 +1,229 @@
+# Associative arrays using TRIE structures
+#
+# This is intended to be a simple and compact associative array.
+# It does not contain any provisions for managing the memory of any mapped data (or any recognition of anything other than integer types)
+#
+# All keys are 64-bit integers
+#   These tables were also designed with the assumption that the keys are 8-char ascii values (hashing operation was selected for this case)
+#
+# Value type varies based on the size of the table
+#   NANOTABLE:  stores 16-bit values, 16 bytes per record, 8 bit internal key size, presumably cache-friendly
+#   MINITABLE:  stores 32-bit values, 32 bytes per record, 16 bit internal key size, recommended for general use
+#   MEGATABLE:  stores 64-bit values, 64 bytes per record, 32 bit internal key size
+#
+# The smaller internal keys are used to address records within the dynamic trie structure.  The larger 64-bit keys are used as a uniqueness test and to
+# direct which path is taken when traversing the structure.
+#
+# The simplest (and most obvious) way to interact with these table structures is the "INIT", "PUT", "GET", and "REMOVE" functions
+#
+# Table setup:
+# There are two parameters that need to be set when loading a table module
+#   $T -     address register to use as a memblock binding point  (addr1, addr2, addr3,or addr4)
+#   $StTmp - stash entry to use for temp variables (table modules don't store anythign there permenantly, so it can be a shared temp variable)
+#  module table1.nano lib/table.nano.tkp
+#    $T addr1
+#    $StTmp s28h
+#
+# Register allocation:
+#   $T:   memblock, must be configured in the module import declaration
+#     memblock layout must match the expected layout (memblock with layout specified by struct s_*table)
+#   rA:   value
+#   rB:   key
+# clobbers:  rC rD rE rF $StTmp
+# additional MICROTABLE clovvers:  xA-xD
+# additional MEGATABLE clovvers:  xA-xH
+#   (possibly should think about reducing the amount of xmm register space clobbered, expecially for just zero-ing memblock content)
+#   (possibly also should think about making xmm register allocation configurable)
+#
+# Internal register allocation ( other values returned from LOOKUP and used by ADD_NODE/REMOVE_NODE ):
+#   rC:   success or failure indicator
+#   rD:   trie index
+#   rE:   temp/scratch field
+#   rF:   table size
+
+NANOTABLE__PUT.$T:
+  stash $StTmp rA
+  lwcall NANOTABLE__LOOKUP.$T
+  if rC == 0
+    stash rA $StTmp
+    lwcall NANOTABLE__ADD_NODE.$T
+    assign rC 2
+  if rC == 1
+    stash rA $StTmp
+    store word $T s_NANOTABLE.ref rA
+  lwreturn
+
+NANOTABLE__REMOVE.$T:
+  lwcall NANOTABLE__LOOKUP.$T
+  if rC == 1
+    lwcall NANOTABLE__REMOVE_NODE.$T
+    assign rC 1
+  lwreturn
+
+NANOTABLE__INIT.$T:
+  assign $T.offset 0
+  xassign xA 0 0
+  assign rA 0
+  NANOTABLE__INIT.zero.$T:
+  if rA < s_NANOTABLE_size
+    store oword $T rA xA
+    add rA 16
+    goto NANOTABLE__INIT.zero.$T
+  store dword $T s_TABLE_HEADER.table_length 2
+  store dword $T s_TABLE_HEADER.table_maxlength -1
+  lwreturn
+
+NANOTABLE__GET.$T:
+NANOTABLE__LOOKUP.$T:
+  assign $T.offset 0
+  assign rD 0
+  
+  # hash the key (to partially mitigate algorithmic bias induced by alphanumeric chars)
+  assign rC rB
+  rotate-left rC 4
+  xor rC rB
+  
+  assign rE NANOTABLE_iterations
+  load dword rF $T s_TABLE_HEADER.table_length
+  assign $T.offset s_NANOTABLE_size
+  
+  NANOTABLE_LOOKUP_LOOP.$T:
+    assign rD rC
+    and rD NANOTABLE_kmask
+    
+    # if a null pointer, then the node doesn't exist (but the current node is the scheduled parent)
+    load byte rA $T rD
+    if rA == 0
+      assign rA 0
+      assign rC 0
+      lwreturn
+    shift-left rA NANOTABLE_scale
+    assign $T.offset rA
+    
+    dec rE
+    load qword rA $T s_NANOTABLE.id
+    
+    # if id matched, succees!
+    if rA == rB
+      load word rA $T s_NANOTABLE.ref
+      assign rC 1
+      lwreturn
+    
+    # Select the next node index
+    rotate-right rC NANOTABLE_krotate
+    
+    # This should never reach 0
+    if rE > 0 NANOTABLE_LOOKUP_LOOP.$T
+
+NANOTABLE__ADD_NODE.$T:
+  store byte $T rD rF
+  assign rC $T.offset
+
+  # ref back to parent node (enables dynamic node deletion)
+  shift-right rC NANOTABLE_scale
+  
+  inc rF
+  assign $T.offset 0
+  store dword $T s_TABLE_HEADER.table_length rF
+
+  dec rF
+  
+  shift-left rF NANOTABLE_scale
+  assign $T.offset rF
+  store qword $T s_NANOTABLE.id rB
+  store word $T s_NANOTABLE.ref rA
+  store byte $T s_NANOTABLE.parent rC
+  store byte $T s_NANOTABLE.prefix rD
+  lwreturn
+
+NANOTABLE__REMOVE_NODE.$T:
+  assign rF 1
+  NANOTABLE__REMOVE_NODE.recursive_entry.$T:
+  load byte rA $T s_NANOTABLE.parent
+  assign rB $T.offset
+  assign rC 0
+  NANOTABLE_SCAN_CHILDREN.$T:
+  if rC < 4
+    load byte rD $T rC
+    inc rC
+    if rD == 0 NANOTABLE_SCAN_CHILDREN.$T
+    goto NANOTABLE_PROMOTE_NODE.$T
+  
+  # follow the reference back to the parent and unlink the node (but not if the reentry point has been called)
+  if rF == 1
+    load byte rC $T s_NANOTABLE.prefix
+    shift-left rA NANOTABLE_scale
+    assign $T.offset rA
+    assign rA 0
+    store byte $T rC rA
+
+  # no children - delete node
+  # get ref to last entry (and update table size)
+  assign $T.offset 0
+  load dword rD $T s_TABLE_HEADER.table_length
+  dec rD
+  store dword $T s_TABLE_HEADER.table_length rD
+  shift-left rD NANOTABLE_scale
+  
+  # take the last entry
+  assign $T.offset rD
+  assign rC 0
+  load dword rA $T 0
+  store dword $T 0 rC
+  
+  # ... and move it to the vacated position
+  assign $T.offset rB
+  store dword $T 0 rA
+    
+  # take the reference to the moved node and navigate to its parent
+  load byte rA $T s_NANOTABLE.parent
+  shift-left rA NANOTABLE_scale
+  load byte rC $T s_NANOTABLE.prefix
+  assign $T.offset rA
+  
+  # lastly, re-link the parent node to the moved node.
+  store byte $T rC rB
+  lwreturn
+  
+  NANOTABLE_PROMOTE_NODE.$T:
+  shift-left rD NANOTABLE_scale
+  assign $T.offset rD
+  load dword rE $T 0
+  #block-load 2 xxA $T 0
+  
+  assign $T.offset rB
+  load byte rC $T s_NANOTABLE.prefix
+  store dword $T 0 rE
+  # block-store 2 $T 0 xxA
+  shift-right rA NANOTABLE_scale
+  store byte $T s_NANOTABLE.parent rA
+  load byte rE $T s_NANOTABLE.prefix
+  
+  shift-left rA NANOTABLE_scale
+  shift-right rB NANOTABLE_scale
+  assign $T.offset rA
+  assign rA 0
+  store byte $T rC rA
+  store byte $T rE rB
+  
+  assign $T.offset rD
+
+  # Remove the vacated node.
+  assign rF 0
+  goto NANOTABLE__REMOVE_NODE.recursive_entry.$T
+  
+  # iterate children
+  # if any non-null
+    # pick one to promote (HINT: the first non-null one)
+    # read child node data [onto xmm registers]
+    # replace child parent with current parent
+    # overwrite current node with child data
+    # delete the child node [tail-recursive]
+  # if all children null
+    # select last node in set
+    # read last node data [onto xmm registers]
+    # zero last node
+    # overwrite current node with last node data
+    # select last node parent
+    # update reference to last node 
+    # decrement node count [in root node data]

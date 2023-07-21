@@ -1,0 +1,60 @@
+const .nul 0
+const .soh 1
+const .stx 2
+const .etx 3
+const .eot 4
+const .enq 5
+const .ack 6
+const .bel 7
+const .bs 8
+const .ht 9
+const .lf 10
+const .vt 11
+const .ff 12
+const .cr 13
+const .so 14
+const .si 15
+const .dle 16
+const .dc1 17
+const .dc2 18
+const .dc3 19
+const .dc4 20
+const .nak 21
+const .syn 22
+const .etb 23
+const .can 24
+const .em 25
+const .sub 26
+const .esc 27
+const .fs 28
+const .gs 29
+const .rs 30
+const .us 31
+const .del 127
+
+const .null 0
+
+const .backspace 8
+const .tab 9
+const .htab 9
+
+const .nl 10
+const .newline 10
+const .vtab 11
+
+const .escape 27
+
+const \0 0
+const \a 7
+const \b 8
+const \t 9
+const \n 10
+const \v 11
+const \f 12
+const \r 13
+const \e 27
+
+
+
+
+

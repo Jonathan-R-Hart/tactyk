@@ -36,7 +36,8 @@ void tactyk_pl__init() {
     tactyk_dblock__put(tkpl_funcs, "set", tactyk_pl__set);
     tactyk_dblock__put(tkpl_funcs, "use_vconstants", tactyk_pl__ld_visa_constants);
     tactyk_dblock__put(tkpl_funcs, "use", tactyk_pl__ld_constants);
-
+    tactyk_dblock__put(tkpl_funcs, "bus", tactyk_pl__bus);
+    
     tactyk_dblock__set_persistence_code(tkpl_funcs, 100);
 
     default_mem_layout.byte_stride = 8;
@@ -70,6 +71,16 @@ struct tactyk_pl__Context *tactyk_pl__new(struct tactyk_emit__Context *emitctx) 
     ctx->constant_sets = tactyk_dblock__new_table(64);
     tactyk_dblock__set_persistence_code(ctx->constant_sets, 10);
     
+    for (int32_t i = 0; i < 256; i++) {
+        ctx->alias_chars[i] = false;
+    }
+    char *achars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    int32_t nc_count = strlen(achars);
+    for (int32_t i = 0; i < nc_count; i++) {
+        char ch = achars[i];
+        ctx->alias_chars[(int32_t)ch] = true;
+    }
+    
     return ctx;
 }
 void tactyk_pl__define_constants(struct tactyk_pl__Context *ctx, char *name, struct tactyk_dblock__DBlock *constants) {
@@ -91,6 +102,9 @@ void tactyk_pl__load(struct tactyk_pl__Context *plctx, char *code) {
 
 void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblock__DBlock *dbcode) {
     struct tactyk_emit__Context *emitctx = plctx->emitctx;
+    if (plctx->alias_table != NULL) {
+        tactyk_pl__resolve_aliased_tokens(plctx, dbcode);
+    }
     struct tactyk_dblock__DBlock *dbstack[256];
     int64_t dbstack_index = 0;
     dbstack[0] = dbcode;
@@ -110,7 +124,8 @@ void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblo
                     tok = tok->next;
                 }
                 if (tok != NULL) {
-                    tactyk_emit__add_script_command(emitctx, tok, dbcode);
+                    tactyk_pl__add_script_command(plctx, tok, dbcode);
+                    //tactyk_emit__add_script_command(emitctx, tok, dbcode);
                 }
             }
             else {
@@ -122,6 +137,7 @@ void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblo
                 dbstack[dbstack_index] = dbcode;
                 dbstack_index += 1;
                 dbcode = dbcode->child;
+                tactyk_emit__push_codeblock(emitctx, false);
                 continue;
             }
             else if (dbcode->next != NULL) {
@@ -134,10 +150,214 @@ void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblo
                     if (dbstack_index == -1) {
                         return;
                     }
+                    tactyk_emit__pop_codeblock(emitctx);
                     dbcode = dbstack[dbstack_index]->next;
                 } while (dbcode == NULL);
                 goto handle_dbcode;
             }
+        }
+    }
+}
+
+void tactyk_pl__resolve_aliased_tokens(struct tactyk_pl__Context *plctx, struct tactyk_dblock__DBlock *dbcode) {
+    tactyk_report__reset();
+    tactyk_report__msg("REWRITE");
+    struct tactyk_dblock__DBlock *dbstack[256];
+    int64_t dbstack_index = 0;
+    dbstack[0] = dbcode;
+    bool escape_block = false;
+    while (dbcode != NULL) {
+        struct tactyk_dblock__DBlock *token = dbcode->token;
+        while (token != NULL) {
+            if ( tactyk_dblock__contains_char(token, '$') ) {
+                tactyk_report__dblock("Original line", dbcode);
+                tactyk_report__indent(2);
+                tactyk_report__dblock("Original token", token);
+                struct tactyk_dblock__DBlock *ntoken = tactyk_dblock__interpolate(token, '$', plctx->alias_chars, plctx->alias_table, NULL);
+                tactyk_dblock__set_content(token, ntoken);
+                tactyk_report__dblock("Rewritten token", ntoken);
+                tactyk_report__indent(-2);
+            }
+            token = token->next;
+        }
+        if (dbcode->child != NULL) {
+            dbstack[dbstack_index] = dbcode;
+            dbstack_index += 1;
+            dbcode = dbcode->child;
+            continue;
+        }
+        else if (dbcode->next != NULL) {
+            dbcode = dbcode->next;
+            continue;
+        }
+        else {
+            do {
+                dbstack_index -= 1;
+                if (dbstack_index == -1) {
+                    return;
+                }
+                dbcode = dbstack[dbstack_index]->next;
+            } while (dbcode == NULL);
+        }
+    }
+}
+
+
+void tactyk_pl__add_script_command(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *token, struct tactyk_dblock__DBlock *line) {
+    struct tactyk_dblock__DBlock *_token = token;
+    struct tactyk_dblock__DBlock *_prev = NULL;
+    while (_token != NULL) {
+        if (tactyk_dblock__getchar(_token, 0) == '^') {
+            goto read_bus_tokens;
+        }
+        _prev = _token;
+        _token = _token->next;
+    }
+    tactyk_emit__add_script_command(ctx->emitctx, token, line);
+    return;
+    
+    struct tactyk_dblock__DBlock *bus_tokens[256];
+    struct tactyk_dblock__DBlock *bus_cmd = NULL;
+    struct tactyk_dblock__DBlock *bus_token = NULL;
+    
+    read_bus_tokens: {
+        bus_token = _token;
+        memset(bus_tokens, 0, sizeof(bus_tokens));
+        // iterate the chars of all subsequent tokens
+        char txt[1024];
+        uint64_t pos = 1;
+        uint64_t busidx = 0;
+        uint64_t cmdidx = 0;
+        bool put_command;
+        while (bus_token != NULL) {
+            tactyk_dblock__export_cstring(txt, 1024, bus_token);
+            while (pos < 1024) {
+                char c = txt[pos];
+                switch(txt[pos]) {
+                    
+                    // end of token
+                    case 0: {
+                        if (put_command) {
+                            put_command = false;
+                            bus_tokens[cmdidx] = ctx->bus_tokens[busidx];
+                            busidx += 1;
+                            cmdidx = 0;
+                        }
+                        goto read_bus_tokens__next;
+                    }
+                    
+                    // back up [to allow a token to be referenced multiple times]
+                    case ',': {
+                        if (put_command) {
+                            put_command = false;
+                            bus_tokens[cmdidx] = ctx->bus_tokens[busidx];
+                        }
+                        if (busidx > 0) {
+                            busidx -= 1;
+                        }
+                        cmdidx = 0;
+                        break;
+                    }
+                    
+                    // attach any trailing tokens to the token preceding the bus-tokens.
+                    case '^': {
+                        if (put_command) {
+                            put_command = false;
+                            bus_tokens[cmdidx] = ctx->bus_tokens[busidx];
+                        }
+                        goto insert_bus_tokens;
+                    }
+                    
+                    // ignored chars
+                    case '<': case '>':
+                    case '{': case '}':
+                    case '[': case ']':
+                    case '(': case ')':
+                    case ' ': {
+                        if (put_command) {
+                            bus_tokens[cmdidx] = ctx->bus_tokens[busidx];
+                            busidx += 1;
+                            cmdidx = 0;
+                        }
+                        break;
+                    }
+                    default: {
+                        int64_t iv = (uint64_t) (c - '0');
+                        if ( (iv >= 0) && (iv <= 9) ) {
+                            put_command = true;
+                            cmdidx *= 10;
+                            cmdidx += iv;
+                        }
+                        else {
+                            if (put_command) {
+                                put_command = false;
+                                bus_tokens[cmdidx] = ctx->bus_tokens[busidx];
+                            }
+                            // treat anything else as a NULL bus entry
+                            busidx += 1;
+                            cmdidx = 0;
+                        }
+                    }
+                }
+                if (busidx >= 256) {
+                    busidx = 255;
+                }
+                pos += 1;
+            }
+            read_bus_tokens__next:
+            pos = 0;
+            bus_token = bus_token->next;
+        }
+        // if the bus token list does not terminate, then terminate the input command at the preceding token.
+        _prev->next = NULL;
+    }
+    
+    insert_bus_tokens:{
+        _prev->next = bus_token->next;
+        uint64_t rc_pos = 1;
+        struct tactyk_dblock__DBlock *__token = token->next;
+        bus_cmd = bus_tokens[0];
+        if (bus_cmd == NULL) {
+            bus_cmd = token;
+        }
+        
+        struct tactyk_dblock__DBlock *bc_token = tactyk_dblock__new(16);
+        tactyk_dblock__set_content(bc_token,bus_cmd);
+        bus_cmd = bc_token;
+        struct tactyk_dblock__DBlock *buscmd_end = bus_cmd;
+        while (true) {
+            if (bus_tokens[rc_pos] != NULL) {
+                bc_token = tactyk_dblock__new(16);
+                tactyk_dblock__set_content(bc_token, bus_tokens[rc_pos]);
+                buscmd_end->next = bc_token;
+                buscmd_end = bc_token;
+            }
+            else if (__token != NULL) {
+                bc_token = tactyk_dblock__new(16);
+                tactyk_dblock__set_content(bc_token, __token);
+                buscmd_end->next = bc_token;
+                buscmd_end = bc_token;
+                __token = __token->next;
+            }
+            else {
+                break;
+            }
+            rc_pos += 1;
+        }
+    }
+    tactyk_emit__add_script_command(ctx->emitctx, bus_cmd, line);
+}
+
+bool tactyk_pl__bus(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
+    uint64_t idx = 0;
+    struct tactyk_dblock__DBlock *token = dblock->token->next;
+    memset(ctx->bus_tokens, 0, sizeof(ctx->bus_tokens));
+    while (token != NULL) {
+        ctx->bus_tokens[idx] = token;
+        idx += 1;
+        token = token->next;
+        if (idx == 256) {
+            break;
         }
     }
 }
@@ -464,7 +684,7 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
     
     struct tactyk_dblock__DBlock *name = dblock->token->next;
     struct tactyk_dblock__DBlock *type = dblock->token->next->next;
-
+    
     uint64_t nbytes = 0;
     bool isfloat = false;
     if (type == NULL) {
@@ -507,7 +727,7 @@ bool tactyk_pl__flatdata(struct tactyk_pl__Context *ctx, struct tactyk_dblock__D
     tactyk_report__uint("items", item_count);
     tactyk_report__uint("size(bytes)", item_count*nbytes);
     tactyk_report__ptr("ref", data);
-
+    
     uint64_t wbytes = nbytes;
     if (wbytes > 8) {
         wbytes = 8;

@@ -1,0 +1,21 @@
+
+flat m_interleavebits_word_bit word
+  h.0 h.01
+  h.0 h.04
+  h.0 h.10
+  h.0 h.40
+  h.0 h.0100
+  h.0 h.0400
+  h.0 h.1000
+  h.0 h.4000
+  h.0 h.02
+  h.0 h.08
+  h.0 h.20
+  h.0 h.80
+  h.0 h.0200
+  h.0 h.0800
+  h.0 h.2000
+  h.0 h.8000
+
+# bind addr1 m_interleavebits_word_bit
+# lut-transform word bit add addr1 rB rA

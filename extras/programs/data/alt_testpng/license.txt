@@ -1,0 +1,8 @@
+alt_1bit_indexed.png
+License:  GPL3
+Source:  TACTYK project
+
+Graykitten.png
+License:  Public domain
+Author:  Martin Vorel
+Source:  https://libreshot.com/gray-kitten-looks-up-at-a-camera/

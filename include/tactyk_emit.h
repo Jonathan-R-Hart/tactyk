@@ -49,8 +49,17 @@
 
 #define TACTYK_EMIT_ASMCHUNK_MAXSIZE 4096
 
+#define TACTYK_EMIT__MAX_CODEBLOCK_NESTLEVEL 16
+
 //struct tactyk_structured_text;
 struct tactyk_emit__Context;
+struct tactyk_emit__script_command;
+
+struct tactyk_emit__codeblock {
+    struct tactyk_dblock__DBlock *header_label;
+    struct tactyk_dblock__DBlock *first_label;
+    struct tactyk_dblock__DBlock *close_label;
+};
 
 struct tactyk_emit__script_command {
     struct tactyk_dblock__DBlock *name;
@@ -60,11 +69,17 @@ struct tactyk_emit__script_command {
     struct tactyk_dblock__DBlock *labels;
 
     struct tactyk_dblock__DBlock *asm_code;
-
+    
+    struct tactyk_emit__codeblock parent;
+    struct tactyk_emit__codeblock child;
+    
     int32_t linenumber;
 };
 
+
 void tactyk_emit__add_script_label(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock* label);
+void tactyk_emit__push_codeblock(struct tactyk_emit__Context *ctx, bool orphan);
+void tactyk_emit__pop_codeblock(struct tactyk_emit__Context *ctx);
 void tactyk_emit__add_script_command(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *token, struct tactyk_dblock__DBlock *line);
 void tactyk_emit__compile(struct tactyk_emit__Context *ctx);
 //#define TACTYK_EMIT_COMMAND_FRAGMENT_CAPACITY 16
@@ -83,6 +98,9 @@ typedef void (tactyk_emit__tactyk_api_function)(struct tactyk_asmvm__Context *co
 struct tactyk_emit__subroutine_spec {
     struct tactyk_dblock__DBlock *vopcfg;
     tactyk_emit__sub_func func;
+    bool chain_in;
+    bool chain_out;
+    bool skip;
 };
 
 struct tactyk_emit__Context {
@@ -103,12 +121,14 @@ struct tactyk_emit__Context {
 
     struct tactyk_dblock__DBlock *local_vars;
     struct tactyk_dblock__DBlock *global_vars;
-
+    uint64_t subarg_count;
+    
     struct tactyk_dblock__DBlock *symbol_tables;
     struct tactyk_dblock__DBlock *const_table;
     struct tactyk_dblock__DBlock *fconst_table;
     struct tactyk_dblock__DBlock *memblock_table;
     struct tactyk_dblock__DBlock *label_table;
+    struct tactyk_dblock__DBlock *labelindex_table;
     struct tactyk_dblock__DBlock *api_table;
     struct tactyk_dblock__DBlock *c_api_table;
 
@@ -128,6 +148,9 @@ struct tactyk_emit__Context {
     bool valid_parse_result;
     struct tactyk_dblock__DBlock *pl_operand_raw;
     struct tactyk_dblock__DBlock *pl_operand_resolved;
+    
+    bool is_terminal;
+    struct tactyk_emit__subroutine_spec *insert_branch_to_next_instruction;
 
     tactyk_emit__error_handler error_handler;
 
@@ -137,13 +160,23 @@ struct tactyk_emit__Context {
 
     bool namechars[256];
     uint64_t iptr;
+    uint64_t target_iptr;
 
     uint64_t token_handle_count;
     bool has_visa_constants;
 
     uint64_t random_const_fs;
     uint64_t random_const_gs;
-
+    
+    uint64_t next_codeblock_id;
+    int64_t active_codeblock_index;
+    struct tactyk_dblock__DBlock *codeblocks;
+    
+    bool use_immediate_scrambling;
+    bool use_executable_layout_randomization;
+    bool use_extra_permutations;
+    bool use_exopointers;
+    bool use_temp_register_autoreset;
 };
 
 struct tactyk_emit__Context* tactyk_emit__init();
@@ -170,7 +203,6 @@ void tactyk_emit__init_program(struct tactyk_emit__Context *ctx);
 bool tactyk_emit__ExecSubroutine(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__ExecInstruction(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 
-
 // TACTYK VISA basic functionality
 //  (obviously I still need to move them either to tactyk_visa.c or create tactyk_visa_supplemental.c and put them there)
 //
@@ -194,12 +226,14 @@ bool tactyk_emit__SelectKeyword(struct tactyk_emit__Context *ctx, struct tactyk_
 bool tactyk_emit__SelectKeyword2(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Flags(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Case(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+bool tactyk_emit__Default(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Contains(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
-//bool tactyk_emit__IntRange(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+bool tactyk_emit__Repeat(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Match(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__True(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__False(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Pick(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+bool tactyk_emit__ClearTemplate(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 //bool tactyk_emit__Assign(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__Operand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__OptionalOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
@@ -212,11 +246,14 @@ bool tactyk_emit__Value(struct tactyk_emit__Context *ctx, struct tactyk_dblock__
 bool tactyk_emit__IntOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__FloatOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__StringOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+bool tactyk_emit__Codeblock_VOperand(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__NullArg(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 
 bool tactyk_emit__Scramble(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 bool tactyk_emit__DoSub(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
-bool tactyk_emit__Exit(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+
+bool tactyk_emit__Terminal(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
+
 //bool tactyk_emit__Subroutine(struct tactyk_emit_new__Context *ctx, struct tactyk_dblock__DBlock *vopcfg);
 
 

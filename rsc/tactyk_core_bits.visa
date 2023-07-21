@@ -1,0 +1,629 @@
+
+subroutine shift
+  operand 
+    type data stash-item stash-item-small
+    $A $VALUE
+  operand
+    type data integer const stash-item stash-item-small
+    $B $VALUE
+    scramble rTEMPC
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+  select-template
+    case DD
+      sub tmp c
+      code 
+        mov rTEMPC, $B
+        $INSTRUCTION $A, cl
+        $RESET_TEMP
+    case DI DC
+      sub tmp c
+      code 
+        $LD_B_IMMEDIATE_INDIRECT
+        $INSTRUCTION $A, cl
+        $RESET_TEMP
+
+instruction shift-left
+  $INSTRUCTION shl
+  sub shift
+
+instruction shift-right
+  $INSTRUCTION shr
+  sub shift
+
+instruction rotate-left
+  $INSTRUCTION rol
+  sub shift
+
+instruction rotate-right
+  $INSTRUCTION ror
+  sub shift
+
+subroutine simple_binary_instruction
+  operand 
+    type data xmmx stash-item stash-item-small
+    $A $VALUE
+  operand
+    type data const integer xmmx stash-item stash-item-small
+    $B $VALUE
+    scramble rTEMPA
+  select-template
+    case DD
+      code 
+        $INSTRUCTION $A, $B
+    case DI DC
+      code 
+        $SC_LD
+        $INSTRUCTION $A, $SC_TARGET
+        $RESET_TEMP
+    case DX
+      sub tmp ra
+      code
+        movq rTEMPA, $B
+        p$INSTRUCTION $A, rTEMPA
+        $RESET_TEMP
+    case XD
+      sub tmp xa
+      code
+        movq xTEMPA, $B
+        p$INSTRUCTION $A, xTEMPA
+        $RESET_TEMP
+    case XI XC
+      sub tmp ra
+      sub tmp xa
+      code
+        $LD_B_IMMEDIATE
+        movq xTEMPA, rTEMPA
+        p$INSTRUCTION $A, xTEMPA
+        $RESET_TEMP
+    case XX
+      code
+        p$INSTRUCTION $A, $B
+
+instruction and
+  $INSTRUCTION and
+  sub simple_binary_instruction
+
+instruction or
+  $INSTRUCTION or
+  sub simple_binary_instruction
+
+instruction xor
+  $INSTRUCTION xor
+  sub simple_binary_instruction
+
+instruction not
+  $INSTRUCTION not
+  sub simple_unary_instruction
+
+instruction bitcount
+  operand
+    type word
+  operand
+    type data
+    $DEST $VALUE
+  opt-operand
+    type data
+    $SRC $VALUE
+  select-template
+    case QD QsD
+      code
+        popcnt $DEST, $DEST
+    case QDD QsDD
+      code
+        popcnt $DEST, $SRC
+    case DD DsD
+      code
+        popcnt %[$DEST]_32, %[$DEST]_32
+    case DDD DsDD
+      code
+        popcnt %[$DEST]_32, %[$SRC]_32
+    case WD WsD
+      code
+        # I want popcnt, not [and 0xffffffffffff0000 + popcnt].
+        and $DEST, 0xffff
+        popcnt %[$DEST]_16, %[$DEST]_16
+    case WDD WsDD
+      code
+        mov $DEST, $SRC
+        and $DEST, 0xffff
+        popcnt %[$DEST]_16, %[$SRC]_16
+    case BD BsD
+      code
+        and $DEST, 255
+        popcnt $DEST, $DEST
+    case BDD BsDD
+      code
+        mov $DEST, $SRC
+        and $DEST, 255
+        popcnt $DEST, $DEST
+
+subroutine reverse-bits-core
+  sub tmp ra
+  sub tmp rd
+  code
+    mov rTEMPA, 0x5555555555555555
+    mov rTEMPD, $rRVBITREG
+    and $rRVBITREG, rTEMPA
+    shl rTEMPA, 1
+    and rTEMPD, rTEMPA
+    shr rTEMPD, 1
+    shl $rRVBITREG, 1
+    or $rRVBITREG, rTEMPD
+    mov rTEMPA, 0x3333333333333333
+    mov rTEMPD, $rRVBITREG
+    and $rRVBITREG, rTEMPA
+    shl rTEMPA, 2
+    and rTEMPD, rTEMPA
+    shr rTEMPD, 2
+    shl $rRVBITREG, 2
+    or $rRVBITREG, rTEMPD
+    mov rTEMPA, 0x0f0f0f0f0f0f0f0f
+    mov rTEMPD, $rRVBITREG
+    and $rRVBITREG, rTEMPA
+    shl rTEMPA, 4
+    and rTEMPD, rTEMPA
+    shr rTEMPD, 4
+    shl $rRVBITREG, 4
+    or $rRVBITREG, rTEMPD
+    bswap $rRVBITREG
+
+instruction reverse-bits
+  operand
+    type data stash-item stash-item-small
+    $DEST $VALUE
+  opt-operand
+    type data integer *const stash-item stash-item-small
+    $PARAM $VALUE
+    scramble rTEMPC
+    $LD_IMMEDIATE_INDIRECT_PARAM $SC_LD_INDIRECT
+    $TGT_PARAM $SC_TARGET
+  select-template
+    case D
+      $rRVBITREG $DEST
+      sub reverse-bits-core
+      code
+        $RESET_TEMP
+    case DD
+      $rRVBITREG $DEST
+      sub tmp rc
+      sub reverse-bits-core
+      code
+        mov rTEMPC, $PARAM
+        not rTEMPC
+        inc rTEMPC
+        shr $DEST, rTEMPC_8
+        $RESET_TEMP
+    case DI
+      $rRVBITREG $DEST
+      sub tmp rc
+      sub reverse-bits-core
+      code
+        $LD_IMMEDIATE_INDIRECT_PARAM
+        not rTEMPC
+        inc rTEMPC
+        shr $DEST, rTEMPC_8
+        $RESET_TEMP
+instruction reverse-bytes
+  operand
+    type word
+  operand
+    type data
+    $DEST $VALUE
+  opt-operand
+    type data
+    $SRC $VALUE
+  select-template
+    case QD
+      code
+        bswap $DEST
+    case QDD
+      code
+        mov $DEST, $SRC
+        bswap $DEST
+    case DD
+      code
+        bswap %[$DEST]_32
+    case DDD
+      code
+        mov $DEST, $SRC
+        bswap %[$DEST]_32
+    case WD
+      code
+        bswap $DEST
+        shr $DEST, 48
+    case WDD
+      code
+        mov $DEST, $SRC
+        bswap $DEST
+        shr $DEST, 48
+    case BD
+      code
+        ; pass
+    case BDD
+      code
+        mov $DEST, $SRC
+
+instruction find-bit
+  opt-operand
+    select-operand
+      case first low lowest
+        pick Lo
+      case last high highest
+        pick Hi
+  operand
+    type data
+    $DEST $VALUE
+  operand
+    type data
+    $SRC $VALUE
+  opt-operand
+    type branch codeblock
+    $JTARGET $VALUE
+    select $IS_CODEBLOCK
+      case true
+        $NEXT_INSTRUCTION $CODEBLOCK_CHILD_CLOSE
+        $JTARGET $CODEBLOCK_CHILD_FIRST
+      case false
+  select-template
+    case DD LoDD
+      code
+        bsf $DEST, $SRC
+    case HiDD
+      code
+        bsr $DEST, $SRC
+    case DDL LoDDL DDB LoDDB
+      terminal
+      code
+        bsf $DEST, $SRC
+        jnz $JTARGET
+        jmp $NEXT_INSTRUCTION
+    case HiDDL HiDDB
+      terminal
+      code
+        bsr $DEST, $SRC
+        jnz $JTARGET
+        jmp $NEXT_INSTRUCTION
+
+typespec lookup-table
+  select-template
+    case Q
+      $TWORD_SCALE 3
+      select-operand
+        case 1 bit
+          $STEPS 64
+          $STEP 1
+          $MINTBLEBOUND 1024
+          $CHKSZ 16
+          $MASK 1
+        case 2 half-nibble
+          $STEPS 32
+          $STEP 2
+          $MINTBLEBOUND 1024
+          $CHKSZ 32
+          $MASK 3
+        case 4 nibble
+          $STEPS 16
+          $STEP 4
+          $MINTBLEBOUND 2048
+          $CHKSZ 128
+          $MASK 15
+        case 8 byte
+          $STEPS 8
+          $STEP 8
+          $MINTBLEBOUND 16384
+          $CHKSZ 2048
+          $MASK 255
+        #case 16 word
+        #  $STEPS 4
+        #  $STEP 16
+        #  $MINTBLEBOUND 2097152
+        #  $CHKSZ 524288
+        #  $MASK 65535
+    case D
+      $TWORD_SCALE 2
+      select-operand
+        case 1 bit
+          $STEPS 32
+          $STEP 1
+          $MINTBLEBOUND 256
+          $CHKSZ 8
+          $MASK 1
+        case 2 half-nibble
+          $STEPS 16
+          $STEP 2
+          $MINTBLEBOUND 256
+          $CHKSZ 16
+          $MASK 3
+        case 4 nibble
+          $STEPS 8
+          $STEP 4
+          $MINTBLEBOUND 512
+          $CHKSZ 64
+          $MASK 15
+        case 8 byte
+          $STEPS 4
+          $STEP 8
+          $MINTBLEBOUND 4096
+          $CHKSZ 1024
+          $MASK 255
+        #case 16 word
+        #  $STEPS 2
+        #  $STEP 16
+        #  $MINTBLEBOUND 524288
+        #  $CHKSZ 524288
+        #  $MASK 65535
+    case W
+      $TWORD_SCALE 1
+      select-operand
+        case 1 bit
+          $STEPS 16
+          $STEP 1
+          $MINTBLEBOUND 64
+          $CHKSZ 4
+          $MASK 1
+        case 2 half-nibble
+          $STEPS 8
+          $STEP 2
+          $MINTBLEBOUND 64
+          $CHKSZ 8
+          $MASK 3
+        case 4 nibble
+          $STEPS 4
+          $STEP 4
+          $MINTBLEBOUND 128
+          $CHKSZ 32
+          $MASK 15
+        case 8 byte
+          $STEPS 2
+          $STEP 8
+          $MINTBLEBOUND 1024
+          $CHKSZ 512
+          $MASK 255
+        #case 16 word
+        #  $STEPS 1
+        #  $STEP 16
+        #  $MINTBLEBOUND 131072
+        #  $CHKSZ 524288
+        #  $MASK 65535
+    case B
+      $TWORD_SCALE 0
+      select-operand
+        case 1 bit
+          $STEPS 8
+          $STEP 1
+          $MINTBLEBOUND 16
+          $CHKSZ 2
+          $MASK 1
+        case 2 half-nibble
+          $STEPS 4
+          $STEP 2
+          $MINTBLEBOUND 16
+          $CHKSZ 4
+          $MASK 3
+        case 4 nibble
+          $STEPS 2
+          $STEP 4
+          $MINTBLEBOUND 32
+          $CHKSZ 16
+          $MASK 15
+        case 8 byte
+          $STEPS 1
+          $STEP 8
+          $MINTBLEBOUND 256
+          $CHKSZ 256
+          $MASK 255
+
+# apply a piecewise lookup table transform to a register
+#   Register value is logically split into a series of chunks (sequence of adjacent bits)
+#   Each chunk within the register (up tot he specified word size) is read and used to index a lookup table.
+#   The values taken from the lookup table are combined (with the specified combiner function) to generate the transformed result.
+#   This is intended to support things like interleaving bits, de-interleaving bits, and indexed color
+instruction lut-transform
+  $OP add
+  $XAUG_ADD 0
+  $XAUG_MUL 1
+  $XWORD qword
+  operand
+    type word
+  operand
+    type lookup-table
+  opt-operand
+    select-operand
+      case add
+        $INIT_VALUE 0
+        $OP add
+        $XOP paddq
+      case and
+        $INIT_VALUE -1
+        $OP and
+        $XOP pand
+      case or
+        $INIT_VALUE 0
+        $OP or
+        $XOP por
+      case xor
+        $INIT_VALUE 0
+        $OP xor
+        $XOP pxor
+  operand
+    type address
+    $ADDRESS_REGISTER $VALUE
+  opt-operand
+    select-operand
+      case x2
+        $XAUG_ADD 1
+        $XAUG_MUL 2
+        $XWORD oword
+  operand
+    type data xmmx
+    $DEST $VALUE
+  operand
+    type data
+    $SRC $VALUE
+  sub tmp ra
+  sub tmp rc
+  sub tmp rd
+  select-template
+    case QADD QsADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        cmp rTEMPA, $MINTBLEBOUND
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        ; $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPD, rTEMPD
+        mov $DEST, $INIT_VALUE
+        mov rTEMPA, $SRC
+      repeat $STEPS
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          $OP $DEST, qword [$ADDRESS_REGISTER+rTEMPC]
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+    case DADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        cmp rTEMPA, $MINTBLEBOUND
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        ; $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPD, rTEMPD
+        mov $DEST, $INIT_VALUE
+        mov rTEMPA, $SRC
+      repeat $STEPS
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          $OP %[$DEST]_32, dword [$ADDRESS_REGISTER+rTEMPC]
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+    case DsADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        cmp rTEMPA, $MINTBLEBOUND
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        ; $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPD, rTEMPD
+        mov $DEST, $INIT_VALUE
+        mov rTEMPA, $SRC
+      repeat $STEPS
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          $MOV %[rTEMPC]_32, dword [$ADDRESS_REGISTER+rTEMPC]
+          $OP $DEST, rTEMPC
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+    case WADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        cmp rTEMPA, $MINTBLEBOUND
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        ; $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPD, rTEMPD
+        mov $DEST, $INIT_VALUE
+        mov rTEMPA, $SRC
+      repeat $STEPS
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          mov rF, rTEMPC
+          $OP %[$DEST]_16, word [$ADDRESS_REGISTER+rTEMPC]
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+    case WsADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        cmp rTEMPA, $MINTBLEBOUND
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        ; $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPD, rTEMPD
+        mov $DEST, $INIT_VALUE
+        mov rTEMPA, $SRC
+      repeat $STEPS
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        cmp rTEMPA, $MINTBLEBOUND
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        ; $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPD, rTEMPD
+        mov $DEST, $INIT_VALUE
+        mov rTEMPA, $SRC
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          $MOV %[rTEMPC]_16, word [$ADDRESS_REGISTER+rTEMPC]
+          $OP $DEST, rTEMPC
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+    case BADD BsADD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        cmp rTEMPA, $MINTBLEBOUND
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        ; $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        xor rTEMPD, rTEMPD
+        mov $DEST, $INIT_VALUE
+        mov rTEMPA, $SRC
+      repeat $STEPS
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          $MOV rTEMPC, byte [$ADDRESS_REGISTER+rTEMPC]
+          $OP $DEST, rTEMPC
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+    case QAXD
+      code
+        mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+        cmp rTEMPA, $XAUG_MUL * $MINTBLEBOUND
+        errorlt STATUS_ROGUE_POINTER
+        lfence
+        ; $MOV $DEST__DATA_REG, [$ADDRESS_REGISTER+$OFFSET]
+        mov rTEMPA, $SRC
+        mov rTEMPD, $INIT_VALUE
+        movq $DEST, $rTEMPC
+        movlhps $DEST, $DEST
+        xor rTEMPD, rTEMPD
+      repeat $STEPS
+        code
+          mov rTEMPC, rTEMPA
+          and rTEMPC, $MASK
+          shl rTEMPC, $XAUG_ADD + $TWORD_SCALE
+          add rTEMPC, rTEMPD
+          $XOP $DEST, $XWORD [$ADDRESS_REGISTER+rTEMPC]
+          add rTEMPD, $CHKSZ
+          shr rTEMPA, $STEP
+  code
+    $RESET_TEMP
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,244 @@
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#   Copyright 2023, Jonathan Hart
+#   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
+#   either version 3 of the License, or (at your option) any later version.
+#   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#   PURPOSE. See the GNU General Public License for more details.
+#   You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Julia Fractal renderer, modified to use of bus notation (which may be a bit too niche to really be useful for this)
+
+text header
+  TACTYK Example:  Julia Fractal
+  This one is interactive - mouse-over the window to change the fractal parameters.
+  The implementation is a bit sub-optimal.
+  A large performance improvement could be attained by using vectorized math
+  As of the time this was successfully tested, a few more instructions are/where needed for packing and unpacking.
+  With some more work, it could also use some techniques for bypassing large portions of the connected set instead of running max iterations every pixel
+  And there's probably a few places where the code could be cleaned up a bit.
+  Press 'q' or 'escape' to quit.  Or close the window.  It all suppsedly works.
+
+text footer
+  Done.
+
+struct sdl_state
+  4 mpos_x
+  4 mpos_y
+  4 key_pressed__sdlcode
+  4 key_released__sdlcode
+  4 key_pressed
+  4 key_released
+  1 closing
+  1 mouse_moved
+  1 mouse_btn_pressed
+  1 mouse_btn_released
+
+const newline 10
+const sp 32
+const width 640
+const height 480
+
+struct globals
+  8 padding
+
+mem g globals 1
+
+MAIN:
+  bind addr2 g
+  bind addr1 header
+  assign b header_size
+  lwcall PRINTIT
+  
+  assign a width
+  assign b height
+  tcall sdl--new
+  tcall sdl--get-eventview
+  bind addr3 addr1
+  tcall sdl--get-framebuffer
+  bind addr4 addr1
+  
+  #   rC, sCl:    width
+  #   rA, rB:     x,y
+  #   sAl, sBl:   x,y
+  
+  # store border width in stash
+  bus        rA rB rC sAl sBl sCl
+  assign    ^ 2  .  1  .   .   . ^
+  stash     ^ .  .  2  .   .   1 ^
+  assign    ^ 1  .  .  .   .   . ^  0
+  assign    ^ .  1  .  .   .   . ^  0
+  sub       ^ 1  .  .  .   .   . ^  1
+  stash     ^ 2  4  .  1   3   . ^   
+    
+  # setup floating point constants
+  # xk:  2.0/width
+  # xl:  1.0/height
+  # xj:  2.0
+  # xm:  1.0
+  bus         xJ xK xL
+  assign    ^ 1  .  . ^  2
+  assign    ^ 2  1  . ^
+  assign    ^ 2  .  1 ^
+  div       ^ .  1  . ^  width
+  div       ^ .  .  1 ^  height
+
+  
+  # escape radius, radius**2
+  bus         rA rB rC rD rE rF xA xB xC xD xE xF xG xH xI xJ xK xL xM xN sAl sBl sCl
+  assign    ^ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  2  .  .  .  1   .   .   . ^ 
+  assign    ^ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  1  2   .   .   . ^ 
+  assign    ^ .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  1  .   .   .   . ^ xM
+  assign    ^ .  .  .  .  1  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^ 128
+  assign    ^ .  .  .  .  2  .  .  .  .  .  .  .  1  .  .  .  .  .  .  .   .   .   . ^
+    
+  # const additive
+  bus         rA rB rC rD rE rF xA xB xC xD xE xF xG xH xI xJ xK xL xM xN sAl sBl sCl
+  assign    ^ .  .  .  .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .  .   .   .   . ^ 0.405
+  assign    ^ .  .  .  .  .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .   .   .   . ^ 0.135
+  
+  assign    ^ .  .  .  .  .  .  1  .  .  .  .  .  .  .  .  2  .  .  .  .   .   .   . ^
+
+goto RENDER_FRAC
+DISPLAY_IT:
+  tcall sdl--upload-framebuffer
+  tcall sdl--render
+  goto MAINLOOP
+DELAY_AND_RETRY:
+  tcall sleep 10
+MAINLOOP:
+  
+  # conventional notation for boring SDL interaction.  Notice: no special syntax for the switch.
+  tcall sdl--update_ui
+  load dword a addr3 sdl_state.key_pressed__sdlcode
+  if a == 20 CLOSE_AND_EXIT
+  if a == 41 CLOSE_AND_EXIT
+  load byte a addr3 sdl_state.mouse_moved
+  if a == 0 DELAY_AND_RETRY
+  load dword b addr3 sdl_state.mpos_x
+  load dword c addr3 sdl_state.mpos_y
+  load byte a addr3 sdl_state.closing
+  if a == 1 CLOSE_AND_EXIT
+  
+  tcall sdl--upload-framebuffer
+  tcall sdl--render
+  
+  # convert mouse position from SDL window to a local space position ( 0,0 : width,height ) -> ( -1,1 : 1,1 )
+  # bus       rA rB rC rD rE rF xA xB xC xD xE xF xG xH xI xJ xK xL xM xN sAl sBl sCl
+  assign    ^ .  2  .  .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .  .   .   .   . ^
+  assign    ^ .  .  2  .  .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .   .   .   . ^
+  div       ^ .  .  .  .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .  .   .   .   . ^  width
+  mul       ^ .  .  .  .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .  .   .   .   . ^  2
+  sub       ^ .  .  .  .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .  .   .   .   . ^  1
+  div       ^ .  .  .  .  .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .   .   .   . ^  width
+  mul       ^ .  .  .  .  .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .   .   .   . ^  2
+  sub       ^ .  .  .  .  .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .   .   .   . ^  1
+  
+  add       ^ .  .  .  .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .  .   .   .   . ^  0.02
+  assign    ^ 1  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  0
+  assign    ^ .  1  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  0
+  sub       ^ 1  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  1
+  stash     ^ 2  4  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   1   3   . ^
+  
+RENDER_FRAC:
+  SELECT_NEXT_PIXEL:
+    
+    bus             rA rB sAl sBl sCl
+    stash         ^ 1  3  2   3   . ^
+    add           ^ 1  .  .   .   . ^  1
+    if lt width   ^ 1  .  .   .   . ^  RENDER_PIXEL
+    add           ^ .  1  .   .   . ^  1
+    assign        ^ 1  .  .   .   . ^  0
+    if eq height  ^ .  1  .   .   . ^  DISPLAY_IT
+  
+  RENDER_PIXEL:
+  
+  # pixel buffer position - ([stashed] buffer width * y + x) * 4
+  bus      rA rB rC rD rE rF xA xB xC xD xE xF xG xH xI xJ xK xL xM xN sAl sBl sCl
+  stash   ^ 2  4  5  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   1   3   6 ^
+  mul     ^ .  2  1  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^
+  add     ^ 2  .  1  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^
+  mul     ^ .  .  1  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  4
+  
+  # normlized coordinates (a,b -> range -1 to 1)
+  bus      rA rB rC rD rE rF xA xB xC xD xE xF xG xH xI xJ xK xL xM xN sAl sBl sCl
+  assign  ^ 2  .  .  .  .  .  1  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^
+  assign  ^ .  2  .  .  .  .  .  1  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^
+  mul     ^ .  .  .  .  .  .  1  .  .  .  .  .  .  .  .  .  2  .  .  .   .   .   . ^
+  mul     ^ .  .  .  .  .  .  .  1  .  .  .  .  .  .  .  .  .  2  .  .   .   .   . ^
+  sub     ^ .  .  .  .  .  .  1  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  1
+  sub     ^ .  .  .  .  .  .  .  1  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  1
+
+  assign  ^ .  .  .  1  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  0
+  
+  ITERATE:
+    bus       rA rB rC rD rE rF xA xB xC xD xE xF xG xH xI xJ xK xL xM xN sAl sBl sCl  
+    
+    # iteration-limit test
+    if eq   ^ .  .  .  1  3  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  EMIT_PIXEL
+    
+    # xa**2, xb**2
+    assign  ^ .  .  .  .  .  .  2  .  1  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^
+    assign  ^ .  .  .  .  .  .  .  2  .  1  .  .  .  .  .  .  .  .  .  .   .   .   . ^
+    mul     ^ .  .  .  .  .  .  .  .  1  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  xC
+    mul     ^ .  .  .  .  .  .  .  .  .  1  .  .  .  .  .  .  .  .  .  .   .   .   . ^  xD
+    
+    # xd = xa**2 + xb**2
+    assign  ^ .  .  .  .  .  .  .  .  2  .  1  .  .  .  .  .  .  .  .  .   .   .   . ^
+    add     ^ .  .  .  .  .  .  .  .  .  2  1  .  .  .  .  .  .  .  .  .   .   .   . ^
+     
+    # escape test
+    if ge   ^ .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .  .  .  3  .   .   .   . ^  EMIT_PIXEL
+    
+    # xd -> xa**2 - xb**2 
+    sub     ^ .  .  .  .  .  .  .  .  1  2  .  .  .  .  .  .  .  .  .  .   .   .   . ^
+    
+    # xb = 2 * xa * xb + xi
+    mul     ^ .  .  .  .  .  .  .  1  .  .  .  .  .  .  .  2  .  .  .  .   .   .   . ^
+    mul     ^ .  .  .  .  .  .  2  1  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^
+    add     ^ .  .  .  .  .  .  .  1  .  .  .  .  .  .  2  .  .  .  .  .   .   .   . ^
+    
+    # xa = previous[xa**2] - previous[xb**2] + xh
+    assign  ^ .  .  .  .  .  .  1  .  2  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^
+    add     ^ .  .  .  .  .  .  1  .  .  .  .  .  .  2  .  .  .  .  .  .   .   .   . ^
+    add     ^ .  .  .  1  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^ 1
+    
+    goto ITERATE
+
+  EMIT_PIXEL:
+  bus           rA rB rC rD rE rF xA xB xC xD xE xF xG xH xI xJ xK xL xM xN sAl sBl sCl
+  
+  # scale the iteration counter down for use as a pixel value
+  assign      ^ .  .  .  2  .  .  .  .  .  .  .  1  .  .  .  .  .  .  .  .   .   .   . ^
+  mul         ^ .  .  .  .  .  .  .  .  .  .  .  1  2  .  .  .  .  .  .  .   .   .   . ^
+  div         ^ .  .  .  .  .  .  .  .  .  .  .  1  .  .  .  .  .  .  .  .   .   .   . ^ 64
+  assign      ^ .  .  .  .  .  1  .  .  .  .  .  2  .  .  .  .  .  .  .  .   .   .   . ^
+  
+  # write pixel to framebuffer
+  store byte  ^ .  .  3  .  .  4  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  addr4
+  add         ^ .  .  1  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  1
+  store byte  ^ .  .  3  .  .  4  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  addr4
+  add         ^ .  .  1  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  1
+  store byte  ^ .  .  3  .  .  4  .  .  .  .  .  .  .  .  .  .  .  .  .  .   .   .   . ^  addr4
+    
+  goto SELECT_NEXT_PIXEL
+  
+CLOSE_AND_EXIT:
+  tcall sdl--release
+  tcall sdl--quit
+
+  bind addr1 footer
+  assign b footer_size
+  lwcall PRINTIT
+  
+  exit
+
+PRINTIT:
+  assign c 0
+  PRINTIT_LOOP:
+  load byte a addr1 c
+  tcall print-text-a
+  add c 1
+  if c < b PRINTIT_LOOP
+  tcall print-newline
+  lwreturn

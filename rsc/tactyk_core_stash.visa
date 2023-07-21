@@ -84,7 +84,7 @@ typespec stash-item
       value s31
   pick Si
 
-typespec stash-item-low
+typespec stash-item-small
   select-operand
     case sal sAl
       value al
@@ -155,10 +155,7 @@ typespec stash-item-low
       value s30l
     case s31l
       value s31l
-  pick Sil
-
-typespec stash-item-high
-  select-operand
+    
     case sah sAh
       value ah
     case sbh sBh
@@ -228,7 +225,355 @@ typespec stash-item-high
       value s30h
     case s31h
       value s31h
-  pick Sih
+  pick Sis
+
+typespec fstash-item
+  select-operand
+    case saf sAf
+      value al
+    case sbf sBf
+      value bl
+    case scf sCf
+      value cl
+    case sdf sDf
+      value dl
+    case sef sEf
+      value el
+    
+    case sff sFf
+      value fl
+    case sgf sGf
+      value gl
+    case shf sHf
+      value hl
+    case sif sIf
+      value il
+    case sjf sJf
+      value jl
+
+    case skf sKf
+      value kl
+    case slf sLf
+      value ll
+    case smf sMf
+      value ml
+    case snf sNf
+      value nl
+    case sof sOf
+      value ol
+
+    case spf sPf
+      value pl
+    case sqf sQf
+      value ql
+    case srf sRf
+      value rl
+    case ssf sSf
+      value sl
+    case stf sTf
+      value tl
+
+    case suf sUf
+      value ul
+    case svf sVf
+      value vl
+    case swf sWf
+      value wl
+    case sxf sXf
+      value xl
+    case syf sYf
+      value yl
+    case szf sZf
+      value zl
+    
+    case s26f
+      value s26
+    case s27f
+      value s27
+    case s28f
+      value s28
+    case s29f
+      value s29
+    case s30f
+      value s30
+    case s31f
+      value s31
+  pick Sif
+
+typespec fstash-item-small
+  select-operand
+    case salf sAlf
+      value al
+    case sblf sBlf
+      value bl
+    case sclf sClf
+      value cl
+    case sdlf sDlf
+      value dl
+    case self sElf
+      value el
+    
+    case sflf sFlf
+      value fl
+    case sglf sGlf
+      value gl
+    case shlf sHlf
+      value hl
+    case silf sIlf
+      value il
+    case sjlf sJlf
+      value jl
+
+    case sklf sKlf
+      value kl
+    case sllf sLlf
+      value ll
+    case smlf sMlf
+      value ml
+    case snlf sNlf
+      value nl
+    case solf sOlf
+      value ol
+
+    case splf sPlf
+      value pl
+    case sqlf sQlf
+      value ql
+    case srlf sRlf
+      value rl
+    case sslf sSlf
+      value sl
+    case stlf sTlf
+      value tl
+
+    case sulf sUlf
+      value ul
+    case svlf sVlf
+      value vl
+    case swlf sWlf
+      value wl
+    case sxlf sXlf
+      value xl
+    case sylf sYlf
+      value yl
+    case szlf sZlf
+      value zl
+    
+    case s26lf
+      value s26l
+    case s27lf
+      value s27l
+    case s28lf
+      value s28l
+    case s29lf
+      value s29l
+    case s30lf
+      value s30l
+    case s31lf
+      value s31l
+    
+    case sahf sAhf
+      value ah
+    case sbhf sBhf
+      value bh
+    case schf sChf
+      value ch
+    case sdhf sDhf
+      value dh
+    case sehf sEhf
+      value eh
+    
+    case sfhf sFhf
+      value fh
+    case sghf sGhf
+      value gh
+    case shhf sHhf
+      value hh
+    case sihf sIhf
+      value ih
+    case sjhf sJhf
+      value jh
+
+    case skhf sKhf
+      value kh
+    case slhf sLhf
+      value lh
+    case smhf sMhf
+      value mh
+    case snhf sNhf
+      value nh
+    case sohf sOhf
+      value oh
+
+    case sphf sPhf
+      value ph
+    case sqhf sQhf
+      value qh
+    case srhf sRhf
+      value rh
+    case sshf sShf
+      value sh
+    case sthf sThf
+      value th
+
+    case suhf sUhf
+      value uh
+    case svhf sVhf
+      value vh
+    case swhf sWhf
+      value wh
+    case sxhf sXhf
+      value xh
+    case syhf sYhf
+      value yh
+    case szhf sZhf
+      value zh
+    
+    case s26hf
+      value s26h
+    case s27hf
+      value s27h
+    case s28hf
+      value s28h
+    case s29hf
+      value s29h
+    case s30hf
+      value s30h
+    case s31hf
+      value s31h
+  pick Sifs
+
+instruction block-stash
+  operand
+    type block-quantity
+  opt-operand
+    select-operand
+      case swap
+        pick W
+  operand
+    type data xmmx stash-item
+    $DEST $VALUE
+  operand
+    type data xmmx stash-item
+    $SRC $VALUE
+  select-template
+    case BqsSiD
+      vcode $QTY
+        1 mov gs:[ (microcontext.$DEST+0 )%microcontext_size + random_const_GS], $SRC~0
+        2 mov gs:[ (microcontext.$DEST+8 )%microcontext_size + random_const_GS], $SRC~1
+        3 mov gs:[ (microcontext.$DEST+16)%microcontext_size + random_const_GS], $SRC~2
+        4 mov gs:[ (microcontext.$DEST+24)%microcontext_size + random_const_GS], $SRC~3
+        5 mov gs:[ (microcontext.$DEST+32)%microcontext_size + random_const_GS], $SRC~4
+        6 mov gs:[ (microcontext.$DEST+40)%microcontext_size + random_const_GS], $SRC~5
+    case BqsDSi
+      vcode $QTY
+        1 mov $DEST~0, gs:[ (microcontext.$SRC+0 )%microcontext_size + random_const_GS]
+        2 mov $DEST~1, gs:[ (microcontext.$SRC+8 )%microcontext_size + random_const_GS]
+        3 mov $DEST~2, gs:[ (microcontext.$SRC+16)%microcontext_size + random_const_GS]
+        4 mov $DEST~3, gs:[ (microcontext.$SRC+24)%microcontext_size + random_const_GS]
+        5 mov $DEST~4, gs:[ (microcontext.$SRC+32)%microcontext_size + random_const_GS]
+        6 mov $DEST~5, gs:[ (microcontext.$SRC+40)%microcontext_size + random_const_GS]
+    case BqsSiX BqlSiX
+      vcode $QTY
+        1 movdqu gs:[ (microcontext.$DEST+0  )%microcontext_size + random_const_GS], $SRC~0
+        2 movdqu gs:[ (microcontext.$DEST+16 )%microcontext_size + random_const_GS], $SRC~1
+        3 movdqu gs:[ (microcontext.$DEST+32 )%microcontext_size + random_const_GS], $SRC~2
+        4 movdqu gs:[ (microcontext.$DEST+48 )%microcontext_size + random_const_GS], $SRC~3
+        5 movdqu gs:[ (microcontext.$DEST+64 )%microcontext_size + random_const_GS], $SRC~4
+        6 movdqu gs:[ (microcontext.$DEST+80 )%microcontext_size + random_const_GS], $SRC~5
+        7 movdqu gs:[ (microcontext.$DEST+96 )%microcontext_size + random_const_GS], $SRC~6
+        8 movdqu gs:[ (microcontext.$DEST+112)%microcontext_size + random_const_GS], $SRC~7
+        9 movdqu gs:[ (microcontext.$DEST+128)%microcontext_size + random_const_GS], $SRC~8
+        10 movdqu gs:[ (microcontext.$DEST+144)%microcontext_size + random_const_GS], $SRC~9
+        11 movdqu gs:[ (microcontext.$DEST+160)%microcontext_size + random_const_GS], $SRC~10
+        12 movdqu gs:[ (microcontext.$DEST+176)%microcontext_size + random_const_GS], $SRC~11
+        13 movdqu gs:[ (microcontext.$DEST+192)%microcontext_size + random_const_GS], $SRC~12
+        14 movdqu gs:[ (microcontext.$DEST+208)%microcontext_size + random_const_GS], $SRC~13
+    case BqsXSi BqlXSi
+      vcode $QTY
+        1 movdqu $DEST~0, gs:[ (microcontext.$SRC+0  )%microcontext_size + random_const_GS]
+        2 movdqu $DEST~1, gs:[ (microcontext.$SRC+16 )%microcontext_size + random_const_GS]
+        3 movdqu $DEST~2, gs:[ (microcontext.$SRC+32 )%microcontext_size + random_const_GS]
+        4 movdqu $DEST~3, gs:[ (microcontext.$SRC+48 )%microcontext_size + random_const_GS]
+        5 movdqu $DEST~4, gs:[ (microcontext.$SRC+64 )%microcontext_size + random_const_GS]
+        6 movdqu $DEST~5, gs:[ (microcontext.$SRC+80 )%microcontext_size + random_const_GS]
+        7 movdqu $DEST~6, gs:[ (microcontext.$SRC+96 )%microcontext_size + random_const_GS]
+        8 movdqu $DEST~7, gs:[ (microcontext.$SRC+112)%microcontext_size + random_const_GS]
+        9 movdqu $DEST~8, gs:[ (microcontext.$SRC+128)%microcontext_size + random_const_GS]
+        10 movdqu $DEST~9, gs:[ (microcontext.$SRC+144)%microcontext_size + random_const_GS]
+        11 movdqu $DEST~10, gs:[ (microcontext.$SRC+160)%microcontext_size + random_const_GS]
+        12 movdqu $DEST~11, gs:[ (microcontext.$SRC+176)%microcontext_size + random_const_GS]
+        13 movdqu $DEST~12, gs:[ (microcontext.$SRC+192)%microcontext_size + random_const_GS]
+        14 movdqu $DEST~13, gs:[ (microcontext.$SRC+208)%microcontext_size + random_const_GS]
+    case BqsWSiD BqlWSiD
+      vcode $QTY
+        1 xchg gs:[ (microcontext.$DEST+0 )%microcontext_size + random_const_GS], $SRC~0
+        2 xchg gs:[ (microcontext.$DEST+8 )%microcontext_size + random_const_GS], $SRC~1
+        3 xchg gs:[ (microcontext.$DEST+16)%microcontext_size + random_const_GS], $SRC~2
+        4 xchg gs:[ (microcontext.$DEST+24)%microcontext_size + random_const_GS], $SRC~3
+        5 xchg gs:[ (microcontext.$DEST+32)%microcontext_size + random_const_GS], $SRC~4
+        6 xchg gs:[ (microcontext.$DEST+40)%microcontext_size + random_const_GS], $SRC~5
+    case BqsWDSi BqlWDSi
+      vcode $QTY
+        1 xchg $DEST~0, gs:[ (microcontext.$SRC+0 )%microcontext_size + random_const_GS]
+        2 xchg $DEST~1, gs:[ (microcontext.$SRC+8 )%microcontext_size + random_const_GS]
+        3 xchg $DEST~2, gs:[ (microcontext.$SRC+16)%microcontext_size + random_const_GS]
+        4 xchg $DEST~3, gs:[ (microcontext.$SRC+24)%microcontext_size + random_const_GS]
+        5 xchg $DEST~4, gs:[ (microcontext.$SRC+32)%microcontext_size + random_const_GS]
+        6 xchg $DEST~5, gs:[ (microcontext.$SRC+40)%microcontext_size + random_const_GS]
+    case BqsWSiX BqsWXSi BqlWSiX BqlWXSi
+      select-template
+        case BqsWXSi BqlWXSi
+        case BqsWSiX BqlWSiX
+          $TEMP $SRC
+          $SRC $DEST
+          $DEST $TEMP
+      sub tmp xa
+      sub tmp xb
+      vcode $QTY
+        1 movdqu xTEMPA, gs:[ (microcontext.$SRC+0  )%microcontext_size + random_const_GS]
+        2 movdqu xTEMPB, gs:[ (microcontext.$SRC+16 )%microcontext_size + random_const_GS]
+        1 movdqu gs:[ (microcontext.$SRC+0  )%microcontext_size + random_const_GS], $DEST~0
+        2 movdqu gs:[ (microcontext.$SRC+16 )%microcontext_size + random_const_GS], $DEST~1
+        1 movdqa $DEST~0, xTEMPA
+        2 movdqa $DEST~1, xTEMPB
+        3 movdqu xTEMPA, gs:[ (microcontext.$SRC+32  )%microcontext_size + random_const_GS]
+        4 movdqu xTEMPB, gs:[ (microcontext.$SRC+48  )%microcontext_size + random_const_GS]
+        3 movdqu gs:[ (microcontext.$SRC+32 )%microcontext_size + random_const_GS], $DEST~2
+        4 movdqu gs:[ (microcontext.$SRC+48 )%microcontext_size + random_const_GS], $DEST~3
+        3 movdqa $DEST~2, xTEMPA
+        4 movdqa $DEST~3, xTEMPB
+        5 movdqu xTEMPA, gs:[ (microcontext.$SRC+64 )%microcontext_size + random_const_GS]
+        6 movdqu xTEMPB, gs:[ (microcontext.$SRC+80 )%microcontext_size + random_const_GS]
+        5 movdqu gs:[ (microcontext.$SRC+64 )%microcontext_size + random_const_GS], $DEST~4
+        6 movdqu gs:[ (microcontext.$SRC+80 )%microcontext_size + random_const_GS], $DEST~5
+        5 movdqa $DEST~4, xTEMPA
+        6 movdqa $DEST~5, xTEMPB
+        7 movdqu xTEMPA, gs:[ (microcontext.$SRC+96 )%microcontext_size + random_const_GS]
+        8 movdqu xTEMPB, gs:[ (microcontext.$SRC+112)%microcontext_size + random_const_GS]
+        7 movdqu gs:[ (microcontext.$SRC+96 )%microcontext_size + random_const_GS], $DEST~6
+        8 movdqu gs:[ (microcontext.$SRC+112)%microcontext_size + random_const_GS], $DEST~7
+        7 movdqa $DEST~6, xTEMPA
+        8 movdqa $DEST~7, xTEMPB
+        9 movdqu xTEMPA, gs:[ (microcontext.$SRC+128)%microcontext_size + random_const_GS]
+        10 movdqu xTEMPB, gs:[ (microcontext.$SRC+144)%microcontext_size + random_const_GS]
+        9 movdqu gs:[ (microcontext.$SRC+128)%microcontext_size + random_const_GS], $DEST~8
+        10 movdqu gs:[ (microcontext.$SRC+144)%microcontext_size + random_const_GS], $DEST~9
+        9 movdqa $DEST~8, xTEMPA
+        10 movdqa $DEST~9, xTEMPB
+        11 movdqu xTEMPA, gs:[ (microcontext.$SRC+160)%microcontext_size + random_const_GS]
+        12 movdqu xTEMPB, gs:[ (microcontext.$SRC+176)%microcontext_size + random_const_GS]
+        11 movdqu gs:[ (microcontext.$SRC+160)%microcontext_size + random_const_GS], $DEST~10
+        12 movdqu gs:[ (microcontext.$SRC+176)%microcontext_size + random_const_GS], $DEST~11
+        11 movdqa $DEST~10, xTEMPA
+        12 movdqa $DEST~11, xTEMPB
+        13 movdqu xTEMPA, gs:[ (microcontext.$SRC+192)%microcontext_size + random_const_GS]
+        14 movdqu xTEMPB, gs:[ (microcontext.$SRC+208)%microcontext_size + random_const_GS]
+        13 movdqu gs:[ (microcontext.$SRC+192)%microcontext_size + random_const_GS], $DEST~12
+        14 movdqu gs:[ (microcontext.$SRC+208)%microcontext_size + random_const_GS], $DEST~13
+        13 movdqa $DEST~12, xTEMPA
+        14 movdqa $DEST~13, xTEMPB
+        1 $RESET_TEMP
 
 instruction stash
   composite 16 permute-code no-duplicates
@@ -237,22 +582,22 @@ instruction stash
         case swap
           pick W
     operand
-      type data xmmx stash-item stash-item-low stash-item-high
+      type data xmmx stash-item stash-item-small
       $DEST $VALUE
     operand
-      type data xmmx stash-item stash-item-low stash-item-high
+      type data xmmx stash-item stash-item-small
       $SRC $VALUE
     select-template
-      case SiD SilD SihD
+      case SiD SisD
         code
           mov gs:[microcontext.$DEST+random_const_GS], $SRC
-      case DSi DSil DSih
+      case DSi DSis
         code
           mov $DEST, gs:[microcontext.$SRC+random_const_GS]
-      case SilX SihX
+      case SisX
         code
           movq gs:[microcontext.$DEST+random_const_GS], $SRC
-      case XSil XSih
+      case XSis
         code
           movq $DEST, gs:[microcontext.$SRC+random_const_GS]
       case SiX
@@ -262,46 +607,54 @@ instruction stash
         code
           movdqu $DEST, gs:[microcontext.$SRC+random_const_GS]
       case SiSi
+        sub tmp xa
         code
           movdqu xTEMPA, gs:[microcontext.$SRC+random_const_GS]
           movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
-      case SilSil SilSih SihSil SihSih SilSi SihSi SiSil SiSih
+      case SisSis SisSi SiSis
+        sub tmp ra
         code
           mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
           mov gs:[microcontext.$DEST+random_const_GS], rTEMPA
           xor rTEMPA, rTEMPA
-      case WSiD WSilD WSihD
+      case WSiD WSisD
         code
           xchg gs:[microcontext.$DEST+random_const_GS], $SRC
-      case WDSi WDSil WDSih
+      case WDSi WDSis
         code
           xchg $DEST, gs:[microcontext.$SRC+random_const_GS]
-      case WSilX WSihX
+      case WSisX
+        sub tmp xa
         code
           movq xTEMPA, $SRC
           movq $SRC, gs:[microcontext.$DEST+random_const_GS]
           movq gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
-      case WXSil WXSih
+      case WXSis
+        sub tmp xa
         code
           movq xTEMPA, $DEST
           movq $DEST, gs:[microcontext.$SRC+random_const_GS]
           movq gs:[microcontext.$SRC+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case WSiX
+        sub tmp xa
         code
           movdqu xTEMPA, $SRC
           movdqu $SRC, gs:[microcontext.$DEST+random_const_GS]
           movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case WXSi
+        sub tmp xa
         code
           movdqu xTEMPA, $DEST
           movdqu $DEST, gs:[microcontext.$SRC+random_const_GS]
           movdqu gs:[microcontext.$SRC+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
       case WSiSi
+        sub tmp xa
+        sub tmp xb
         code
           movdqu xTEMPA, gs:[microcontext.$SRC+random_const_GS]
           movdqu xTEMPB, gs:[microcontext.$DEST+random_const_GS]
@@ -309,7 +662,8 @@ instruction stash
           movdqu gs:[microcontext.$DEST+random_const_GS], xTEMPA
           pxor xTEMPA, xTEMPA
           pxor xTEMPB, xTEMPB
-      case WSilSil WSilSih WSihSil WSihSih WSilSi WSihSi WSiSil WSiSih
+      case WSisSis WSisSi WSiSis
+        sub tmp ra
         code
           mov rTEMPA, gs:[microcontext.$SRC+random_const_GS]
           xchg rTEMPA, gs:[microcontext.$DEST+random_const_GS]
@@ -343,9 +697,10 @@ instruction stash
       #    xor rTEMPC, rTEMPC
       #    xor rTEMPD, rTEMPD
   code
-    jmp $NEXT_INSTRUCTION
+    $RESET_TEMP
 
 instruction mctxpush
+  sub tmp ra
   code
     cmp rMCSI, 65535
     errorge STATUS_STACK_OVERFLOW
@@ -355,10 +710,10 @@ instruction mctxpush
     add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
     sub rTEMPA, random_const_GS
     wrgsbase rTEMPA
-    xor rTEMPA, rTEMPA
-    jmp $NEXT_INSTRUCTION
+    $RESET_TEMP
 
 instruction mctxpop
+  sub tmp ra
   code
     cmp rMCSI_16, word fs:[context.microcontext_floor + random_const_FS]
     errorle STATUS_STACK_UNDERFLOW
@@ -368,16 +723,18 @@ instruction mctxpop
     add rTEMPA, fs:[context.microcontext_stack_address + random_const_FS]
     sub rTEMPA, random_const_GS
     wrgsbase rTEMPA
-    xor rTEMPA, rTEMPA
-    jmp $NEXT_INSTRUCTION
+    $RESET_TEMP
 
 instruction mctxjump
   operand
     type data const integer
     $TARGET $VALUE
-    scramble rTEMPA $LD_IMMEDIATE_TARGET
+    scramble rTEMPA
+    $LD_IMMEDIATE_TARGET $SC_LD_INDIRECT
   select-template
     case D
+      sub tmp a
+      sub tmp c
       code
         mov rTEMPA, $TARGET
         mov rTEMPC_32, dword fs:[context.microcontext_floor + random_const_FS]
@@ -392,9 +749,10 @@ instruction mctxjump
         sub rTEMPA, random_const_GS
         wrgsbase rTEMPA
         xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case I C
+      sub tmp a
+      sub tmp c
       code
         $LD_IMMEDIATE_TARGET
         mov rTEMPC_32, dword fs:[context.microcontext_floor + random_const_FS]
@@ -409,5 +767,4 @@ instruction mctxjump
         sub rTEMPA, random_const_GS
         wrgsbase rTEMPA
         xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP

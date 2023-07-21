@@ -81,21 +81,35 @@ Assigned variables:
 template-selector:  'Xx'
 
 word
-  select a word size
+  Indicates the word size (or width) of an operation.  This also applies a set of supplemental parameters to help invoke specialized handling in various operations.
 Accepted values:
   byte i8
   word i16
   dword i32
   qword i64
+  oword bits128
   float
+  sbyte s8
+  sword s16
+  sdword s32
+  sqword s64
 Assigned variables:
-  Nothing!
+  $MOV          Which ASM transfer operation to use
+  $MOV_LD       A special case transfer operation to apply when transfer also implies data type conversion
+  $BYTEBOUND    byte size of word minus 1 (used for bounds checking)
+  $MVKW         ASM word-size keyword (byte, word, dword, qword, etc)
+  $REGBITS_LD   Register size specifier for load operations (used to select register a alias)
+  $REGBITS_ST   Register size specifier for store operations (used to select register a alias)
 template-selector:
   byte i8     'B'
   word i16    'W'
   dword i32   'D'
   qword i64   'Q'
   float       'X'
+  sbyte s8    'B'
+  sword s16   'W'
+  sdword s32  'Ds'
+  sqword s64  'Q'
 
 stackreg
   Select a stack register
@@ -134,6 +148,16 @@ Assigned variables:
   $VALUE                An internal [sanitized] label name
 template-selector:  'L'
 
+branch-index
+  Fetch a the numeric value of a named label from the "label" symbol table.
+  This is used for dynamic programming.
+Accpeted values:
+  The text value of any script-defined label
+Assigned variables:
+  $VALUE                An internal [sanitized] label name
+template-selector:  'Li'
+Variant: *branch-index - same as branch-index, but uses 'I' as a template-selector (handling is identical to handling of integers)
+
 const
   fetch a named integer constant from the "const" symbol table
 Accpeted values:
@@ -141,6 +165,16 @@ Accpeted values:
 Assigned variables:
   $VALUE                The value of the named constant
 template-selector:  'C'
+Variant: *const - same as const, but uses 'I' as a template-selector (handling is identical to handling of integers)
+
+const
+  fetch a named integer constant from the "const" symbol table
+Accpeted values:
+  The text value of a defined constant
+Assigned variables:
+  $VALUE                The value of the named constant
+template-selector:  'C'
+Variant: *fconst - same as fconst, but uses 'I' as a template-selector (handling is identical to handling of floating point literals)
 
 fconst
   fetch a named floating point constant from the "fconst" symbol table
@@ -149,10 +183,12 @@ Accpeted values:
 Assigned variables:
   $VALUE                The value of the named constant
 template-selector:  'Cf'
+Variant: *const - same as fconst, but uses 'F' as a template-selector (handling is identical to handling of integers)
 
 capi
   fetch a reference to a C function from the "capi" symbol table
-    (NOTE:  These are supposed to be functions with simple function signatures that are easy to invoke from Assembly Language)
+  These are supposed to be functions with simple function signatures that are easy to invoke from Assembly Language.
+  CAPI functions 
 Accpeted values:
   The name of a defined C-API function
 Assigned variables:
@@ -161,7 +197,7 @@ template-selector:  'Cfunc'
 
 tapi
   fetch a reference to a Tactyk-API function from the "tapi" symbol table
-    (NOTE:  These are supposed to be functions which directly interact with tactyk contexts to obtain arguments and return results)
+  These are supposed to be functions which directly interact with tactyk contexts to obtain arguments and return results.
 Accpeted values:
   The name of a defined T-API function
 Assigned variables:
@@ -176,6 +212,7 @@ Assigned variables:
   $VALUE                lower 8 bytes
   $VALUE_UPPER          upper 8 bytes (if more than 8 bytes)
 template-selector:  'S'
+Variant: *string - same as string, but uses 'I' as a template-selector (handling is identical to handling of integers)
 
 nullarg
   verify that the script-command argument is NULL
@@ -184,6 +221,17 @@ Accpeted values:
 Assigned variables:
   Nothing!
 template-selector: 'N'
+deprecation notice:  Instead of permtting trailing null entries, optional operands should be specified with the "opt-operand" operator.
+
+codeblock
+  Officially, this indicates that a subordinate block (to the instruction) should be handled as a separate code block.
+  In terms of implementation, this only triggers a check for the existence of a codeblock (as it was necessesary to collect all details ahead of time).
+Assigned variables:
+  $IS_CODEBLOCK - set to "true" if the codeblock test
+Template-selector:  'B'
+Related variables:
+  $CODEBLOCK_CHILD_CLOSE - branch target to the first line of code outside of the code block
+  $CODEBLOCK_CHILD_FIRST - branch target to the first line of code inside of the codeblock
 
 context-property
   select a context field
@@ -210,8 +258,9 @@ Assigned variables:
 template-selector: 'Ctx'
 
 comparator
-  selects a comparison operation to insert into assembly code
-    NOTE:  This specific typespec is the main reason for referring to "type specification" as a loosely defined in tactyk.
+  Represents a a value comparison or a bitwise comparison.
+  The bracketted variants have an "all" connotation (if a conditional expression involves multiple fields, then the unbracketted comparator indicates that the test should 
+  pass if any sub-expression passes, and the bracketted comparator indicates that the test should pass only if all sub-expressions pass).
 Accpeted values:
   < lt
   <= le
@@ -219,6 +268,20 @@ Accpeted values:
   >= ge
   > gt
   ~= != neq
+  & and
+  | or
+  ~& nand
+  ~or nor
+  [<] [lt]
+  [<=] [le]
+  [==] [eq]
+  [>=] [ge]
+  [>] [gt]
+  [~=] [!=] [neq]
+  [&] [and]
+  [|] [or]
+  [~&] [nand]
+  [~or] [nor]
 Assigned variables:
   $VALUE                Assembly langauge instruction which performs the comparison [for conventional registers]
   $VPRED                Comparison predicate to use for SSE2-based comparison operations
@@ -239,19 +302,9 @@ Assigned variables:
   $CTX_ADDRESS_BOUND    context field
 template-selector: 'O'
 
-stash-addr
-  Select a reference to an address field in the microcontext stash
-Accpeted values:
-  s-addr1 stash-addr1
-  s-addr2 stash-addr2
-  s-addr3 stash-addr3
-  s-addr4 stash-addr4
-Assigned variables:
-  $VALUE                reference to a microcontext stash address field
-template-selector: 'Sa'
-
 stash-item
   Select a 16-byte general-purpose field from the microcontext stash.
+  At the cost of a lot of additional combinations, these are usable directly in many instructions as an expanded set of data registers (memory-backed, presumably in L1 cache).
 Accepted values:
   sa sA sb sB sc sC sd sD se sE sf sF
   sg sG sh sH si sI sj sJ sk sK sl sL
@@ -262,21 +315,15 @@ Assigned variables:
   $VALUE                name of a microcontext stash general-purpose field
 template-selector: 'Si'
 
-stash-item-low
-  Select a low-positioned 8-byte general-purpose field from the microcontext stash (lower 8 bytes of the like-named 16 byte field)
+stash-item-small
+  Select an 8-byte general-purpose field from the microcontext stash.  These represent the upper and lower 8-byte words (qwords) of a 16-byte stash entry.
+  At the cost of a lot of additional combinations, these are usable directly in many instructions as an expanded set of data registers (memory-backed, presumably in L1 cache).
 Accepted values:
   sal sAl sbl sBl scl sCl sdl sDl sel sEl sfl sFl
   sgl sGl shl sHl sil sIl sjl sJl skl sKl sll sLl
   sml sMl snl sNl sol sOl spl sPl sql sQl srl sRl
   ssl sSl stl sTl sul sUl svl sVl swl sWl sxl sXl
   syl sYl szl sZl
-Assigned variables:
-  $VALUE                name of a microcontext stash general-purpose field
-template-selector: 'Sil'
-
-stash-item-high
-  Select a high-positioned 8-byte general-purpose field from the microcontext stash (upper 8 bytes of the like-named 16 byte field)
-Accepted values:
   sah sAh sbh sBh sch sCh sdh sDh seh sEh sfh sFh
   sgh sGh shh sHh sih sIh sjh sJh skh sKh slh sLh
   smh sMh snh sNh soh sOh sph sPh sqh sQh srh sRh
@@ -284,18 +331,40 @@ Accepted values:
   syh sYh szh sZh
 Assigned variables:
   $VALUE                name of a microcontext stash general-purpose field
-template-selector: 'Sih'
+template-selector: 'Sis'
 
-vec-float-format
-  Select a suffix for vectorized [SSE2] instructions.
+fstash-item
+  stash-item, with floating-point hint
+  Select a 16-byte general-purpose field from the microcontext stash.
+  At the cost of a lot of additional combinations, these are usable directly in many instructions as an expanded set of floating-point registers (memory-backed, presumably in L1 cache).
 Accepted values:
-  pd PD
-  ps PS
-  sd SD
-  ss SS
+  saf sAf sbf sBf scf sCf sdf sDf sef sEf sff sFf
+  sgf sGf shf sHf sif sIf sjf sJf skf sKf slf sLf
+  smf sMf snf sNf sof sOf spf sPf sqf sQf srf sRf
+  ssf sSf stf sTf suf sUf svf sVf swf sWf sxf sXf
+  syf sYf szf sZf
 Assigned variables:
-  $VECFMT               vector format (the suffix to attach to said vectorized isntructions)
-template-selector: N/A  (no need for one)
+  $VALUE                name of a microcontext stash general-purpose field
+template-selector: 'Sif'
+
+fstash-item-small
+  stash-item-small, with floating-point hint
+  Select an 8-byte general-purpose field from the microcontext stash.  These represent the upper and lower 8-byte words (qwords) of a 16-byte stash entry.
+  At the cost of a lot of additional combinations, these are usable directly in many instructions as an expanded set of floating-point registers (memory-backed, presumably in L1 cache).
+Accepted values:
+  salf sAlf sblf sBlf sclf sClf sdlf sDlf self sElf sflf sFlf
+  sglf sGlf shlf sHlf silf sIlf sjlf sJlf sklf sKlf sllf sLlf
+  smlf sMlf snlf sNlf solf sOlf splf sPlf sqlf sQlf srlf sRlf
+  sslf sSlf stlf sTlf sulf sUlf svlf sVlf swlf sWlf sxlf sXlf
+  sylf sYlf szlf sZlf
+  sahf sAhf sbhf sBhf schf sChf sdhf sDhf sehf sEhf sfhf sFhf
+  sghf sGhf shhf sHhf sihf sIhf sjhf sJhf skhf sKhf slhf sLhf
+  smhf sMhf snhf sNhf sohf sOhf sphf sPhf sqhf sQhf srhf sRhf
+  sshf sShf sthf sThf suhf sUhf svhf sVhf swhf sWhf sxhf sXhf
+  syhf sYhf szhf sZhf
+Assigned variables:
+  $VALUE                name of a microcontext stash general-purpose field
+template-selector: 'Sifs'
 
 block-quantity
   integer 1-14 with parameters needed to support operations on register groups
@@ -341,8 +410,8 @@ Place tactyk in a suspended/resumable state and return
 
 
 bind address-register memblock-ref
-Bind a memory block to an address register
-This also copies the memblock specification into context local storage.
+  Bind a memory block to an address register
+  This also copies the memblock specification into context local storage.
 Typespecs:
   address-register:       address
   memblock-ref:           address data integer memblock
@@ -364,55 +433,42 @@ Variants:
   unbind address
 
 
-load word-size destination-register address-register element-offset
-Fetch data from a memblock and load it onto a register
+load word-size destination-register address-register element-offset.
+Fetch data from a memblock and load it onto a register.
+If loading the type/destination are mismatched (such as loading a float onto a data register), this also implies a type conversion.
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
 Typespecs:
   word-size:              word
-  destination-register:   data xmmx
+  destination-register:   <int-type> xmmx
   address-register:       addr
-  element-offset:         data integer const
+  element-offset:         <int-type>
     This is comparable to an object member accessor
 Variants:
-  load qword data addr data
-  load qword data addr integer
-  load qword data addr const
-  load dword data addr data
-  load dword data addr integer
-  load dword data addr const
-  load word data addr data
-  load word data addr integer
-  load word data addr const
-  load byte data addr data
-  load byte data addr integer
-  load byte data addr const
-  load float data addr data
-  load float data addr integer
-  load float data addr const
+  load qword <int-type> addr <int-type>
+  load dword <int-type> addr <int-type>
+  load word <int-type> addr <int-type>
+  load byte <int-type> addr <int-type>
+  load float <int-type> addr <int-type> 
+  load float xmmx addr <int-type>
 
 store word-size address-register element-offset source-register
-Take a value from a register and store it into a memblock.
+  Take a value from a register and store it into a memblock.
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
 Typespecs:
   word-size:              word
   address-register:       addr
-  element-offset:         data integer const
+  element-offset:         <int-type>
     This is comparable to an object member accessor
-  source-register:        data xmmx
+  source:                 <int-type> xmmx
 Variants:
-  store qword addr data
-  store qword addr integer
-  store qword addr const
-  store dword addr data
-  store dword addr integer
-  store dword addr const
-  store word addr data
-  store word addr integer
-  store word addr const
-  store byte addr data
-  store byte addr integer
-  store byte addr const
-  store float addr data
-  store float addr integer
-  store float addr const
+  store qword addr <int-type> <int-type>
+  store dword addr <int-type> <int-type>
+  store word addr <int-type> <int-type>
+  store byte addr <int-type> <int-type>
+  store float addr <int-type> <int-type>
+  store float addr <int-type> xmmx
 
 block-load block-size destination-register address-register element-offset
   Fetch data from a memblock and load it onto a register-group
@@ -454,8 +510,8 @@ Variants:
   block-store block-quantity addr const xmmx-full
 
 pop destination-register address-register
-Treating a memblock as a stack, pop a value off a stack and load it onto a data register.
-An 8-byte word size is assumed.
+  Treating a memblock as a stack, pop a value off a stack and load it onto a data register.
+  An 8-byte word size is assumed.
 Typespecs:
   destination-register:   data
   address-register:       addr
@@ -463,8 +519,8 @@ Variants:
   pop data addr
 
 push address-register source
-Treating a memblock as a stack, push a value onto the stack.
-An 8-byte word size is assumed.
+  Treating a memblock as a stack, push a value onto the stack.
+  An 8-byte word size is assumed.
 Typespecs:
   address-register:       addr
   source:                 data integer const
@@ -474,10 +530,10 @@ Variants:
   push addr const
 
 swap a b
-Swap the contents of two registers.
-If swapping between data and xmmx registers, this assumes the data register contains an integer and the xmmx register
-contains a floating point number, and will cast both values.
-If address registers are swapped, it also swaps the internal memory binding variables.
+  Swap the contents of two registers.
+  If swapping between data and xmmx registers, this assumes the data register contains an integer and the xmmx register
+  contains a floating point number, and will cast both values.
+  If address registers are swapped, it also swaps the internal memory binding variables.
 Typespecs:
   a:                      address data xmmx
   b:                      address data xmmx
@@ -489,160 +545,176 @@ Variants:
   swap address address
 
 add a b
-Add the value b or value of register b onto the value of register a
-If either operand is a floating point number, the operation will be performed using xmm registers
+  Add the value b or value of register b onto the value of register a
+  If either operand is a floating point number, the operation will be performed using xmm registers
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
+  <int-reg>:              data stash-item stash-item-small
+  <float-type>:           xmmx float fconst
 Typespecs:
-  a:                      data xmmx
-  b:                      data xmmx const fconst integer float
+  a:                      data xmmx stash-item stash-item-small
+  b:                      data xmmx const fconst integer float stash-item stash-item-small
 Variants:
-  add data data
-  add data integer
-  add data const
-  add data float
-  add data fconst
-  add data xmmx
-  add xmmx xmmx
-  add xmmx data
-  add xmmx integer
-  add xmmx const
-  add xmmx float
-  add xmmx fconst
+  add <int-reg> <int-type>
+  add <int-reg> <float-type>
+  add xmmx <int-type>
+  add xmmx <float-type>
 
 sub a b
-Subtract the value b or value of register b from value of register a
-If either operand is a floating point number, the operation will be performed using xmm registers
+  Subtract the value b or value of register b from value of register a
+  If either operand is a floating point number, the operation will be performed using xmm registers
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
+  <int-reg>:              data stash-item stash-item-small
+  <float-type>:           xmmx float fconst
 Typespecs:
-  a:                      data xmmx
-  b:                      data xmmx const fconst integer float
+  a:                      data xmmx stash-item stash-item-small
+  b:                      data xmmx const fconst integer float stash-item stash-item-small
 Variants:
-  sub data data
-  sub data integer
-  sub data const
-  sub data float
-  sub data fconst
-  sub data xmmx
-  sub xmmx xmmx
-  sub xmmx data
-  sub xmmx integer
-  sub xmmx const
-  sub xmmx float
-  sub xmmx fconst
+  sub <int-reg> <int-type>
+  sub <int-reg> <float-type>
+  sub xmmx <int-type>
+  sub xmmx <float-type>
 
 mul a b
-Multiply the value of register a by value b or value of register b
-If either operand is a floating point number, the operation will be performed using xmm registers
+  Multiply the value of register a by value b or value of register b
+  If either operand is a floating point number, the operation will be performed using xmm registers
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
+  <int-reg>:              data stash-item stash-item-small
+  <float-type>:           xmmx float fconst
 Typespecs:
-  a:                      data xmmx
-  b:                      data xmmx const fconst integer float
+  a:                      data xmmx stash-item stash-item-small
+  b:                      data xmmx const fconst integer float stash-item stash-item-small
 Variants:
-  mul data data
-  mul data integer
-  mul data const
-  mul data float
-  mul data fconst
-  mul data xmmx
-  mul xmmx xmmx
-  mul xmmx data
-  mul xmmx integer
-  mul xmmx const
-  mul xmmx float
-  mul xmmx fconst
+  mul <int-reg> <int-type>
+  mul <int-reg> <float-type>
+  mul xmmx <int-type>
+  mul xmmx <float-type>
 
 div a b div-zero-branch
-Divide the value of register a by value b or value of register b
-If either operand is a floating point number, the operation will be performed using xmm registers
-If dividing a data register and a "div-zero-branch" operand is provided, it will jump to the specified branch target if the value of b is zero.
-If dividing a data register and a "div-zero-branch" is not provided, then it will set status to "DIVISION_BY_ZERO" and terminate execution if the value of b is zero.
-Floating point division by zero is unchecked (supposedly it doesn't cause floating point exceptions)
+  Divide the value of register a by value b or value of register b
+  If either operand is a floating point number, the operation will be performed using xmm registers
+  If dividing a data register and a "div-zero-branch" operand is provided, it will jump to the specified branch target if the value of b is zero.
+  If dividing a data register and a "div-zero-branch" is not provided, then it will set status to "DIVISION_BY_ZERO" and terminate execution if the value of b is zero.
+  Floating point division by zero is unchecked (supposedly it doesn't cause floating point exceptions)
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
+  <int-reg>:              data stash-item stash-item-small
+  <float-type>:           xmmx float fconst
 Typespecs:
-  a:                      data xmmx
-  b:                      data xmmx const fconst integer float
-  div-zero-branch:        branch
+  a:                      data xmmx stash-item stash-item-small
+  b:                      data xmmx const fconst integer float stash-item stash-item-small
 Variants:
-  div data data
-  div data integer
-  div data const
-  div data float
-  div data fconst
-  div data xmmx
-  div xmmx xmmx
-  div xmmx data
-  div xmmx integer
-  div xmmx const
-  div xmmx float
-  div xmmx fconst
-  div data data div-zero-branch
-  div data integer div-zero-branch
-  div data const div-zero-branch
-  div data float div-zero-branch
-  div data fconst div-zero-branch
-  div data xmmx div-zero-branch
+  div <int-reg> <int-type>
+  div <int-reg> <float-type>
+  div xmmx <int-type>
+  div xmmx <float-type>
+  div <int-reg> <int-type> div-zero-branch
+
+abs dest opt-source
+  compute the absolute value of a signed integer
+  The operand form replaces a register value with the absolute value thereof.
+  The two-operand form calculates the absolute value of the 2nd opreand and assigns it to the register given by the first.
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
+  <int-reg>:              data stash-item stash-item-small
+typespecs:
+  dest:                   <int-reg>
+  source:                 <int-type>
+variants:
+  abs <int-reg>
+  abs <int-reg> <int-type>
+
+sign dest opt-source
+  Extract the sign of an integer:  -1 if less than zero, 1 if greater then or equal to zero
+  The operand form replaces a register value with the sign thereof.
+  The two-operand form calculates the absolute value of the 2nd opreand and assigns it to the register given by the first.
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
+  <int-reg>:              data stash-item stash-item-small
+typespecs:
+  dest:                   <int-reg>
+  source:                 <int-type>
+variants:
+  sign <int-reg>
+  sign <int-reg> <int-type>
 
 and destination source
-Apply bitwise AND to a data register
+  Apply bitwise AND to a data register.
+  If applied to xmmx registers, this performs the binary operation on all 16 bytes
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
+  <int-reg>:              data stash-item stash-item-small
 Typespecs:
-  destination:            data
-  source:                 data integer const
+  destination:            data xmmx stash-item stash-item-small
+  source:                 data xmmx const integer stash-item stash-item-small
 Variants:
-  and data data
-  and data integer
-  and data const
+  and <int-reg> <int-type>
+  and xmmx <int-type>
+  and <int-reg> xmmx
+  and xmmx xmmx
+  and stash-item stash-item
+    (special wider case)
 
 or destination source
-Apply bitwise OR to a data register
+  Apply bitwise OR to a data register
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
+  <int-reg>:              data stash-item stash-item-small
 Typespecs:
-  destination:            data
-  source:                 data integer const
+  destination:            data xmmx stash-item stash-item-small
+  source:                 data xmmx const integer stash-item stash-item-small
 Variants:
-  or data data
-  or data integer
-  or data const
+  or <int-reg> <int-type>
+  or xmmx <int-type>
+  or <int-reg> xmmx
+  or xmmx xmmx
+  or stash-item stash-item
+    (special wider case)
 
 xor destination source
 Apply bitwise XOR to a data register
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small
+  <int-reg>:              data stash-item stash-item-small
 Typespecs:
-  destination:            data
-  source:                 data integer const
+  destination:            data xmmx stash-item stash-item-small
+  source:                 data xmmx const integer stash-item stash-item-small
 Variants:
-  xor data data
-  xor data integer
-  xor data const
+  xor <int-reg> <int-type>
+  xor xmmx <int-type>
+  xor <int-reg> xmmx
+  xor xmmx xmmx
+  xor stash-item stash-item
+    (special wider case)
 
 assign destination-register source
 Assign the value of source to a register
 The "Unusual Varaints" differ significantly.
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small string
+  <int-reg>:              data stash-item stash-item-small
+  <float-type>:           xmmx float fconst
 Typespecs:
-  destination:            data xmmx address-offset
-  source:                 data xmmx stackreg const fconst address-offset context-property integer float string
+  destination:            <int-reg> xmmx address-offset
+  source:                 <int-type> <float-type> stackreg address-offset context-property
 Common Variants:
-  assign data data
-  assign data integer
-  assign data const
-  assign data string
-  assign data xmmx
-  assign data dloat
-  assign data fconst
-  assign xmmx xmmx
-  assign xmmx data
-  assign xmmx integer
-  assign xmmx const
-  assign xmmx string
-  assign xmmx float
-  assign xmmx fconst
+  assign <int-reg> <int-type>
+  assign <int-reg> <float-type>
+  assign xmmx <float-type>
+  assign xmmx <int-type>
+
 Unusual variants:
-  assign data context-property
-    fetch a context property and assign it to a data register
-  assign data address-offset
-    calculate the offset of an address register and assign it to a data register
-  assign data stackreg
-    calculate the relative stack position and assign it to a data register
+  assign <int-reg> context-property
+    fetch a context property and assign it to an integer-type register
+  assign <int-reg> address-offset
+    calculate the offset of an address register and assign it to an integer-type register
+  assign <int-reg> stackreg
+    calculate the relative stack position and assign it to an integer-type register
     (stack position relative to the stack "floor" [base position when the current context was entered])
-  assign address-offset data
-    offset an address register by a value taken from a data register
-  assign address-offset const
-    offset an address register by a integer constant
-  assign address-offset integer
-    offset an address register by an integer immediate
+  assign address-offset <int-type>
+    offset an address register by a value taken from an integer-type source
 
 spread destination [literals ...]
   assign 1-6 integer literals to a data register group
@@ -674,111 +746,211 @@ Variants:
   spread XFFFFFFFFFFFFFF
 
 shift-left destination source
-Apply a bitwise left shift to a data register
+Apply a bitwise left shift to an integer-type register
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small string
+  <int-reg>:              data stash-item stash-item-small
 Typespecs:
-  destination:            data
-  source:                 data integer const
+  destination:            <int-reg>
+  source:                 <int-type>
 Variants:
-  shift-left data data
-  shift-left data integer
-  shift-left data const
+  shift-left <int-reg> <int-type>
 
 shift-right destination source
-Apply a bitwise right shift to a data register
+Apply a bitwise right shift to an integer-type register
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small string
+  <int-reg>:              data stash-item stash-item-small
 Typespecs:
-  destination:            data
-  source:                 data integer const
+  destination:            <int-reg>
+  source:                 <int-type>
 Variants:
-  shift-right data data
-  shift-right data integer
-  shift-right data const
+  shift-right <int-reg> <int-type>
 
 rotate-left destination source
-Apply a bitwise left rotation to a data register
+Apply a bitwise left rotation to an integer-type register
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small string
+  <int-reg>:              data stash-item stash-item-small
 Typespecs:
-  destination:            data
-  source:                 data integer const
+  destination:            <int-reg>
+  source:                 <int-type>
 Variants:
-  rotate-left data data
-  rotate-left data integer
-  rotate-left data const
+  rotate-left <int-reg> <int-type>
 
 rotate-right destination source
-Apply a bitwise right rotation to a data register
+Apply a bitwise right rotation to an integer-type register
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small string
+  <int-reg>:              data stash-item stash-item-small
 Typespecs:
-  destination:            data
-  source:                 data integer const
+  destination:            <int-reg>
+  source:                 <int-type>
 Variants:
-  rotate-right data data
-  rotate-right data integer
-  rotate-right data const
+  rotate-right <int-reg> <int-type>
+
+reverse-byte word destination opt-source
+  reverse the byte order of a register value.  (conversion between little-endian and big-endian formats)
+virtual typespecs:
+  <int-reg>:              data stash-item stash-item-small
+Typespecs:
+  word:                   word
+  destination:            <int-reg>
+  source:                 <int-reg>
+Variants:
+  reverse-bits word <int-reg>
+  reverse-bits word <int-reg> <int-reg>
+
+reverse-bits target opt-quantity
+  reverse the bit order of the least signficant bits a register value.
+  The quantity indicates how many bits this applies to (if not specified, it defaults to all 64 bits)
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small string
+  <int-reg>:              data stash-item stash-item-small
+Typespecs:
+  target:                 <int-reg>
+  quantity:               <int-type>
+Variants:
+  reverse-bits <int-reg>
+  reverse-bits <int-reg> <int-type>
+
+bitcount word destination opt-source
+  Count the number of bits set
+Typespecs:
+  word:                   word
+  destination:            data
+  source                  data
+Variants:
+  bitcount qword data
+  bitcount qword data data
+  bitcount dword data
+  bitcount dword data data
+  bitcount word data
+  bitcount word data data
+  bitcount byte data
+  bitcount byte data data
+
+find-bit opt-direction destination source opt-branch
+  Scan the source register for the first or last bit set, return the obtained bit index, and optionally branch if any bits are found.
+  If the direction is not specified, it defaults to "first"
+Typespecs:
+  direction:              "first" "last"
+  destination:            data
+  source:                 data
+  branch:                 label codeblock
+Variants:
+  find-bit data data label
+  find-bit data data codeblock
+  find-bit data data
+  find-bit first data data label
+  find-bit first data data codeblock
+  find-bit first data data
+  find-bit last data data label
+  find-bit last data data codeblock
+  find-bit last data data
+
+lut-transform input-wordsize output-wordsize opt-combiner table-address opt-xmmx-augment-flag destination source
+  Use a set of lookup tables to transform an input value.
+  The input value is logically split into a set of words.  
+  Each input word is then used to index a lookup table.  
+  The results of each lookup are combined and placed on the destination register.
+  Both input and output word sizes are variable.
+  Bounds checking is applied one time for the entire operation (based on the maximum representable index for the requested word sizes).
+  The lookup table used or each input word is distinct (word 1 uses table 1, word 2 uses table 2, etc.)
+  This is intended to implement semi-arbirtary transforms which can be represented with small blocks of data.
+    (bitwise interleaving, color spaces with abnormal channel values, cryptographic transforms, etc.)
+typespecs:
+  input-wordsize:           word
+  output-wordsize:          lookup-table (an alternative "word" typespec which provides parameters for the lookup table operation)
+  opt-combiner:             "add" "or" "xor" "and"
+  table-address:            memblock
+  opt-xmmx-augment-flag:    "x2"
+  destination:              data
+  source:                   data
 
 inc destination
-Add 1 to the value of a data register
+Add 1 to the value of an integer-type register
+virtual typespecs:
+  <int-reg>:              data stash-item stash-item-small
 Typespecs:
-  destination:            data
+  destination:            <int-reg>
 Variants:
   inc data
 
 dec destination
-Subtract 1 from the value of a data register
+Subtract 1 from the value of an integer-type register
+virtual typespecs:
+  <int-reg>:              data stash-item stash-item-small
 Typespecs:
-  destination:            data
+  destination:            <int-reg>
 Variants:
   dec data
 
 not destination
-Apply bitwise NOT to a data register
+Apply bitwise NOT to an integer-type register
+virtual typespecs:
+  <int-reg>:              data stash-item stash-item-small
 Typespecs:
-  destination:            data
+  destination:            <int-reg>
 Variants:
   not data
 
 negate destination
-Multiply a data register by -1
+Multiply an integer-type register by -1
+virtual typespecs:
+  <int-reg>:              data stash-item stash-item-small
 Typespecs:
-  destination:            data
+  destination:            <int-reg>
 Variants:
   negate data
 
 goto branch
 perform an unconditonal jump
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small string
 Typespecs
-  branch:                 data
+  branch:                 label <int-type>
 Variants:
-  goto branch
+  goto label
+  goto <int-type>
 
 if OPT-format a cmp b branch
-Perform a conditional branch
+  Perform a conditional branch based on the results of a numeric or bitwise comparison.
+virtual typespecs:
+  <int-type>:             data integer const stash-item stash-item-small string
+  <int-reg>:              data stash-item stash-item-small
+  <float-type>:           xmmx float fconst
+  <numeric-comparator>    comparator
+  <bitwise-comparator>    comparator
 Typespecs:
   OPT-vec-format:         vec-float-format
     This assigns an instruction suffix for use with floating-point/SSE2 comparisons
     This is implicit in all variants (though irrelevant in integer-based comparators)
-  a:                      data xmmx integer const fconst float
-  cmp:                    comparator
-  b:                      data xmmx integer const fconst float
-  branch:                 branch
+  a:                      <int-type> <float-type>
+  cmp:                    <numeric-comparator> <bitwise-comparator>
+  b:                      <int-type> <float-type>
+  branch:                 label codeblock 
 Variants:
-  if data comparator data branch
-  if data comparator integer branch
-  if data comparator const branch
-  if data comparator float branch
-  if data comparator fconst branch
-  if integer comparator data branch
-  if const comparator data branch
-  if float comparator data branch
-  if fconst comparator data branch
-  if xmmx comparator xmmx branch
-  if xmmx comparator data branch
-  if xmmx comparator float branch
-  if xmmx comparator fconst branch
-  if xmmx comparator integer branch
-  if xmmx comparator const branch
-  if float comparator xmmx branch
-  if fconst comparator xmmx branch
-  if data comparator xmmx branch
-  if integer comparator xmmx branch
-  if const comparator xmmx branch
+  if <int-type> <numeric-comparator> <int-type> label
+  if <int-type> <numeric-comparator> <float-type> label
+  if <float-type> <numeric-comparator> <int-type> label
+  if <float-type> <numeric-comparator> <float-type> label
+  if <int-type> <numeric-comparator> <int-type> codeblock
+  if <int-type> <numeric-comparator> <float-type> codeblock
+  if <float-type> <numeric-comparator> <int-type> codeblock
+  if <float-type> <numeric-comparator> <float-type> codeblock
+  if <int-type> <bitwise-comparator> <int-type> label
+  if <int-type> <bitwise-comparator> <float-type> label
+  if <float-type> <bitwise-comparator> <int-type> label
+  if <float-type> <bitwise-comparator> <float-type> label
+  if <int-type> <bitwise-comparator> <int-type> codeblock
+  if <int-type> <bitwise-comparator> <float-type> codeblock
+  if <float-type> <bitwise-comparator> <int-type> codeblock
+  if <float-type> <bitwise-comparator> <float-type> codeblock
+  if <int-type> label
+  if <int-type> codeblock
+  if xmmx label
+  if xmmx codeblock
 
 ccall OPT-destination c-function
 Call a C function and optionally assign its result to a data register
@@ -807,11 +979,12 @@ Variants:
 lwcall branch
 Perform a lightweight call
 This performs an "in-context" function call
-  It pushes the index of the next instruction onto the lecall stack, then unconditionally jumps to the specified branch target
+  It pushes the index of the next instruction onto the lwcall stack, then unconditionally jumps to the specified branch target
 Typespecs:
-  branch:                 branch
+  branch:                 label <int-type>
 Variants:
-  lwcall branch
+  lwcall label
+  lwcall <int-type>
 
 lwreturn
 Return form a lightweight call
@@ -892,50 +1065,32 @@ Typespecs:
   OPT-swap:               "swap"
     This is an inline typespec - if a "swap" token is present and in an appropriate location, then the stash transfer will be a swap operation isntead
     of an assignment operation.
-  dest-N:                 data xmmx address stash-addr stash-item stash-item-low stash-item-high
-  source-N:               data xmmx address stash-addr stash-item stash-item-low stash-item-high
+  dest-N:                 data xmmx address stash-addr stash-item stash-item-small
+  source-N:               data xmmx address stash-addr stash-item stash-item-small
 Variants:
   stash ? data stash-item ?
   stash ? data stash-item-low ?
-  stash ? data stash-item-high ?
   stash ? swap data stash-item ?
   stash ? swap data stash-item-low ?
-  stash ? swap data stash-item-high ?
   stash ? stash-item data ?
   stash ? stash-item-low data ?
-  stash ? stash-item-high data ?
   stash ? swap stash-item data ?
   stash ? swap stash-item-low data ?
-  stash ? swap stash-item-high data ?
   stash ? xmmx stash-item ?
   stash ? xmmx stash-item-low ?
-  stash ? xmmx stash-item-high ?
   stash ? swap xmmx stash-item ?
   stash ? swap xmmx stash-item-low ?
-  stash ? swap xmmx stash-item-high ?
   stash ? stash-item xmmx ?
   stash ? stash-item-low xmmx ?
-  stash ? stash-item-high xmmx ?
   stash ? swap stash-item xmmx ?
   stash ? swap stash-item-low xmmx ?
-  stash ? swap stash-item-high xmmx ?
   stash ? stash-item stash-item ?
   stash ? stash-item stash-item-low ?
-  stash ? stash-item stash-item-high ?
   stash ? stash-item-low stash-item ?
-  stash ? stash-item-high stash-item ?
   stash ? swap stash-item stash-item-low ?
-  stash ? swap stash-item stash-item-high ?
   stash ? swap stash-item-low stash-item ?
-  stash ? swap stash-item-high stash-item ?
   stash ? stash-item-low stash-item-low ?
-  stash ? stash-item-low stash-item-high ?
-  stash ? stash-item-high stash-item-low ?
-  stash ? stash-item-high stash-item-high ?
   stash ? swap stash-item stash-item ?
   stash ? swap stash-item-low stash-item-low ?
-  stash ? swap stash-item-low stash-item-high ?
-  stash ? swap stash-item-high stash-item-low ?
-  stash ? swap stash-item-high stash-item-high ?
   stash ? addr stash-addr ?
   stash ? stash-addr addr ?

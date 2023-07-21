@@ -1,0 +1,37 @@
+flat m_interleavenibbles_dword_bit dword
+  h.00 h.01
+  h.00 h.02
+  h.00 h.04
+  h.00 h.08
+  h.00 h.0100
+  h.00 h.0200
+  h.00 h.0400
+  h.00 h.0800
+  h.00 h.010000
+  h.00 h.020000
+  h.00 h.040000
+  h.00 h.080000
+  h.00 h.01000000
+  h.00 h.02000000
+  h.00 h.04000000
+  h.00 h.08000000
+  h.00 h.10
+  h.00 h.20
+  h.00 h.40
+  h.00 h.80
+  h.00 h.1000
+  h.00 h.2000
+  h.00 h.4000
+  h.00 h.8000
+  h.00 h.100000
+  h.00 h.200000
+  h.00 h.400000
+  h.00 h.800000
+  h.00 h.10000000
+  h.00 h.20000000
+  h.00 h.40000000
+  h.00 h.80000000
+
+
+# bind addr1 m_interleavenibbles_dword_bit
+# lut-transform dword bit add addr1 rB rA

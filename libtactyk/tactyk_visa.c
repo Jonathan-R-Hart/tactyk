@@ -18,6 +18,7 @@
 #include "tactyk_emit.h"
 #include "tactyk_dblock.h"
 #include "tactyk.h"
+#include "tactyk_report.h"
 
 // tactyk config is intended to have shallow nesting, but a high value is used here because
 //  it was decided that "depth" as a direct indentation measurement would be simpler to implement.
@@ -162,14 +163,46 @@ void tactyk_visa__init_emit(struct tactyk_emit__Context *ctx) {
             ctx->visa_token_invmap[ival] = key;
         }
     }
+    
+    ctx->insert_branch_to_next_instruction = tactyk_dblock__get(ctx->subroutine_table, "next-instruction");
+    if (ctx->insert_branch_to_next_instruction == NULL) {
+        tactyk_report__msg("subroutine 'next-instruction' is not defined");
+        warn(NULL, NULL);
+    }
 }
 
 bool tactyk_visa__mk_instruction(struct tactyk_emit__Context *ctx, struct tactyk_dblock__DBlock *vopcfg) {
     struct tactyk_dblock__DBlock *name = vopcfg->token->next;
+    
+    bool chainin = false;
+    bool chainout = false;
+    bool is_skip = false;
+    
+    if (tactyk_dblock__equals_c_string(name, "chain-in")) {
+        name = name->next;
+        chainin = true;
+    }
+    else if (tactyk_dblock__equals_c_string(name, "chain-out")) {
+        name = name->next;
+        chainout = true;
+    }
+    else if (tactyk_dblock__equals_c_string(name, "chain")) {
+        name = name->next;
+        chainin = true;
+        chainout = true;
+    }
+    
+    if (tactyk_dblock__equals_c_string(name, "skip")) {
+        is_skip = true;
+    }
+    
     struct tactyk_emit__subroutine_spec *sub = tactyk_dblock__new_managedobject(ctx->instruction_table, name);
     sub->func = tactyk_emit__ExecInstruction;
     sub->vopcfg = vopcfg;
-
+    sub->chain_in = chainin;
+    sub->chain_out = chainout;
+    sub->skip = is_skip;
+    
     uint64_t index = ctx->token_handle_count;
     ctx->token_handle_count += 1;
     struct tactyk_dblock__DBlock *th_value = tactyk_dblock__from_uint(index);

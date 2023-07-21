@@ -80,12 +80,14 @@ instruction block-store
   operand
     type data const integer
     $OFFSET $VALUE
-    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+    scramble rTEMPC
+    $LD_OFFSET_IMMEDIATE $SC_LD_INDIRECT
   operand
     type data xmmx xmmx-full
     $SRC $VALUE
   select-template
     case BqsADD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA, $ELEMENT_BOUND_MODIFIER_64
@@ -93,6 +95,8 @@ instruction block-store
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
       vcode $QTY
         6 mov [$ADDRESS_REGISTER+$OFFSET+40], $SRC~5
@@ -101,10 +105,10 @@ instruction block-store
         3 mov [$ADDRESS_REGISTER+$OFFSET+16], $SRC~2
         2 mov [$ADDRESS_REGISTER+$OFFSET+8], $SRC~1
         1 mov [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
-      code
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
     case BqsAID BqsACD
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -113,6 +117,8 @@ instruction block-store
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
       vcode $QTY
         6 mov [$ADDRESS_REGISTER+rTEMPC+40], $SRC~5
@@ -121,12 +127,10 @@ instruction block-store
         3 mov [$ADDRESS_REGISTER+rTEMPC+16], $SRC~2
         2 mov [$ADDRESS_REGISTER+rTEMPC+8], $SRC~1
         1 mov [$ADDRESS_REGISTER+rTEMPC+0], $SRC~0
-      code
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
     
     case BqsADX BqlADX
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA, $ELEMENT_BOUND_MODIFIER_64
@@ -134,6 +138,8 @@ instruction block-store
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
       vcode $QTY
         14 movq [$ADDRESS_REGISTER+$OFFSET+104], $SRC~13
@@ -150,10 +156,10 @@ instruction block-store
         3 movq [$ADDRESS_REGISTER+$OFFSET+16], $SRC~2
         2 movq [$ADDRESS_REGISTER+$OFFSET+8], $SRC~1
         1 movq [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
-      code
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
     case BqsAIX BqsACX BqlAIX BqlACX
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -162,6 +168,8 @@ instruction block-store
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
       vcode $QTY
         14 movq [$ADDRESS_REGISTER+rTEMPC+104], $SRC~13
@@ -178,12 +186,10 @@ instruction block-store
         3 movq [$ADDRESS_REGISTER+rTEMPC+16], $SRC~2
         2 movq [$ADDRESS_REGISTER+rTEMPC+8], $SRC~1
         1 movq [$ADDRESS_REGISTER+rTEMPC+0], $SRC~0
-      code
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
     
     case BqsADXx BqlADXx
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA, $ELEMENT_BOUND_MODIFIER_128
@@ -191,6 +197,8 @@ instruction block-store
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
       vcode $QTY
         14 movdqu [$ADDRESS_REGISTER+$OFFSET+208], $SRC~13
@@ -207,10 +215,10 @@ instruction block-store
         3 movdqu [$ADDRESS_REGISTER+$OFFSET+32], $SRC~2
         2 movdqu [$ADDRESS_REGISTER+$OFFSET+16], $SRC~1
         1 movdqu [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
-      code
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
     case BqsAIXx BqsACXx BqlAIXx BqlACXx
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -219,6 +227,8 @@ instruction block-store
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
       vcode $QTY
         14 movdqu [$ADDRESS_REGISTER+$OFFSET+208], $SRC~13
@@ -235,10 +245,7 @@ instruction block-store
         3 movdqu [$ADDRESS_REGISTER+$OFFSET+32], $SRC~2
         2 movdqu [$ADDRESS_REGISTER+$OFFSET+16], $SRC~1
         1 movdqu [$ADDRESS_REGISTER+$OFFSET+0], $SRC~0
-      code
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
 
 instruction block-load
   operand
@@ -252,9 +259,11 @@ instruction block-load
   operand
     type data const integer
     $OFFSET $VALUE
-    scramble rTEMPC $LD_OFFSET_IMMEDIATE
+    scramble rTEMPC
+    $LD_OFFSET_IMMEDIATE $SC_LD_INDIRECT
   select-template
     case BqsDAD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA, $ELEMENT_BOUND_MODIFIER_64
@@ -262,6 +271,8 @@ instruction block-load
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
       vcode $QTY
         6 mov $DEST__DATA_REG~5, [$ADDRESS_REGISTER+$OFFSET+40]
@@ -270,10 +281,10 @@ instruction block-load
         3 mov $DEST__DATA_REG~2, [$ADDRESS_REGISTER+$OFFSET+16]
         2 mov $DEST__DATA_REG~1, [$ADDRESS_REGISTER+$OFFSET+8]
         1 mov $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
-      code
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
     case BqsDAI BqsDAC
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -282,6 +293,8 @@ instruction block-load
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
       vcode $QTY
         6 mov $DEST__DATA_REG~5, [$ADDRESS_REGISTER+rTEMPC+40]
@@ -290,12 +303,10 @@ instruction block-load
         3 mov $DEST__DATA_REG~2, [$ADDRESS_REGISTER+rTEMPC+16]
         2 mov $DEST__DATA_REG~1, [$ADDRESS_REGISTER+rTEMPC+8]
         1 mov $DEST__DATA_REG~0, [$ADDRESS_REGISTER+rTEMPC+0]
-      code
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
     
     case BqsXAD BqlXAD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA, $ELEMENT_BOUND_MODIFIER_64
@@ -303,6 +314,8 @@ instruction block-load
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
       vcode $QTY
         14 movq $DEST__DATA_REG~13, [$ADDRESS_REGISTER+$OFFSET+104]
@@ -319,10 +332,10 @@ instruction block-load
         3 movq $DEST__DATA_REG~2, [$ADDRESS_REGISTER+$OFFSET+16]
         2 movq $DEST__DATA_REG~1, [$ADDRESS_REGISTER+$OFFSET+8]
         1 movq $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
-      code
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
     case BqsXAI BqlXAI BqsXAC BqlXAC
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -331,6 +344,8 @@ instruction block-load
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
       vcode $QTY
         14 movq $DEST__DATA_REG~13, [$ADDRESS_REGISTER+rTEMPC+104]
@@ -347,12 +362,10 @@ instruction block-load
         3 movq $DEST__DATA_REG~2, [$ADDRESS_REGISTER+rTEMPC+16]
         2 movq $DEST__DATA_REG~1, [$ADDRESS_REGISTER+rTEMPC+8]
         1 movq $DEST__DATA_REG~0, [$ADDRESS_REGISTER+rTEMPC+0]
-      code
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
     
     case BqsXxAD BqlXxAD
+      sub tmp a
       code
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
         sub rTEMPA, $ELEMENT_BOUND_MODIFIER_128
@@ -360,6 +373,8 @@ instruction block-load
         errorge STATUS_ROGUE_POINTER
         cmp $OFFSET, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
       vcode $QTY
         14 movdqu $DEST__DATA_REG~13, [$ADDRESS_REGISTER+$OFFSET+208]
@@ -376,10 +391,10 @@ instruction block-load
         3 movdqu $DEST__DATA_REG~2, [$ADDRESS_REGISTER+$OFFSET+32]
         2 movdqu $DEST__DATA_REG~1, [$ADDRESS_REGISTER+$OFFSET+16]
         1 movdqu $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
-      code
-        xor rTEMPA, rTEMPA
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
     case BqsXxAI BqlXxAI BqsXxAC BqlXxAC
+      sub tmp a
+      sub tmp c
       code
         $LD_OFFSET_IMMEDIATE
         mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
@@ -388,6 +403,8 @@ instruction block-load
         errorge STATUS_ROGUE_POINTER
         cmp rTEMPC, 0
         errorlt STATUS_ROGUE_POINTER
+        cmp $ADDRESS_REGISTER, 0
+        erroreq STATUS_UNBOUND_MEMORY
         lfence
       vcode $QTY
         14 movdqu $DEST__DATA_REG~13, [$ADDRESS_REGISTER+$OFFSET+208]
@@ -404,124 +421,528 @@ instruction block-load
         3 movdqu $DEST__DATA_REG~2, [$ADDRESS_REGISTER+$OFFSET+32]
         2 movdqu $DEST__DATA_REG~1, [$ADDRESS_REGISTER+$OFFSET+16]
         1 movdqu $DEST__DATA_REG~0, [$ADDRESS_REGISTER+$OFFSET+0]
-      code
-        xor rTEMPA, rTEMPA
-        xor rTEMPC, rTEMPC
-        jmp $NEXT_INSTRUCTION
+        1 $RESET_TEMP
+
+instruction block-assign
+  operand
+    type block-quantity
+  operand
+    type data xmmx
+    $DEST $VALUE
+  operand
+    type xmmx data *const *fconst integer float string *branch-index
+    $A $VALUE
+    scramble rTEMPA
+    $LD_A_IMMEDIATE $SC_LD
+    $LD_A_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_A $SC_TARGET
+    scramble rTEMPC $VALUE_UPPER
+    $LD_A_HIGHBITS_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+  opt-operand
+    type xmmx data *const *fconst integer float *string *branch-index
+    $B $VALUE
+    scramble rTEMPA
+    $LD_B_IMMEDIATE $SC_LD
+    $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_B $SC_TARGET
+  opt-operand
+    type xmmx data *const *fconst integer float *string *branch-index
+    $C $VALUE
+    scramble rTEMPA
+    $LD_C_IMMEDIATE $SC_LD
+    $LD_C_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_D $SC_TARGET
+  opt-operand
+    type xmmx data *const *fconst integer float *string *branch-index
+    $D $VALUE
+    scramble rTEMPA
+    $LD_D_IMMEDIATE $SC_LD
+    $LD_D_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
+    $TGT_D $SC_TARGET
+  select-template
+    case BqsDD
+      vcode $QTY
+        1 mov $DEST~0, $A
+        2 mov $DEST~1, $A
+        3 mov $DEST~2, $A
+        4 mov $DEST~3, $A
+        5 mov $DEST~4, $A
+        6 mov $DEST~5, $A
+    case BqsDX
+      vcode $QTY
+        1 cvttsd2si $DEST~0, $A
+        2 mov $DEST~1, $DEST~0
+        3 mov $DEST~2, $DEST~0
+        4 mov $DEST~3, $DEST~0
+        5 mov $DEST~4, $DEST~0
+        6 mov $DEST~5, $DEST~0
+    case BqsDI BqsDC BqsDS
+      sub tmp ra
+      vcode $QTY
+        1 $LD_A_IMMEDIATE
+        1 mov $DEST~0, $TGT_A
+        2 mov $DEST~1, $DEST~0
+        3 mov $DEST~2, $DEST~0
+        4 mov $DEST~3, $DEST~0
+        5 mov $DEST~4, $DEST~0
+        6 mov $DEST~5, $DEST~0
+        1 $RESET_TEMP
+    case BqsDF BqsDCf
+      sub tmp ra
+      sub tmp xa
+      vcode $QTY
+        1 $LD_A_IMMEDIATE_INDIRECT
+        1 movq xTEMPA, rTEMPA
+        1 cvttsd2si $DEST~0, xTEMPA
+        2 mov $DEST~1, $DEST~0
+        3 mov $DEST~2, $DEST~0
+        4 mov $DEST~3, $DEST~0
+        5 mov $DEST~4, $DEST~0
+        6 mov $DEST~5, $DEST~0
+        1 $RESET_TEMP
+    case BqsXD BqlXD
+      vcode $QTY
+        1 cvtsi2sd $DEST~0, $A
+        2 movq $DEST~1, $DEST~0
+        3 movq $DEST~2, $DEST~0
+        4 movq $DEST~3, $DEST~0
+        5 movq $DEST~4, $DEST~0
+        6 movq $DEST~5, $DEST~0
+        7 movq $DEST~6, $DEST~0
+        8 movq $DEST~7, $DEST~0
+        9 movq $DEST~8, $DEST~0
+        10 movq $DEST~9, $DEST~0
+        11 movq $DEST~10, $DEST~0
+        12 movq $DEST~11, $DEST~0
+        13 movq $DEST~12, $DEST~0
+        14 movq $DEST~13, $DEST~0
+    case BqsXX BqlXX
+      vcode $QTY
+        1 movq $DEST~0, $A
+        2 movq $DEST~1, $A
+        3 movq $DEST~2, $A
+        4 movq $DEST~3, $A
+        5 movq $DEST~4, $A
+        6 movq $DEST~5, $A
+        7 movq $DEST~6, $A
+        8 movq $DEST~7, $A
+        9 movq $DEST~8, $A
+        10 movq $DEST~9, $A
+        11 movq $DEST~10, $A
+        12 movq $DEST~11, $A
+        13 movq $DEST~12, $A
+        14 movq $DEST~13, $A
+    case BqsXI BqlXI BqsXC BqlXC
+      sub tmp ra
+      vcode $QTY
+        1 $LD_A_IMMEDIATE_INDIRECT
+        1 cvtsi2sd $DEST~0, rTEMPA
+        2 movq $DEST~1, $DEST~0
+        3 movq $DEST~2, $DEST~0
+        4 movq $DEST~3, $DEST~0
+        5 movq $DEST~4, $DEST~0
+        6 movq $DEST~5, $DEST~0
+        7 movq $DEST~6, $DEST~0
+        8 movq $DEST~7, $DEST~0
+        9 movq $DEST~8, $DEST~0
+        10 movq $DEST~9, $DEST~0
+        11 movq $DEST~10, $DEST~0
+        12 movq $DEST~11, $DEST~0
+        13 movq $DEST~12, $DEST~0
+        14 movq $DEST~13, $DEST~0
+        1 $RESET_TEMP
+    case BqsXF BqlXF BqsXCf BqlXCf
+      sub tmp ra
+      vcode $QTY
+        1 $LD_A_IMMEDIATE_INDIRECT
+        1 movq $DEST~0, rTEMPA
+        2 movq $DEST~1, $DEST~0
+        3 movq $DEST~2, $DEST~0
+        4 movq $DEST~3, $DEST~0
+        5 movq $DEST~4, $DEST~0
+        6 movq $DEST~5, $DEST~0
+        7 movq $DEST~6, $DEST~0
+        8 movq $DEST~7, $DEST~0
+        9 movq $DEST~8, $DEST~0
+        10 movq $DEST~9, $DEST~0
+        11 movq $DEST~10, $DEST~0
+        12 movq $DEST~11, $DEST~0
+        13 movq $DEST~12, $DEST~0
+        14 movq $DEST~13, $DEST~0
+        1 $RESET_TEMP
+    case BqsXS BqlXS
+      sub tmp ra
+      sub tmp rc
+      vcode $QTY
+        1 $LD_A_IMMEDIATE_INDIRECT
+        1 $LD_A_HIGHBITS_IMMEDIATE_INDIRECT
+        1 movq $DEST~0, rTEMPA
+        1 pinsrq $DEST~0, rTEMPC, 3
+        2 movdqa $DEST~1, $DEST~0
+        3 movdqa $DEST~2, $DEST~0
+        4 movdqa $DEST~3, $DEST~0
+        5 movdqa $DEST~4, $DEST~0
+        6 movdqa $DEST~5, $DEST~0
+        7 movdqa $DEST~6, $DEST~0
+        8 movdqa $DEST~7, $DEST~0
+        9 movdqa $DEST~8, $DEST~0
+        10 movdqa $DEST~9, $DEST~0
+        11 movdqa $DEST~10, $DEST~0
+        12 movdqa $DEST~11, $DEST~0
+        13 movdqa $DEST~12, $DEST~0
+        14 movdqa $DEST~13, $DEST~0
+        1 $RESET_TEMP
+    case BqsXXX BqlXXX
+      vcode $QTY
+        1 movq $DEST~0, $A
+        1 movlhps $DEST~0, $A
+        2 movdqa $DEST~1, $DEST~0
+        3 movdqa $DEST~2, $DEST~0
+        4 movdqa $DEST~3, $DEST~0
+        5 movdqa $DEST~4, $DEST~0
+        6 movdqa $DEST~5, $DEST~0
+        7 movdqa $DEST~6, $DEST~0
+        8 movdqa $DEST~7, $DEST~0
+        9 movdqa $DEST~8, $DEST~0
+        10 movdqa $DEST~9, $DEST~0
+        11 movdqa $DEST~10, $DEST~0
+        12 movdqa $DEST~11, $DEST~0
+        13 movdqa $DEST~12, $DEST~0
+        14 movdqa $DEST~13, $DEST~0
+    case BqsXXXXX BqlXXXXX
+      sub tmp xa
+      vcode $QTY
+        1 cvt2d2ss xTEMPA, $A
+        1 cvtsd2ss xTEMPA, $B
+        1 insertps $DEST, xTEMPA, 0b00010000
+        1 cvtsd2ss xTEMPA, $C
+        1 insertps $DEST, xTEMPA, 0b00100000
+        1 cvtsd2ss xTEMPA, $D
+        1 insertps $DEST, xTEMPA, 0b00110000
+        2 movdqa $DEST~1, $DEST~0
+        3 movdqa $DEST~2, $DEST~0
+        4 movdqa $DEST~3, $DEST~0
+        5 movdqa $DEST~4, $DEST~0
+        6 movdqa $DEST~5, $DEST~0
+        7 movdqa $DEST~6, $DEST~0
+        8 movdqa $DEST~7, $DEST~0
+        9 movdqa $DEST~8, $DEST~0
+        10 movdqa $DEST~9, $DEST~0
+        11 movdqa $DEST~10, $DEST~0
+        12 movdqa $DEST~11, $DEST~0
+        13 movdqa $DEST~12, $DEST~0
+        14 movdqa $DEST~13, $DEST~0
+        1 $RESET_TEMP
+    case BqsXDD BqlXDD
+      sub tmp xa
+      vcode $QTY
+        1 cvtsi2sd $DEST~0, $A
+        1 cvtsi2sd xTEMPA, $B
+        1 movlhps $DEST~0, xTEMPA
+        2 movdqa $DEST~1, $DEST~0
+        3 movdqa $DEST~2, $DEST~0
+        4 movdqa $DEST~3, $DEST~0
+        5 movdqa $DEST~4, $DEST~0
+        6 movdqa $DEST~5, $DEST~0
+        7 movdqa $DEST~6, $DEST~0
+        8 movdqa $DEST~7, $DEST~0
+        9 movdqa $DEST~8, $DEST~0
+        10 movdqa $DEST~9, $DEST~0
+        11 movdqa $DEST~10, $DEST~0
+        12 movdqa $DEST~11, $DEST~0
+        13 movdqa $DEST~12, $DEST~0
+        14 movdqa $DEST~13, $DEST~0
+        1 $RESET_TEMP
+    case BqsXDDDD BqlXDDDD
+      sub tmp xa
+      vcode $QTY
+        1 cvtsi2ss $DEST~0, $A
+        1 cvtsi2ss xTEMPA, $B
+        1 insertps $DEST~0, xTEMPA, 0b00010000
+        1 cvtsi2ss xTEMPA, $C
+        1 insertps $DEST~0, xTEMPA, 0b00100000
+        1 cvtsi2ss xTEMPA, $D
+        1 insertps $DEST~0, xTEMPA, 0b00110000
+        2 movdqa $DEST~1, $DEST~0
+        3 movdqa $DEST~2, $DEST~0
+        4 movdqa $DEST~3, $DEST~0
+        5 movdqa $DEST~4, $DEST~0
+        6 movdqa $DEST~5, $DEST~0
+        7 movdqa $DEST~6, $DEST~0
+        8 movdqa $DEST~7, $DEST~0
+        9 movdqa $DEST~8, $DEST~0
+        10 movdqa $DEST~9, $DEST~0
+        11 movdqa $DEST~10, $DEST~0
+        12 movdqa $DEST~11, $DEST~0
+        13 movdqa $DEST~12, $DEST~0
+        14 movdqa $DEST~13, $DEST~0
+        1 $RESET_TEMP
+    case BqsXII BqlXII BqsXSI BqlXSI
+      sub tmp ra
+      sub tmp xa
+      vcode $QTY
+        1 $LD_A_IMMEDIATE_INDIRECT
+        1 cvtsi2sd $DEST~0, rTEMPA
+        1 $LD_B_IMMEDIATE_INDIRECT
+        1 cvtsi2sd xTEMPA, rTEMPA
+        1 movlhps $DEST~0, xTEMPA
+        2 movdqa $DEST~1, $DEST~0
+        3 movdqa $DEST~2, $DEST~0
+        4 movdqa $DEST~3, $DEST~0
+        5 movdqa $DEST~4, $DEST~0
+        6 movdqa $DEST~5, $DEST~0
+        7 movdqa $DEST~6, $DEST~0
+        8 movdqa $DEST~7, $DEST~0
+        9 movdqa $DEST~8, $DEST~0
+        10 movdqa $DEST~9, $DEST~0
+        11 movdqa $DEST~10, $DEST~0
+        12 movdqa $DEST~11, $DEST~0
+        13 movdqa $DEST~12, $DEST~0
+        14 movdqa $DEST~13, $DEST~0
+        1 $RESET_TEMP
+    case BqsXIIII BqlXIIII BqsXSIII BqlXSIII
+      sub tmp ra
+      sub tmp xa
+      vcode $QTY
+        1 $LD_A_IMMEDIATE_INDIRECT
+        1 cvtsi2ss $DEST~0, rTEMPA
+        1 $LD_B_IMMEDIATE_INDIRECT
+        1 cvtsi2ss xTEMPA, rTEMPA
+        1 insertps $DEST~0, xTEMPA, 0b00010000
+        1 $LD_C_IMMEDIATE_INDIRECT
+        1 cvtsi2ss xTEMPA, rTEMPA
+        1 insertps $DEST~0, xTEMPA, 0b00100000
+        1 $LD_D_IMMEDIATE_INDIRECT
+        1 cvtsi2ss xTEMPA, rTEMPA
+        1 insertps $DEST~0, xTEMPA, 0b00110000
+        2 movdqa $DEST~1, $DEST~0
+        3 movdqa $DEST~2, $DEST~0
+        4 movdqa $DEST~3, $DEST~0
+        5 movdqa $DEST~4, $DEST~0
+        6 movdqa $DEST~5, $DEST~0
+        7 movdqa $DEST~6, $DEST~0
+        8 movdqa $DEST~7, $DEST~0
+        9 movdqa $DEST~8, $DEST~0
+        10 movdqa $DEST~9, $DEST~0
+        11 movdqa $DEST~10, $DEST~0
+        12 movdqa $DEST~11, $DEST~0
+        13 movdqa $DEST~12, $DEST~0
+        14 movdqa $DEST~13, $DEST~0
+        1 $RESET_TEMP
+    case BqsXFF BqlXFF
+      sub tmp xa
+      vcode $QTY
+        1 $LD_A_IMMEDIATE_INDIRECT
+        1 movq $DEST~0, rTEMPA
+        1 $LD_B_IMMEDIATE_INDIRECT
+        1 pinsrq $DEST~0, rTEMPA, 3
+        2 movdqa $DEST~1, $DEST~0
+        3 movdqa $DEST~2, $DEST~0
+        4 movdqa $DEST~3, $DEST~0
+        5 movdqa $DEST~4, $DEST~0
+        6 movdqa $DEST~5, $DEST~0
+        7 movdqa $DEST~6, $DEST~0
+        8 movdqa $DEST~7, $DEST~0
+        9 movdqa $DEST~8, $DEST~0
+        10 movdqa $DEST~9, $DEST~0
+        11 movdqa $DEST~10, $DEST~0
+        12 movdqa $DEST~11, $DEST~0
+        13 movdqa $DEST~12, $DEST~0
+        14 movdqa $DEST~13, $DEST~0
+        1 $RESET_TEMP
+    case BqsXFFFF BqlXFFFF
+      sub tmp ra
+      sub tmp xa
+      vcode $QTY
+        1 $LD_A_IMMEDIATE_INDIRECT
+        1 movq  $DEST~0, rTEMPA
+        1 $LD_B_IMMEDIATE_INDIRECT
+        1 movq  xTEMPA, rTEMPA
+        1 cvtsd2ss $DEST~0, $DEST~0
+        1 cvtsd2ss xTEMPA, xTEMPA
+        1 insertps $DEST~0, xTEMPA, 0b00010000
+        1 $LD_C_IMMEDIATE_INDIRECT
+        1 movq  xTEMPA, rTEMPA
+        1 cvtsd2ss xTEMPA, xTEMPA
+        1 insertps $DEST~0, xTEMPA, 0b00100000
+        1 $LD_D_IMMEDIATE_INDIRECT
+        1 movq  xTEMPA, rTEMPA
+        1 cvtsd2ss xTEMPA, xTEMPA
+        1 insertps $DEST~0, xTEMPA, 0b00110000
+        2 movdqa $DEST~1, $DEST~0
+        3 movdqa $DEST~2, $DEST~0
+        4 movdqa $DEST~3, $DEST~0
+        5 movdqa $DEST~4, $DEST~0
+        6 movdqa $DEST~5, $DEST~0
+        7 movdqa $DEST~6, $DEST~0
+        8 movdqa $DEST~7, $DEST~0
+        9 movdqa $DEST~8, $DEST~0
+        10 movdqa $DEST~9, $DEST~0
+        11 movdqa $DEST~10, $DEST~0
+        12 movdqa $DEST~11, $DEST~0
+        13 movdqa $DEST~12, $DEST~0
+        14 movdqa $DEST~13, $DEST~0
+        1 $RESET_TEMP
 
 instruction spread
   operand
     type data xmmx
     $TARGET $VALUE
   operand
-    type integer float
-    scramble rTEMPA $LD_IMMEDIATE_0
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_0 $SC_TARGET
+    $LD_IMMEDIATE_0 $SC_LD
+    $LD_IMMEDIATE_0_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type integer float
-    scramble rTEMPA $LD_IMMEDIATE_1
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_1 $SC_TARGET
+    $LD_IMMEDIATE_1 $SC_LD
+    $LD_IMMEDIATE_1_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type integer float
-    scramble rTEMPA $LD_IMMEDIATE_2
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_2 $SC_TARGET
+    $LD_IMMEDIATE_2 $SC_LD
+    $LD_IMMEDIATE_2_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type integer float
-    scramble rTEMPA $LD_IMMEDIATE_3
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_3 $SC_TARGET
+    $LD_IMMEDIATE_3 $SC_LD
+    $LD_IMMEDIATE_3_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type integer float
-    scramble rTEMPA $LD_IMMEDIATE_4
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_4 $SC_TARGET
+    $LD_IMMEDIATE_4 $SC_LD
+    $LD_IMMEDIATE_4_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type integer float
-    scramble rTEMPA $LD_IMMEDIATE_5
+    type integer *const *branch-index *string float *fconst
+    scramble rTEMPA
+    $TGT_5 $SC_TARGET
+    $LD_IMMEDIATE_5 $SC_LD
+    $LD_IMMEDIATE_5_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
-    scramble rTEMPA $LD_IMMEDIATE_6
+    type float *fconst
+    scramble rTEMPA
+    $TGT_6 $SC_TARGET
+    $LD_IMMEDIATE_6 $SC_LD
+    $LD_IMMEDIATE_6_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
-    scramble rTEMPA $LD_IMMEDIATE_7
+    type float *fconst
+    scramble rTEMPA
+    $TGT_7 $SC_TARGET
+    $LD_IMMEDIATE_7 $SC_LD
+    $LD_IMMEDIATE_7_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
-    scramble rTEMPA $LD_IMMEDIATE_8
+    type float *fconst
+    scramble rTEMPA
+    $TGT_8 $SC_TARGET
+    $LD_IMMEDIATE_8 $SC_LD
+    $LD_IMMEDIATE_8_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
-    scramble rTEMPA $LD_IMMEDIATE_9
+    type float *fconst
+    scramble rTEMPA
+    $TGT_9 $SC_TARGET
+    $LD_IMMEDIATE_9 $SC_LD
+    $LD_IMMEDIATE_9_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
-    scramble rTEMPA $LD_IMMEDIATE_10
+    type float *fconst
+    scramble rTEMPA
+    $TGT_10 $SC_TARGET
+    $LD_IMMEDIATE_10 $SC_LD
+    $LD_IMMEDIATE_10_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
-    scramble rTEMPA $LD_IMMEDIATE_11
+    type float *fconst
+    scramble rTEMPA
+    $TGT_11 $SC_TARGET
+    $LD_IMMEDIATE_11 $SC_LD
+    $LD_IMMEDIATE_11_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
-    scramble rTEMPA $LD_IMMEDIATE_12
+    type float *fconst
+    scramble rTEMPA
+    $TGT_12 $SC_TARGET
+    $LD_IMMEDIATE_12 $SC_LD
+    $LD_IMMEDIATE_12_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
-    scramble rTEMPA $LD_IMMEDIATE_13
+    type float *fconst
+    scramble rTEMPA
+    $TGT_13 $SC_TARGET
+    $LD_IMMEDIATE_13 $SC_LD
+    $LD_IMMEDIATE_13_INDIRECT $SC_LD_INDIRECT
   opt-operand
-    type float
-    scramble rTEMPA $LD_IMMEDIATE_14
+    type float *fconst
+    scramble rTEMPA
+    $TGT_14 $SC_TARGET
+    $LD_IMMEDIATE_14 $SC_LD
+    $LD_IMMEDIATE_14_INDIRECT $SC_LD_INDIRECT
+    sub tmp $TGT_0
   select-template
     case DI
       code
         $LD_IMMEDIATE_0
-        mov $TARGET~0, rTEMPA
+        mov $TARGET~0, $TGT_0
     case DII
       code
         $LD_IMMEDIATE_0
-        mov $TARGET~0, rTEMPA
+        mov $TARGET~0, $TGT_0
         $LD_IMMEDIATE_1
-        mov $TARGET~1, rTEMPA
+        mov $TARGET~1, $TGT_1
     case DIII
       code
         $LD_IMMEDIATE_0
-        mov $TARGET~0, rTEMPA
+        mov $TARGET~0, $TGT_0
         $LD_IMMEDIATE_1
-        mov $TARGET~1, rTEMPA
+        mov $TARGET~1, $TGT_1
         $LD_IMMEDIATE_2
-        mov $TARGET~2, rTEMPA
+        mov $TARGET~2, $TGT_2
     case DIIII
       code
         $LD_IMMEDIATE_0
-        mov $TARGET~0, rTEMPA
+        mov $TARGET~0, $TGT_0
         $LD_IMMEDIATE_1
-        mov $TARGET~1, rTEMPA
+        mov $TARGET~1, $TGT_1
         $LD_IMMEDIATE_2
-        mov $TARGET~2, rTEMPA
+        mov $TARGET~2, $TGT_2
         $LD_IMMEDIATE_3
-        mov $TARGET~3, rTEMPA
+        mov $TARGET~3, $TGT_3
     case DIIIII
       code
         $LD_IMMEDIATE_0
-        mov $TARGET~0, rTEMPA
+        mov $TARGET~0, $TGT_0
         $LD_IMMEDIATE_1
-        mov $TARGET~1, rTEMPA
+        mov $TARGET~1, $TGT_1
         $LD_IMMEDIATE_2
-        mov $TARGET~2, rTEMPA
+        mov $TARGET~2, $TGT_2
         $LD_IMMEDIATE_3
-        mov $TARGET~3, rTEMPA
+        mov $TARGET~3, $TGT_3
         $LD_IMMEDIATE_4
-        mov $TARGET~4, rTEMPA
+        mov $TARGET~4, $TGT_4
     case DIIIIII
       code
         $LD_IMMEDIATE_0
-        mov $TARGET~0, rTEMPA
+        mov $TARGET~0, $TGT_0
         $LD_IMMEDIATE_1
-        mov $TARGET~1, rTEMPA
+        mov $TARGET~1, $TGT_1
         $LD_IMMEDIATE_2
-        mov $TARGET~2, rTEMPA
+        mov $TARGET~2, $TGT_2
         $LD_IMMEDIATE_3
-        mov $TARGET~3, rTEMPA
+        mov $TARGET~3, $TGT_3
         $LD_IMMEDIATE_4
-        mov $TARGET~4, rTEMPA
+        mov $TARGET~4, $TGT_4
         $LD_IMMEDIATE_5
-        mov $TARGET~5, rTEMPA
+        mov $TARGET~5, $TGT_5
     case XF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
     case XFF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
-        $LD_IMMEDIATE_1
+        $LD_IMMEDIATE_1_INDIRECT
         movq $TARGET~1, rTEMPA
     case XFFF
       code
@@ -533,224 +954,223 @@ instruction spread
         movq $TARGET~2, rTEMPA
     case XFFFF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
-        $LD_IMMEDIATE_1
+        $LD_IMMEDIATE_1_INDIRECT
         movq $TARGET~1, rTEMPA
-        $LD_IMMEDIATE_2
+        $LD_IMMEDIATE_2_INDIRECT
         movq $TARGET~2, rTEMPA
-        $LD_IMMEDIATE_3
+        $LD_IMMEDIATE_3_INDIRECT
         movq $TARGET~3, rTEMPA
     case XFFFFF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
-        $LD_IMMEDIATE_1
+        $LD_IMMEDIATE_1_INDIRECT
         movq $TARGET~1, rTEMPA
-        $LD_IMMEDIATE_2
+        $LD_IMMEDIATE_2_INDIRECT
         movq $TARGET~2, rTEMPA
-        $LD_IMMEDIATE_3
+        $LD_IMMEDIATE_3_INDIRECT
         movq $TARGET~3, rTEMPA
-        $LD_IMMEDIATE_4
+        $LD_IMMEDIATE_4_INDIRECT
         movq $TARGET~4, rTEMPA
     case XFFFFFF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
-        $LD_IMMEDIATE_1
+        $LD_IMMEDIATE_1_INDIRECT
         movq $TARGET~1, rTEMPA
-        $LD_IMMEDIATE_2
+        $LD_IMMEDIATE_2_INDIRECT
         movq $TARGET~2, rTEMPA
-        $LD_IMMEDIATE_3
+        $LD_IMMEDIATE_3_INDIRECT
         movq $TARGET~3, rTEMPA
-        $LD_IMMEDIATE_4
+        $LD_IMMEDIATE_4_INDIRECT
         movq $TARGET~4, rTEMPA
-        $LD_IMMEDIATE_5
+        $LD_IMMEDIATE_5_INDIRECT
         movq $TARGET~5, rTEMPA
     case XFFFFFFF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
-        $LD_IMMEDIATE_1
+        $LD_IMMEDIATE_1_INDIRECT
         movq $TARGET~1, rTEMPA
-        $LD_IMMEDIATE_2
+        $LD_IMMEDIATE_2_INDIRECT
         movq $TARGET~2, rTEMPA
-        $LD_IMMEDIATE_3
+        $LD_IMMEDIATE_3_INDIRECT
         movq $TARGET~3, rTEMPA
-        $LD_IMMEDIATE_4
+        $LD_IMMEDIATE_4_INDIRECT
         movq $TARGET~4, rTEMPA
-        $LD_IMMEDIATE_5
+        $LD_IMMEDIATE_5_INDIRECT
         movq $TARGET~5, rTEMPA
-        $LD_IMMEDIATE_6
+        $LD_IMMEDIATE_6_INDIRECT
         movq $TARGET~6, rTEMPA
     case XFFFFFFFF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
-        $LD_IMMEDIATE_1
+        $LD_IMMEDIATE_1_INDIRECT
         movq $TARGET~1, rTEMPA
-        $LD_IMMEDIATE_2
+        $LD_IMMEDIATE_2_INDIRECT
         movq $TARGET~2, rTEMPA
-        $LD_IMMEDIATE_3
+        $LD_IMMEDIATE_3_INDIRECT
         movq $TARGET~3, rTEMPA
-        $LD_IMMEDIATE_4
+        $LD_IMMEDIATE_4_INDIRECT
         movq $TARGET~4, rTEMPA
-        $LD_IMMEDIATE_5
+        $LD_IMMEDIATE_5_INDIRECT
         movq $TARGET~5, rTEMPA
-        $LD_IMMEDIATE_6
+        $LD_IMMEDIATE_6_INDIRECT
         movq $TARGET~6, rTEMPA
-        $LD_IMMEDIATE_7
+        $LD_IMMEDIATE_7_INDIRECT
         movq $TARGET~7, rTEMPA
     case XFFFFFFFFF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
-        $LD_IMMEDIATE_1
+        $LD_IMMEDIATE_1_INDIRECT
         movq $TARGET~1, rTEMPA
-        $LD_IMMEDIATE_2
+        $LD_IMMEDIATE_2_INDIRECT
         movq $TARGET~2, rTEMPA
-        $LD_IMMEDIATE_3
+        $LD_IMMEDIATE_3_INDIRECT
         movq $TARGET~3, rTEMPA
-        $LD_IMMEDIATE_4
+        $LD_IMMEDIATE_4_INDIRECT
         movq $TARGET~4, rTEMPA
-        $LD_IMMEDIATE_5
+        $LD_IMMEDIATE_5_INDIRECT
         movq $TARGET~5, rTEMPA
-        $LD_IMMEDIATE_6
+        $LD_IMMEDIATE_6_INDIRECT
         movq $TARGET~6, rTEMPA
-        $LD_IMMEDIATE_7
+        $LD_IMMEDIATE_7_INDIRECT
         movq $TARGET~7, rTEMPA
-        $LD_IMMEDIATE_8
+        $LD_IMMEDIATE_8_INDIRECT
         movq $TARGET~8, rTEMPA
     case XFFFFFFFFFF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
-        $LD_IMMEDIATE_1
+        $LD_IMMEDIATE_1_INDIRECT
         movq $TARGET~1, rTEMPA
-        $LD_IMMEDIATE_2
+        $LD_IMMEDIATE_2_INDIRECT
         movq $TARGET~2, rTEMPA
-        $LD_IMMEDIATE_3
+        $LD_IMMEDIATE_3_INDIRECT
         movq $TARGET~3, rTEMPA
-        $LD_IMMEDIATE_4
+        $LD_IMMEDIATE_4_INDIRECT
         movq $TARGET~4, rTEMPA
-        $LD_IMMEDIATE_5
+        $LD_IMMEDIATE_5_INDIRECT
         movq $TARGET~5, rTEMPA
-        $LD_IMMEDIATE_6
+        $LD_IMMEDIATE_6_INDIRECT
         movq $TARGET~6, rTEMPA
-        $LD_IMMEDIATE_7
+        $LD_IMMEDIATE_7_INDIRECT
         movq $TARGET~7, rTEMPA
-        $LD_IMMEDIATE_8
+        $LD_IMMEDIATE_8_INDIRECT
         movq $TARGET~8, rTEMPA
-        $LD_IMMEDIATE_9
+        $LD_IMMEDIATE_9_INDIRECT
         movq $TARGET~9, rTEMPA
     case XFFFFFFFFFFF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
-        $LD_IMMEDIATE_1
+        $LD_IMMEDIATE_1_INDIRECT
         movq $TARGET~1, rTEMPA
-        $LD_IMMEDIATE_2
+        $LD_IMMEDIATE_2_INDIRECT
         movq $TARGET~2, rTEMPA
-        $LD_IMMEDIATE_3
+        $LD_IMMEDIATE_3_INDIRECT
         movq $TARGET~3, rTEMPA
-        $LD_IMMEDIATE_4
+        $LD_IMMEDIATE_4_INDIRECT
         movq $TARGET~4, rTEMPA
-        $LD_IMMEDIATE_5
+        $LD_IMMEDIATE_5_INDIRECT
         movq $TARGET~5, rTEMPA
-        $LD_IMMEDIATE_6
+        $LD_IMMEDIATE_6_INDIRECT
         movq $TARGET~6, rTEMPA
-        $LD_IMMEDIATE_7
+        $LD_IMMEDIATE_7_INDIRECT
         movq $TARGET~7, rTEMPA
-        $LD_IMMEDIATE_8
+        $LD_IMMEDIATE_8_INDIRECT
         movq $TARGET~8, rTEMPA
-        $LD_IMMEDIATE_9
+        $LD_IMMEDIATE_9_INDIRECT
         movq $TARGET~9, rTEMPA
-        $LD_IMMEDIATE_10
+        $LD_IMMEDIATE_10_INDIRECT
         movq $TARGET~10, rTEMPA
     case XFFFFFFFFFFFF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
-        $LD_IMMEDIATE_1
+        $LD_IMMEDIATE_1_INDIRECT
         movq $TARGET~1, rTEMPA
-        $LD_IMMEDIATE_2
+        $LD_IMMEDIATE_2_INDIRECT
         movq $TARGET~2, rTEMPA
-        $LD_IMMEDIATE_3
+        $LD_IMMEDIATE_3_INDIRECT
         movq $TARGET~3, rTEMPA
-        $LD_IMMEDIATE_4
+        $LD_IMMEDIATE_4_INDIRECT
         movq $TARGET~4, rTEMPA
-        $LD_IMMEDIATE_5
+        $LD_IMMEDIATE_5_INDIRECT
         movq $TARGET~5, rTEMPA
-        $LD_IMMEDIATE_6
+        $LD_IMMEDIATE_6_INDIRECT
         movq $TARGET~6, rTEMPA
-        $LD_IMMEDIATE_7
+        $LD_IMMEDIATE_7_INDIRECT
         movq $TARGET~7, rTEMPA
-        $LD_IMMEDIATE_8
+        $LD_IMMEDIATE_8_INDIRECT
         movq $TARGET~8, rTEMPA
-        $LD_IMMEDIATE_9
+        $LD_IMMEDIATE_9_INDIRECT
         movq $TARGET~9, rTEMPA
-        $LD_IMMEDIATE_10
+        $LD_IMMEDIATE_10_INDIRECT
         movq $TARGET~10, rTEMPA
-        $LD_IMMEDIATE_11
+        $LD_IMMEDIATE_11_INDIRECT
         movq $TARGET~11, rTEMPA
     case XFFFFFFFFFFFFF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
-        $LD_IMMEDIATE_1
+        $LD_IMMEDIATE_1_INDIRECT
         movq $TARGET~1, rTEMPA
-        $LD_IMMEDIATE_2
+        $LD_IMMEDIATE_2_INDIRECT
         movq $TARGET~2, rTEMPA
-        $LD_IMMEDIATE_3
+        $LD_IMMEDIATE_3_INDIRECT
         movq $TARGET~3, rTEMPA
-        $LD_IMMEDIATE_4
+        $LD_IMMEDIATE_4_INDIRECT
         movq $TARGET~4, rTEMPA
-        $LD_IMMEDIATE_5
+        $LD_IMMEDIATE_5_INDIRECT
         movq $TARGET~5, rTEMPA
-        $LD_IMMEDIATE_6
+        $LD_IMMEDIATE_6_INDIRECT
         movq $TARGET~6, rTEMPA
-        $LD_IMMEDIATE_7
+        $LD_IMMEDIATE_7_INDIRECT
         movq $TARGET~7, rTEMPA
-        $LD_IMMEDIATE_8
+        $LD_IMMEDIATE_8_INDIRECT
         movq $TARGET~8, rTEMPA
-        $LD_IMMEDIATE_9
+        $LD_IMMEDIATE_9_INDIRECT
         movq $TARGET~9, rTEMPA
-        $LD_IMMEDIATE_10
+        $LD_IMMEDIATE_10_INDIRECT
         movq $TARGET~10, rTEMPA
-        $LD_IMMEDIATE_11
+        $LD_IMMEDIATE_11_INDIRECT
         movq $TARGET~11, rTEMPA
-        $LD_IMMEDIATE_12
+        $LD_IMMEDIATE_12_INDIRECT
         movq $TARGET~12, rTEMPA
     case XFFFFFFFFFFFFFF
       code
-        $LD_IMMEDIATE_0
+        $LD_IMMEDIATE_0_INDIRECT
         movq $TARGET~0, rTEMPA
-        $LD_IMMEDIATE_1
+        $LD_IMMEDIATE_1_INDIRECT
         movq $TARGET~1, rTEMPA
-        $LD_IMMEDIATE_2
+        $LD_IMMEDIATE_2_INDIRECT
         movq $TARGET~2, rTEMPA
-        $LD_IMMEDIATE_3
+        $LD_IMMEDIATE_3_INDIRECT
         movq $TARGET~3, rTEMPA
-        $LD_IMMEDIATE_4
+        $LD_IMMEDIATE_4_INDIRECT
         movq $TARGET~4, rTEMPA
-        $LD_IMMEDIATE_5
+        $LD_IMMEDIATE_5_INDIRECT
         movq $TARGET~5, rTEMPA
-        $LD_IMMEDIATE_6
+        $LD_IMMEDIATE_6_INDIRECT
         movq $TARGET~6, rTEMPA
-        $LD_IMMEDIATE_7
+        $LD_IMMEDIATE_7_INDIRECT
         movq $TARGET~7, rTEMPA
-        $LD_IMMEDIATE_8
+        $LD_IMMEDIATE_8_INDIRECT
         movq $TARGET~8, rTEMPA
-        $LD_IMMEDIATE_9
+        $LD_IMMEDIATE_9_INDIRECT
         movq $TARGET~9, rTEMPA
-        $LD_IMMEDIATE_10
+        $LD_IMMEDIATE_10_INDIRECT
         movq $TARGET~10, rTEMPA
-        $LD_IMMEDIATE_11
+        $LD_IMMEDIATE_11_INDIRECT
         movq $TARGET~11, rTEMPA
-        $LD_IMMEDIATE_12
+        $LD_IMMEDIATE_12_INDIRECT
         movq $TARGET~12, rTEMPA
-        $LD_IMMEDIATE_13
+        $LD_IMMEDIATE_13_INDIRECT
         movq $TARGET~13, rTEMPA
   code
-    xor rTEMPA, rTEMPA
-    jmp $NEXT_INSTRUCTION
+    $RESET_TEMP

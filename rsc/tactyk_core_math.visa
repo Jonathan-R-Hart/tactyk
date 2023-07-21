@@ -13,7 +13,6 @@ subroutine unary_fpu_instruction
         $INSTRUCTION
         fstp qword fs:[context.fpu_a + random_const_FS]
         movq $A, fs:[context.fpu_a + random_const_FS]
-        jmp $NEXT_INSTRUCTION
     case XX
       code
         movq fs:[context.fpu_b + random_const_FS], $B
@@ -21,7 +20,6 @@ subroutine unary_fpu_instruction
         $INSTRUCTION
         fstp qword fs:[context.fpu_a + random_const_FS]
         movq $A, fs:[context.fpu_a + random_const_FS]
-        jmp $NEXT_INSTRUCTION
 
 subroutine unary_fpu_instruction__pop1first
   operand
@@ -39,7 +37,6 @@ subroutine unary_fpu_instruction__pop1first
         fstp st0
         fstp qword fs:[context.fpu_a + random_const_FS]
         movq $A, fs:[context.fpu_a + random_const_FS]
-        jmp $NEXT_INSTRUCTION
     case XX
       code
         movq fs:[context.fpu_b + random_const_FS], $B
@@ -48,7 +45,6 @@ subroutine unary_fpu_instruction__pop1first
         fstp st0
         fstp qword fs:[context.fpu_a + random_const_FS]
         movq $A, fs:[context.fpu_a + random_const_FS]
-        jmp $NEXT_INSTRUCTION
 
 # compute sine of X
 #   If two operands (A,B), compute sine(B) and store the result in register A
@@ -95,7 +91,6 @@ instruction arctangent
         fpatan
         fstp qword fs:[context.fpu_a + random_const_FS]
         movq $A, fs:[context.fpu_a + random_const_FS]
-        jmp $NEXT_INSTRUCTION
     case XX
       code
         movq fs:[context.fpu_b + random_const_FS], $B
@@ -104,7 +99,6 @@ instruction arctangent
         fpatan
         fstp qword fs:[context.fpu_a + random_const_FS]
         movq $A, fs:[context.fpu_a + random_const_FS]
-        jmp $NEXT_INSTRUCTION
     case XXX
       code
         movq fs:[context.fpu_b + random_const_FS], $B
@@ -114,7 +108,6 @@ instruction arctangent
         fpatan
         fstp qword fs:[context.fpu_a + random_const_FS]
         movq $A, fs:[context.fpu_a + random_const_FS]
-        jmp $NEXT_INSTRUCTION
 
 # compute log-base2 of X
 #   If two operands (A,B), compute log2(B) and store in register A
@@ -154,7 +147,6 @@ instruction log
         fyl2x
         fstp qword fs:[context.fpu_a + random_const_FS]
         movq $A, fs:[context.fpu_a + random_const_FS]
-        jmp $NEXT_INSTRUCTION
     case XXX
       code  
         fld1
@@ -168,7 +160,54 @@ instruction log
         fyl2x
         fstp qword fs:[context.fpu_a + random_const_FS]
         movq $A, fs:[context.fpu_a + random_const_FS]
-        jmp $NEXT_INSTRUCTION
+
+instruction pow
+  operand
+    type xmmx
+    $A $VALUE
+  operand
+    type xmmx
+    $B $VALUE
+  opt-operand
+    type xmmx
+    $C $VALUE
+  select-template
+    case XX
+      code
+        movq fs:[context.fpu_c + random_const_FS], $B
+        fld qword fs:[context.fpu_c + random_const_FS]
+        movq fs:[context.fpu_b + random_const_FS], $A
+        fld qword fs:[context.fpu_b + random_const_FS]
+        fabs
+        fyl2x
+        fld1
+        fld st1
+        fprem
+        f2xm1
+        fadd
+        fscale
+        fxch
+        fstp st0
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
+    case XXX
+      code
+        movq fs:[context.fpu_c + random_const_FS], $C
+        fld qword fs:[context.fpu_c + random_const_FS]
+        movq fs:[context.fpu_b + random_const_FS], $B
+        fld qword fs:[context.fpu_b + random_const_FS]
+        fabs
+        fyl2x
+        fld1
+        fld st1
+        fprem
+        f2xm1
+        fadd
+        fscale
+        fxch
+        fstp st0
+        fstp qword fs:[context.fpu_a + random_const_FS]
+        movq $A, fs:[context.fpu_a + random_const_FS]
 
 # Compute sine and cosine of X and store both results
 #   $DEST_SINE:     xmm register to write the result of sine(X) to
@@ -195,8 +234,6 @@ instruction sine_and_cosine
         fstp qword fs:[context.fpu_b + random_const_FS]
         movq $DEST_COSINE, fs:[context.fpu_a + random_const_FS]
         movq $DEST_SINE, fs:[context.fpu_b + random_const_FS]
-        jmp $NEXT_INSTRUCTION
-
 
 typespec compute-op
   select-operand
@@ -256,7 +293,29 @@ typespec compute-op
         fdivrp
         fxch
         fyl2x
-        
+    case pow exp exponentiate
+      code new $COMPUTE_OP
+        fxch
+        fyl2x
+        fld1
+        fld st1
+        fprem
+        f2xm1
+        fadd
+        fscale
+        fxch
+        fstp st0
+    case ~pow ~exp ~exponentiate
+      code new $COMPUTE_OP
+        fyl2x
+        fld1
+        fld st1
+        fprem
+        f2xm1
+        fadd
+        fscale
+        fxch
+        fstp st0
     
     # apply the passive function using the accumulator vale for both operands 
     case .
@@ -281,6 +340,9 @@ typespec compute-op
     case tangent tan
       code
         ftan
+    case absolute-value abs
+      code
+        fabs
     case square-root sqrt
       code
         fsqrt
@@ -339,7 +401,7 @@ instruction compute
     fxch
     fstp st0
   operand
-    type xmmx data  stash-item stash-item-low stash-item-high
+    type xmmx data  stash-item stash-item-small
     $DEST $VALUE
   code
     ffree st0
@@ -350,29 +412,32 @@ instruction compute
         fstp qword fs:[context.fpu_a + random_const_FS]
         movq $DEST, fs:[context.fpu_a + random_const_FS]
         ffree st0
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case Si
       code $FOOTER
         fstp tword gs:[microcontext.$DEST+random_const_GS]
         ffree st0
-        jmp $NEXT_INSTRUCTION
-    case Sil Sih
+        $RESET_TEMP
+    case Sis
       code $FOOTER
         fstp qword gs:[microcontext.$DEST+random_const_GS]
         ffree st0
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
     case D
       code $FOOTER
         fisttp qword fs:[context.fpu_a + random_const_FS]
         mov $DEST, fs:[context.fpu_a + random_const_FS]
         ffree st0
-        jmp $NEXT_INSTRUCTION
+        $RESET_TEMP
   
   composite 16
     operand
-      type compute-op xmmx data  stash-item stash-item-low stash-item-high  float fconst integer const
+      type compute-op xmmx data  stash-item stash-item-small  float fconst integer const
       $SRC $VALUE
-      scramble rTEMPC $LD_B_IMMEDIATE
+      scramble rTEMPC
+      $TGT $SC_TARGET
+      $LD_B_IMMEDIATE $SC_LD
+      $LD_B_IMMEDIATE_INDIRECT $SC_LD_INDIRECT
     select-template
       case X
         code
@@ -383,7 +448,7 @@ instruction compute
         code
           fld tword gs:[microcontext.$SRC+random_const_GS]
           $COMPUTE_OP
-      case Sil Sih
+      case Sis
         code
           fld qword gs:[microcontext.$SRC+random_const_GS]
           $COMPUTE_OP
@@ -393,15 +458,17 @@ instruction compute
           fild qword fs:[context.fpu_a + random_const_FS]
           $COMPUTE_OP
       case I C
+        sub tmp $TGT
         code
           $LD_B_IMMEDIATE
-          mov fs:[context.fpu_a + random_const_FS], rTEMPC
+          mov qword fs:[context.fpu_a + random_const_FS], $TGT
           fild qword fs:[context.fpu_a + random_const_FS]
           $COMPUTE_OP
       case F Cf
+        sub tmp $TGT
         code
           $LD_B_IMMEDIATE
-          mov fs:[context.fpu_a + random_const_FS], rTEMPC
+          mov qword fs:[context.fpu_a + random_const_FS], rTEMPC
           fld qword fs:[context.fpu_a + random_const_FS]
           $COMPUTE_OP
       case .

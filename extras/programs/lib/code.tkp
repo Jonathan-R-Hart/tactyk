@@ -1,0 +1,200 @@
+
+# PREPROCESSOR VARS:
+# $NAME                      Unique / descriptive text (to allow multiple decoders with different parameters)
+# $CODEWORDMASK              binary mask for indexing the codebook
+# $CODEWORDSCALE             bitshift to apply to masked index value (to obtain a byte index of a codebook entry for any given code)
+# $CODEVALUESIZE              word-size keyword for readong codebook entries (byte, word, dword, or qword, for 8-bit, 16-bit, 32-bit, or 64-bit coded values)
+# $CONSUMPTIONBITS           bit count of coded-param consumption field
+# $CONSUMPTIONMASK           binary mask for extracting input consumption amount (2^$CONSUMPTION_BITS - 1)
+# $CONSUMPTIONCONST          A constant amount of input bits to consume for each decoding op (added to the extracted input consumption value) 
+# $HANDLERBASE               Reference to the base handler function (tactyk label)
+# $HANDLERBITS               Number of bits for specifying the handler function offset [from the base handler function]
+# $HANDLERMASK               binary mask for extracting handler offset (2^$HANDLER_BITS - 1)
+# $HANDLERALIGNMENT          Bitshift to apply to the extracted handler offset
+
+# standard vars 
+# $NAME hdec
+# $CODEWORDMASK h.000fffff
+# $CODEVALUESIZE 20
+# $CODEWORDSCALE 2
+# $CODEVALUESIZE dword
+# $CONSUMPTIONBITS 4
+# $CONSUMPTIONMASK h.000f
+# $CONSUMPTIONCONST 8
+# $HANDLERBITS 4
+# $HANDLERBASE ~HUFFMAN
+# $HANDLERALIGNMENT 4
+
+# codebook layout:
+#   each entry is a 16-bit word
+#   bits 0-3:   extra input bits to consume (a fixed consumption amount is added)
+#   bits 4-7:   offset of code handler from base handler (each handler must be aligned in global jump table with base handler)
+#   bits 8-LAST:  values (handler-interpreted field)
+
+# -----------------------------------------------------------------------------------------------------------------
+# PNG + deflate + code stash/register allocation
+# 
+# General:
+#   addr1:  output
+#   addr2:  input
+#   rE:   input read head
+#   rF:   output write head
+#   s26l-s28h:   open
+#   sAl-sFh:  ad-hoc locals, usually register-shadowing [used for functions which don't call into anything complex]
+# 
+# Bistream (while the DEFLATE de-compressor is active)
+#   rA:   bitstream loaded bits
+#   rB:   open, bitstream output
+#   rC:   open
+#   rD:   bitstream bit count
+#   rE:   memory read head
+# 
+# PNG global (valid while loading PNGs):
+#   s29l-s31h:   PNG control-table (MINITABLE)
+# 
+# PNG data:
+#   sHl:  width
+#   sHh:  height
+#   sIl:  bit depth
+#   sIh:  color mode
+#   sJl:  compression method
+#   sJh:  filter method
+#   sKl:  interlace
+#   sKh:  base output offset (PNG__GET input)
+#   sLl:  row byte length
+#   sLh:    stashed rD during IDAT concatenation
+#   
+#   sQh:  stashed output buffer position while reading the PNG data structure
+#         input buffer end while DEFLATE decrompressor is active
+# 
+# PNG - process/filter
+#   sMl:  byte size of image
+# 
+# PNG - export:
+#   sMl:  output end position
+#   sMh:  output current position
+#   sNl:  grayscale byte-to-RGB triplet conversion factor (non-alpha formats)
+# 
+# PNG - padding control:
+#   sNh:  padding-skip trigger value  -- possibly switch to width (sHh)
+#   sOl:  padding amount
+#   sOh:  x
+# 
+# PNG IDAT concatenation:
+#   sPl:  IDAT data block start position
+#   sPh:  IDAT concatenator state
+#   sQl:  IDAT data position end position
+# 
+# DEFLATE:
+#   rA,rB,rC,rD,rE:  bitstream registers
+#   sWl:  final block flag (1 if last block)
+#   addr3:  control datable (codebook)
+#   addr4:  scratch buffer
+# 
+# DEFLATE - "dynamic" table builder
+#   s26l:  - stashed write head [beginning to end]
+#   s27l, s27h, s28l - stashed bitstream persistent vars [while writing codebooks]
+#   sRl:  literal quantity
+#   sRh:  backref quantity
+#   sSl:  codelen quantity
+#   sSh:  symbol index
+#   sTl:  symbol length buffer index (while unpacking the literal & backref list)
+# 
+# HUFFMAN decoder
+#   rA,rB,rC,rD,rE:  bitstream registers
+# 
+# Canonical Huffman Code setup:
+#   [GUARDED with swap covering rA, rD, rE, and distantly rF]
+#   sXh:   codeword length
+#   sXl:   index
+#   sYl:   base affix value (used to generate all codebook entry duplicates)
+#   rB:   base codeword (index bit-reversed)
+#   rC:   open
+#   rD:   coded value (input)
+#   rF:   open
+# -----------------------------------------------------------------------------------------------------------------
+
+DECODE.$NAME:
+  lwcall BITSTREAM__PREFETCH.decoder
+  
+  # get codebook entry
+  assign rB rA
+  and rB $CODEWORDMASK
+  shift-left rB $CODEWORDSCALE
+  load $CODEVALUESIZE rB addr3 rB
+  
+  # For now, validate the value
+  if b == 0
+    assign xA 'BadCodebookEntry
+    assign rB rA
+    and rB $CODEWORDMASK
+    exit
+  
+  # consume input bits
+  assign rC rB
+  and rC $CONSUMPTIONMASK
+  add rC $CONSUMPTIONCONST
+  sub rD rC
+  shift-right rA rC
+  
+  # select handler
+  shift-right rB $CONSUMPTIONBITS
+  assign rC rB
+  and rC $HANDLERMASK
+  shift-left rC $HANDLERALIGNMENT
+  add rC $HANDLERBASE
+  
+  # value
+  shift-right rB $HANDLERBITS
+  goto rC
+
+
+# Utility functions for constructing a codebook which interprets Canonical Huffman Codes 
+#
+# The table is constructed by invoking the PUT function for each entry to insert, and invoking the NEXTBIT function when the codeword length is increases.
+# Codebook entries are binary fields (no restrictions on content).
+# 
+# Each time an entry is inserted, it finds all positions which match the code and inserts codebook entries for them all.
+#   (the code is matched if it contains the codeword in its least significant bits)
+CODEBOOK_CH__INIT.$NAME:
+  assign sXl 0
+  assign sXh 1
+  assign sYl 2
+  lwreturn
+
+CODEBOOK_CH__NEXTBIT.$NAME:
+  shift-left sXl 1
+  shift-left sYl 1
+  inc sXh
+  lwreturn
+
+CODEBOOK_CH__PUT.$NAME:
+  assign rB sXl
+  reverse-bits rB sXh
+  
+  # starting with the calculated base value, derive all "variant" codewords and insert them into the codebook
+  #   They're not really variant codewords - just extra entries to cover arbitrary bits which are neither part of the codeword,
+  #   not removed after processing the codeword.
+  #   [allowing the decoder to directly index the codebook with a raw values].
+  CODEBOOK_CH__PUT.insert.$NAME:
+  if rB < $CODEWORDLIMIT
+    shift-left rB $CODEWORDSCALE
+    load $CODEVALUESIZE rC addr3 rB
+    #if rC != 0
+    #  tcall dump-ctx
+    #  assign xB 'OVERWRITE
+    #  tcall print-text-xb
+    #  tcall print-space
+    #  tcall print-int-c
+    #  tcall print-space
+    #  tcall print-int-d
+    #  tcall print-newline
+    #  exit
+    store $CODEVALUESIZE addr3 rB rD
+    shift-right rB $CODEWORDSCALE
+    add rB sYl
+    goto CODEBOOK_CH__PUT.insert.$NAME
+  inc sXl
+  lwreturn
+
+

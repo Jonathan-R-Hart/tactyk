@@ -1,0 +1,13 @@
+
+flat m_interleavebits_word_nibble word
+  h.0000 h.0001 h.0004 h.0005 h.0010 h.0011 h.0014 h.0015
+  h.0040 h.0041 h.0044 h.0045 h.0050 h.0051 h.0054 h.0055
+  h.0000 h.0100 h.0400 h.0500 h.1000 h.1100 h.1400 h.1500
+  h.4000 h.4100 h.4400 h.4500 h.5000 h.5100 h.5400 h.5500
+  h.0000 h.0002 h.0008 h.000a h.0020 h.0022 h.0028 h.002a
+  h.0080 h.0082 h.0088 h.008a h.00a0 h.00a2 h.00a8 h.00aa
+  h.0000 h.0200 h.0800 h.0a00 h.2000 h.2200 h.2800 h.2a00
+  h.8000 h.8200 h.8800 h.8a00 h.a000 h.a200 h.a800 h.aa00
+
+# bind addr1 m_interleavebits_word_nibble
+# lut-transform word nibble add addr1 rB rA

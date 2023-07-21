@@ -1,0 +1,954 @@
+extend subroutine simple_unary_instruction select-template
+  case Si Sis
+    code
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS]
+
+extend subroutine simple_binary_instruction select-template
+  case DSi DSis
+    code
+      $INSTRUCTION $A, qword gs:[microcontext.$B + random_const_GS]
+  case SiD SisD
+    code
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], $B
+  case SiSis SisSi SisSis
+    sub tmp ra
+    code
+      mov rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case SiI SiC SisI SisC
+    sub tmp ra
+    code
+      $SC_LD_INDIRECT
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case XSi XSis
+    code
+      p$INSTRUCTION $A, qword gs:[microcontext.$B + random_const_GS]
+  case SiX SisX
+    sub tmp xa
+    code
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      p$INSTRUCTION xTEMPA, $B
+      movdqu gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SiSi
+    sub tmp xa
+    sub tmp xb
+    code
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      movq xTEMPB, qword gs:[microcontext.$A + random_const_GS]
+      p$INSTRUCTION xTEMPA, xTEMPB
+      movdqu gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+
+extend subroutine binary_instruction select-template
+  case DSi DSis
+    code
+      $INSTRUCTION $A, qword gs:[microcontext.$B + random_const_GS]
+  case XSi XSis
+    sub tmp xa
+    code
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      %[$INSTRUCTION]sd $A, xTEMPA
+      $RESET_TEMP
+  case SiD SisD
+    code
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], $B
+  case SiI SisI SiC SisC
+    sub tmp $TGT_B
+    code
+      $LD_B_IMMEDIATE
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], $TGT_B
+      $RESET_TEMP
+  case SiSi SiSis SisSi SisSis
+    sub tmp ra
+    code
+      mov rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case SiSif SiSifs SisSif SisSifs
+    sub tmp ra
+    code
+      cvtsd2si rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case SiX SisX
+    sub tmp xa
+    code
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      %[$INSTRUCTION]sd xTEMPA, $B
+      cvttsd2si xTEMPA, xTEMPA
+      movdqu qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifD SifsD
+    sub tmp xa
+    sub tmp xb
+    code
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cvtsi2sd xTEMPB, $B
+      %[$INSTRUCTION]sd xTEMPA, xTEMPB
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifI SifsI SifC SifsC
+    sub tmp xa
+    sub tmp xb
+    sub tmp rc
+    code
+      $LD_B_IMMEDIATE_INDIRECT
+      cvtsi2sd xTEMPB, rTEMPC
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      %[$INSTRUCTION]sd xTEMPA, xTEMPB
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifF SifsF SifCf SifsCf
+    sub tmp xa
+    sub tmp xb
+    sub tmp rc
+    code
+      $LD_B_IMMEDIATE_INDIRECT
+      movq xTEMPB, rTEMPC
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      %[$INSTRUCTION]sd xTEMPA, xTEMPB
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifX SifsX
+    sub tmp xa
+    code
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      %[$INSTRUCTION]sd xTEMPA, $B
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifSi SifsSi SifSis SifsSis
+    sub tmp xa
+    sub tmp xb
+    code
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cvtsi2sd xTEMPB, qword gs:[microcontext.$B + random_const_GS]
+      %[$INSTRUCTION]sd xTEMPA, xTEMPB
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifSif SifsSif SifSifs SifsSifs
+    sub tmp xa
+    sub tmp xb
+    code
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      %[$INSTRUCTION]sd xTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+
+extend instruction assign select-template
+  case DSi DSis
+    code
+      mov $A, qword gs:[microcontext.$B + random_const_GS]
+  case SiD SisD
+    code
+      mov qword gs:[microcontext.$A + random_const_GS], $B
+  case SiSi SiSis SisSi SisSis
+    sub tmp ra
+    code
+      mov rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  
+  case XSis
+    code
+      cvtsi2sd $A, qword gs:[microcontext.$B + random_const_GS]
+  case SisX
+    sub tmp ra
+    code
+      cvttsd2si rTEMPA, $B
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  
+  case XSi
+    sub tmp xa
+    code
+      cvtsi2sd $A, qword gs:[microcontext.$B + random_const_GS]
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$B + 8 + random_const_GS]
+      movlhps $A, xTEMPA
+      $RESET_TEMP
+  case SiX
+    sub tmp ra
+    sub tmp xa
+    code
+      cvttsd2si rTEMPA, $B
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      movhlps xTEMPA, $A
+      cvttsd2si rTEMPA, xTEMPA
+      mov qword gs:[microcontext.$A + 8 + random_const_GS], rTEMPA
+      $RESET_TEMP
+  
+  case XSifs
+    code
+      movq $A, qword gs:[microcontext.$B + random_const_GS]
+  case SifsX
+    code
+      movq qword gs:[microcontext.$A + random_const_GS], $B
+  case XSif
+    code
+      movdqu $A, qword gs:[microcontext.$B + random_const_GS]
+  case SifX
+    code
+      movdqu qword gs:[microcontext.$A + random_const_GS], $B
+  
+  case SiI SisI SiC SisC SiS SisS SiLi SisLi
+    sub tmp $TGT_B
+    code
+      $LD_B_IMMEDIATE
+      mov qword gs:[microcontext.$A + random_const_GS], $TGT_B
+      $RESET_TEMP
+  case SiF SisF SiCf SisCf
+    sub tmp ra
+    sub tmp xa
+    code
+      $LD_B_IMMEDIATE_INDIRECT
+      movq xTEMPA, rTEMPA
+      cvttsd2si rTEMPA, xTEMPA
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case SifF SifsF SifCf SifsCf
+    sub tmp ra
+    code
+      $LD_B_IMMEDIATE_INDIRECT
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+
+extend instruction mul select-template
+  case DSi DSis
+    sub tmp ra
+    code
+      mov rTEMPA, $A
+      imul qword gs:[microcontext.$B + random_const_GS]
+      mov $A, rTEMPA
+      $RESET_TEMP
+  case SiD SisD
+    sub tmp ra
+    code
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      imul $B
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case SiI SisI
+    sub tmp ra
+    sub tmp rc
+    code
+      $LD_B_IMMEDIATE_INDIRECT
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      imul rTEMPC
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case SiSi SisSi SiSis SisSis
+    sub tmp a
+    code
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      imul qword gs:[microcontext.$B + random_const_GS]
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case SiX SisX
+    sub tmp xa
+    code
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      mulsd xTEMPA, $B
+      cvtsd2si xTEMPA, xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SiSif SisSif SiSifs SisSifs
+    sub tmp xa
+    code
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      mulsd xTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      cvtsd2si xTEMPA, xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SiF SiCf
+    sub tmp xa
+    sub tmp xb
+    sub tmp rc
+    code
+      $LD_B_IMMEDIATE_INDIRECT
+      movq xTEMPB, rTEMPC
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      mulsd xTEMPA, xTEMPB
+      cvtsd2si xTEMPA, xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case XSi XSis
+    sub tmp xa
+    code
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      mulsd $A, xTEMPA
+      $RESET_TEMP
+  case XSif XSifs
+    code
+      mulsd $A, qword gs:[microcontext.$B + random_const_GS]
+  case SifX SifsX
+    sub tmp xa
+    code
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      mulsd xTEMPA, $B
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifD SifsD
+    sub tmp xa
+    sub tmp xb
+    code
+      cvtsi2sd xTEMPB, $B
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      mulsd xTEMPA, xTEMPB
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifI SifsI SifC SifsC
+    sub tmp xa
+    sub tmp xb
+    sub tmp rc
+    code
+      $LD_B_IMMEDIATE_INDIRECT
+      cvtsi2sd xTEMPB, rTEMPC
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      mulsd xTEMPA, xTEMPB
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifSif SifsSif SifSifs SifsSifs
+    sub tmp xa
+    code
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      mulsd xTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifSi SifsSi SifSis SifsSis
+    sub tmp xa
+    sub tmp xb
+    code
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cvtsi2sd xTEMPB, qword gs:[microcontext.$B + random_const_GS]
+      mulsd xTEMPA, xTEMPB
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+
+extend instruction div select-template
+  case DSiN DSisN
+    sub tmp ra
+    code
+      cmp qword gs:[microcontext.$B + random_const_GS], 0
+      erroreq STATUS_DIVISION_BY_ZERO
+      mov rTEMPA, $A
+      cqo
+      idiv qword gs:[microcontext.$B + random_const_GS]
+      mov $A, rTEMPA
+      $RESET_TEMP
+  case SiDN SisDN
+    sub tmp ra
+    code
+      cmp $B, 0
+      erroreq STATUS_DIVISION_BY_ZERO
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cqo
+      idiv $B
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case SiSiN SiSisN SisSiN SisSisN
+    sub tmp ra
+    code
+      cmp qword gs:[microcontext.$B + random_const_GS], 0
+      erroreq STATUS_DIVISION_BY_ZERO
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cqo
+      idiv qword gs:[microcontext.$B + random_const_GS]
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case SiIN SiCN SiSN SisIN SisCN SisSN
+    sub tmp ra
+    sub tmp rc
+    code
+      $LD_B_IMMEDIATE_INDIRECT
+      cmp rTEMPC, 0
+      erroreq STATUS_DIVISION_BY_ZERO
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cqo
+      idiv rTEMPC
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  
+  case SiXN SisXN
+    sub tmp xa
+    code
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      divsd xTEMPA, $B
+      cvttsd2si xTEMPA, xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SiFN SiCfN SisFN SisCfN
+    sub tmp xa
+    sub tmp xb
+    sub tmp rc
+    code
+      $LD_B_IMMEDIATE_INDIRECT
+      movq xTEMPB, rTEMPC
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      divsd xTEMPA, xTEMPB
+      cvttsd2si xTEMPA, xTEMPA
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifD SifsD
+    sub tmp xa
+    sub tmp xb
+    code
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cvtsi2sd xTEMPB, $B
+      divsd xTEMPA, xTEMPB
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifI SifsI SifC SifsC
+    sub tmp xa
+    sub tmp xb
+    sub tmp rc
+    code
+      $LD_B_IMMEDIATE_INDIRECT
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cvtsi2sd xTEMPB, rTEMPC
+      divsd xTEMPA, xTEMPB
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifXN SifsXN
+    sub tmp xa
+    code
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      divsd xTEMPA, $B
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case SifFN SifCfN SifsFN SifsCfN
+    sub tmp xa
+    sub tmp xb
+    sub tmp rc
+    code
+      $LD_B_IMMEDIATE_INDIRECT
+      movq xTEMPB, rTEMPC
+      movq xTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      divsd xTEMPA, xTEMPB
+      movq qword gs:[microcontext.$A + random_const_GS], xTEMPA
+      $RESET_TEMP
+  case XSiN XSisN
+    code
+      cvtsi2sd xTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      divsd $A, xTEMPA
+      $RESET_TEMP
+  case XSifN XSifsN
+    code
+      divsd $A, qword gs:[microcontext.$B + random_const_GS]
+  
+  case DSiL DSisL
+    sub tmp ra
+    code
+      cmp qword gs:[microcontext.$B + random_const_GS], 0
+      je $DIVZ_TARGET
+      mov rTEMPA, $A
+      cqo
+      idiv qword gs:[microcontext.$B + random_const_GS]
+      mov $A, rTEMPA
+      $RESET_TEMP
+  case SiDL SisDL
+    sub tmp ra
+    code
+      cmp $B, 0
+      je $DIVZ_TARGET
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cqo
+      idiv $B
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case SiSiL SiSisL SisSiL SisSisL
+    sub tmp ra
+    code
+      cmp qword gs:[microcontext.$B + random_const_GS], 0
+      je $DIVZ_TARGET
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cqo
+      idiv qword gs:[microcontext.$B + random_const_GS]
+      mov qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case SiIL SiCL SiSL SisIL SisCL SisSL
+    sub tmp ra
+    sub tmp rc
+    code
+      $LD_B_IMMEDIATE_INDIRECT
+      cmp rTEMPC, 0
+      je $DIVZ_TARGET
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cqo
+      idiv rTEMPC
+      mv qword gs:[microcontext.$A + random_const_GS], rTEMPA
+      $RESET_TEMP
+
+
+extend instruction goto select
+  case Si Sis
+    sub tmp ra
+    code
+      mov rTEMPA, qword gs:[microcontext.$JTARGET + random_const_GS]
+      cmp rTEMPA, fs:[context.instruction_count + random_const_FS]
+      errorge STATUS_ROGUE_BRANCH
+      cmp rTEMPA, 0
+      errorlt STATUS_ROGUE_BRANCH
+      lfence
+      mov rMAPPER, rTEMPA
+      shl rMAPPER, 3
+      add rMAPPER, fs:[context.program_map + random_const_FS]
+      $RESET_TEMP
+      jmp [rMAPPER]
+
+extend instruction lwcall select
+  case Si Sis
+    sub tmp a
+    sub tmp c
+    code
+      $LD_RETURN_TARGET
+      cmp rLWCSI, lwcall_stack_max
+      errorge STATUS_STACK_OVERFLOW
+      mov rTEMPA, rLWCSI
+      shl rTEMPA, 2
+      add rTEMPA, fs:[context.lwcall_stack_address + random_const_FS]
+      mov dword [rTEMPA], rTEMPC_32
+      inc rLWCSI
+      mov rTEMPA, qword gs:[microcontext.$JTARGET + random_const_GS]
+      cmp rTEMPA, fs:[context.instruction_count + random_const_FS]
+      errorge STATUS_ROGUE_BRANCH
+      cmp rTEMPA, 0
+      errorlt STATUS_ROGUE_BRANCH
+      lfence
+      mov rMAPPER, rTEMPA
+      shl rMAPPER, 3
+      add rMAPPER, fs:[context.program_map + random_const_FS]
+      $RESET_TEMP
+      jmp [rMAPPER]
+
+extend subroutine shift select-template
+  select-template
+    case DSi DSis
+      sub tmp c
+      code 
+        mov rTEMPC, qword gs:[microcontext.$B + random_const_GS]
+        $INSTRUCTION $A, cl
+        $RESET_TEMP
+    case SiD SisD
+      sub tmp c
+      code 
+        mov rTEMPC, $B
+        $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], cl
+        $RESET_TEMP
+    case SiI SisI SiC SisC
+      sub tmp c
+      code 
+        $LD_B_IMMEDIATE_INDIRECT
+        $INSTRUCTION qword gs:[microcontext.$A + random_const_GS], cl
+        $RESET_TEMP
+
+extend subroutine test select-template
+  case DTSi DTSis
+    code
+      cmp $A, qword gs:[microcontext.$B + random_const_GS]
+      $CJUMP .pass
+  case DTSi DTSis
+    code
+      cmp qword gs:[microcontext.$A + random_const_GS], $B
+      $CJUMP .pass
+  case SiTD SisTD
+    sub tmp ra
+    code
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cmp rTEMPA, $B
+      $CJUMP .pass
+  case SiTSi SiTSis SisTSi SisTSis
+    sub tmp ra
+    code
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      cmp rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      $CJUMP .pass
+  case SiTI SiTC SiTS SisTI SisTC SisTS
+    sub tmp rc
+    code
+      $LD_IMMEDIATE_B_INDIRECT
+      cmp qword gs:[microcontext.$A + random_const_GS], rTEMPC
+      $CJUMP .pass
+  case ITSi CTSi STSi ITSis CTSis STSis
+    sub tmp ra
+    code
+      $LD_IMMEDIATE_A_INDIRECT
+      cmp rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      $CJUMP .pass
+  
+  case DAndSi DAndSis
+    code
+      test $A, qword gs:[microcontext.$B + random_const_GS]
+      $CJUMP .pass
+  case SiAndD SisAndD
+    code
+      test qword gs:[microcontext.$A + random_const_GS], $B
+      $CJUMP .pass
+  case SiAndSi SiAndSis SisAndSi SisAndSis
+    sub tmp ra
+    code
+      mov rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      test rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      $CJUMP .pass
+  case SiAndI SiAndC SisAndS SisAndI SisAndC SisAndS
+    sub tmp rc
+    code
+      $LD_IMMEDIATE_B_INDIRECT
+      test qword gs:[microcontext.$A + random_const_GS], rTEMPC
+      $CJUMP .pass
+  case IAndSi CAndSi SAndSi IAndSis CAndSis SAndSis
+    sub tmp ra
+    code
+      $LD_IMMEDIATE_A_INDIRECT
+      test qword gs:[microcontext.$B + random_const_GS], rTEMPA
+      $CJUMP .pass
+  case DOrSi DOrSis
+    sub tmp ra
+    code
+      assign rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      or rTEMPA, $B
+      cmp rTEMPA, 0
+      $CJUMP .pass
+  case SiOrD SisOrD
+    sub tmp ra
+    code
+      assign rTEMPA, $A
+      or rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      cmp $A, 0
+      $CJUMP .pass
+  case SiOrSi SiOrSis SisOrSi SisOrSis
+    sub tmp ra
+    code
+      assign rTEMPA, qword gs:[microcontext.$A + random_const_GS]
+      or rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      cmp rTEMPA, 0
+      $CJUMP .pass
+  case SiOrI SiOrC SiOrS SisOrI SisOrC SisOrS
+    sub tmp $TGT_B
+    code
+      $LD_IMMEDIATE_B_INDIRECT
+      or rTEMPC, qword gs:[microcontext.$A + random_const_GS]
+      cmp rTEMPC, 0
+      $CJUMP .pass
+  case IOrSi COrSi SOrSi IOrSis COrSis SOrSis
+    sub tmp $TGT_A
+    code
+      $LD_IMMEDIATE_A_INDIRECT
+      or rTEMPA, qword gs:[microcontext.$B + random_const_GS]
+      cmp rTEMPA, 0
+      $CJUMP .pass
+  case Si Sis
+    code
+      cmp qword gs:[microcontext.$A + random_const_GS], 0
+      $CJUMP .pass
+
+extend instruction sign select-template
+  case DSi DSis
+    code
+      mov $DEST, qword gs:[microcontext.$SRC + random_const_GS]
+      not $DEST
+      shr $DEST, 63
+      shl $DEST, 1
+      dec $DEST
+  case SiD SisD
+    sub tmp ra
+    code
+      mov rTEMPA, $SRC
+      not rTEMPA
+      shr rTEMPA, 63
+      shl rTEMPA, 1
+      dec rTEMPA
+      mov qword gs:[microcontext.$DEST + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case SiSi SisSi SiSis SisSis
+    sub tmp ra
+    code
+      mov rTEMPA, qword gs:[microcontext.$SRC + random_const_GS]
+      not rTEMPA
+      shr rTEMPA, 63
+      shl rTEMPA, 1
+      dec rTEMPA
+      mov qword gs:[microcontext.$DEST + random_const_GS], rTEMPA
+      $RESET_TEMP
+  case Si Sis
+    sub tmp ra
+    code
+      mov rTEMPA, qword gs:[microcontext.$DEST + random_const_GS]
+      not rTEMPA
+      shr rTEMPA, 63
+      shl rTEMPA, 1
+      dec rTEMPA
+      mov qword gs:[microcontext.$DEST + random_const_GS], rTEMPA
+      $RESET_TEMP
+
+extend instruction abs select-template
+  case DSi DSis
+    code
+      mov $DEST, qword gs:[microcontext.$SRC + random_const_GS]
+      neg $DEST
+      cmovl $DEST, qword gs:[microcontext.$SRC + random_const_GS]
+  case SiD SisD
+    sub tmp ra
+    sub tmp rc
+    code
+      mov rTEMPC, qword gs:[microcontext.$DEST + random_const_GS]
+      mov rTEMPA, $SRC
+      neg rTEMPA
+      cmovl rTEMPC, rTEMPA
+      mv qword gs:[microcontext.$DEST + random_const_GS], rTEMPC
+      $RESET_TEMP
+  case SiSi SisSi SiSis SisSis
+    sub tmp ra
+    sub tmp rc
+    code
+      mov rTEMPC, qword gs:[microcontext.$DEST + random_const_GS]
+      mov rTEMPA, qword gs:[microcontext.$SRC + random_const_GS]
+      neg rTEMPA
+      cmovl rTEMPC, rTEMPA
+      mv qword gs:[microcontext.$DEST + random_const_GS], rTEMPC
+      $RESET_TEMP
+  case Si Sis
+    sub tmp ra
+    sub tmp rc
+    code
+      mov rTEMPA, qword gs:[microcontext.$DEST + random_const_GS]
+      mov rTEMPC, qword gs:[microcontext.$DEST + random_const_GS]
+      neg rTEMPA
+      cmovg rTEMPC, rTEMPA
+      mv qword gs:[microcontext.$DEST + random_const_GS], rTEMPC
+      $RESET_TEMP
+
+extend instruction reverse-bits select-template
+  case Si Sis
+    $rRVBITREG rTEMPC
+    sub tmp rc
+    code 
+      mov rTEMPC, qword gs:[microcontext.$DEST + random_const_GS]
+    sub reverse-bits-core
+    code
+      mov qword gs:[microcontext.$DEST + random_const_GS], rTEMPC
+      $RESET_TEMP
+  case DSi DSis
+    $rRVBITREG $DEST
+    sub tmp rc
+    sub reverse-bits-core
+    code
+      mov rTEMPC, qword gs:[microcontext.$PARAM + random_const_GS]
+      not rTEMPC
+      inc rTEMPC
+      shr $DEST, rTEMPC_8
+      $RESET_TEMP
+  case SiD SisD
+    $rRVBITREG rTEMPC
+    sub tmp rc
+    sub reverse-bits-core
+    code
+      mov rTEMPD, rTEMPC
+      mov rTEMPC, $PARAM
+      not rTEMPC
+      inc rTEMPC
+      shr rTEMPD, rTEMPC_8
+      mov qword gs:[microcontext.$DEST + random_const_GS], rTEMPD
+      $RESET_TEMP
+  case SiSi SisSi SiSis SisSis
+    $rRVBITREG rTEMPC
+    sub tmp rc
+    sub reverse-bits-core
+    code
+      mov rTEMPD, rTEMPC
+      mov rTEMPC, qword gs:[microcontext.$PARAM + random_const_GS]
+      not rTEMPC
+      inc rTEMPC
+      shr rTEMPD, rTEMPC_8
+      mov qword gs:[microcontext.$DEST + random_const_GS], rTEMPD
+      $RESET_TEMP
+  case SiI SisI
+    $rRVBITREG rTEMPC
+    sub tmp rc
+    code 
+      mov rTEMPC, qword gs:[microcontext.$DEST + random_const_GS]
+    sub reverse-bits-core
+    code
+      mov rTEMPD, rTEMPC
+      $LD_IMMEDIATE_INDIRECT_PARAM
+      not rTEMPC
+      inc rTEMPC
+      shr rTEMPD, rTEMPC_8
+      mov qword gs:[microcontext.$DEST + random_const_GS], rTEMPD
+      $RESET_TEMP
+
+subroutine load-stash-DS
+  sub tmp ra
+  sub tmp rd
+  code
+    mov rTEMPD, gs:[microcontext.$OFFSET + random_const_GS]
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPD, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPD, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $MOV %[$DEST__DATA_REG]_$REGBITS_LD, $MVKW [$ADDRESS_REGISTER+rTEMPD]
+    $RESET_TEMP
+
+subroutine load-stash-SD
+  sub tmp ra
+  code
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp $OFFSET, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp $OFFSET, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $MOV rTEMPA_$REGBITS_LD, $MVKW [$ADDRESS_REGISTER+$OFFSET]
+    mov qword gs:[microcontext.$DEST__DATA_REG + random_const_GS], rTEMPA
+    $RESET_TEMP
+
+subroutine load-stash-SS
+  sub tmp ra
+  sub tmp rd
+  code
+    mov rTEMPD, gs:[microcontext.$OFFSET + random_const_GS]
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPD, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPD, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $MOV rTEMPA_$REGBITS_LD, $MVKW [$ADDRESS_REGISTER+rTEMPD]
+    mov qword gs:[microcontext.$DEST__DATA_REG + random_const_GS], rTEMPA
+    $RESET_TEMP
+
+subroutine load-stash-SI
+  sub tmp ra
+  sub tmp rc
+  code
+    $LD_OFFSET_IMMEDIATE
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPC, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPC, 0
+    errorlt STATUS_ROGUE_POINTER
+    lfence
+    $MOV rTEMPA_$REGBITS_LD, $MVKW [$ADDRESS_REGISTER+rTEMPC]
+    mov qword gs:[microcontext.$DEST__DATA_REG + random_const_GS], rTEMPA
+    $RESET_TEMP
+
+extend instruction load select-template
+  select-template
+    case QSiAD DSiAD DsSiAD WSiAD BSiAD  QSisAD DSisAD DsSisAD WSisAD BSisAD
+      sub load-stash-SD
+    case QDASi DDASi DsDASi WDASi BDASi  QDASis DDASis DsDASis WDASis BDASis
+      sub load-stash-DS
+    case QSiASi DSiASi DsSiASi WSiASi BSiASi  QSisASi DSisASi DsSisASi WSisASi BSisASi  QSiASis DSiASis DsSiASis WSiASis BSiASis  QSisASis DSisASis DsSisASis WSisASis BSisASis
+      sub load-stash-SS
+    case QSiAI QSiAC DSiAI DSiAC DsSiAI DsSiAC WSiAI WSiAC BSiAI BSiAC  QSisAI QSisAC DSisAI DSisAC DsSisAI DsSisAC WSisAI WSisAC BSisAI BSisAC
+      sub load-stash-SI
+
+subroutine store-stash-DS
+  sub tmp a
+  code
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp $OFFSET, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp $OFFSET, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    mov rTEMPA, qword gs:[microcontext.$SRC + random_const_GS]
+    mov $MVKW [$ADDRESS_REGISTER+$OFFSET], rTEMPA_$REGBITS_ST
+    $RESET_TEMP
+subroutine store-stash-SD
+  sub tmp a
+  sub tmp d
+  code
+    mov rTEMPD, qword gs:[microcontext.$OFFSET + random_const_GS]
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPD, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPD, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    mov $MVKW [$ADDRESS_REGISTER+rTEMPD], %[$SRC]_$REGBITS_ST
+    $RESET_TEMP
+subroutine store-stash-SS
+  sub tmp a
+  sub tmp d
+  code
+    mov rTEMPD, qword gs:[microcontext.$OFFSET + random_const_GS]
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPD, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPD, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    mov rTEMPA, qword gs:[microcontext.$SRC + random_const_GS]
+    mov $MVKW [$ADDRESS_REGISTER+rTEMPD], rTEMPA_$REGBITS_ST
+    $RESET_TEMP
+
+subroutine store-stash-SI
+  sub tmp a
+  sub tmp d
+  code
+    mov rTEMPD, qword gs:[microcontext.$OFFSET + random_const_GS]
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPD, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPD, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    $LD_SRC_IMMEDIATE_INDIRECT
+    mov $MVKW [$ADDRESS_REGISTER+rTEMPD], rTEMPA_$REGBITS_ST
+    $RESET_TEMP
+
+subroutine store-stash-IS
+  sub tmp ra
+  sub tmp rc
+  code
+    $LD_OFFSET_IMMEDIATE
+    mov rTEMPA_32, fs:[$CTX_ELEMENT_BOUND + random_const_FS]
+    sub rTEMPA_32, $BYTEBOUND
+    cmp rTEMPC, rTEMPA
+    errorge STATUS_ROGUE_POINTER
+    cmp rTEMPC, 0
+    errorlt STATUS_ROGUE_POINTER
+    cmp $ADDRESS_REGISTER, 0
+    erroreq STATUS_UNBOUND_MEMORY
+    lfence
+    mov rTEMPA, qword gs:[microcontext.$SRC + random_const_GS]
+    mov $MVKW [$ADDRESS_REGISTER+$OFFSET], rTEMPA_$REGBITS_ST
+    $RESET_TEMP
+
+extend instruction store select-template
+  case QASiD DASiD DsASiD WASiD BASiD  QASisD DASisD DsASisD WASisD BASisD
+    sub store-stash-SD
+  case QADSi DADSi DsADSi WADSi BADSi  QADSis DADSis DsADSis WADSis BADSis
+    sub store-stash-DS
+  case QASiSi DASiSi DsASiSi WASiSi BASiSi QASiSis DASiSis DsASiSis WASiSis BASiSis  QASisSi DASisSi DsASisSi WASisSi BASisSi QASisSis DASisSis DsASisSis WASisSis BASisSis
+    sub store-stash-SS
+  case QAISi QACSi DAISi DACSi DsAISi DsACSi WAISi WACSi BAISi BACSi QAISis QACSis DAISis DACSis DsAISis DsACSis WAISis WACSis BAISis BACSis
+    sub store-stash-IS
+  case QASiI DASiI DsASiI WASiI BASiI  QASisI DASisI DsASisI WASisI BASisI
+    sub store-stash-SI

@@ -15,7 +15,7 @@
 #include "tactyk_asmvm.h"
 #include "tactyk_dblock.h"
 #include "tactyk_alloc.h"
-
+#include "tactyk_debug.h"
 
 
 struct tactyk_asmvm__VM* tactyk_asmvm__new_vm() {
