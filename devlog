@@ -1,4 +1,4 @@
-20 Jul 2023
+20 Jul 2023 [0.9.0]
   tactyk-doc
     Update documentation for 0.9.0 (for now, only a partial description of new features - it will need a closer examination since a lot has changed)
   
@@ -572,7 +572,7 @@ Upgrade the status of the aux-sdl component (from test code to an actual auxilli
 
 tactyk-core - Add templates for making dynamic lwcalls (referencing jump targets by register or by integer literal/constant)
 
-5 Jun 2023 [0.9.0]
+5 Jun 2023
 Add a mechanism for defining code blocks.
 Code blocks [at the V-ISA level] are defined as a set of labels which are accessible from templates
   These labels are visible to "child" instructions
