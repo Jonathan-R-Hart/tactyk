@@ -99,6 +99,40 @@ SDL2
 
 At some point in the future, OpenGL is likely to be added as a dependency.  The side-project to integrate 3D rendering is presently able to draw a single triangle using a relatively modern approach.  Some of the vectorized math instructions where added as part of this effort.
 
+## Getting Started
+```
+OBTAIN PROJECT DEPENDENCIES
+Install Cmake
+Install Netwide-Assembler (NASM)
+Install SDL2
+
+CLONE THE PROJECT
+download/unpack OR git-clone
+navigate to the project directory
+
+BUILD THE PROJECT
+mkdir build
+cmake -B build .
+cd build
+cmake --build .
+
+RUNNING EXAMPLES
+./trun examples/hello.tkp
+./trun examples/fib.tkp
+./trun examples/emit.tkp
+./trun examples/hello_sdl.tkp
+./trun examples/julia.tkp
+./trun examples/recursive.tkp
+./trun examples/matrix.tkp
+./trun examples/matrix-simd.tkp
+
+DEMONSTRATION OF THE IN-DEVELOPMENT USER-INTERFACE
+./trun extras/programs/drawtest
+
+RUNNING TACTYK TESTS
+./ttest --jobs=16 tests/*
+```
+
 ## News
 ### Version 0.9.0
   New standalone runtime (replaces tdemo)
@@ -164,43 +198,13 @@ At some point in the future, OpenGL is likely to be added as a dependency.  The 
   
   The production of the test suite also led to a variety of improvements to stacks, memory management, and state management.
 
-## Getting Started
-```
-OBTAIN PROJECT DEPENDENCIES
-Install Cmake
-Install Netwide-Assembler (NASM)
-Install SDL2
-
-CLONE THE PROJECT
-download/unpack OR git-clone
-navigate to the project directory
-
-BUILD THE PROJECT
-mkdir build
-cmake -B build .
-cd build
-cmake --build .
-
-RUNNING EXAMPLES
-./trun examples/hello.tkp
-./trun examples/fib.tkp
-./trun examples/emit.tkp
-./trun examples/hello_sdl.tkp
-./trun examples/julia.tkp
-./trun examples/recursive.tkp
-./trun examples/matrix.tkp
-./trun examples/matrix-simd.tkp
-
-DEMONSTRATION OF THE IN-DEVELOPMENT USER-INTERFACE
-./trun extras/programs/drawtest
-
-RUNNING TACTYK TESTS
-./ttest --jobs=16 tests/*
-```
-
 The project documentation is located in the "doc" directory.  A fair amount of the documentation is probably OK-ish, but overall, a technical writer with strong interrogation skills is "desperately" needed.  Until then, you will have to make do with the sample code and experimentation (and/or learn how to read/use the Virtual ISA specification, which is located in the "rsc" directory).  I recommend starting with "examples/hello.tkp", as that is probably one of the least insane bits of the project.
 
 TACTYK project contains a fair amount of sample code to learn from.  These are located in the "examples", "extras", and "tests" directories.
+
+## Major Omissions [0.9.0]
+  Test coverage is incomplete (mainly the newer bitwise operators, the lookup table transform, and the recent expansion of many instructions to accept arguments from the stash)
+  The documentation is a bit sketchy.
 
 ## History
 I considered embedding a scripting engine, attempted to examine its source code, noticed that it was beyond 20000 lines of C, and that the C code contains non-trivial
