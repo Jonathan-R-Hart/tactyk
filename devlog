@@ -1,3 +1,8 @@
+21 Jul 2023
+  tactyk-pl - new directive: "default-parameters"
+    This defines a set of default values for aliases which appear within a TACTYK-PL source code (the parameters which previously were set only through tactyk-runtime modular loading)
+    Responsibility for applying module parameters has also been transferred from tactyk-pl to the module loader (for somewhat better code reuse).
+
 20 Jul 2023 [0.9.0]
   tactyk-doc
     Update documentation for 0.9.0 (for now, only a partial description of new features - it will need a closer examination since a lot has changed)

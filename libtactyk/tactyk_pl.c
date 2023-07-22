@@ -37,6 +37,7 @@ void tactyk_pl__init() {
     tactyk_dblock__put(tkpl_funcs, "use_vconstants", tactyk_pl__ld_visa_constants);
     tactyk_dblock__put(tkpl_funcs, "use", tactyk_pl__ld_constants);
     tactyk_dblock__put(tkpl_funcs, "bus", tactyk_pl__bus);
+    tactyk_dblock__put(tkpl_funcs, "default-parameters", tactyk_pl__params);
     
     tactyk_dblock__set_persistence_code(tkpl_funcs, 100);
 
@@ -102,9 +103,6 @@ void tactyk_pl__load(struct tactyk_pl__Context *plctx, char *code) {
 
 void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblock__DBlock *dbcode) {
     struct tactyk_emit__Context *emitctx = plctx->emitctx;
-    if (plctx->alias_table != NULL) {
-        tactyk_pl__resolve_aliased_tokens(plctx, dbcode);
-    }
     struct tactyk_dblock__DBlock *dbstack[256];
     int64_t dbstack_index = 0;
     dbstack[0] = dbcode;
@@ -159,7 +157,7 @@ void tactyk_pl__load_dblock(struct tactyk_pl__Context *plctx, struct tactyk_dblo
     }
 }
 
-void tactyk_pl__resolve_aliased_tokens(struct tactyk_pl__Context *plctx, struct tactyk_dblock__DBlock *dbcode) {
+void tactyk_pl__rewrite_aliased_tokens(struct tactyk_pl__Context *plctx, struct tactyk_dblock__DBlock *alias_table, struct tactyk_dblock__DBlock *dbcode) {
     tactyk_report__reset();
     tactyk_report__msg("REWRITE");
     struct tactyk_dblock__DBlock *dbstack[256];
@@ -173,7 +171,7 @@ void tactyk_pl__resolve_aliased_tokens(struct tactyk_pl__Context *plctx, struct 
                 tactyk_report__dblock("Original line", dbcode);
                 tactyk_report__indent(2);
                 tactyk_report__dblock("Original token", token);
-                struct tactyk_dblock__DBlock *ntoken = tactyk_dblock__interpolate(token, '$', plctx->alias_chars, plctx->alias_table, NULL);
+                struct tactyk_dblock__DBlock *ntoken = tactyk_dblock__interpolate(token, '$', plctx->alias_chars, alias_table, NULL);
                 tactyk_dblock__set_content(token, ntoken);
                 tactyk_report__dblock("Rewritten token", ntoken);
                 tactyk_report__indent(-2);
@@ -360,6 +358,30 @@ bool tactyk_pl__bus(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock
             break;
         }
     }
+    return true;
+}
+
+bool tactyk_pl__params(struct tactyk_pl__Context *ctx, struct tactyk_dblock__DBlock *dblock) {
+    struct tactyk_dblock__DBlock *alias_table = tactyk_dblock__new_table(512);
+    tactyk_dblock__set_persistence_code(alias_table, 2345678);
+    
+    struct tactyk_dblock__DBlock *line = dblock->child;
+    while (line != NULL) {
+        struct tactyk_dblock__DBlock *alias = line->token;
+        struct tactyk_dblock__DBlock *value = alias->next;
+        if (value == NULL) {
+            tactyk_report__dblock("Null alias value", alias);
+            error(NULL, NULL);
+        }
+        else {
+            tactyk_dblock__put(alias_table, alias, value);
+        }
+        line = line->next;
+    }
+    if (dblock->next != NULL) {
+        tactyk_pl__rewrite_aliased_tokens(ctx, alias_table, dblock->next);
+    }
+    return true;
 }
 
 struct tactyk_asmvm__Program* tactyk_pl__build(struct tactyk_pl__Context *plctx) {

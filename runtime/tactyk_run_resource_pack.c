@@ -455,10 +455,10 @@ bool tactyk_run__rsc__build_program(struct tactyk_run__RSC *rsc, struct tactyk_d
             tactyk_report__dblock("tactyk module not defined", module_name);
             error(NULL, NULL);
         }
-        
-        plctx->alias_table = module->alias_table;
+        if (module->alias_table != NULL) {
+            tactyk_pl__rewrite_aliased_tokens(plctx, module->alias_table, module->pl_src_code);
+        }
         tactyk_pl__load_dblock(plctx, module->pl_src_code);
-        plctx->alias_table = NULL;
         
         module_name = module_name->next;
     }
