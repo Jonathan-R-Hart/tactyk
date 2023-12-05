@@ -26,20 +26,9 @@ int main(int argc, char *argv[], char *envp[]) {
     char *visa_fname = NULL;
 
     tactyk_visa__init(visa_directory_name);
+    
     if (visa_fname == NULL) {
-        tactyk_visa__load_config_module("tactyk_core.visa");
-        tactyk_visa__load_config_module("tactyk_core_typespec.visa");
-        tactyk_visa__load_config_module("tactyk_core_ccall.visa");
-        tactyk_visa__load_config_module("tactyk_core_memory.visa");
-        tactyk_visa__load_config_module("tactyk_core_bulk_transfer.visa");
-        tactyk_visa__load_config_module("tactyk_core_stash.visa");
-        tactyk_visa__load_config_module("tactyk_core_tvmcall.visa");
-        tactyk_visa__load_config_module("tactyk_core_xmm_fpmath.visa");
-        tactyk_visa__load_config_module("tactyk_core_math.visa");
-        tactyk_visa__load_config_module("tactyk_core_simd.visa");
-        tactyk_visa__load_config_module("tactyk_core_simd-util.visa");
-        tactyk_visa__load_config_module("tactyk_core_bits.visa");
-        tactyk_visa__load_config_module("tactyk_core_stash_ext.visa");
+        tactyk_visa__load_config_module_list("tactyk_core__all.vl");
     }
     else {
         tactyk_visa__load_config_module(visa_fname);

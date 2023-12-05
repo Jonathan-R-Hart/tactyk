@@ -66,6 +66,33 @@ void tactyk_visa__init(char *rsc_dname) {
     }
     //sub_instruction
 }
+void tactyk_visa__load_config_module_list(char *vl_fname) {
+
+    char fname[1024];
+    snprintf(fname, 1024, "%s/%s", rsc_directory_name, vl_fname);
+    FILE *f = fopen(fname, "r");
+    if (f == NULL) {
+        error("VIRTUAL-ISA -- specification file not found", NULL);
+    }
+    fseek(f, 0, SEEK_END);
+    int64_t len = ftell(f);
+    uint8_t *fbytes = calloc(len+1, sizeof(uint8_t));
+    fseek(f,0, SEEK_SET);
+    fread(fbytes, len, 1, f);
+    fclose(f);
+
+    struct tactyk_dblock__DBlock *visa_src = tactyk_dblock__from_bytes(NULL, fbytes, 0, (uint64_t)len, true);
+    
+    tactyk_dblock__fix(visa_src);
+    tactyk_dblock__tokenize(visa_src, '\n', false);
+    struct tactyk_dblock__DBlock *item = tactyk_dblock__remove_blanks(visa_src, ' ', '#');
+    tactyk_dblock__trim(item);
+    while (item != NULL) {
+        tactyk_dblock__export_cstring(fname, 1024, item);
+        tactyk_visa__load_config_module(fname);
+        item = item->next;
+    }
+}
 
 void tactyk_visa__load_config_module(char *visa_fname) {
     // load the configuration file

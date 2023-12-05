@@ -1,3 +1,6 @@
+4 Dec 2023
+  tactyk-visa / tactyk-runtime - use a modules list to load modules (instead of hard-coding each one)
+
 21 Jul 2023
   tactyk-pl - new directive: "default-parameters"
     This defines a set of default values for aliases which appear within a TACTYK-PL source code (the parameters which previously were set only through tactyk-runtime modular loading)
