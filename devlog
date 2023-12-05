@@ -1,4 +1,7 @@
 4 Dec 2023
+  Begin next major revision - goal is to make everything tactyk presents as/like a data register interchangeable 
+  (partly to make the language a bit more generous, and partly to avoid having to mimic/respect x86 idiosyncracies/limits if/when making the language portable).  
+  
   tactyk-visa / tactyk-runtime - use a modules list to load modules (instead of hard-coding each one)
 
 21 Jul 2023
