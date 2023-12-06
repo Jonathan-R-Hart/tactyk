@@ -13,435 +13,721 @@ typespec stash-addr
 
 typespec stash-item
   select-operand
-    case sa sA
+    case sa sA sa.int sA.int
       value al
-    case sb sB
+    case sb sB sb.int sB.int
       value bl
-    case sc sC
+    case sc sC sc.int sC.int
       value cl
-    case sd sD
+    case sd sD sd.int sD.int
       value dl
-    case se sE
+    case se sE se.int sE.int
       value el
     
-    case sf sF
+    case sf sF sf.int sF.int
       value fl
-    case sg sG
+    case sg sG sg.int sG.int
       value gl
-    case sh sH
+    case sh sH sh.int sH.int
       value hl
-    case si sI
+    case si sI si.int sI.int
       value il
-    case sj sJ
+    case sj sJ sj.int sJ.int
       value jl
 
-    case sk sK
+    case sk sK sk.int sK.int
       value kl
-    case sl sL
+    case sl sL sl.int sL.int
       value ll
-    case sm sM
+    case sm sM sm.int sM.int
       value ml
-    case sn sN
+    case sn sN sn.int sN.int
       value nl
-    case so sO
+    case so sO so.int sO.int
       value ol
 
-    case sp sP
+    case sp sP sp.int sP.int
       value pl
-    case sq sQ
+    case sq sQ sq.int sQ.int
       value ql
-    case sr sR
+    case sr sR sr.int sR.int
       value rl
-    case ss sS
+    case ss sS ss.int sS.int
       value sl
-    case st sT
+    case st sT st.int sT.int
       value tl
 
-    case su sU
+    case su sU su.int sU.int
       value ul
-    case sv sV
+    case sv sV sv.int sV.int
       value vl
-    case sw sW
+    case sw sW sw.int sW.int
       value wl
-    case sx sX
+    case sx sX sx.int sX.int
       value xl
-    case sy sY
+    case sy sY sy.int sY.int
       value yl
-    case sz sZ
+    case sz sZ sz.int sZ.int
       value zl
     
-    case s26
+    case s26 s26.int
       value s26
-    case s27
+    case s27 s27.int
       value s27
-    case s28
+    case s28 s28.int
       value s28
-    case s29
+    case s29 s29.int
       value s29
-    case s30
+    case s30 s30.int
       value s30
-    case s31
+    case s31 s31.int
       value s31
   pick Si
 
 typespec stash-item-small
   select-operand
-    case sal sAl
+    case sal sAl sal.int sAl.int
       value al
-    case sbl sBl
+    case sbl sBl sbl.int sBl.int
       value bl
-    case scl sCl
+    case scl sCl scl.int sCl.int
       value cl
-    case sdl sDl
+    case sdl sDl sdl.int sDl.int
       value dl
-    case sel sEl
+    case sel sEl sel.int sEl.int
       value el
     
-    case sfl sFl
+    case sfl sFl sfl.int sFl.int
       value fl
-    case sgl sGl
+    case sgl sGl sgl.int sGl.int
       value gl
-    case shl sHl
+    case shl sHl shl.int sHl.int
       value hl
-    case sil sIl
+    case sil sIl sil.int sIl.int
       value il
-    case sjl sJl
+    case sjl sJl sjl.int sJl.int
       value jl
 
-    case skl sKl
+    case skl sKl skl.int sKl.int
       value kl
-    case sll sLl
+    case sll sLl sll.int sLl.int
       value ll
-    case sml sMl
+    case sml sMl sml.int sMl.int
       value ml
-    case snl sNl
+    case snl sNl snl.int sNl.int
       value nl
-    case sol sOl
+    case sol sOl sol.int sOl.int
       value ol
 
-    case spl sPl
+    case spl sPl spl.int sPl.int
       value pl
-    case sql sQl
+    case sql sQl sql.int sQl.int
       value ql
-    case srl sRl
+    case srl sRl srl.int sRl.int
       value rl
-    case ssl sSl
+    case ssl sSl ssl.int sSl.int
       value sl
-    case stl sTl
+    case stl sTl stl.int sTl.int
       value tl
 
-    case sul sUl
+    case sul sUl sul.int sUl.int
       value ul
-    case svl sVl
+    case svl sVl svl.int sVl.int
       value vl
-    case swl sWl
+    case swl sWl swl.int sWl.int
       value wl
-    case sxl sXl
+    case sxl sXl sxl.int sXl.int
       value xl
-    case syl sYl
+    case syl sYl syl.int sYl.int
       value yl
-    case szl sZl
+    case szl sZl szl.int sZl.int
       value zl
     
     case s26l
-      value s26l
+      value s26l s26l.int
     case s27l
-      value s27l
+      value s27l s27l.int
     case s28l
-      value s28l
+      value s28l s28l.int
     case s29l
-      value s29l
+      value s29l s29l.int
     case s30l
-      value s30l
+      value s30l s30l.int
     case s31l
-      value s31l
+      value s31l s31l.int
     
-    case sah sAh
+    case sah sAh sah.int sAh.int
       value ah
-    case sbh sBh
+    case sbh sBh sbh.int sBh.int
       value bh
-    case sch sCh
+    case sch sCh sch.int sCh.int
       value ch
-    case sdh sDh
+    case sdh sDh sdh.int sDh.int
       value dh
-    case seh sEh
+    case seh sEh seh.int sEh.int
       value eh
     
-    case sfh sFh
+    case sfh sFh sfh.int sFh.int
       value fh
-    case sgh sGh
+    case sgh sGh sgh.int sGh.int
       value gh
-    case shh sHh
+    case shh sHh shh.int sHh.int
       value hh
-    case sih sIh
+    case sih sIh sih.int sIh.int
       value ih
-    case sjh sJh
+    case sjh sJh sjh.int sJh.int
       value jh
 
-    case skh sKh
+    case skh sKh skh.int sKh.int
       value kh
-    case slh sLh
+    case slh sLh slh.int sLh.int
       value lh
-    case smh sMh
+    case smh sMh smh.int sMh.int
       value mh
-    case snh sNh
+    case snh sNh snh.int sNh.int
       value nh
-    case soh sOh
+    case soh sOh soh.int sOh.int
       value oh
 
-    case sph sPh
+    case sph sPh sph.int sPh.int
       value ph
-    case sqh sQh
+    case sqh sQh sqh.int sQh.int
       value qh
-    case srh sRh
+    case srh sRh srh.int sRh.int
       value rh
-    case ssh sSh
+    case ssh sSh ssh.int sSh.int
       value sh
-    case sth sTh
+    case sth sTh sth.int sTh.int
       value th
 
-    case suh sUh
+    case suh sUh suh.int sUh.int
       value uh
-    case svh sVh
+    case svh sVh svh.int sVh.int
       value vh
-    case swh sWh
+    case swh sWh swh.int sWh.int
       value wh
-    case sxh sXh
+    case sxh sXh sxh.int sXh.int
       value xh
-    case syh sYh
+    case syh sYh syh.int sYh.int
       value yh
-    case szh sZh
+    case szh sZh szh.int sZh.int
       value zh
     
-    case s26h
+    case s26h s26h.int
       value s26h
-    case s27h
+    case s27h s27h.int
       value s27h
-    case s28h
+    case s28h s28h.int
       value s28h
-    case s29h
+    case s29h s29h.int
       value s29h
-    case s30h
+    case s30h s30h.int
       value s30h
-    case s31h
+    case s31h s31h.int
       value s31h
   pick Sis
 
 typespec fstash-item
   select-operand
-    case saf sAf
+    case saf sAf sa.f64 sA.f64
       value al
-    case sbf sBf
+    case sbf sBf sb.f64 sB.f64
       value bl
-    case scf sCf
+    case scf sCf sc.f64 sC.f64
       value cl
-    case sdf sDf
+    case sdf sDf sd.f64 sD.f64
       value dl
-    case sef sEf
+    case sef sEf se.f64 sE.f64
       value el
     
-    case sff sFf
+    case sff sFf sf.f64 sF.f64
       value fl
-    case sgf sGf
+    case sgf sGf sg.f64 sG.f64
       value gl
-    case shf sHf
+    case shf sHf sh.f64 sH.f64
       value hl
-    case sif sIf
+    case sif sIf si.f64 sI.f64
       value il
-    case sjf sJf
+    case sjf sJf sj.f64 sJ.f64
       value jl
 
-    case skf sKf
+    case skf sKf sk.f64 sK.f64
       value kl
-    case slf sLf
+    case slf sLf sl.f64 sL.f64
       value ll
-    case smf sMf
+    case smf sMf sm.f64 sM.f64
       value ml
-    case snf sNf
+    case snf sNf sn.f64 sN.f64
       value nl
-    case sof sOf
+    case sof sOf so.f64 sO.f64
       value ol
 
-    case spf sPf
+    case spf sPf sp.f64 sP.f64
       value pl
-    case sqf sQf
+    case sqf sQf sq.f64 sQ.f64
       value ql
-    case srf sRf
+    case srf sRf sr.f64 sR.f64
       value rl
-    case ssf sSf
+    case ssf sSf ss.f64 sS.f64
       value sl
-    case stf sTf
+    case stf sTf st.f64 sT.f64
       value tl
 
-    case suf sUf
+    case suf sUf su.f64 sU.f64
       value ul
-    case svf sVf
+    case svf sVf sv.f64 sV.f64
       value vl
-    case swf sWf
+    case swf sWf sw.f64 sW.f64
       value wl
-    case sxf sXf
+    case sxf sXf sx.f64 sX.f64
       value xl
-    case syf sYf
+    case syf sYf sy.f64 sY.f64
       value yl
-    case szf sZf
+    case szf sZf sz.f64 sZ.f64
       value zl
     
-    case s26f
+    case s26f s26.f64
       value s26
-    case s27f
+    case s27f s27.f64
       value s27
-    case s28f
+    case s28f s28.f64
       value s28
-    case s29f
+    case s29f s29.f64
       value s29
-    case s30f
+    case s30f s30.f64
       value s30
-    case s31f
+    case s31f s31.f64
       value s31
   pick Sif
 
 typespec fstash-item-small
   select-operand
-    case salf sAlf
+    case salf sAlf sal.f64 sAl.f64
       value al
-    case sblf sBlf
+    case sblf sBlf sbl.f64 sBl.f64
       value bl
-    case sclf sClf
+    case sclf sClf scl.f64 sCl.f64
       value cl
-    case sdlf sDlf
+    case sdlf sDlf sdl.f64 sDl.f64
       value dl
-    case self sElf
+    case self sElf sel.f64 sEl.f64
       value el
     
-    case sflf sFlf
+    case sflf sFlf sfl.f64 sFl.f64
       value fl
-    case sglf sGlf
+    case sglf sGlf sgl.f64 sGl.f64
       value gl
-    case shlf sHlf
+    case shlf sHlf shl.f64 sHl.f64
       value hl
-    case silf sIlf
+    case silf sIlf sil.f64 sIl.f64
       value il
-    case sjlf sJlf
+    case sjlf sJlf sjl.f64 sJl.f64
       value jl
 
-    case sklf sKlf
+    case sklf sKlf skl.f64 sKl.f64
       value kl
-    case sllf sLlf
+    case sllf sLlf sll.f64 sLl.f64
       value ll
-    case smlf sMlf
+    case smlf sMlf sml.f64 sMl.f64
       value ml
-    case snlf sNlf
+    case snlf sNlf snl.f64 sNl.f64
       value nl
-    case solf sOlf
+    case solf sOlf sol.f64 sOl.f64
       value ol
 
-    case splf sPlf
+    case splf sPlf spl.f64 sPl.f64
       value pl
-    case sqlf sQlf
+    case sqlf sQlf sql.f64 sQl.f64
       value ql
-    case srlf sRlf
+    case srlf sRlf srl.f64 sRl.f64
       value rl
-    case sslf sSlf
+    case sslf sSlf ssl.f64 sSl.f64
       value sl
-    case stlf sTlf
+    case stlf sTlf stl.f64 sTl.f64
       value tl
 
-    case sulf sUlf
+    case sulf sUlf sul.f64 sUl.f64
       value ul
-    case svlf sVlf
+    case svlf sVlf svl.f64 sVl.f64
       value vl
-    case swlf sWlf
+    case swlf sWlf swl.f64 sWl.f64
       value wl
-    case sxlf sXlf
+    case sxlf sXlf sxl.f64 sXl.f64
       value xl
-    case sylf sYlf
+    case sylf sYlf syl.f64 sYl.f64
       value yl
-    case szlf sZlf
+    case szlf sZlf szl.f64 sZl.f64
       value zl
     
-    case s26lf
+    case s26lf s26l.f64
       value s26l
-    case s27lf
+    case s27lf s27l.f64
       value s27l
-    case s28lf
+    case s28lf s28l.f64
       value s28l
-    case s29lf
+    case s29lf s29l.f64
       value s29l
-    case s30lf
+    case s30lf s30l.f64
       value s30l
-    case s31lf
+    case s31lf s31l.f64
       value s31l
     
-    case sahf sAhf
+    case sahf sAhf sah.f64 sAh.f64
       value ah
-    case sbhf sBhf
+    case sbhf sBhf sbh.f64 sBh.f64
       value bh
-    case schf sChf
+    case schf sChf sch.f64 sCh.f64
       value ch
-    case sdhf sDhf
+    case sdhf sDhf sdh.f64 sDh.f64
       value dh
-    case sehf sEhf
+    case sehf sEhf seh.f64 sEh.f64
       value eh
     
-    case sfhf sFhf
+    case sfhf sFhf sfh.f64 sFh.f64
       value fh
-    case sghf sGhf
+    case sghf sGhf sgh.f64 sGh.f64
       value gh
-    case shhf sHhf
+    case shhf sHhf shh.f64 sHh.f64
       value hh
-    case sihf sIhf
+    case sihf sIhf sih.f64 sIh.f64
       value ih
-    case sjhf sJhf
+    case sjhf sJhf sjh.f64 sJh.f64
       value jh
 
-    case skhf sKhf
+    case skhf sKhf skh.f64 sKh.f64
       value kh
-    case slhf sLhf
+    case slhf sLhf slh.f64 sLh.f64
       value lh
-    case smhf sMhf
+    case smhf sMhf smh.f64 sMh.f64
       value mh
-    case snhf sNhf
+    case snhf sNhf snh.f64 sNh.f64
       value nh
-    case sohf sOhf
+    case sohf sOhf soh.f64 sOh.f64
       value oh
 
-    case sphf sPhf
+    case sphf sPhf sph.f64 sPh.f64
       value ph
-    case sqhf sQhf
+    case sqhf sQhf sqh.f64 sQh.f64
       value qh
-    case srhf sRhf
+    case srhf sRhf srh.f64 sRh.f64
       value rh
-    case sshf sShf
+    case sshf sShf ssh.f64 sSh.f64
       value sh
-    case sthf sThf
+    case sthf sThf sth.f64 sTh.f64
       value th
 
-    case suhf sUhf
+    case suhf sUhf suh.f64 sUh.f64
       value uh
-    case svhf sVhf
+    case svhf sVhf svh.f64 sVh.f64
       value vh
-    case swhf sWhf
+    case swhf sWhf swh.f64 sWh.f64
       value wh
-    case sxhf sXhf
+    case sxhf sXhf sxh.f64 sXh.f64
       value xh
-    case syhf sYhf
+    case syhf sYhf syh.f64 sYh.f64
       value yh
-    case szhf sZhf
+    case szhf sZhf szh.f64 sZh.f64
       value zh
     
-    case s26hf
+    case s26hf s26h.f64
       value s26h
-    case s27hf
+    case s27hf s27h.f64
       value s27h
-    case s28hf
+    case s28hf s28h.f64
       value s28h
-    case s29hf
+    case s29hf s29h.f64
       value s29h
-    case s30hf
+    case s30hf s30h.f64
       value s30h
-    case s31hf
+    case s31hf s31h.f64
       value s31h
   pick Sifs
+
+
+typespec f32stash-item
+  select-operand
+    case sa.0.f32 sA.0.f32
+      value al.0
+    case sb.0.f32 sB.0.f32
+      value bl.0
+    case sc.0.f32 sC.0.f32
+      value cl.0
+    case sd.0.f32 sD.0.f32
+      value dl.0
+    case se.0.f32 sE.0.f32
+      value el.0
+    
+    case sf.0.f32 sF.0.f32
+      value fl.0
+    case sg.0.f32 sG.0.f32
+      value gl.0
+    case sh.0.f32 sH.0.f32
+      value hl.0
+    case si.0.f32 sI.0.f32
+      value il.0
+    case sj.0.f32 sJ.0.f32
+      value jl.0
+
+    case sk.0.f32 sK.0.f32
+      value kl.0
+    case sl.0.f32 sL.0.f32
+      value ll.0
+    case sm.0.f32 sM.0.f32
+      value ml.0
+    case sn.0.f32 sN.0.f32
+      value nl.0
+    case so.0.f32 sO.0.f32
+      value ol.0
+
+    case sp.0.f32 sP.0.f32
+      value pl.0
+    case sq.0.f32 sQ.0.f32
+      value ql.0
+    case sr.0.f32 sR.0.f32
+      value rl.0
+    case ss.0.f32 sS.0.f32
+      value sl.0
+    case st.0.f32 sT.0.f32
+      value tl.0
+
+    case su.0.f32 sU.0.f32
+      value ul.0
+    case sv.0.f32 sV.0.f32
+      value vl.0
+    case sw.0.f32 sW.0.f32
+      value wl.0
+    case sx.0.f32 sX.0.f32
+      value xl.0
+    case sy.0.f32 sY.0.f32
+      value yl.0
+    case sz.0.f32 sZ.0.f32
+      value zl.0
+    
+    case s26.0.f32
+      value s26.0
+    case s27.0.f32
+      value s27.0
+    case s28.0.f32
+      value s28.0
+    case s29.0.f32
+      value s29.0
+    case s30.0.f32
+      value s30.0
+    case s31.0.f32
+      value s31.0
+
+    case sa.1.f32 sA.1.f32
+      value al.1
+    case sb.1.f32 sB.1.f32
+      value bl.1
+    case sc.1.f32 sC.1.f32
+      value cl.1
+    case sd.1.f32 sD.1.f32
+      value dl.1
+    case se.1.f32 sE.1.f32
+      value el.1
+    
+    case sf.1.f32 sF.1.f32
+      value fl.1
+    case sg.1.f32 sG.1.f32
+      value gl.1
+    case sh.1.f32 sH.1.f32
+      value hl.1
+    case si.1.f32 sI.1.f32
+      value il.1
+    case sj.1.f32 sJ.1.f32
+      value jl.1
+
+    case sk.1.f32 sK.1.f32
+      value kl.1
+    case sl.1.f32 sL.1.f32
+      value ll.1
+    case sm.1.f32 sM.1.f32
+      value ml.1
+    case sn.1.f32 sN.1.f32
+      value nl.1
+    case so.1.f32 sO.1.f32
+      value ol.1
+
+    case sp.1.f32 sP.1.f32
+      value pl.1
+    case sq.1.f32 sQ.1.f32
+      value ql.1
+    case sr.1.f32 sR.1.f32
+      value rl.1
+    case ss.1.f32 sS.1.f32
+      value sl.1
+    case st.1.f32 sT.1.f32
+      value tl.1
+
+    case su.1.f32 sU.1.f32
+      value ul.1
+    case sv.1.f32 sV.1.f32
+      value vl.1
+    case sw.1.f32 sW.1.f32
+      value wl.1
+    case sx.1.f32 sX.1.f32
+      value xl.1
+    case sy.1.f32 sY.1.f32
+      value yl.1
+    case sz.1.f32 sZ.1.f32
+      value zl.1
+    
+    case s26.1.f32
+      value s26.1
+    case s27.1.f32
+      value s27.1
+    case s28.1.f32
+      value s28.1
+    case s29.1.f32
+      value s29.1
+    case s30.1.f32
+      value s30.1
+    case s31.1.f32
+      value s31.1
+
+    case sa.2.f32 sA.2.f32
+      value al.2
+    case sb.2.f32 sB.2.f32
+      value bl.2
+    case sc.2.f32 sC.2.f32
+      value cl.2
+    case sd.2.f32 sD.2.f32
+      value dl.2
+    case se.2.f32 sE.2.f32
+      value el.2
+    
+    case sf.2.f32 sF.2.f32
+      value fl.2
+    case sg.2.f32 sG.2.f32
+      value gl.2
+    case sh.2.f32 sH.2.f32
+      value hl.2
+    case si.2.f32 sI.2.f32
+      value il.2
+    case sj.2.f32 sJ.2.f32
+      value jl.2
+
+    case sk.2.f32 sK.2.f32
+      value kl.2
+    case sl.2.f32 sL.2.f32
+      value ll.2
+    case sm.2.f32 sM.2.f32
+      value ml.2
+    case sn.2.f32 sN.2.f32
+      value nl.2
+    case so.2.f32 sO.2.f32
+      value ol.2
+
+    case sp.2.f32 sP.2.f32
+      value pl.2
+    case sq.2.f32 sQ.2.f32
+      value ql.2
+    case sr.2.f32 sR.2.f32
+      value rl.2
+    case ss.2.f32 sS.2.f32
+      value sl.2
+    case st.2.f32 sT.2.f32
+      value tl.2
+
+    case su.2.f32 sU.2.f32
+      value ul.2
+    case sv.2.f32 sV.2.f32
+      value vl.2
+    case sw.2.f32 sW.2.f32
+      value wl.2
+    case sx.2.f32 sX.2.f32
+      value xl.2
+    case sy.2.f32 sY.2.f32
+      value yl.2
+    case sz.2.f32 sZ.2.f32
+      value zl.2
+    
+    case s26.2.f32
+      value s26.2
+    case s27.2.f32
+      value s27.2
+    case s28.2.f32
+      value s28.2
+    case s29.2.f32
+      value s29.2
+    case s30.2.f32
+      value s30.2
+    case s31.2.f32
+      value s31.2
+
+    case sa.3.f32 sA.3.f32
+      value al.3
+    case sb.3.f32 sB.3.f32
+      value bl.3
+    case sc.3.f32 sC.3.f32
+      value cl.3
+    case sd.3.f32 sD.3.f32
+      value dl.3
+    case se.3.f32 sE.3.f32
+      value el.3
+    
+    case sf.3.f32 sF.3.f32
+      value fl.3
+    case sg.3.f32 sG.3.f32
+      value gl.3
+    case sh.3.f32 sH.3.f32
+      value hl.3
+    case si.3.f32 sI.3.f32
+      value il.3
+    case sj.3.f32 sJ.3.f32
+      value jl.3
+
+    case sk.3.f32 sK.3.f32
+      value kl.3
+    case sl.3.f32 sL.3.f32
+      value ll.3
+    case sm.3.f32 sM.3.f32
+      value ml.3
+    case sn.3.f32 sN.3.f32
+      value nl.3
+    case so.3.f32 sO.3.f32
+      value ol.3
+
+    case sp.3.f32 sP.3.f32
+      value pl.3
+    case sq.3.f32 sQ.3.f32
+      value ql.3
+    case sr.3.f32 sR.3.f32
+      value rl.3
+    case ss.3.f32 sS.3.f32
+      value sl.3
+    case st.3.f32 sT.3.f32
+      value tl.3
+
+    case su.3.f32 sU.3.f32
+      value ul.3
+    case sv.3.f32 sV.3.f32
+      value vl.3
+    case sw.3.f32 sW.3.f32
+      value wl.3
+    case sx.3.f32 sX.3.f32
+      value xl.3
+    case sy.3.f32 sY.3.f32
+      value yl.3
+    case sz.3.f32 sZ.3.f32
+      value zl.3
+    
+    case s26.3.f32
+      value s26.3
+    case s27.3.f32
+      value s27.3
+    case s28.3.f32
+      value s28.3
+    case s29.3.f32
+      value s29.3
+    case s30.3.f32
+      value s30.3
+    case s31.3.f32
+      value s31.3
+  pick Sif32
+
+
 
 instruction block-stash
   operand

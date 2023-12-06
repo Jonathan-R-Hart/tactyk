@@ -1,8 +1,7 @@
 6 Dec 2023
-  Expand the type specifications for data registers, xmmx registers, and stash entries - these may now may contain an integer/binary type, a 32-bit floats, or a 64-bit float
+  Expand the type specifications for data registers, xmmx registers, and stash entries - these may now may contain integer/binary types, 32-bit floats, and 64-bit floats
   The plan is to create variants of all significant instructions to allow registers and register-like objects to be used interchangeably (to make programming a bit easier and to avoid artificial restrictions if/when
-  porting tactyk to other architectures).  The natural/default type for any given register will be the recommended usage (and more efficient in common cases).
-
+  porting tactyk to other architectures).  The natural/default type for any given register will be the recommended usage (and more efficient in common cases).  This should also help with a few inconsistancies.
 4 Dec 2023
   tactyk-visa / tactyk-runtime - use a modules list to load modules (instead of hard-coding each one)
 

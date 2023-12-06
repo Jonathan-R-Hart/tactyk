@@ -42,33 +42,17 @@ typespec address
 
 typespec data
   select-operand
-    case a ra rA
+    case a ra rA a.int ra.int rA.int
       value rA
-    case b rb rB
+    case b rb rB b.int rb.int rB.int
       value rB
-    case c rc rC
+    case c rc rC c.int rc.int rC.int
       value rC
-    case d rd rD
+    case d rd rD d.int rd.int rD.int
       value rD
-    case e re rE
+    case e re rE e.int re.int rE.int
       value rE
-    case f rf rF
-      value rF
-  pick D
-
-typespec data-int
-  select-operand
-    case a ra rA
-      value rA
-    case b rb rB
-      value rB
-    case c rc rC
-      value rC
-    case d rd rD
-      value rD
-    case e re rE
-      value rE
-    case f rf rF
+    case f rf rF f.int rf.int rF.int
       value rF
   pick D
 
@@ -86,7 +70,7 @@ typespec data-f32
       value rE
     case f.f32 rf.f32 rF.f32
       value rF
-  pick D.f32
+  pick Df32
 
 typespec data-f64
   select-operand
@@ -102,7 +86,7 @@ typespec data-f64
       value rE
     case f.f64 rf.f64 rF.f64
       value rF
-  pick D.f64
+  pick Df64
 
 typespec word
   select-operand
@@ -428,65 +412,33 @@ typespec address-offset
 
 typespec xmmx
   select-operand
-    case x0 xmm0 xa xA
+    case x0 xmm0 xa xA x0.f64 xmm0.f64 xa.f64 xA.f64
       value xA
-    case x1 xmm1 xb xB
+    case x1 xmm1 xb xB x1.f64 xmm1.f64 xb.f64 xB.f64
       value xB
-    case x2 xmm2 xc xC
+    case x2 xmm2 xc xC x2.f64 xmm2.f64 xc.f64 xC.f64
       value xC
-    case x3 xmm3 xd xD
+    case x3 xmm3 xd xD x3.f64 xmm3.f64 xd.f64 xD.f64
       value xD
-    case x4 xmm4 xe xE
+    case x4 xmm4 xe xE x4.f64 xmm4.f64 xe.f64 xE.f64
       value xE
-    case x5 xmm5 xf xF
+    case x5 xmm5 xf xF x5.f64 xmm5.f64 xf.f64 xF.f64
       value xF
-    case x6 xmm6 xg xG
+    case x6 xmm6 xg xG x6.f64 xmm6.f64 xg.f64 xG.f64
       value xG
-    case x7 xmm7 xh xH
+    case x7 xmm7 xh xH x7.f64 xmm7.f64 xh.f64 xH.f64
       value xH
-    case x8 xmm8 xi xI
+    case x8 xmm8 xi xI x8.f64 xmm8.f64 xi.f64 xI.f64
       value xI
-    case x9 xmm9 xj xJ
+    case x9 xmm9 xj xJ x9.f64 xmm9.f64 xj.f64 xJ.f64
       value xJ
-    case x10 xmm10 xk xK
+    case x10 xmm10 xk xK x10.f64 xmm10.f64 xk.f64 xK.f64
       value xK
-    case x11 xmm11 xl xL
+    case x11 xmm11 xl xL x11.f64 xmm11.f64 xl.f64 xL.f64
       value xL
-    case x12 xmm12 xm xM
+    case x12 xmm12 xm xM x12.f64 xmm12.f64 xm.f64 xM.f64
       value xM
-    case x13 xmm13 xn xN
-      value xN
-  pick X
-
-typespec xmmx.f64
-  select-operand
-    case x0 xmm0 xa xA
-      value xA
-    case x1 xmm1 xb xB
-      value xB
-    case x2 xmm2 xc xC
-      value xC
-    case x3 xmm3 xd xD
-      value xD
-    case x4 xmm4 xe xE
-      value xE
-    case x5 xmm5 xf xF
-      value xF
-    case x6 xmm6 xg xG
-      value xG
-    case x7 xmm7 xh xH
-      value xH
-    case x8 xmm8 xi xI
-      value xI
-    case x9 xmm9 xj xJ
-      value xJ
-    case x10 xmm10 xk xK
-      value xK
-    case x11 xmm11 xl xL
-      value xL
-    case x12 xmm12 xm xM
-      value xM
-    case x13 xmm13 xn xN
+    case x13 xmm13 xn xN x13.f64 xmm13.f64 xn.f64 xN.f64
       value xN
   pick X
 
@@ -520,7 +472,7 @@ typespec xmmx-f32
       value xM
     case x13.f32 xmm13.f32 xn.f32 xN.f32
       value xN
-  pick X.f32
+  pick Xf32
 
 typespec xmmx-int
   select-operand
@@ -552,7 +504,7 @@ typespec xmmx-int
       value xM
     case x13.int xmm13.int xn.int xN.int
       value xN
-  pick X.int
+  pick Xint
 
 typespec xmmx-full
   select-operand
