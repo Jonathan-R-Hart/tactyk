@@ -56,6 +56,54 @@ typespec data
       value rF
   pick D
 
+typespec data-int
+  select-operand
+    case a ra rA
+      value rA
+    case b rb rB
+      value rB
+    case c rc rC
+      value rC
+    case d rd rD
+      value rD
+    case e re rE
+      value rE
+    case f rf rF
+      value rF
+  pick D
+
+typespec data-f32
+  select-operand
+    case a.f32 ra.f32 rA.f32
+      value rA
+    case b.f32 rb.f32 rB.f32
+      value rB
+    case c.f32 rc.f32 rC.f32
+      value rC
+    case d.f32 rd.f32 rD.f32
+      value rD
+    case e.f32 re.f32 rE.f32
+      value rE
+    case f.f32 rf.f32 rF.f32
+      value rF
+  pick D.f32
+
+typespec data-f64
+  select-operand
+    case a.f64 ra.f64 rA.f64
+      value rA
+    case b.f64 rb.f64 rB.f64
+      value rB
+    case c.f64 rc.f64 rC.f64
+      value rC
+    case d.f64 rd.f64 rD.f64
+      value rD
+    case e.f64 re.f64 rE.f64
+      value rE
+    case f.f64 rf.f64 rF.f64
+      value rF
+  pick D.f64
+
 typespec word
   select-operand
     case byte i8
@@ -409,6 +457,102 @@ typespec xmmx
     case x13 xmm13 xn xN
       value xN
   pick X
+
+typespec xmmx.f64
+  select-operand
+    case x0 xmm0 xa xA
+      value xA
+    case x1 xmm1 xb xB
+      value xB
+    case x2 xmm2 xc xC
+      value xC
+    case x3 xmm3 xd xD
+      value xD
+    case x4 xmm4 xe xE
+      value xE
+    case x5 xmm5 xf xF
+      value xF
+    case x6 xmm6 xg xG
+      value xG
+    case x7 xmm7 xh xH
+      value xH
+    case x8 xmm8 xi xI
+      value xI
+    case x9 xmm9 xj xJ
+      value xJ
+    case x10 xmm10 xk xK
+      value xK
+    case x11 xmm11 xl xL
+      value xL
+    case x12 xmm12 xm xM
+      value xM
+    case x13 xmm13 xn xN
+      value xN
+  pick X
+
+typespec xmmx-f32
+  select-operand
+    case x0.f32 xmm0.f32 xa.f32 xA.f32
+      value xA
+    case x1.f32 xmm1.f32 xb.f32 xB.f32
+      value xB
+    case x2.f32 xmm2.f32 xc.f32 xC.f32
+      value xC
+    case x3.f32 xmm3.f32 xd.f32 xD.f32
+      value xD
+    case x4.f32 xmm4.f32 xe.f32 xE.f32
+      value xE
+    case x5.f32 xmm5.f32 xf.f32 xF.f32
+      value xF
+    case x6.f32 xmm6.f32 xg.f32 xG.f32
+      value xG
+    case x7.f32 xmm7.f32 xh.f32 xH.f32
+      value xH
+    case x8.f32 xmm8.f32 xi.f32 xI.f32
+      value xI
+    case x9.f32 xmm9.f32 xj.f32 xJ.f32
+      value xJ
+    case x10.f32 xmm10.f32 xk.f32 xK.f32
+      value xK
+    case x11.f32 xmm11.f32 xl.f32 xL.f32
+      value xL
+    case x12.f32 xmm12.f32 xm.f32 xM.f32
+      value xM
+    case x13.f32 xmm13.f32 xn.f32 xN.f32
+      value xN
+  pick X.f32
+
+typespec xmmx-int
+  select-operand
+    case x0.int xmm0.int xa.int xA.int
+      value xA
+    case x1.int xmm1.int xb.int xB.int
+      value xB
+    case x2.int xmm2.int xc.int xC.int
+      value xC
+    case x3.int xmm3.int xd.int xD.int
+      value xD
+    case x4.int xmm4.int xe.int xE.int
+      value xE
+    case x5.int xmm5.int xf.int xF.int
+      value xF
+    case x6.int xmm6.int xg.int xG.int
+      value xG
+    case x7.int xmm7.int xh.int xH.int
+      value xH
+    case x8.int xmm8.int xi.int xI.int
+      value xI
+    case x9.int xmm9.int xj.int xJ.int
+      value xJ
+    case x10.int xmm10.int xk.int xK.int
+      value xK
+    case x11.int xmm11.int xl.int xL.int
+      value xL
+    case x12.int xmm12.int xm.int xM.int
+      value xM
+    case x13.int xmm13.int xn.int xN.int
+      value xN
+  pick X.int
 
 typespec xmmx-full
   select-operand
